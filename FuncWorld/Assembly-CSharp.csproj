@@ -69,6 +69,7 @@
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\Unit.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Item.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Marine.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\Unity\Resource.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\PublicEnum\Entry.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\PublicEnum\OrderQueue.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\PublicEnum\OrderTarget.cs" />
