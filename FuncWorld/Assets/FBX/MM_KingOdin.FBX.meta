@@ -1,0 +1,464 @@
+fileFormatVersion: 2
+guid: 66260486913b195489cdcb6f45edfd2a
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: BoneBoxShoulderLft
+    100002: BoneBoxShoulderRT
+    100004: BoneBoxSpine
+    100006: Box01
+    100008: Box04
+    100010: Box06
+    100012: Box07
+    100014: Box08
+    100016: Box09
+    100018: Box18
+    100020: Box19
+    100022: Box21
+    100024: Box22
+    100026: Box25
+    100028: Box26
+    100030: Dummy05
+    100032: Dummy07
+    100034: Dummy08
+    100036: Dummy09
+    100038: Dummy12
+    100040: Dummy13
+    100042: Dummy14
+    100044: HitTestTight
+    100046: Mesh01
+    100048: Mesh02
+    100050: Mesh03
+    100052: Mesh04
+    100054: Mesh05
+    100056: Mesh06
+    100058: Mesh07
+    100060: Mesh08
+    100062: Mesh09
+    100064: Mesh10
+    100066: Mesh11
+    100068: Mesh12
+    100070: Mesh13xxx
+    100072: Mesh14
+    100074: Mesh14x
+    100076: Mesh14x01
+    100078: Mesh15
+    100080: //RootNode
+    100082: newlegs
+    100084: Object01
+    100086: Odin 1
+    100088: Ref_Center
+    100090: Ref_Center_BoneRef
+    100092: Ref_Origin
+    100094: Ref_Origin_BoneRef
+    100096: Ref_Overhead
+    100098: Ref_Overhead_BoneRef
+    100100: Ref_Target
+    100102: Ref_Target 01
+    100104: Ref_Target 02
+    100106: Ref_Target 03
+    100108: Ref_Target 04
+    100110: Ref_Target 05
+    100112: Ref_Target 06
+    100114: Ref_Weapon 01
+    100116: Ref_Weapon 01_BoneRef
+    100118: Ref_Weapon 02
+    100120: Ref_Weapon 02_BoneRef
+    100122: Ref_Weapon 03
+    100124: Ref_Weapon 03_BoneRef
+    100126: Ref_Weapon 04
+    100128: Ref_Weapon 04_BoneRef
+    100130: Ref_Weapon 05
+    100132: Ref_Weapon 05_BoneRef
+    100134: Ref_Weapon 06
+    100136: Ref_Weapon 06_BoneRef
+    100138: Ref_Weapon 07
+    100140: Ref_Weapon 07_BoneRef
+    100142: Ref_Weapon 08
+    100144: Ref_Weapon 08_BoneRef
+    100146: Ref_Weapon 09
+    100148: Ref_Weapon 09_BoneRef
+    100150: Ref_Weapon 10
+    100152: Ref_Weapon 10_BoneRef
+    100154: Ref_Weapon 11
+    100156: Ref_Weapon 11_BoneRef
+    100158: Ref_Weapon 12
+    100160: Ref_Weapon 12_BoneRef
+    100162: Ref_Weapon 13
+    100164: Ref_Weapon 13_BoneRef
+    100166: Ref_Weapon 14
+    100168: Ref_Weapon 14_BoneRef
+    100170: Ref_Weapon 15
+    100172: Ref_Weapon 15_BoneRef
+    100174: Ref_Weapon 16
+    100176: Ref_Weapon 16_BoneRef
+    100178: Ref_Weapon 17
+    100180: Ref_Weapon 17_BoneRef
+    100182: Ref_Weapon 18
+    100184: Ref_Weapon 18_BoneRef
+    100186: Star2Omni02
+    100188: Star2Omni03
+    100190: Star2Omni04
+    100192: Star2Part01boomfire1x
+    100194: Star2Part01boomfire1x01
+    100196: Star2Part01boomfire1x02
+    100198: Star2Part01boomfire1x03
+    100200: Star2Part01boomsmokex
+    100202: Star2Part01boomsmokex01
+    100204: Star2Part01boomsmokex02
+    100206: Star2Part01boomsmokex03
+    100208: Star2Part01exhaust
+    100210: Star2Part01exhaust01
+    100212: Star2Part01exhaust02
+    100214: Star2Part01exhaust03
+    100216: Star2Part01exhaust04
+    100218: Star2Part01exhaust05
+    100220: Star2Part01exhaust05 1
+    100222: Star2Part01exhaust05 10
+    100224: Star2Part01exhaust05 11
+    100226: Star2Part01exhaust05 12
+    100228: Star2Part01exhaust05 13
+    100230: Star2Part01exhaust05 14
+    100232: Star2Part01exhaust05 15
+    100234: Star2Part01exhaust05 16
+    100236: Star2Part01exhaust05 2
+    100238: Star2Part01exhaust05 3
+    100240: Star2Part01exhaust05 4
+    100242: Star2Part01exhaust05 5
+    100244: Star2Part01exhaust05 6
+    100246: Star2Part01exhaust05 7
+    100248: Star2Part01exhaust05 8
+    100250: Star2Part01exhaust05 9
+    100252: Star2Part01exhaust05_boneRef
+    100254: Star2Part01exhaust06trans
+    100256: Star2Part01exhaust06trans01
+    100258: Star2Part01exhaust06trans02
+    100260: Star2Part01exhaust06trans03
+    100262: Star2Part01exhaust06trans04
+    100264: Star2Part01sparks
+    100266: Star2Part01sparks01
+    100268: Star2Part02boomfire2x
+    100270: Star2Part02boomfire2x01
+    100272: Star2Part02boomfire2x02
+    100274: Star2Part02boomfire2x03
+    100276: Star2Part10Shells
+    100278: Star2Part10Shells01
+    100280: Star2Part10Shells02
+    100282: Star2Part10Shells03
+    100284: Star2PartSmokeOut03
+    100286: Star2PartSmokeOut04
+    100288: Unit_Thor_Antenne_01
+    100290: Unit_Thor_L_Arm_P_02
+    100292: Unit_Thor_L_Arm_P_03
+    100294: Unit_Thor_L_Cannon_01
+    100296: Unit_Thor_L_Cannon_02
+    100298: Unit_Thor_L_Cannon_P_01
+    100300: Unit_Thor_L_Cannon_P_02
+    100302: Unit_Thor_L_Exhaust_01
+    100304: Unit_Thor_L_Gun_01
+    100306: Unit_Thor_L_Gun_02
+    100308: Unit_Thor_L_Gun_03
+    100310: Unit_Thor_L_Leg_P_01
+    100312: Unit_Thor_L_Leg_P_04
+    100314: Unit_Thor_L_Leg_P_05
+    100316: Unit_Thor_L_Leg_P_06
+    100318: Unit_Thor_L_Shoulder_P_02
+    100320: Unit_Thor_R_Arm_P_02
+    100322: Unit_Thor_R_Arm_P_03
+    100324: Unit_Thor_R_Cannon_01
+    100326: Unit_Thor_R_Cannon_02
+    100328: Unit_Thor_R_Cannon_P_01
+    100330: Unit_Thor_R_Cannon_P_02
+    100332: Unit_Thor_R_Exhaust_01
+    100334: Unit_Thor_R_Gun_01
+    100336: Unit_Thor_R_Gun_02
+    100338: Unit_Thor_R_Gun_03
+    100340: Unit_Thor_R_Leg_P_01
+    100342: Unit_Thor_R_Leg_P_04
+    100344: Unit_Thor_R_Leg_P_05
+    100346: Unit_Thor_R_Leg_P_06
+    100348: Unit_Thor_Torso_P_01
+    100350: Unit_Thor_Torso_P_02
+    100352: Unit_Thor_Waist_P_01
+    100354: Vol_Target 01_BoneRef_BoneRef
+    100356: Vol_Target 02_BoneRef_BoneRef
+    100358: Vol_Target 03_BoneRef_BoneRef
+    100360: Vol_Target 04_BoneRef_BoneRef
+    100362: Vol_Target 05_BoneRef_BoneRef
+    100364: Vol_Target 06_BoneRef_BoneRef
+    100366: Vol_Target_BoneRef_BoneRef
+    400000: BoneBoxShoulderLft
+    400002: BoneBoxShoulderRT
+    400004: BoneBoxSpine
+    400006: Box01
+    400008: Box04
+    400010: Box06
+    400012: Box07
+    400014: Box08
+    400016: Box09
+    400018: Box18
+    400020: Box19
+    400022: Box21
+    400024: Box22
+    400026: Box25
+    400028: Box26
+    400030: Dummy05
+    400032: Dummy07
+    400034: Dummy08
+    400036: Dummy09
+    400038: Dummy12
+    400040: Dummy13
+    400042: Dummy14
+    400044: HitTestTight
+    400046: Mesh01
+    400048: Mesh02
+    400050: Mesh03
+    400052: Mesh04
+    400054: Mesh05
+    400056: Mesh06
+    400058: Mesh07
+    400060: Mesh08
+    400062: Mesh09
+    400064: Mesh10
+    400066: Mesh11
+    400068: Mesh12
+    400070: Mesh13xxx
+    400072: Mesh14
+    400074: Mesh14x
+    400076: Mesh14x01
+    400078: Mesh15
+    400080: //RootNode
+    400082: newlegs
+    400084: Object01
+    400086: Odin 1
+    400088: Ref_Center
+    400090: Ref_Center_BoneRef
+    400092: Ref_Origin
+    400094: Ref_Origin_BoneRef
+    400096: Ref_Overhead
+    400098: Ref_Overhead_BoneRef
+    400100: Ref_Target
+    400102: Ref_Target 01
+    400104: Ref_Target 02
+    400106: Ref_Target 03
+    400108: Ref_Target 04
+    400110: Ref_Target 05
+    400112: Ref_Target 06
+    400114: Ref_Weapon 01
+    400116: Ref_Weapon 01_BoneRef
+    400118: Ref_Weapon 02
+    400120: Ref_Weapon 02_BoneRef
+    400122: Ref_Weapon 03
+    400124: Ref_Weapon 03_BoneRef
+    400126: Ref_Weapon 04
+    400128: Ref_Weapon 04_BoneRef
+    400130: Ref_Weapon 05
+    400132: Ref_Weapon 05_BoneRef
+    400134: Ref_Weapon 06
+    400136: Ref_Weapon 06_BoneRef
+    400138: Ref_Weapon 07
+    400140: Ref_Weapon 07_BoneRef
+    400142: Ref_Weapon 08
+    400144: Ref_Weapon 08_BoneRef
+    400146: Ref_Weapon 09
+    400148: Ref_Weapon 09_BoneRef
+    400150: Ref_Weapon 10
+    400152: Ref_Weapon 10_BoneRef
+    400154: Ref_Weapon 11
+    400156: Ref_Weapon 11_BoneRef
+    400158: Ref_Weapon 12
+    400160: Ref_Weapon 12_BoneRef
+    400162: Ref_Weapon 13
+    400164: Ref_Weapon 13_BoneRef
+    400166: Ref_Weapon 14
+    400168: Ref_Weapon 14_BoneRef
+    400170: Ref_Weapon 15
+    400172: Ref_Weapon 15_BoneRef
+    400174: Ref_Weapon 16
+    400176: Ref_Weapon 16_BoneRef
+    400178: Ref_Weapon 17
+    400180: Ref_Weapon 17_BoneRef
+    400182: Ref_Weapon 18
+    400184: Ref_Weapon 18_BoneRef
+    400186: Star2Omni02
+    400188: Star2Omni03
+    400190: Star2Omni04
+    400192: Star2Part01boomfire1x
+    400194: Star2Part01boomfire1x01
+    400196: Star2Part01boomfire1x02
+    400198: Star2Part01boomfire1x03
+    400200: Star2Part01boomsmokex
+    400202: Star2Part01boomsmokex01
+    400204: Star2Part01boomsmokex02
+    400206: Star2Part01boomsmokex03
+    400208: Star2Part01exhaust
+    400210: Star2Part01exhaust01
+    400212: Star2Part01exhaust02
+    400214: Star2Part01exhaust03
+    400216: Star2Part01exhaust04
+    400218: Star2Part01exhaust05
+    400220: Star2Part01exhaust05 1
+    400222: Star2Part01exhaust05 10
+    400224: Star2Part01exhaust05 11
+    400226: Star2Part01exhaust05 12
+    400228: Star2Part01exhaust05 13
+    400230: Star2Part01exhaust05 14
+    400232: Star2Part01exhaust05 15
+    400234: Star2Part01exhaust05 16
+    400236: Star2Part01exhaust05 2
+    400238: Star2Part01exhaust05 3
+    400240: Star2Part01exhaust05 4
+    400242: Star2Part01exhaust05 5
+    400244: Star2Part01exhaust05 6
+    400246: Star2Part01exhaust05 7
+    400248: Star2Part01exhaust05 8
+    400250: Star2Part01exhaust05 9
+    400252: Star2Part01exhaust05_boneRef
+    400254: Star2Part01exhaust06trans
+    400256: Star2Part01exhaust06trans01
+    400258: Star2Part01exhaust06trans02
+    400260: Star2Part01exhaust06trans03
+    400262: Star2Part01exhaust06trans04
+    400264: Star2Part01sparks
+    400266: Star2Part01sparks01
+    400268: Star2Part02boomfire2x
+    400270: Star2Part02boomfire2x01
+    400272: Star2Part02boomfire2x02
+    400274: Star2Part02boomfire2x03
+    400276: Star2Part10Shells
+    400278: Star2Part10Shells01
+    400280: Star2Part10Shells02
+    400282: Star2Part10Shells03
+    400284: Star2PartSmokeOut03
+    400286: Star2PartSmokeOut04
+    400288: Unit_Thor_Antenne_01
+    400290: Unit_Thor_L_Arm_P_02
+    400292: Unit_Thor_L_Arm_P_03
+    400294: Unit_Thor_L_Cannon_01
+    400296: Unit_Thor_L_Cannon_02
+    400298: Unit_Thor_L_Cannon_P_01
+    400300: Unit_Thor_L_Cannon_P_02
+    400302: Unit_Thor_L_Exhaust_01
+    400304: Unit_Thor_L_Gun_01
+    400306: Unit_Thor_L_Gun_02
+    400308: Unit_Thor_L_Gun_03
+    400310: Unit_Thor_L_Leg_P_01
+    400312: Unit_Thor_L_Leg_P_04
+    400314: Unit_Thor_L_Leg_P_05
+    400316: Unit_Thor_L_Leg_P_06
+    400318: Unit_Thor_L_Shoulder_P_02
+    400320: Unit_Thor_R_Arm_P_02
+    400322: Unit_Thor_R_Arm_P_03
+    400324: Unit_Thor_R_Cannon_01
+    400326: Unit_Thor_R_Cannon_02
+    400328: Unit_Thor_R_Cannon_P_01
+    400330: Unit_Thor_R_Cannon_P_02
+    400332: Unit_Thor_R_Exhaust_01
+    400334: Unit_Thor_R_Gun_01
+    400336: Unit_Thor_R_Gun_02
+    400338: Unit_Thor_R_Gun_03
+    400340: Unit_Thor_R_Leg_P_01
+    400342: Unit_Thor_R_Leg_P_04
+    400344: Unit_Thor_R_Leg_P_05
+    400346: Unit_Thor_R_Leg_P_06
+    400348: Unit_Thor_Torso_P_01
+    400350: Unit_Thor_Torso_P_02
+    400352: Unit_Thor_Waist_P_01
+    400354: Vol_Target 01_BoneRef_BoneRef
+    400356: Vol_Target 02_BoneRef_BoneRef
+    400358: Vol_Target 03_BoneRef_BoneRef
+    400360: Vol_Target 04_BoneRef_BoneRef
+    400362: Vol_Target 05_BoneRef_BoneRef
+    400364: Vol_Target 06_BoneRef_BoneRef
+    400366: Vol_Target_BoneRef_BoneRef
+    2100000: Starcraft_2_Material_THOR
+    4300000: Odin 1
+    7400000: Take 001
+    9500000: //RootNode
+    13700000: Odin 1
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Starcraft_2_Material_THOR
+    second: {fileID: 2100000, guid: 098e786fce523b04fb5a8f3cb8c3011e, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

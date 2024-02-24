@@ -1,0 +1,186 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "T:\\Work\\Unity\\FuncWorld\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|t:\\work\\unity\\funcworld\\assets\\scripts\\metalmaxsystem\\class\\dotnetevent\\recordservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\dotnetevent\\recordservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|t:\\work\\unity\\funcworld\\assets\\scripts\\metalmaxsystem\\class\\dotnetevent\\keyboardhook.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\dotnetevent\\keyboardhook.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\metalmaxsystem\\class\\mmcore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\mmcore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\metalmaxsystem\\class\\game\\order.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\game\\order.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\metalmaxsystem\\class\\game\\abilcmd.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\game\\abilcmd.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\metalmaxsystem\\class\\unit.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\unit.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\metalmaxsystem\\class\\player.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\player.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\metalmaxsystem\\class\\subupdate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\subupdate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\metalmaxsystem\\class\\game\\game.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\game\\game.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\metalmaxsystem\\class\\timerupdate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\timerupdate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:7:0:{57d563b6-44a5-47df-85be-f4199ad6b651}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "KeyboardHook.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\DotNetEvent\\KeyboardHook.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\DotNetEvent\\KeyboardHook.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\DotNetEvent\\KeyboardHook.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\DotNetEvent\\KeyboardHook.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAACUAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-02-24T01:25:08.473Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "MMCore.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\MMCore.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\MMCore.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\MMCore.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\MMCore.cs",
+              "ViewState": "AQIAAAp/AAAAAAAAAAAowCd/AABZAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-02-24T01:20:44.777Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "RecordService.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\DotNetEvent\\RecordService.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\DotNetEvent\\RecordService.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\DotNetEvent\\RecordService.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\DotNetEvent\\RecordService.cs",
+              "ViewState": "AQIAAFIAAAAAAAAAAAAowHAAAAAIAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-02-23T20:29:47.659Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Order.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Order.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Order.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Order.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Order.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABMAAAANAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-02-23T20:29:35.697Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Abilcmd.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Abilcmd.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Abilcmd.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Abilcmd.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Abilcmd.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAjAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-02-23T20:29:16.183Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "SubUpdate.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\SubUpdate.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\SubUpdate.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\SubUpdate.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\SubUpdate.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAwwAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-02-23T20:19:27.017Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Unit.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\Unit.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\Unit.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\Unit.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\Unit.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAwwAAAAAAjAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-02-23T20:12:06.425Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Game.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Game.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Game.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Game.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\Game\\Game.cs",
+              "ViewState": "AQIAAEIBAAAAAAAAAABIwEQBAAAWAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-02-23T20:10:50.714Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "TimerUpdate.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\TimerUpdate.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\TimerUpdate.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\TimerUpdate.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\TimerUpdate.cs",
+              "ViewState": "AQIAADgBAAAAAAAAAABIwDoBAAAMAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-02-23T20:05:26.128Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Player.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\Player.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\Player.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\Player.cs",
+              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\Player.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAjAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-02-23T20:03:10.219Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

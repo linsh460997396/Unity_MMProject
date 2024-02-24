@@ -1,0 +1,212 @@
+fileFormatVersion: 2
+guid: 0ee591dae5d4e894786369438d7fb89c
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: Bone01
+    100002: Bone_Chest
+    100004: Bone_Foot Left Front
+    100006: Bone_Foot Left Rear
+    100008: Bone_Foot Left Rear 01
+    100010: Bone_Foot Right Front
+    100012: Bone_Foot Right Rear
+    100014: Bone_Foot Right Rear 01
+    100016: Bone_Head
+    100018: Bone_Leg Left Front
+    100020: Bone_Leg Left Front 01
+    100022: Bone_Leg Left Rear
+    100024: Bone_Leg Left Rear 01
+    100026: Bone_Leg Left Rear 02
+    100028: Bone_Leg Right Front
+    100030: Bone_Leg Right Front 01
+    100032: Bone_Leg Right Rear
+    100034: Bone_Leg Right Rear 01
+    100036: Bone_Leg Right Rear 02
+    100038: Bone_Pelvis
+    100040: Bone_Tail
+    100042: Bone_Tail 01
+    100044: Bone_Tail 02
+    100046: Bone_Tail 03
+    100048: Bone_Wing Left 00
+    100050: Bone_Wing Left 01
+    100052: Bone_Wing Right 00
+    100054: Bone_Wing Right 01
+    100056: BoneStockL01
+    100058: BoneStockL02
+    100060: BoneStockL03
+    100062: BoneStockR01
+    100064: BoneStockR02
+    100066: BoneStockR03
+    100068: Dummy01
+    100070: H_Zergling_Upgrade 1
+    100072: HitTestFuzzy
+    100074: HitTestFuzzy01
+    100076: HitTestFuzzy02
+    100078: HitTestTight
+    100080: //RootNode
+    100082: Ref_Center
+    100084: Ref_Center_BoneRef
+    100086: Ref_Hardpoint
+    100088: Ref_Hardpoint_BoneRef
+    100090: Ref_Head
+    100092: Ref_Head_BoneRef
+    100094: Ref_Origin
+    100096: Ref_Origin_BoneRef
+    100098: Ref_Overhead
+    100100: Ref_Overhead_BoneRef
+    100102: Ref_Target
+    100104: Ref_Target_BoneRef
+    100106: Ref_Weapon Left
+    100108: Ref_Weapon Left_BoneRef
+    100110: Ref_Weapon Right
+    100112: Ref_Weapon Right_BoneRef
+    100114: Unit_Zerg_Zergling_Konker_02
+    400000: Bone01
+    400002: Bone_Chest
+    400004: Bone_Foot Left Front
+    400006: Bone_Foot Left Rear
+    400008: Bone_Foot Left Rear 01
+    400010: Bone_Foot Right Front
+    400012: Bone_Foot Right Rear
+    400014: Bone_Foot Right Rear 01
+    400016: Bone_Head
+    400018: Bone_Leg Left Front
+    400020: Bone_Leg Left Front 01
+    400022: Bone_Leg Left Rear
+    400024: Bone_Leg Left Rear 01
+    400026: Bone_Leg Left Rear 02
+    400028: Bone_Leg Right Front
+    400030: Bone_Leg Right Front 01
+    400032: Bone_Leg Right Rear
+    400034: Bone_Leg Right Rear 01
+    400036: Bone_Leg Right Rear 02
+    400038: Bone_Pelvis
+    400040: Bone_Tail
+    400042: Bone_Tail 01
+    400044: Bone_Tail 02
+    400046: Bone_Tail 03
+    400048: Bone_Wing Left 00
+    400050: Bone_Wing Left 01
+    400052: Bone_Wing Right 00
+    400054: Bone_Wing Right 01
+    400056: BoneStockL01
+    400058: BoneStockL02
+    400060: BoneStockL03
+    400062: BoneStockR01
+    400064: BoneStockR02
+    400066: BoneStockR03
+    400068: Dummy01
+    400070: H_Zergling_Upgrade 1
+    400072: HitTestFuzzy
+    400074: HitTestFuzzy01
+    400076: HitTestFuzzy02
+    400078: HitTestTight
+    400080: //RootNode
+    400082: Ref_Center
+    400084: Ref_Center_BoneRef
+    400086: Ref_Hardpoint
+    400088: Ref_Hardpoint_BoneRef
+    400090: Ref_Head
+    400092: Ref_Head_BoneRef
+    400094: Ref_Origin
+    400096: Ref_Origin_BoneRef
+    400098: Ref_Overhead
+    400100: Ref_Overhead_BoneRef
+    400102: Ref_Target
+    400104: Ref_Target_BoneRef
+    400106: Ref_Weapon Left
+    400108: Ref_Weapon Left_BoneRef
+    400110: Ref_Weapon Right
+    400112: Ref_Weapon Right_BoneRef
+    400114: Unit_Zerg_Zergling_Konker_02
+    2100000: Standard_4
+    4300000: H_Zergling_Upgrade 1
+    7400000: Take 001
+    9500000: //RootNode
+    13700000: H_Zergling_Upgrade 1
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Standard_4
+    second: {fileID: 2100000, guid: 6466ae2de0cd01d4e8c95b442cd35f7d, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
