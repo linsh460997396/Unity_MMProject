@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\Scripts\BlockManager.cs" />
+     <Compile Include="Assets\Scripts\GameMain.cs" />
      <Compile Include="Assets\Scripts\MapManager.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\CodeObfuscator\CodeObfuscator.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\DotNetEvent\KeyboardHook.cs" />

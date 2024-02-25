@@ -31,7 +31,7 @@ namespace Uniblocks
 	
 	private void MouseCursorEvents () { // cursor position
 	
-		//Vector3 pos = new Vector3 (Input.mousePosition.x, Input.mousePosition.y, 10.0f);
+		//Vector3F pos = new Vector3F (Input.mousePosition.x, Input.mousePosition.y, 10.0f);
 		VoxelInfo raycast = Engine.VoxelRaycast ( Camera.main.ScreenPointToRay(Input.mousePosition), 9999.9f, false );
 		
 		if (raycast != null) {

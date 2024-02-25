@@ -431,7 +431,7 @@ public class ChunkMeshCreator : MonoBehaviour {
 				mesh.SetTriangles(Faces[i].ToArray(),i);
 		}
 		
-		mesh.uv = UVs.ToArray();//UVs.ToBuiltin(Vector2) as Vector2[]	
+		mesh.uv = UVs.ToArray();//UVs.ToBuiltin(Vector2F) as Vector2F[]	
 		;
 		mesh.RecalculateNormals ();
 	

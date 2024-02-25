@@ -1,5 +1,5 @@
 ﻿using System;
-using UnityEngine;
+using Vector3F = UnityEngine.Vector3;
 
 namespace MetalMaxSystem
 {
@@ -60,15 +60,15 @@ namespace MetalMaxSystem
     /// <returns></returns>
     public delegate bool KeyUpEventFuncref(int player, int key);
     /// <summary>
-    /// 【MM_函数库】监听服务鼠标移动常规函数引用（委托类型），特征：void MouseMoveEventFuncref(int player, Vector3 lp_mouseVector3, int uiX, int uiY)
+    /// 【MM_函数库】监听服务鼠标移动常规函数引用（委托类型），特征：void MouseMoveEventFuncref(int player, Vector3F lp_mouseVector3, int uiX, int uiY)
     /// </summary>
     /// <param name="player"></param>
     /// <param name="lp_mouseVector3"></param>
     /// <param name="uiX"></param>
     /// <param name="uiY"></param>
-    public delegate void MouseMoveEventFuncref(int player, Vector3 lp_mouseVector3, int uiX, int uiY);
+    public delegate void MouseMoveEventFuncref(int player, Vector3F lp_mouseVector3, int uiX, int uiY);
     /// <summary>
-    /// 【MM_函数库】监听服务鼠标按下常规函数引用（委托类型），特征：bool MouseDownEventFuncref(int player, int key, Vector3 lp_mouseVector3, int uiX, int uiY)
+    /// 【MM_函数库】监听服务鼠标按下常规函数引用（委托类型），特征：bool MouseDownEventFuncref(int player, int key, Vector3F lp_mouseVector3, int uiX, int uiY)
     /// </summary>
     /// <param name="player"></param>
     /// <param name="key"></param>
@@ -76,27 +76,27 @@ namespace MetalMaxSystem
     /// <param name="uiX"></param>
     /// <param name="uiY"></param>
     /// <returns></returns>
-    public delegate bool MouseDownEventFuncref(int player, int key, Vector3 lp_mouseVector3, int uiX, int uiY);
+    public delegate bool MouseDownEventFuncref(int player, int key, Vector3F lp_mouseVector3, int uiX, int uiY);
     /// <summary>
-    /// 【MM_函数库】监听服务鼠标左键双击常规函数引用（委托类型），特征：bool MouseLDoubleClickEventFuncref(int player, Vector3 lp_mouseVector3, int uiX, int uiY)
+    /// 【MM_函数库】监听服务鼠标左键双击常规函数引用（委托类型），特征：bool MouseLDoubleClickEventFuncref(int player, Vector3F lp_mouseVector3, int uiX, int uiY)
     /// </summary>
     /// <param name="player"></param>
     /// <param name="lp_mouseVector3"></param>
     /// <param name="uiX"></param>
     /// <param name="uiY"></param>
     /// <returns></returns>
-    public delegate bool MouseLDoubleClickEventFuncref(int player, Vector3 lp_mouseVector3, int uiX, int uiY);
+    public delegate bool MouseLDoubleClickEventFuncref(int player, Vector3F lp_mouseVector3, int uiX, int uiY);
     /// <summary>
-    /// 【MM_函数库】监听服务鼠标右键双击常规函数引用（委托类型），特征：bool MouseRDoubleClickEventFuncref(int player, Vector3 lp_mouseVector3, int uiX, int uiY)
+    /// 【MM_函数库】监听服务鼠标右键双击常规函数引用（委托类型），特征：bool MouseRDoubleClickEventFuncref(int player, Vector3F lp_mouseVector3, int uiX, int uiY)
     /// </summary>
     /// <param name="player"></param>
     /// <param name="lp_mouseVector3"></param>
     /// <param name="uiX"></param>
     /// <param name="uiY"></param>
     /// <returns></returns>
-    public delegate bool MouseRDoubleClickEventFuncref(int player, Vector3 lp_mouseVector3, int uiX, int uiY);
+    public delegate bool MouseRDoubleClickEventFuncref(int player, Vector3F lp_mouseVector3, int uiX, int uiY);
     /// <summary>
-    /// 【MM_函数库】监听服务鼠标弹起常规函数引用（委托类型），特征：bool MouseUpEventFuncref(int player, int key, Vector3 lp_mouseVector3, int uiX, int uiY)
+    /// 【MM_函数库】监听服务鼠标弹起常规函数引用（委托类型），特征：bool MouseUpEventFuncref(int player, int key, Vector3F lp_mouseVector3, int uiX, int uiY)
     /// </summary>
     /// <param name="player"></param>
     /// <param name="key"></param>
@@ -104,7 +104,7 @@ namespace MetalMaxSystem
     /// <param name="uiX"></param>
     /// <param name="uiY"></param>
     /// <returns></returns>
-    public delegate bool MouseUpEventFuncref(int player, int key, Vector3 lp_mouseVector3, int uiX, int uiY);
+    public delegate bool MouseUpEventFuncref(int player, int key, Vector3F lp_mouseVector3, int uiX, int uiY);
 
     #endregion
 

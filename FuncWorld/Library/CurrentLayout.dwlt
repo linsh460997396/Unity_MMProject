@@ -20,7 +20,7 @@ MonoBehaviour:
   m_ShowMode: 4
   m_Title: 
   m_RootView: {fileID: 2}
-  m_MinSize: {x: 950, y: 300}
+  m_MinSize: {x: 950, y: 492}
   m_MaxSize: {x: 10000, y: 10000}
 --- !u!114 &2
 MonoBehaviour:
@@ -43,7 +43,7 @@ MonoBehaviour:
     y: 0
     width: 1920
     height: 997
-  m_MinSize: {x: 950, y: 300}
+  m_MinSize: {x: 950, y: 492}
   m_MaxSize: {x: 10000, y: 10000}
 --- !u!114 &3
 MonoBehaviour:
@@ -88,10 +88,10 @@ MonoBehaviour:
     y: 30
     width: 1920
     height: 947
-  m_MinSize: {x: 917, y: 442}
-  m_MaxSize: {x: 22012, y: 10021}
+  m_MinSize: {x: 913, y: 442}
+  m_MaxSize: {x: 22008, y: 10021}
   vertical: 0
-  controlID: 117
+  controlID: 31
 --- !u!114 &5
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -135,7 +135,7 @@ MonoBehaviour:
   m_MinSize: {x: 202, y: 442}
   m_MaxSize: {x: 4002, y: 8042}
   vertical: 1
-  controlID: 118
+  controlID: 113
 --- !u!114 &7
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -154,8 +154,8 @@ MonoBehaviour:
     y: 0
     width: 206
     height: 947
-  m_MinSize: {x: 204, y: 221}
-  m_MaxSize: {x: 4004, y: 4021}
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 12}
   m_Panes:
   - {fileID: 12}
@@ -229,8 +229,8 @@ MonoBehaviour:
     y: 0
     width: 827
     height: 486
-  m_MinSize: {x: 202, y: 221}
-  m_MaxSize: {x: 4002, y: 4021}
+  m_MinSize: {x: 200, y: 200}
+  m_MaxSize: {x: 4000, y: 4000}
   m_ActualView: {fileID: 16}
   m_Panes:
   - {fileID: 16}
@@ -288,7 +288,7 @@ MonoBehaviour:
   m_PersistentViewDataDictionary: {fileID: 0}
   m_TreeViewState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: f20e0000
+    m_SelectedIDs: 000f0000
     m_LastClickedID: 0
     m_ExpandedIDs: e4fbffff00000000
     m_RenameOverlay:
@@ -385,20 +385,20 @@ MonoBehaviour:
     m_ShowAllHits: 0
     m_SearchArea: 0
     m_Folders:
-    - Assets/Scripts/MetalMaxSystem/Class
+    - Assets/Scripts/MetalMaxSystem
   m_ViewMode: 1
   m_StartGridSize: 16
   m_LastFolders:
-  - Assets/Scripts/MetalMaxSystem/Class
+  - Assets/Scripts/MetalMaxSystem
   m_LastFoldersGridSize: 16
   m_LastProjectPath: T:\Work\Unity\FuncWorld
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: f00e0000
-    m_LastClickedID: 3824
-    m_ExpandedIDs: 00000000ca090000d8090000280a00004c0a0000a80a0000160b0000200b0000a80b00009c0c0000ac0c0000fa0c0000180d0000200d0000a20d0000040e0000260e0000b60e0000f00e0000260f0000ffffff7f
+    m_SelectedIDs: b60c0000
+    m_LastClickedID: 3254
+    m_ExpandedIDs: 00000000ce090000dc0900002c0a0000500a0000ac0a00001a0b0000240b0000ac0b0000a60c0000b60c0000040d0000240d00002c0d0000ae0d0000320e0000c60e0000ce0e0000360f0000ffffff7f
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -426,7 +426,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 00000000ca090000d8090000f6090000280a00004c0a0000a80a0000160b0000200b0000a80b00009c0c0000fa0c0000180d0000200d0000a20d0000040e0000260e0000b60e0000f00e0000260f0000
+    m_ExpandedIDs: 00000000ce090000dc0900002c0a0000500a0000ac0a00001a0b0000240b0000ac0b0000a60c0000040d0000240d00002c0d0000ae0d0000320e0000c60e0000ce0e0000360f0000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -582,14 +582,14 @@ MonoBehaviour:
     height: 465
   m_PersistentViewDataDictionary: {fileID: 0}
   m_SceneLighting: 1
-  lastFramingTime: 4781.2676555
+  lastFramingTime: 7099.36377
   m_2DMode: 0
   m_isRotationLocked: 0
   m_AudioPlay: 0
   m_Position:
-    m_Target: {x: 2.6517334, y: 52.257812, z: 0.140625}
+    m_Target: {x: 0.0727019, y: 27.48, z: 0}
     speed: 2
-    m_Value: {x: 2.6517334, y: 52.257812, z: 0.140625}
+    m_Value: {x: 0.0727019, y: 27.48, z: 0}
   m_RenderMode: 0
   m_CameraMode:
     drawMode: 0
@@ -617,13 +617,13 @@ MonoBehaviour:
       speed: 2
       m_Value: 0
   m_Rotation:
-    m_Target: {x: 0.10168298, y: -0.05220318, z: 0.0053432514, w: 0.9934321}
+    m_Target: {x: 0.16100465, y: -0.8349246, z: 0.32431734, w: 0.41449156}
     speed: 2
-    m_Value: {x: -0.10168298, y: 0.05220318, z: -0.0053432514, w: -0.9934321}
+    m_Value: {x: -0.16100413, y: 0.8349219, z: -0.3243163, w: -0.41449022}
   m_Size:
-    m_Target: 7.1347084
+    m_Target: 12.498444
     speed: 2
-    m_Value: 7.1347084
+    m_Value: 12.498444
   m_Ortho:
     m_Target: 1
     speed: 2

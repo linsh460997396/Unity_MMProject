@@ -9,6 +9,8 @@ namespace MetalMaxSystem
     /// </summary>
     public struct Point3F
     {
+        //全局变量，不加static则意味着每个结构实例都有自己的变量副本（否则共享）
+
         public float x;
         public float y;
         public float z;

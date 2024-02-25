@@ -1,4 +1,5 @@
-﻿namespace MetalMaxSystem
+﻿
+namespace MetalMaxSystem
 {
     /// <summary>
     /// 单位组

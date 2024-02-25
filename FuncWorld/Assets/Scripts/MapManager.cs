@@ -5,7 +5,7 @@ public class MapManager : MonoBehaviour {
 
     //private bool isGenerate = false;
     private Transform playerTrans;
-    //private Vector3 lastPosition;
+    //private Vector3F lastPosition;
     private Index lastIndex;
 
     private void Start()

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// a Vector3 using ints instead of floats, for storing indexes and stuff
+// a Vector3F using ints instead of floats, for storing indexes and stuff
 
 namespace Uniblocks
 {

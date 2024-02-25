@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿using Vector2F = UnityEngine.Vector2;
 
 namespace MetalMaxSystem
 {
@@ -341,7 +341,7 @@ namespace MetalMaxSystem
         /// <param name="vector"></param>
         /// <param name="unitCreateTag"></param>
         /// <returns>返回根据unitType创建的单位实例</returns>
-        public static Unit UnitCreate(string unitType, UnitCreateTag unitCreateTag, int player, Vector2 vector)
+        public static Unit UnitCreate(string unitType, UnitCreateTag unitCreateTag, int player, Vector2F vector)
         {
             Unit unit;
             switch (unitType)
@@ -383,7 +383,7 @@ namespace MetalMaxSystem
             return new Abilcmd(abilLink, abilIndex);
         }
 
-        public static Order OrderTargetingPoint(Abilcmd inAbilCmd, Vector2 inPoint)
+        public static Order OrderTargetingPoint(Abilcmd inAbilCmd, Vector2F inPoint)
         {
             Order ord = new Order(inAbilCmd);
             ord.TargetType = 2;
