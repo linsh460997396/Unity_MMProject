@@ -405,6 +405,10 @@ public class GameMain : MonoBehaviour
 
         //开启一个协程进行资源加载
         LoadAllFromMemoryAsync(Application.dataPath + "/AssetBundle/abtest");
+        //协程结束前尚无法马上取得素材，请等待
+
+        //Unity编辑器中Application.dataPath返回Assets文件夹路径，打包后为应用程序所在路径
+        //LoadAllFromMemoryAsync(Application.dataPath + "/AssetBundle/abtest");
     }
 
     // Use this for initialization
@@ -428,7 +432,8 @@ public class GameMain : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Q))
         {
             Debug.Log("按下了Q键，执行功能测试");
-            //实例化资源中第一个游戏物体（前提是资源已经在协程里加载完毕）
+
+            //实例化资源中第一个游戏物体（前提是资源已经在协程里加载完毕，这里要进行检查）
             if (!isCoroutineRunning)
             {
                 Debug.Log("gameObjectGroup.Length => " + gameObjectGroup.Length.ToString());
@@ -437,16 +442,16 @@ public class GameMain : MonoBehaviour
                     Debug.Log("读取AB包中第" + i.ToString() + "个元素成功！");
                     Debug.Log("GameObject " + i + " Name: " + gameObjectGroup[i].name);
                 }
-
+                //gameObjectGroup[0]是奥丁，gameObjectGroup[1]是跳虫，目前AB包（abtest）内这只有2个预制体。
                 odinMech = GameObject.Instantiate(gameObjectGroup[0], mainPlayer.transform.position, Quaternion.identity);
-                // 将odinMech设置为mainPlayer的子对象
+                // 将odinMech设置为mainPlayer的子对象（直接拼装了，比下方的每帧修正更省事）
                 odinMech.transform.parent = mainPlayer.transform;
 
                 //odinMech.transform.localPosition = mainPlayer.transform.position;
                 //odinMech.transform.localRotation = mainPlayer.transform.rotation;
                 //odinMech.transform.localScale = mainPlayer.transform.localScale;
             }
-            else { Debug.Log("读取AB包中..."); }
+            else { Debug.Log("协程未完成！依然读取AB包中..."); }
         }
     }
 }
