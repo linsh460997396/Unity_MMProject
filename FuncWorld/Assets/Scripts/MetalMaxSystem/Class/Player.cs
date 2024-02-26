@@ -42,13 +42,13 @@ namespace MetalMaxSystem
         private static float[] _mouseVectorZFixed = new float[Game.c_maxPlayers + 1];
         private static float[] _mouseToUnitControlAngle = new float[Game.c_maxPlayers + 1];
         private static float[] _mouseToUnitControlRange = new float[Game.c_maxPlayers + 1];
-        private static float[] _mouseToUnitControlRange3D = new float[Game.c_maxPlayers + 1];
+        private static float[] _mouseToUnitControlRange3F = new float[Game.c_maxPlayers + 1];
         private static Vector3F[] _cameraVector3F = new Vector3F[Game.c_maxPlayers + 1];
         private static Vector3F[] _mouseVector3FFixed = new Vector3F[Game.c_maxPlayers + 1];
         private static Vector3F[] _mouseVector3F = new Vector3F[Game.c_maxPlayers + 1];
         private static Vector3F[] _mouseVector3FUnitTerrain = new Vector3F[Game.c_maxPlayers + 1];
         private static Vector3F[] _mouseVector3FTerrain = new Vector3F[Game.c_maxPlayers + 1];
-        private static Vector2F[] _mouseVector = new Vector2F[Game.c_maxPlayers + 1];
+        private static Vector2F[] _mouseVector2F = new Vector2F[Game.c_maxPlayers + 1];
 
         private static string[] _type = new string[Game.c_maxPlayers + 1];
         private static string[] _handle = new string[Game.c_maxPlayers + 1];//句柄格式："A1-A1-A1-A0000001"
@@ -474,16 +474,16 @@ namespace MetalMaxSystem
         /// <summary>
         /// 鼠标与玩家控制单位在世界中的3D角度，常用于调整鼠标自动镜头
         /// </summary>
-        public static float[] MouseToUnitControlRange3D
+        public static float[] MouseToUnitControlRange3F
         {
             get
             {
-                return _mouseToUnitControlRange3D;
+                return _mouseToUnitControlRange3F;
             }
 
             set
             {
-                _mouseToUnitControlRange3D = value;
+                _mouseToUnitControlRange3F = value;
             }
         }
         /// <summary>
@@ -564,16 +564,16 @@ namespace MetalMaxSystem
         /// <summary>
         /// 鼠标2D点向量坐标
         /// </summary>
-        public static Vector2F[] MouseVector
+        public static Vector2F[] MouseVector2F
         {
             get
             {
-                return _mouseVector;
+                return _mouseVector2F;
             }
 
             set
             {
-                _mouseVector = value;
+                _mouseVector2F = value;
             }
         }
 

@@ -288,7 +288,7 @@ namespace MetalMaxSystem
         /// <summary>
         /// 单位脚底坐标向量(二维)
         /// </summary>
-        public Vector2F Vector
+        public Vector2F Vector2F
         {
             get
             {
@@ -426,7 +426,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public Vector2F GetPosition()
         {
-            return Vector;
+            return Vector2F;
         }
 
         #endregion

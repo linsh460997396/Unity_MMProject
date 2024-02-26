@@ -8,7 +8,6 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Net;
-using Microsoft.Win32;
 using Debug = UnityEngine.Debug;
 using Vector2F = UnityEngine.Vector2;
 using Vector3F = UnityEngine.Vector3;
@@ -497,9 +496,9 @@ namespace MetalMaxSystem
         /// </summary>
         /// <param name="vector"></param>
         /// <returns></returns>
-        public static Vector2F ToVector(Vector3F vector)
+        public static Vector2F ToVector2F(Vector3F vector)
         {
-            return new Vector2(vector.x, vector.y);
+            return new Vector2F(vector.x, vector.y);
         }
 
         /// <summary>
@@ -32448,11 +32447,11 @@ namespace MetalMaxSystem
         {
             if (StopKeyMouseEvent[player] == false)
             {
-                Player.MouseVector[player] = new Vector2(lp_mouseVector3F.x, lp_mouseVector3F.y);
+                Player.MouseVector2F[player] = new Vector2F(lp_mouseVector3F.x, lp_mouseVector3F.y);
 
                 //↓注意取出来的是该点最高位Unit
-                float unitTerrainHeight = float.Parse(HD_ReturnVectorCV(Player.MouseVector[player], "Unit.TerrainHeight"));
-                float unitHeight = float.Parse(HD_ReturnVectorCV(Player.MouseVector[player], "Unit.Height"));
+                float unitTerrainHeight = float.Parse(HD_ReturnVectorCV(Player.MouseVector2F[player], "Unit.TerrainHeight"));
+                float unitHeight = float.Parse(HD_ReturnVectorCV(Player.MouseVector2F[player], "Unit.Height"));
 
                 Player.MouseVectorX[player] = lp_mouseVector3F.x;
                 Player.MouseVectorY[player] = lp_mouseVector3F.y;
@@ -32472,11 +32471,11 @@ namespace MetalMaxSystem
                 if (Player.UnitControl[player] != null)
                 {
                     //计算鼠标与控制单位的2D角度，用于调整角色在二维坐标系四象限内的的朝向
-                    Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector, Player.MouseVector[player]);
+                    Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
                     //计算鼠标与控制单位的2D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
-                    Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector, Player.MouseVector[player]);
+                    Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
                     //计算鼠标与控制单位的3D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
-                    Player.MouseToUnitControlRange3D[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
+                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
                 }
             }
         }
@@ -32510,11 +32509,11 @@ namespace MetalMaxSystem
 
             if (StopKeyMouseEvent[player] == false)
             {
-                Player.MouseVector[player] = new Vector2(lp_mouseVector3F.x, lp_mouseVector3F.y);
+                Player.MouseVector2F[player] = new Vector2F(lp_mouseVector3F.x, lp_mouseVector3F.y);
 
                 //↓注意取出来的是该点最高位Unit
-                float unitTerrainHeight = float.Parse(HD_ReturnVectorCV(Player.MouseVector[player], "Unit.TerrainHeight"));
-                float unitHeight = float.Parse(HD_ReturnVectorCV(Player.MouseVector[player], "Unit.Height"));
+                float unitTerrainHeight = float.Parse(HD_ReturnVectorCV(Player.MouseVector2F[player], "Unit.TerrainHeight"));
+                float unitHeight = float.Parse(HD_ReturnVectorCV(Player.MouseVector2F[player], "Unit.Height"));
 
                 Player.MouseVectorX[player] = lp_mouseVector3F.x;
                 Player.MouseVectorY[player] = lp_mouseVector3F.y;
@@ -32534,11 +32533,11 @@ namespace MetalMaxSystem
                 if (Player.UnitControl[player] != null)
                 {
                     //计算鼠标与控制单位的2D角度，用于调整角色在二维坐标系四象限内的的朝向
-                    Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector, Player.MouseVector[player]);
+                    Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
                     //计算鼠标与控制单位的2D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
-                    Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector, Player.MouseVector[player]);
+                    Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
                     //计算鼠标与控制单位的3D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
-                    Player.MouseToUnitControlRange3D[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
+                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
                 }
 
                 //---------------------------------------------------------------------

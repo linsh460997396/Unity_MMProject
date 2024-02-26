@@ -354,7 +354,7 @@ namespace MetalMaxSystem
                     break;
             }
             unit.Owner = player;
-            unit.Vector = vector;
+            unit.Vector2F = vector;
             if (unit.Hp <= 0.0) { unit.Hp = 1.0; }
             return unit;
         }
