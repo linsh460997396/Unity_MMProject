@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.IO;
+using UnityEditor.Animations;
 using UnityEngine;
 
 public class GameMain : MonoBehaviour
@@ -429,6 +430,7 @@ public class GameMain : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
+
         if (Input.GetKeyDown(KeyCode.Q))
         {
             Debug.Log("按下了Q键，执行功能测试");
@@ -447,11 +449,64 @@ public class GameMain : MonoBehaviour
                 // 将odinMech设置为mainPlayer的子对象（直接拼装了，比下方的每帧修正更省事）
                 odinMech.transform.parent = mainPlayer.transform;
 
+                //动画测试
+                //Animation odinMechAnimation = odinMech.GetComponent<Animation>();
+
+                //if (odinMechAnimation == null)
+                //{
+                //    Debug.LogError("The target GameObject does not have an Animation component.");
+                //    return;
+                //}
+
+                //AnimationClip[] animationClips = odinMechAnimation.GetComponents<AnimationClip>();
+                //foreach (AnimationClip clip in animationClips)
+                //{
+                //    Debug.Log("Animation Name: " + clip.name);
+                //}
+
+                //odinMech.GetComponent<Animator>().SetTrigger("Walk");
+                //new WaitForSecondsRealtime(3.0f);
+                //odinMech.GetComponent<Animator>().SetTrigger("Attack");
+                //new WaitForSecondsRealtime(3.0f);
+                //odinMech.GetComponent<Animator>().SetTrigger("Dead");
+
+                //Animator animator = odinMech.GetComponent<Animator>();
+                //if (animator != null)
+                //{
+                //    Debug.Log("Animator is attached to the GameObject.");
+                //    AnimatorController animatorController = animator.runtimeAnimatorController as AnimatorController;
+                //    if (animatorController != null)
+                //    {
+                //        Debug.Log("AnimatorController is assigned.");
+                //        AnimatorStateMachine stateMachine = animatorController.layers[0].stateMachine;
+                //        foreach (AnimatorState animatorState in stateMachine.states)
+                //        {
+                //            if (animatorState.motion != null)
+                //            {
+                //                Debug.Log(animatorState.motion.name); // 输出Animation Clip的名称
+                //            }
+                //        }
+                //    }
+                //    else
+                //    {
+                //        Debug.LogError("AnimatorController is not assigned.");
+                //    }
+                //}
+                //else
+                //{
+                //    Debug.LogError("Animator is not attached to the GameObject.");
+                //}
+
                 //odinMech.transform.localPosition = mainPlayer.transform.position;
                 //odinMech.transform.localRotation = mainPlayer.transform.rotation;
                 //odinMech.transform.localScale = mainPlayer.transform.localScale;
             }
             else { Debug.Log("协程未完成！依然读取AB包中..."); }
+        }
+
+        if (odinMech != null && Input.GetKeyDown(KeyCode.W))
+        {
+            odinMech.GetComponent<Animation>().Play("Walk");
         }
     }
 }
