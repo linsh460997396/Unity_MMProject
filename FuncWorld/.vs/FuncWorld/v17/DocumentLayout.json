@@ -5,10 +5,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|t:\\work\\unity\\funcworld\\assets\\scripts\\gamemain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\gamemain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\metalmaxsystem\\class\\mmcore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\mmcore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -32,22 +28,10 @@
               "RelativeDocumentMoniker": "Assets\\Scripts\\GameMain.cs",
               "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\GameMain.cs",
               "RelativeToolTip": "Assets\\Scripts\\GameMain.cs",
-              "ViewState": "AQIAAKMBAAAAAAAAAAAgwMEBAABBAAAA",
+              "ViewState": "AQIAAMUBAAAAAAAAAAAgwMkBAAAaAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-02-27T12:31:44.874Z",
               "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "MMCore.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\MMCore.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\MMCore.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\MMCore.cs",
-              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\MMCore.cs",
-              "ViewState": "AQIAAGx+AAAAAAAAAAAgwKF+AAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-02-26T16:35:18.108Z"
             }
           ]
         }

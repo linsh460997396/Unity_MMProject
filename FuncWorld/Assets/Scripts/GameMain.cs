@@ -446,6 +446,19 @@ public class GameMain : MonoBehaviour
                 }
                 //gameObjectGroup[0]是奥丁，gameObjectGroup[1]是跳虫，目前AB包（abtest）内这只有2个预制体。
                 odinMech = GameObject.Instantiate(gameObjectGroup[0], mainPlayer.transform.position, Quaternion.identity);
+
+                //删除预制体内的刚体，防止子物体参与物理引擎，让子模型完全按主体的Transform行动
+                //Rigidbody odinMechRigidbody = odinMech.GetComponent<Rigidbody>();
+                //Destroy(odinMechRigidbody);
+
+                //子游戏物体的旋转和位置与要衔接的主体保持一致
+                odinMech.transform.position = mainPlayer.transform.position;
+                odinMech.transform.rotation = mainPlayer.transform.rotation;
+
+                //local是相对
+                //odinMech.transform.localPosition = mainPlayer.transform.position;
+                //odinMech.transform.localRotation = mainPlayer.transform.rotation;
+
                 // 将odinMech设置为mainPlayer的子对象（直接拼装了，比下方的每帧修正更省事）
                 odinMech.transform.parent = mainPlayer.transform;
 
@@ -504,7 +517,7 @@ public class GameMain : MonoBehaviour
             else { Debug.Log("协程未完成！依然读取AB包中..."); }
         }
 
-        if (odinMech != null && Input.GetKeyDown(KeyCode.W))
+        if (odinMech != null && (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D)))
         {
             odinMech.GetComponent<Animation>().Play("Walk");
         }
