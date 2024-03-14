@@ -51,9 +51,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\BlockManager.cs" />
-     <Compile Include="Assets\Scripts\GameMain.cs" />
-     <Compile Include="Assets\Scripts\MapManager.cs" />
+     <Compile Include="Assets\Scripts\Game\AI.cs" />
+     <Compile Include="Assets\Scripts\Game\BlockManager.cs" />
+     <Compile Include="Assets\Scripts\Game\Main.cs" />
+     <Compile Include="Assets\Scripts\Game\MapManager.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\CodeObfuscator\CodeObfuscator.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\DotNetEvent\KeyboardHook.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\DotNetEvent\MouseHook.cs" />
@@ -68,8 +69,90 @@
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\SubUpdate.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\TimerUpdate.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\Unit.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_AlienMaker.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_BaoXiang.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_BeiYongCheKu.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_BuildingRuin.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_FlameBeetle.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_FlightEquipment.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_AutoTurret.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_Barricade.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_Bunker.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_Campfire.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_FangZhenJiPao.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_GasFortDown.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_GunTurret.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_MilitarySandbag.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_MissileTurret.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_PerditionTurret.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_RotatingTurret.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_SandBag.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_HB_TeslaTurret.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_Hero_Armer.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_Honor.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_JiJian.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_JiJianNew.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_KingBoss_HuoWangShou.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_KingBoss_LeiWangShou.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_KingBoss_MechanicalThunderBeast.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_KingBoss_MoRiShou.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_KingBoss_XuKongShou.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_KingBoss_Yagdra.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_NovaResupplyCrate.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_NYCore.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_NYCoreImperfection.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_PickupGrenades.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_PickupHealthFull.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_PickupZbx.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_Pretender.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_SheJiTu.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_SheJiTuNew.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_ShengChanCheJian.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_Star.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_StorageBox.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_Story_FeiChuan.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_StoryBoss_Brakk.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_StoryBoss_HotSNoxious.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_StoryBoss_HotSTorrasque.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_StoryBoss_Mitosaurus.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_StoryBoss_Slivan.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_TeShuBaoXiang.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_TeYiBaoXiang.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_TongXunDaLou.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_WaLiMaker.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_WangShouBaoXiang.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_WuQi.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_WuQiNew.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_XiuLiChang.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_ZhenBaoXiang.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_ZhuCheKu.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_ZobieMaker.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\CCData_Zombie.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Cyclone.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\DominionKillTeam.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Firebat.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Goliath.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\HammerSecurity.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Hellion.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\HellionTank.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\HERC.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Item.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Liberator.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Marauder.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Marine.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\MarineWarfield.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\MengskFirebat.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\OrbitalCommand.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Predator.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Raynor01.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Reaper.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Separatist.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\SiegeTank.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\TaurenSpaceMarine.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\TychusChaingun.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\VikingAssault.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\Vulture.cs" />
+     <Compile Include="Assets\Scripts\MetalMaxSystem\Class\UnitType\WarHound.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\Class\Unity\Resource.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\PublicEnum\Entry.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\PublicEnum\OrderQueue.cs" />
@@ -82,6 +165,12 @@
      <Compile Include="Assets\Scripts\MetalMaxSystem\PublicFuncref\MMFuncref.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\PublicStruc\Point2F.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\PublicStruc\Point3F.cs" />
+     <Compile Include="Assets\Scripts\Test\CircularTextureTest.cs" />
+     <Compile Include="Assets\Scripts\Test\DrawLine2D.cs" />
+     <Compile Include="Assets\Scripts\Test\DrawLine3D.cs" />
+     <Compile Include="Assets\Scripts\Test\ImageTest.cs" />
+     <Compile Include="Assets\Scripts\Test\Menu.cs" />
+     <Compile Include="Assets\Scripts\Test\RawImageTest.cs" />
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Core\Chunk.cs" />
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Core\ChunkDataFiles.cs" />
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Core\ChunkExtension.cs" />
@@ -325,6 +414,9 @@
  </Reference>
  <Reference Include="UnityEngine.StandardEvents">
  <HintPath>C:/Users/linsh/AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.standardevents@1.0.13/UnityEngine.StandardEvents.dll</HintPath>
+ </Reference>
+ <Reference Include="HtmlAgilityPack">
+ <HintPath>T:/Work/Unity/FuncWorld/Assets/Plugins/HtmlAgilityPack.dll</HintPath>
  </Reference>
  <Reference Include="mscorlib">
  <HintPath>T:/Program Files/Unity/2018.1.0f2/Editor/Data/MonoBleedingEdge/lib/mono/unity/mscorlib.dll</HintPath>

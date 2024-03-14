@@ -3,8 +3,20 @@
   "WorkspaceRootPath": "T:\\Work\\Unity\\FuncWorld\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|t:\\work\\unity\\funcworld\\assets\\scripts\\gamemain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\gamemain.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|t:\\work\\unity\\funcworld\\assets\\scripts\\test\\drawline3d.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\test\\drawline3d.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|t:\\work\\unity\\funcworld\\assets\\scripts\\game\\main.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\game\\main.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|t:\\work\\unity\\funcworld\\assets\\scripts\\test\\drawline2d.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\test\\drawline2d.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\game\\ai.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\game\\ai.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -23,15 +35,53 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "GameMain.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\GameMain.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\GameMain.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\GameMain.cs",
-              "RelativeToolTip": "Assets\\Scripts\\GameMain.cs",
-              "ViewState": "AQIAAMUBAAAAAAAAAAAgwMkBAAAaAAAA",
+              "Title": "DrawLine3D.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Test\\DrawLine3D.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Test\\DrawLine3D.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Test\\DrawLine3D.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Test\\DrawLine3D.cs",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAAB4AAAATAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-02-27T12:31:44.874Z",
+              "WhenOpened": "2024-03-14T11:06:57.934Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Main.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Game\\Main.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Game\\Main.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Game\\Main.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Game\\Main.cs",
+              "ViewState": "AQIAAN8BAAAAAAAAAAAAAAICAABSAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-14T07:47:24.873Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "DrawLine2D.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Test\\DrawLine2D.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Test\\DrawLine2D.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Test\\DrawLine2D.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Test\\DrawLine2D.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAAOAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-14T07:37:58.179Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AI.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Game\\AI.cs",
+              "RelativeDocumentMoniker": "Assets\\Scripts\\Game\\AI.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Game\\AI.cs",
+              "RelativeToolTip": "Assets\\Scripts\\Game\\AI.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAAjAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-03-14T07:31:09.417Z"
             }
           ]
         }

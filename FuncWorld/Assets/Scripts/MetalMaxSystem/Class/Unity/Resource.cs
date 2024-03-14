@@ -176,7 +176,7 @@ namespace MetalMaxSystem
         /// 以byte[] 形式加载整个AssetBundle到内存中，而不是从流中加载它，这可能更高效，用于AssetBundle较小或需快速访问AssetBundle中的所有资产。
         /// 但AssetBundle很大则可能会导致内存使用增加，该方法结尾使用StopCoroutine动作在完成加载后停止协程防止方法完成前、被多次调用时继续运行不必要的加载。
         /// 在主角位置实例化示范：
-        /// GameObject.Instantiate(gameObjectGroup[0], GameMain.mainPlayer.position, Quaternion.identity);要注意所有的异步加载都会开启协程（需要一个循环体让协程继续往下跑）。
+        /// GameObject.Instantiate(gameObjectGroup[0], Main.mainPlayer.position, Quaternion.identity);要注意所有的异步加载都会开启协程（需要一个循环体让协程继续往下跑）。
         /// 让没完成的协程继续往下跑：
         /// if (testResource.currentIEnumerator != null)
         /// {
@@ -299,7 +299,7 @@ namespace MetalMaxSystem
         /// 以byte[] 形式加载整个AssetBundle到内存中，而不是从流中加载它，这可能更高效，用于AssetBundle较小或需快速访问AssetBundle中的所有资产。
         /// 但AssetBundle很大则可能会导致内存使用增加，该方法结尾使用StopCoroutine动作在完成加载后停止协程防止方法完成前、被多次调用时继续运行不必要的加载。
         /// 在主角位置实例化示范：
-        /// GameObject.Instantiate(gameObjectGroup[0], GameMain.mainPlayer.position, Quaternion.identity);要注意所有的异步加载都会开启协程（需要一个循环体让协程继续往下跑）。
+        /// GameObject.Instantiate(gameObjectGroup[0], Main.mainPlayer.position, Quaternion.identity);要注意所有的异步加载都会开启协程（需要一个循环体让协程继续往下跑）。
         /// 让没完成的协程继续往下跑：
         /// if (testResource.currentIEnumerator != null)
         /// {

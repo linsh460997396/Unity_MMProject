@@ -35,6 +35,7 @@ namespace MetalMaxSystem
             //创建新类时的初始化动作
             Tag = Game.CurrentUnitHandle + 1;
             Game.UnitLastCreated = this;
+            _typeName = GetType().Name;
         }
 
         #endregion
@@ -264,10 +265,15 @@ namespace MetalMaxSystem
         /// </summary>
         public int Tag { get; set; }
 
+        private string _typeName;
         /// <summary>
         /// 单位类型在编辑器的名字
         /// </summary>
-        public string TypeName { get; set; }
+        public string TypeName 
+        {
+            get { return _typeName; }
+            private set { _typeName = value; }
+        }
 
         /// <summary>
         /// 单位脚底坐标向量(三维)，Z坐标是根据计算得到（Z=MapHeight+TerrainHeight+Unit.TerrainHeight），平时只要实时更新平面坐标即可根据该二维点高度信息更新3D高度

@@ -11,6 +11,7 @@ using System.Net;
 using Debug = UnityEngine.Debug;
 using Vector2F = UnityEngine.Vector2;
 using Vector3F = UnityEngine.Vector3;
+using HtmlAgilityPack;
 
 namespace MetalMaxSystem
 {
@@ -1537,7 +1538,7 @@ namespace MetalMaxSystem
         /// HtmlNode img = doc.DocumentNode.SelectSingleNode("/html/body/div[3]/div[3]/div[1]/div[1]/div[1]/a/img");
         /// string imgUal = img.Attributes["src"].Value;
         /// MMCore.Download(imgUal, "123.jpg", @"C:\Users\Admin\Desktop\Download\", true);
-        /////Debug.WriteLine("下载完成！");
+        /// Debug.Log("下载完成！");
         /// </summary>
         /// <param name="url">浏览器网址</param>
         /// <param name="filename">自定义文件名</param>
@@ -1601,6 +1602,72 @@ namespace MetalMaxSystem
             }
             return true;
         }
+
+        //↓Unity使用示范↓
+        //void Start()
+        //{
+        //    //XDown.Download(@"https://ac.qq.com/Comic/ComicInfo/id/542330", @"/html/body/div[3]/div[3]/div[1]/div[1]/div[1]/a/img", @"C:\Users\Admin\Desktop\Download\123.jpg");
+
+        //    HtmlDocument doc = new();
+        //    doc.LoadHtml(MMCore.CreateGetHttpResponse("https://ac.qq.com/Comic/ComicInfo/id/542330"));
+
+        //    //单元素下载：
+        //    //HtmlNode obj = doc.DocumentNode.SelectSingleNode("/html/body/div[3]/div[3]/div[1]/div[1]/div[1]/a/img");
+        //    //string objUal = obj.Attributes["src"].Value;
+        //    //MMCore.Download(objUal, "123.jpg", @"C:\Users\Admin\Desktop\Download\", true);
+        //    //Debug.Log("下载完成！");
+
+        //    //批量下载网页全部对象元素：
+        //    HtmlNodeCollection objNodes = doc.DocumentNode.SelectNodes("//img");
+        //    if (objNodes != null)
+        //    {
+        //        foreach (HtmlNode objNode in objNodes)
+        //        {
+        //            string objUrl = objNode.GetAttributeValue("src", string.Empty);
+        //            if (!string.IsNullOrEmpty(objUrl))
+        //            {
+        //                ////检查对象URL的扩展名是否为.jfif
+        //                ////if (objUrl.EndsWith(".jfif", StringComparison.OrdinalIgnoreCase)) { }
+        //                //string filePath = Path.Combine(@"C:\Users\Admin\Desktop\Download\", Path.GetFileName(new Uri(objUrl).LocalPath));
+        //                //MMCore.Download(objUrl, Path.GetFileName(filePath), @"C:\Users\Admin\Desktop\Download\", true);
+        //                //Debug.Log($"下载完成: {filePath}");
+
+        //                // 读取对象扩展名
+        //                string objectExtension = Path.GetExtension(objUrl);
+        //                // 建立正则表达式参数
+        //                //string objectExtensionPattern = @"\.gif$";
+
+        //                string objectExtensionPattern = @"(?i)\.(gif|jpg|jpeg|png|jfif)$";
+        //                //(? i)：这是一个内联模式修饰符，用于指定接下来的匹配应该是不区分大小写的。
+        //                //\.：匹配一个字面的点号（.），因为在正则表达式中点号是一个特殊字符，所以需要用反斜杠进行转义。
+        //                //(gif | jpg | jpeg | png)：这是一个捕获组，它匹配gif、jpg、jpeg或png中的任何一个。| 是逻辑或操作符，用于分隔不同的选项。
+        //                //$：匹配字符串的结尾，确保整个扩展名都匹配并且没有其他字符跟在其后。
+
+        //                // 检查对象扩展名是否匹配.gif, .jpg, .jpeg, .png等（不区分大小写）
+        //                if (Regex.IsMatch(objectExtension, objectExtensionPattern))
+        //                {
+        //                    string filePath = Path.Combine(@"C:\Users\Admin\Desktop\Download\", Path.GetFileName(new Uri(objUrl).LocalPath));
+        //                    MMCore.Download(objUrl, Path.GetFileName(new Uri(objUrl).LocalPath), @"C:\Users\Admin\Desktop\Download\", true);
+        //                    Debug.Log($"下载完成: {filePath}");
+        //                    MMCore.DelDirectory(@"C:\Users\Admin\Desktop\Download\temp");
+        //                }
+
+        //                //在模式字符串中指定不区分大小写：
+        //                //string objectExtensionPattern = @"(?i)\.(gif|jpg|jpeg|png)$";
+        //                //bool isValidExtension = Regex.IsMatch(fileExtension, objectExtensionPattern);
+        //                //在Regex.IsMatch方法中指定不区分大小写：
+        //                //string objectExtensionPattern = @"\.(gif|jpg|jpeg|png)$";
+        //                //bool isValidExtension = Regex.IsMatch(fileExtension, objectExtensionPattern, RegexOptions.IgnoreCase);
+        //                //两种方法都会得到相同的结果，但第一种方法更加简洁和直观
+        //            }
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Debug.Log("没有找到对象元素。");
+        //    }
+        //}
+
 
         ///<summary>
         ///【MM_函数库】生成随机字符串 
