@@ -52,5 +52,4 @@ public class DrawLine3D : MonoBehaviour
         lineRenderer.positionCount++;
         lineRenderer.SetPosition(lineRenderer.positionCount - 1, newPoint);
     }
-
 }

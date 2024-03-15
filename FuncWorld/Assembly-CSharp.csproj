@@ -165,12 +165,10 @@
      <Compile Include="Assets\Scripts\MetalMaxSystem\PublicFuncref\MMFuncref.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\PublicStruc\Point2F.cs" />
      <Compile Include="Assets\Scripts\MetalMaxSystem\PublicStruc\Point3F.cs" />
-     <Compile Include="Assets\Scripts\Test\CircularTextureTest.cs" />
      <Compile Include="Assets\Scripts\Test\DrawLine2D.cs" />
      <Compile Include="Assets\Scripts\Test\DrawLine3D.cs" />
-     <Compile Include="Assets\Scripts\Test\ImageTest.cs" />
+     <Compile Include="Assets\Scripts\Test\DrawMesh.cs" />
      <Compile Include="Assets\Scripts\Test\Menu.cs" />
-     <Compile Include="Assets\Scripts\Test\RawImageTest.cs" />
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Core\Chunk.cs" />
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Core\ChunkDataFiles.cs" />
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Core\ChunkExtension.cs" />
@@ -406,6 +404,9 @@
  <Reference Include="UnityEngine.SpatialTracking">
  <HintPath>T:/Program Files/Unity/2018.1.0f2/Editor/Data/UnityExtensions/Unity/UnitySpatialTracking/RuntimeEditor/UnityEngine.SpatialTracking.dll</HintPath>
  </Reference>
+ <Reference Include="HtmlAgilityPack">
+ <HintPath>T:/Work/Unity/FuncWorld/Assets/Plugins/HtmlAgilityPack.dll</HintPath>
+ </Reference>
  <Reference Include="UnityEngine.Analytics">
  <HintPath>C:/Users/linsh/AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.analytics@2.0.16/UnityEngine.Analytics.dll</HintPath>
  </Reference>
@@ -414,9 +415,6 @@
  </Reference>
  <Reference Include="UnityEngine.StandardEvents">
  <HintPath>C:/Users/linsh/AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.standardevents@1.0.13/UnityEngine.StandardEvents.dll</HintPath>
- </Reference>
- <Reference Include="HtmlAgilityPack">
- <HintPath>T:/Work/Unity/FuncWorld/Assets/Plugins/HtmlAgilityPack.dll</HintPath>
  </Reference>
  <Reference Include="mscorlib">
  <HintPath>T:/Program Files/Unity/2018.1.0f2/Editor/Data/MonoBleedingEdge/lib/mono/unity/mscorlib.dll</HintPath>

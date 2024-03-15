@@ -301,6 +301,9 @@
  <Reference Include="UnityEditor.WindowsStandalone.Extensions">
  <HintPath>T:/Program Files/Unity/2018.1.0f2/Editor/Data/PlaybackEngines/windowsstandalonesupport/UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
  </Reference>
+ <Reference Include="HtmlAgilityPack">
+ <HintPath>T:/Work/Unity/FuncWorld/Assets/Plugins/HtmlAgilityPack.dll</HintPath>
+ </Reference>
  <Reference Include="UnityEditor.Advertisements">
  <HintPath>C:/Users/linsh/AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.ads@2.0.7/Editor/UnityEditor.Advertisements.dll</HintPath>
  </Reference>
@@ -318,9 +321,6 @@
  </Reference>
  <Reference Include="UnityEngine.StandardEvents">
  <HintPath>C:/Users/linsh/AppData/Local/Unity/cache/packages/packages.unity.com/com.unity.standardevents@1.0.13/UnityEngine.StandardEvents.dll</HintPath>
- </Reference>
- <Reference Include="HtmlAgilityPack">
- <HintPath>T:/Work/Unity/FuncWorld/Assets/Plugins/HtmlAgilityPack.dll</HintPath>
  </Reference>
  <Reference Include="mscorlib">
  <HintPath>T:/Program Files/Unity/2018.1.0f2/Editor/Data/MonoBleedingEdge/lib/mono/2.0-api/mscorlib.dll</HintPath>
