@@ -285,17 +285,17 @@ namespace Uniblocks
 
             // for each chunk object, save data to memory
             int count = 0;
-            List<Chunk> chunksToSave = new List<Chunk>(ChunkManager.Chunks.Values);  //字典中的每个大块
+            List<Chunk> chunksToSave = new List<Chunk>(ChunkManager.Chunks.Values);  //字典中的每个团块
 
 
             foreach (Chunk chunk in chunksToSave)
             {
-                //调用大块实例对象的ChunkDataFiles组件（脚本）内的Save方法
+                //调用团块实例对象的ChunkDataFiles组件（脚本）内的Save方法
                 chunk.gameObject.GetComponent<ChunkDataFiles>().SaveData();
                 count++;
                 if (count > Engine.MaxChunkSaves)
                 {
-                    //超过大块存储上限则在每帧屏幕所有相机和GUI被渲染完成前等待之后再步进（应该是限制每帧存储动作数量）
+                    //超过团块存储上限则在每帧屏幕所有相机和GUI被渲染完成前等待之后再步进（应该是限制每帧存储动作数量）
                     yield return new WaitForEndOfFrame();
                     count = 0;
                 }

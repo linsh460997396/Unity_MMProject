@@ -168,3 +168,4 @@ T:\Work\Unity\FuncWorld\obj\Debug\Assembly-CSharp-firstpass.csproj.CoreCompileIn
 T:\Work\Unity\FuncWorld\obj\Debug\Assembly.67A50FFC.Up2Date
 T:\Work\Unity\FuncWorld\obj\Debug\Assembly-CSharp-firstpass.dll
 T:\Work\Unity\FuncWorld\obj\Debug\Assembly-CSharp-firstpass.pdb
+T:\Work\Unity\FuncWorld\Temp\bin\Debug\HtmlAgilityPack.dll

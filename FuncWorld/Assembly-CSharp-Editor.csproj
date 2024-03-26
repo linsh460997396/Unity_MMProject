@@ -56,9 +56,6 @@
  <Reference Include="Assembly-UnityScript-firstpass">
  <HintPath>T:/Work/Unity/FuncWorld/Library/ScriptAssemblies/Assembly-UnityScript-firstpass.dll</HintPath>
  </Reference>
- <Reference Include="Assembly-UnityScript">
- <HintPath>T:/Work/Unity/FuncWorld/Library/ScriptAssemblies/Assembly-UnityScript.dll</HintPath>
- </Reference>
  <Reference Include="UnityEditor.StandardEvents">
  <HintPath>T:/Work/Unity/FuncWorld/Library/ScriptAssemblies/UnityEditor.StandardEvents.dll</HintPath>
  </Reference>

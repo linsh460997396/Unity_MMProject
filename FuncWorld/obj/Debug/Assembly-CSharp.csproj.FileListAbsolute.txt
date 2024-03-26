@@ -170,3 +170,4 @@ T:\Work\Unity\FuncWorld\Temp\bin\Debug\UnityEngine.SpatialTracking.xml
 T:\Work\Unity\FuncWorld\obj\Debug\Assembly.44154EF1.Up2Date
 T:\Work\Unity\FuncWorld\obj\Debug\Assembly-CSharp.dll
 T:\Work\Unity\FuncWorld\obj\Debug\Assembly-CSharp.pdb
+T:\Work\Unity\FuncWorld\Temp\bin\Debug\HtmlAgilityPack.dll

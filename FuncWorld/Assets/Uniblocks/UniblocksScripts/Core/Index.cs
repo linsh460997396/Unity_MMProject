@@ -4,7 +4,9 @@ using UnityEngine;
 
 namespace Uniblocks
 {
-
+	/// <summary>
+	/// 索引（存储体素块在团块中的位置信息或团块在世界中的位置信息）
+	/// </summary>
     public class Index {
 
 	public int x,y,z;

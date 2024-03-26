@@ -1,8 +1,14 @@
+// 这些是Unity脚本引擎的编译指令，用于在Unity项目中编写C#脚本时控制编译过程。
+// 1. `#pragma strict`：启用严格模式，强制执行某些编译错误，例如未使用的变量、空的脚本方法等。这个指令可以帮助开发者发现并修复代码中的潜在问题。
+// 2. `#pragma implicit`：启用隐式转换，允许在代码中进行不需要显式转换的操作。例如，在使用协程时，需要将`yield return`语句的结果隐式转换为`IEnumerator`类型。这个指令可以简化代码，但也可能导致一些难以察觉的错误。
+// 3. `#pragma downcast`：启用向下转型，允许将基类对象强制转换为派生类对象。这个指令在某些情况下很有用，例如在使用Unity的组件系统时，需要将`GameObject`对象转换为具有特定组件的派生类对象。
+// 请注意，这些编译指令并不是C#语言的标准部分，它们仅在Unity脚本引擎中有效。在其他C#编译环境中，这些指令可能无效或产生不同的效果。
+
 #pragma strict
 #pragma implicit
 #pragma downcast
 
-// Does this script currently respond to input?
+// Does this script currently respond to input? 判断该脚本当前是否响应输入的状态
 var canControl : boolean = true;
 
 var useFixedUpdate : boolean = true;
@@ -175,7 +181,8 @@ private var tr : Transform;
 
 private var controller : CharacterController;
 
-function Awake () {
+function Awake() {
+	//获取角色控制器
 	controller = GetComponent (CharacterController);
 	tr = transform;
 }

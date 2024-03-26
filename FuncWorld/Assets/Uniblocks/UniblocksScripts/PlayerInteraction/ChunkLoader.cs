@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-// Triggers chunk spawning around the player.
+// Triggers chunk spawning around the player.在玩家角色周围触发自动化的团块生成
 
 namespace Uniblocks {
 
@@ -28,12 +28,12 @@ public class ChunkLoader : MonoBehaviour {
 				return;
 			}
 		}
-				
-					
-							
-		// track which chunk we're currently in. If it's different from previous frame, spawn chunks at current position.
-		
-		currentPos = Engine.PositionToChunkIndex (transform.position);
+
+
+
+            // track which chunk we're currently in. If it's different from previous frame, spawn chunks at current position.跟踪我们当前所在的团块，如果它与前一帧不同，则在当前位置生成团块
+
+            currentPos = Engine.PositionToChunkIndex (transform.position);
 
 		if (currentPos.IsEqual(LastPos) == false) {
 			ChunkManager.SpawnChunks(currentPos.x, currentPos.y, currentPos.z);

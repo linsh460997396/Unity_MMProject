@@ -11,7 +11,7 @@ public class MapManager : MonoBehaviour {
     private void Start()
     {
         playerTrans = GameObject.Find("Player").transform;
-        InvokeRepeating("InitMap", 1, 0.5f);
+        InvokeRepeating("InitMap", 0.0625f, 0.0625f);
     }
 
     

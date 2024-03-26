@@ -1,6 +1,8 @@
 namespace Uniblocks
 {
-
+    /// <summary>
+    /// 体素信息（存储体素索引、体素所在团块及体素在团块的位置信息）
+    /// </summary>
     public class VoxelInfo {
 
 	public Index index;

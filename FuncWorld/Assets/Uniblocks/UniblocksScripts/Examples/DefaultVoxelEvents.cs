@@ -28,7 +28,7 @@ namespace Uniblocks
 	public override void OnLook ( VoxelInfo voxelInfo ) {
 		
 		// move the selected block ui to the block that's being looked at (convert the index of the hit voxel to absolute world position)
-		GameObject blockSelection = GameObject.Find ("selected block graphics");
+		GameObject blockSelection = GameObject.Find ("SelectedBox");
 		if (blockSelection != null) {
 			blockSelection.transform.position = voxelInfo.chunk.VoxelIndexToPosition (voxelInfo.index);
 			blockSelection.GetComponent<Renderer>().enabled = true;

@@ -9,7 +9,7 @@ public class BlockManager : MonoBehaviour {
     private Transform selectedBlockEffect;
 	// Use this for initialization
 	void Start () {
-        selectedBlockEffect = GameObject.Find("selected block graphics").transform;
+        selectedBlockEffect = GameObject.Find("SelectedBox").transform;
         selectedBlockEffect.gameObject.SetActive(false);
 	}
 	

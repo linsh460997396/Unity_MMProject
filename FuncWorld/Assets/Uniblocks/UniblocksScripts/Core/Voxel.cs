@@ -2,7 +2,9 @@ using UnityEngine;
 
 namespace Uniblocks
 {
-
+    /// <summary>
+    /// 体素类型（含对体素的管理方法），与VoxelInfo区别在于少了体素索引（位置信息）
+    /// </summary>
     public class Voxel : MonoBehaviour {
 	
 	public string VName;

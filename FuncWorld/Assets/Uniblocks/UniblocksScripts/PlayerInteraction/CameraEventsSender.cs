@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// sends VoxelEvents such as OnLook, OnMouseDown, etc.
+// sends VoxelEvents such as OnLook, OnMouseDown, etc.发送体素事件如OnLook、 OnMouseDown等
 
 namespace Uniblocks
 {
@@ -12,11 +12,12 @@ namespace Uniblocks
 	
 	public void Awake () {
 		if (Range <= 0) {
-			Debug.LogWarning ("Uniblocks: CameraEventSender.Range must be greater than 0. Setting Range to 5.");
+			Debug.LogWarning ("Uniblocks: CameraEventSender.Range must be greater than 0. Setting Range to 5." +
+				"Range必须大于0，将默认设置范围:5");
 			Range = 5.0f;
 		}
 		
-		SelectedBlockGraphics = GameObject.Find ("selected block graphics");
+		SelectedBlockGraphics = GameObject.Find ("SelectedBox");
 	}
 	
 	public void Update () {

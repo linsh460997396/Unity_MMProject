@@ -14,10 +14,26 @@ namespace Uniblocks
         public bool Empty;
 
         // Settings & flags
+
+        /// <summary>
+        /// 流程新鲜状态
+        /// </summary>
         public bool Fresh = true;
+        /// <summary>
+        /// 允许超时状态
+        /// </summary>
         public bool EnableTimeout;
+        /// <summary>
+        /// 禁用网格状态（对于从UniblocksServer派生的团块：如果为true，则团块不会构建网格）
+        /// </summary>
         public bool DisableMesh; // for chunks spawned from UniblocksServer; if true, the chunk will not build a mesh
+        /// <summary>
+        /// 已被标记为需要移除状态
+        /// </summary>
         private bool FlaggedToRemove;
+        /// <summary>
+        /// 记录团块被生成多久了
+        /// </summary>
         public float Lifetime; // how long since the chunk has been spawned
 
         // update queue
@@ -532,12 +548,18 @@ namespace Uniblocks
 
 
         // ==== network ==============
+
+        /// <summary>
+        /// 当前有多少团块数据请求在服务器上为客户端排队，当团块每次请求数据时增1，当团块接收数据时减1
+        /// </summary>
         public static int CurrentChunkDataRequests; // how many chunk requests are currently queued in the server for this client. Increased by 1 every time a chunk requests data, and reduced by 1 when a chunk receives data.
+        
         IEnumerator RequestVoxelData()
-        { // waits until we're connected to a server and then sends a request for voxel data for this chunk to the server
+        { // waits until we're connected to a server and then sends a request for voxel data for this chunk to the server.
+          // 等待直到连接到服务器，然后发送这个团块体素数据的请求到服务器
             while (!Network.isClient)
             {
-                CurrentChunkDataRequests = 0; // reset the counter if we're not connected
+                CurrentChunkDataRequests = 0; // reset the counter if we're not connected.如果没有连接就重置计数器
                 yield return new WaitForEndOfFrame();
             }
             while (Engine.MaxChunkDataRequests != 0 && CurrentChunkDataRequests >= Engine.MaxChunkDataRequests)

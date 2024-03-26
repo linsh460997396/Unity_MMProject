@@ -187,6 +187,7 @@
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Examples\ExampleTerrainGeneratorWithTrees.cs" />
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Examples\FlatTerrainGenerator.cs" />
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Examples\FrameRateDisplay.cs" />
+     <Compile Include="Assets\Uniblocks\UniblocksScripts\Examples\MovementSwitch.cs" />
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Examples\VoxelDoorOpenClose.cs" />
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Examples\VoxelGrass.cs" />
      <Compile Include="Assets\Uniblocks\UniblocksScripts\Multiplayer\ConnectionInitializer.cs" />
@@ -197,6 +198,7 @@
      <Compile Include="Assets\Uniblocks\UniblocksScripts\PlayerInteraction\ColliderEventsSender.cs" />
      <None Include="Assets\Uniblocks\UniblocksDocumentation\changelog.txt" />
      <None Include="Assets\Shaders\MyShader.shader" />
+     <None Include="Assets\ReadMe\ReadMe.txt" />
  <Reference Include="Assembly-UnityScript-firstpass">
  <HintPath>T:/Work/Unity/FuncWorld/Library/ScriptAssemblies/Assembly-UnityScript-firstpass.dll</HintPath>
  </Reference>

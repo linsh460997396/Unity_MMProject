@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-// displays FPS counter in the corner of the screen
+// displays FPS counter in the corner of the screen.在屏幕的角落显示FPS计数器
 
 public class FrameRateDisplay : MonoBehaviour
 {

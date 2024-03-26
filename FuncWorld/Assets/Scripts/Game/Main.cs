@@ -402,14 +402,20 @@ public class Main : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log(Application.dataPath);
+        //Awake函数主要用于初始化对象的状态，在场景加载时执行。
+        //当你禁用组件时，它将不会调用Start、Update、LateUpdate等其他生命周期函数，也不会执行任何渲染操作。
+        //如果希望在禁用组件时完全停止脚本的执行，可使用StopCoroutine函数来停止协程，或在脚本中手动检查组件是否被禁用，从而避免执行不必要的代码
+        if (enabled)
+        {
+            Debug.Log(Application.dataPath);
 
-        //开启一个协程进行资源加载
-        LoadAllFromMemoryAsync(Application.dataPath + "/AssetBundle/abtest");
-        //协程结束前尚无法马上取得素材，请等待
+            //开启一个协程进行资源加载
+            LoadAllFromMemoryAsync(Application.dataPath + "/AssetBundle/abtest");
+            //协程结束前尚无法马上取得素材，请等待
 
-        //Unity编辑器中Application.dataPath返回Assets文件夹路径，打包后为应用程序所在路径
-        //LoadAllFromMemoryAsync(Application.dataPath + "/AssetBundle/abtest");
+            //Unity编辑器中Application.dataPath返回Assets文件夹路径，打包后为应用程序所在路径
+            //LoadAllFromMemoryAsync(Application.dataPath + "/AssetBundle/abtest");
+        }
     }
 
     // Use this for initialization
@@ -424,6 +430,13 @@ public class Main : MonoBehaviour
         else
         {
             Debug.LogError("Could not find target object with name '" + mainPlayer.name + "'");
+        }
+
+        //摧毁诞生平台
+        GameObject platform = GameObject.Find("PlatformForBirth");
+        if (platform)
+        {
+            Destroy(platform, 2f); // 摧毁游戏对象2秒后
         }
     }
 
