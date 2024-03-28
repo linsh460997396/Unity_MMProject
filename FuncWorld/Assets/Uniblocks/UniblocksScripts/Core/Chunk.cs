@@ -520,30 +520,37 @@ namespace Uniblocks
             return transform.TransformPoint(localPoint);// convert local position to world space
         }
 
+        /// <summary>
+        /// 将绝对位置转换为体素的索引
+        /// </summary>
+        /// <param name="position"></param>
+        /// <param name="normal"></param>
+        /// <param name="returnAdjacent"></param>
+        /// <returns></returns>
         public Index PositionToVoxelIndex(Vector3 position, Vector3 normal, bool returnAdjacent)
         { // converts the absolute position to the index of the voxel
 
             if (returnAdjacent == false)
             {
-                position = position - (normal * 0.25f); // push the hit point into the cube
+                position = position - (normal * 0.25f); // push the hit point into the cube.将射线碰撞器位置推入立方体（沿法线方向进到里面0.25深度处）
             }
             else
             {
-                position = position + (normal * 0.25f); // push the hit point outside of the cube
+                position = position + (normal * 0.25f); // push the hit point outside of the cube.将射线碰撞器位置推出立方体（沿法线方向退到面外0.25距离处）
             }
 
-
-            // convert world position to chunk's local position
+            // convert world position to chunk's local position.将世界位置转换为团块的局部位置
             Vector3 point = transform.InverseTransformPoint(position);
 
 
-            // round it to get an int which we can convert to the voxel index
+            // round it to get an int which we can convert to the voxel index.四舍五入得到一个整数，我们可以将其转换为体素索引
             Index index = new Index(0, 0, 0);
+            //四舍五入到最近的顶点
             index.x = Mathf.RoundToInt(point.x);
             index.y = Mathf.RoundToInt(point.y);
             index.z = Mathf.RoundToInt(point.z);
 
-            return index;
+            return index; //将修正后的顶点作为体素的索引返回
         }
 
 

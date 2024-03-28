@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace UnityStandardAssets.Utility
 {
+    /// <summary>
+    /// 视野（Field of View, FOV）的“踢动”或变化效果。在射击游戏或其他需要模拟武器后坐力的游戏中，FOV踢动是一种常见的技术，用于模拟玩家在射击时视线的震动或偏移。
+    /// </summary>
     [Serializable]
     public class FOVKick
     {

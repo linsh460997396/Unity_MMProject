@@ -3,65 +3,78 @@ using System.Collections;
 
 // Triggers chunk spawning around the player.在玩家角色周围触发自动化的团块生成
 
-namespace Uniblocks {
+namespace Uniblocks
+{
 
-public class ChunkLoader : MonoBehaviour {
+    public class ChunkLoader : MonoBehaviour
+    {
 
-	private Index LastPos;
-	private Index currentPos;
-	
-	void Awake () {
-		
-	}
+        private Index LastPos;
+        private Index currentPos;
+
+        void Awake()
+        {
+
+        }
 
 
-	public void Update () {
-		
-		// don't load chunks if engine isn't initialized yet
-		if (!Engine.Initialized || !ChunkManager.Initialized) {
-			return;
-		}
-		
-		// don't load chunks if multiplayer is enabled but the connection isn't established yet
-		if (Engine.EnableMultiplayer) {
-			if (!Network.isClient && !Network.isServer) {
-				return;
-			}
-		}
+        public void Update()
+        {
+
+            // don't load chunks if engine isn't initialized yet
+            if (!Engine.Initialized || !ChunkManager.Initialized)
+            {
+                return;
+            }
+
+            // don't load chunks if multiplayer is enabled but the connection isn't established yet
+            if (Engine.EnableMultiplayer)
+            {
+                if (!Network.isClient && !Network.isServer)
+                {
+                    return;
+                }
+            }
 
 
 
             // track which chunk we're currently in. If it's different from previous frame, spawn chunks at current position.跟踪我们当前所在的团块，如果它与前一帧不同，则在当前位置生成团块
 
-            currentPos = Engine.PositionToChunkIndex (transform.position);
+            currentPos = Engine.PositionToChunkIndex(transform.position);
 
-		if (currentPos.IsEqual(LastPos) == false) {
-			ChunkManager.SpawnChunks(currentPos.x, currentPos.y, currentPos.z);
-			
-			// (Multiplayer) update server position
-			if (Engine.EnableMultiplayer && Engine.MultiplayerTrackPosition && Engine.UniblocksNetwork != null) {
-				UniblocksClient.UpdatePlayerPosition (currentPos);
-			}
-		}
-		
-		LastPos = currentPos;	
-		
-	}
+            if (currentPos.IsEqual(LastPos) == false)
+            {
+                ChunkManager.SpawnChunks(currentPos.x, currentPos.y, currentPos.z);
 
-	// multiplayer
-	public void OnConnectedToServer () {
-		if (Engine.EnableMultiplayer && Engine.MultiplayerTrackPosition) {
-			StartCoroutine (InitialPositionAndRangeUpdate());
-		}
-	}
-	
-	IEnumerator InitialPositionAndRangeUpdate () {
-		while (Engine.UniblocksNetwork == null) {
-			yield return new WaitForEndOfFrame ();
-		}
-		UniblocksClient.UpdatePlayerPosition (currentPos);
-		UniblocksClient.UpdatePlayerRange (Engine.ChunkSpawnDistance);
-	}
-}
+                // (Multiplayer) update server position
+                if (Engine.EnableMultiplayer && Engine.MultiplayerTrackPosition && Engine.UniblocksNetwork != null)
+                {
+                    UniblocksClient.UpdatePlayerPosition(currentPos);
+                }
+            }
+
+            LastPos = currentPos;
+
+        }
+
+        // multiplayer
+        public void OnConnectedToServer()
+        {
+            if (Engine.EnableMultiplayer && Engine.MultiplayerTrackPosition)
+            {
+                StartCoroutine(InitialPositionAndRangeUpdate());
+            }
+        }
+
+        IEnumerator InitialPositionAndRangeUpdate()
+        {
+            while (Engine.UniblocksNetwork == null)
+            {
+                yield return new WaitForEndOfFrame();
+            }
+            UniblocksClient.UpdatePlayerPosition(currentPos);
+            UniblocksClient.UpdatePlayerRange(Engine.ChunkSpawnDistance);
+        }
+    }
 
 }

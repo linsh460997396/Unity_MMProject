@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-// Controls spawning and destroying chunks.控制团块的诞生和摧毁
+// Controls spawning and destroying chunks
 
 namespace Uniblocks
 {
@@ -84,13 +84,16 @@ namespace Uniblocks
         {
             //设定游戏周期（每帧秒数）
             targetFrameDuration = 1f / Engine.TargetFPS;
-
+            //建立团块组（字典）
             Chunks = new Dictionary<string, Chunk>();
+            //建立团块更新列表
             ChunkUpdateQueue = new List<Chunk>();
+            //建立帧计时器（负责记录处理用时）
             frameStopwatch = new Stopwatch();
 
             //set correct scale of trigger collider and additional mesh collider.设置触发器碰撞体和附加网格碰撞器的正确比例
 
+            //设置团块缩放比例为团块实例当前的缩放比例
             Engine.ChunkScale = ChunkObject.transform.localScale;
             //设置附加网格碰撞器的正确比例
             ChunkObject.GetComponent<Chunk>().MeshContainer.transform.localScale = ChunkObject.transform.localScale;

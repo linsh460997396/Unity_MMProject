@@ -1,7 +1,6 @@
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\Assembly-CSharp-Editor.dll
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\Assembly-CSharp-Editor.pdb
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\Assembly-UnityScript-firstpass.dll
-T:\Work\Unity\FuncWorld\Temp\bin\Debug\Assembly-UnityScript.dll
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\Boo.Lang.dll
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\mscorlib.dll
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\nunit.framework.dll
@@ -116,9 +115,6 @@ T:\Work\Unity\FuncWorld\Temp\bin\Debug\Boo.Lang.PatternMatching.dll
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\Boo.Lang.Useful.dll
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\Unity.CecilTools.dll
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\Unity.Cecil.Pdb.dll
-T:\Work\Unity\FuncWorld\Temp\bin\Debug\Assembly-CSharp-firstpass.pdb
-T:\Work\Unity\FuncWorld\Temp\bin\Debug\Assembly-CSharp.pdb
-T:\Work\Unity\FuncWorld\Temp\bin\Debug\Assembly-CSharp-Editor-firstpass.pdb
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\UnityEngine.xml
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\UnityEditor.xml
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\UnityEngine.AIModule.xml
@@ -204,3 +200,4 @@ T:\Work\Unity\FuncWorld\obj\Debug\Assembly-CSharp-Editor.csproj.CoreCompileInput
 T:\Work\Unity\FuncWorld\obj\Debug\Assembly.1F1299F3.Up2Date
 T:\Work\Unity\FuncWorld\obj\Debug\Assembly-CSharp-Editor.dll
 T:\Work\Unity\FuncWorld\obj\Debug\Assembly-CSharp-Editor.pdb
+T:\Work\Unity\FuncWorld\Temp\bin\Debug\HtmlAgilityPack.dll

@@ -436,7 +436,7 @@ public class Main : MonoBehaviour
         GameObject platform = GameObject.Find("PlatformForBirth");
         if (platform)
         {
-            Destroy(platform, 2f); // 摧毁游戏对象2秒后
+            Destroy(platform, 5f); // 摧毁游戏对象2秒后
         }
     }
 

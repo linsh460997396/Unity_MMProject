@@ -15,8 +15,8 @@ namespace UnityStandardAssets.CrossPlatformInput
         protected Dictionary<string, CrossPlatformInputManager.VirtualButton> m_VirtualButtons =
             new Dictionary<string, CrossPlatformInputManager.VirtualButton>();
         protected List<string> m_AlwaysUseVirtual = new List<string>();
-            // list of the axis and button names that have been flagged to always use a virtual axis or button
-        
+        // list of the axis and button names that have been flagged to always use a virtual axis or button.已标记为始终使用虚拟轴或按钮的轴和按钮名称列表
+
 
         public bool AxisExists(string name)
         {

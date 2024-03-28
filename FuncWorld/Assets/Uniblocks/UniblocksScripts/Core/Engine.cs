@@ -1,7 +1,20 @@
+// VS2022编写本脚本，在右侧解决方案窗口，引用中添加dll等方法库文件，之后可用其内指定命名空间的具体方法进行编程
+// 在C#编程中，命名空间（Namespace）是一种组织代码的方式，它可以帮助我们避免类名、方法名等之间的冲突，并提供一种逻辑上的分组机制
+// UnityEngine 命名空间
+// 主要作用：提供Unity游戏引擎的核心功能。UnityEngine命名空间包含了创建和管理Unity游戏所需的所有基础类和接口。
+// 包含内容：这个命名空间包含用于场景管理、对象操作、渲染、物理、输入处理、网络、音频、用户界面、动画、脚本生命周期管理等功能的类。例如，Transform 类用于表示和操作游戏对象的位置、旋转和缩放；GameObject 类是Unity场景中的基本构建块；MonoBehaviour 类是所有脚本组件的基类，它提供了如Start和Update等生命周期方法。
+// System.Collections.Generic 命名空间
+// 主要作用：提供了一系列泛型集合类，这些类用于存储和管理数据集合，如列表、字典、集合、队列等。
+// 包含内容：这个命名空间包含了如List<T>（泛型列表）、Dictionary<TKey, TValue>（键值对集合）、HashSet<T>（集合，不包含重复元素）、Queue<T>（队列）等类。这些类为数据存储和操作提供了高效和灵活的方式。
+// System.IO 命名空间
+// 主要作用：提供文件和数据流的基本输入/输出功能。System.IO命名空间包含用于文件和数据流操作的类，如文件读写、目录管理、数据流处理等。
+// 包含内容：这个命名空间中的类允许你创建文件、读取文件内容、写入文件、删除文件、管理目录结构、处理数据流等。例如，File 类提供了静态方法用于文件的创建、复制、删除、移动和打开；Directory 类用于创建、删除和移动目录；StreamReader 和 StreamWriter 类用于从文件中读取文本和向文件中写入文本。
+// 在Unity项目中，通常会通过引用这些命名空间来使用它们提供的类和功能。例如，在脚本文件的开头使用using UnityEngine;语句，就可以让你在脚本中直接使用Unity引擎提供的所有类和功能，而无需每次都写出完整的命名空间路径。
 using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 
+//"我的世界"功能模拟插件Uniblocks的主要命名空间
 namespace Uniblocks
 {
     #region 枚举
@@ -108,10 +121,8 @@ namespace Uniblocks
 
     #endregion
 
-    //核心组件用法：Unity中随便新建一个空对象，挂载脚本
-
     /// <summary>
-    /// Uniblocks引擎类型（核心组件N0.1）
+    /// Uniblocks引擎（核心组件N0.1）。Engine是Uniblocks核心类型，作为对象的组件用法：Unity中随便新建一个空对象，把脚本拖进去即挂载（所以Unity要求一个cs文件只能一个类，且类名须与文件名一致）
     /// </summary>
     public class Engine : MonoBehaviour
     {
@@ -361,15 +372,17 @@ namespace Uniblocks
 
         public void Awake()
         {
+            //本函数负责Uniblocks引擎初始化
+
             EngineInstance = this; //this关键字引用了当前类的一个实例，但它不能用在静态字段的初始化中，所以写在这
             //获取对象上的团块管理器组件实例（这里指名为"ChunkManager"的脚本类型组件实例化后的对象）
             ChunkManagerInstance = GetComponent<ChunkManager>();
             //读取GUI界面输入里填的世界名称
             WorldName = lWorldName;
-
+            //更新世界存档的路径
             UpdateWorldPath();
 
-            #region 初始化接口数据，将配置赋值给实际运作的字段属性
+            #region 将GUI界面输入数据赋值给实际运作的字段属性
 
             BlocksPath = lBlocksPath;
             Blocks = lBlocks;
@@ -399,12 +412,12 @@ namespace Uniblocks
 
             #endregion
 
-            //已加载的区域组（字典<string, string[]>）
+            //建立已加载的区域组（字典<string, string[]>）
             ChunkDataFiles.LoadedRegions = new Dictionary<string, string[]>();
-            //临时团块数据组（字典<string, string>）
+            //建立临时团块数据组（字典<string, string>）
             ChunkDataFiles.TempChunkData = new Dictionary<string, string>();
 
-            //如GUI界面输入lChunkTimeout<= 0.00001，则不允许团块处理超时，否则允许超时且将GUI界面输入中所填超时数值赋值给属性字段
+            //如GUI界面输入的lChunkTimeout<= 0.00001，则不允许团块处理超时，否则允许超时并将lChunkTimeout赋值给游戏逻辑频繁互动用的属性字段
             if (lChunkTimeout <= 0.00001f)
             {
                 EnableChunkTimeout = false;
@@ -470,8 +483,7 @@ namespace Uniblocks
             {
                 Debug.LogError("Uniblocks: Chunk side length must be greater than 0!" +
                     "团块边长必须大于0");
-                //暂停编辑器运行
-                Debug.Break();
+                Debug.Break(); //暂停编辑器运行
             }
 
             //如果团块生成距离<1则被置为0（不再生成），默认是8
@@ -537,7 +549,7 @@ namespace Uniblocks
                     "启用了抗锯齿，这可能导致在块之间出现接缝线！如果你看到块之间的线条，试着禁用抗锯齿，切换到延迟渲染路径，或者在引擎设置中添加一些纹理填充。");
             }
 
-
+            //Uniblocks引擎初始化状态
             Initialized = true;
 
         }
@@ -556,7 +568,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 设置世界名字（设置后世界种子将被重置为0，并且刷新用于档案的世界路径）
+        /// 设置世界名字（设置后世界种子将被重置为0，并刷新用于档案存储的世界路径）
         /// </summary>
         /// <param name="worldName"></param>
         public static void SetWorldName(string worldName)
@@ -572,16 +584,24 @@ namespace Uniblocks
         public static void GetSeed()
         { // reads the world seed from file if it exists, else creates a new seed and saves it to file
 
-            //if (Application.isWebPlayer) { // don't save to file if webplayer			
+            //if (Application.isWebPlayer) { // don't save to file if webplayer		
             //	Engine.WorldSeed = Random.Range (ushort.MinValue, ushort.MaxValue);
             //	return;
             //}		
 
+#if UNITY_WEBPLAYER
+            //当前平台是WebPlayer，本地化存储应取消
+            Engine.WorldSeed = Random.Range (ushort.MinValue, ushort.MaxValue
+            return;
+#else
+            //当前平台不是WebPlayer
+#endif
+            //存在种子文件则读取
             if (File.Exists(WorldPath + "seed"))
             {
-                //存在种子则读取
+                //创建文件的读取流
                 StreamReader reader = new StreamReader(WorldPath + "seed");
-                WorldSeed = int.Parse(reader.ReadToEnd());
+                WorldSeed = int.Parse(reader.ReadToEnd()); //读取全部字符串后转为数字，作为世界种子
                 reader.Close();
             }
             else
@@ -589,12 +609,13 @@ namespace Uniblocks
                 //循环的目的是确保生成的 WorldSeed 值不为 0
                 while (WorldSeed == 0)
                 {
+                    //创建一个新的种子
                     WorldSeed = Random.Range(ushort.MinValue, ushort.MaxValue);
                 }
                 Directory.CreateDirectory(WorldPath); //如文件夹存在则不会创建新的，该动作不会抛出异常无需用if (!Directory.Exists(WorldPath))判断
                 StreamWriter writer = new StreamWriter(WorldPath + "seed"); //指定文件路径，创建一个写入流
                 writer.Write(WorldSeed.ToString()); //为文件写入内容字符串
-                //在执行 Close 方法之前调用 Flush 方法可以确保所有数据在关闭文件之前被正确地写入。
+                //在执行 Close 方法之前调用 Flush 方法可以确保所有数据在关闭文件之前被正确地写入
                 writer.Flush();
                 writer.Close();
                 //虽然在大多数情况下，调用 Close 方法时会自动调用 Flush 方法，但在某些特殊情况下，例如当文件系统繁忙或者出现其他问题时，数据可能无法正确地写入文件
@@ -624,16 +645,18 @@ namespace Uniblocks
         // ==== other ====	
 
         /// <summary>
-        /// 获取体素的游戏物体对象
+        /// 获取体素对应的游戏物体对象
         /// </summary>
-        /// <param name="voxelId">体素ID</param>
-        /// <returns></returns>
+        /// <param name="voxelId">体素ID（体素块的类型）</param>
+        /// <returns>返回体素ID对应体素块种类的游戏物体对象，体素ID=0或65535时返回空块</returns>
         public static GameObject GetVoxelGameObject(ushort voxelId)
         {
             try
             {
+                //如果体素ID达到ushort数据类型的最大值65535，那么归零（防止从负数开始）
                 if (voxelId == ushort.MaxValue) voxelId = 0;
-                GameObject voxelObject = Blocks[voxelId];
+                GameObject voxelObject = Blocks[voxelId];//获取体素ID对应体素块种类的游戏物体对象
+                //检查体素对象上的体素组件
                 if (voxelObject.GetComponent<Voxel>() == null)
                 {
                     Debug.LogError("Uniblocks: Voxel id " + voxelId + " does not have the Voxel component attached!" +
@@ -648,35 +671,40 @@ namespace Uniblocks
             }
             catch (System.Exception)
             {
+                //报错并指出无效体素ID
                 Debug.LogError("Uniblocks: Invalid voxel id: " + voxelId);
                 return Blocks[0];
             }
         }
 
         /// <summary>
-        /// 获取体素类型
+        /// 获取体素类型组件
         /// </summary>
-        /// <param name="voxelId">体素ID</param>
-        /// <returns></returns>
+        /// <param name="voxelId">体素ID（体素块的类型）</param>
+        /// <returns>返回体素ID对应体素块上的体素类型组件，体素ID=0或65535时返回空块上的体素类型组件</returns>
         public static Voxel GetVoxelType(ushort voxelId)
         {
             try
             {
+                //如果体素ID达到ushort数据类型的最大值65535，那么归零（防止从负数开始）
                 if (voxelId == ushort.MaxValue) voxelId = 0;
-                Voxel voxel = Blocks[(int)voxelId].GetComponent<Voxel>();
+                Voxel voxel = Blocks[voxelId].GetComponent<Voxel>();//获取体素ID对应体素块上的体素类型组件
                 if (voxel == null)
                 {
+                    //体素组件不存在
                     Debug.LogError("Uniblocks: Voxel id " + voxelId + " does not have the Voxel component attached!");
                     return null;
                 }
                 else
                 {
+                    //返回体素ID对应体素块上的体素类型组件
                     return voxel;
                 }
 
             }
             catch (System.Exception)
             {
+                //报错并指出无效体素ID
                 Debug.LogError("Uniblocks: Invalid voxel id: " + voxelId);
                 return null;
             }
@@ -695,37 +723,39 @@ namespace Uniblocks
 
             RaycastHit hit = new RaycastHit(); //创建射线投射器hit
 
-            //利用物理引擎投射光线，hit的绘制从origin出发沿direction方向，最大距离range
+            //利用物理引擎投射光线，hit的绘制从origin（摄像机位置）出发沿direction（摄像机前方）方向，最大距离range
             if (Physics.Raycast(origin, direction, out hit, range))
             {
-                //如果从hit碰撞体里能获取到团块或团块扩展组件
-                if (hit.collider.GetComponent<Chunk>() != null
-                    || hit.collider.GetComponent<ChunkExtension>() != null)
+                //如果从hit碰撞体组件对象里能获取到团块或团块扩展组件（这里因为Collider是继承Component的，所以可直接使用父类的GetComponent方法获取当前游戏物体对象身上的其他兄弟组件）
+                if (hit.collider.GetComponent<Chunk>() != null || hit.collider.GetComponent<ChunkExtension>() != null)
                 { // check if we're actually hitting a chunk.检查我们是否真的击中了团块
 
-                    GameObject hitObject = hit.collider.gameObject; //从碰撞体中获得游戏物体对象
+                    GameObject hitObject = hit.collider.gameObject; //从碰撞体组件中获得游戏物体对象并赋值给hitObject
 
                     if (hitObject.GetComponent<ChunkExtension>() != null)
-                    { // if we hit a mesh container instead of a chunk.如果我们击中的是网状容器而不是团块（判断依据是网状容器拥有大块扩展组件），注意网格容器是团块大小的，虽是团块子对象但它不是体素块）
+                    { // if we hit a mesh container instead of a chunk.如果我们击中的是网状容器而不是团块（判断依据是网状容器拥有大块扩展组件），注意网格容器是团块大小的，虽是团块的子对象但它不是体素块）
                         hitObject = hitObject.transform.parent.gameObject; // swap the mesh container for the actual chunk object.将网格容器替换为实际的团块对象（它是网格容器对象的父级对象）
                     }
 
-                    //通过射线投射器坐标、射线方向与接触面形成的法线方向来获取体素索引（不获取相邻体素）
+                    //根据hit碰撞面法线方向来推离或推进hit位置，后将新位置转为在团块的本地局部坐标（相对位置）来获取体素索引（false指不获取相邻体素，则推进hit到所碰体素块内部），最终将hit新位置进行四舍五入修正以靠近最近顶点作为体素索引返回
                     Index hitIndex = hitObject.GetComponent<Chunk>().PositionToVoxelIndex(hit.point, hit.normal, false);
-
+                    
                     //忽略透明
                     if (ignoreTransparent)
                     { // punch through transparent voxels by raycasting again when a transparent voxel is hit.当一个透明体素被击中时，再次通过光线投射穿透透明体素
-                        ushort hitVoxel = hitObject.GetComponent<Chunk>().GetVoxel(hitIndex.x, hitIndex.y, hitIndex.z); //通过体素索引从团块组件获得体素（代号）
-                        //如果命中的体素类型的VTransparency属性=透明
+                        ushort hitVoxel = hitObject.GetComponent<Chunk>().GetVoxel(hitIndex.x, hitIndex.y, hitIndex.z); //通过体素索引从团块里获得体素ID（体素块的类型）
+                        //如果命中的体素类型的VTransparency属性!=固体，说明是透明或半透明
                         if (GetVoxelType(hitVoxel).VTransparency != Transparency.solid)
                         {
                             Vector3 newOrigin = hit.point; //存储hit坐标
-                            newOrigin.y -= 0.5f; // push the new raycast down a bit.将hit向下移动0.5
-                            return VoxelRaycast(newOrigin, Vector3.down, range - hit.distance, true); //返回体素信息
+                            newOrigin.y -= 0.5f; // push the new raycast down a bit.将hit向下高度移动0.5（基本上hit跑到所选体素块内部）
+                            return VoxelRaycast(newOrigin, Vector3.down, range - hit.distance, true); //递归调用函数自身，以新点开始重新向下射出射线，来完成剩余距离碰撞检测（true指获取相邻体素）
+                                                                                                      //这段代码只能处理向下的透明体素，其他方向（如向上、向左、向右等）也透明那么无法正确地“穿透”
+
+
                         }
                     }
-
+                    
                     return new VoxelInfo(
                                          hitObject.GetComponent<Chunk>().PositionToVoxelIndex(hit.point, hit.normal, false), // get hit voxel index.获取击中体素的索引
                                          hitObject.GetComponent<Chunk>().PositionToVoxelIndex(hit.point, hit.normal, true), // get adjacent voxel index.获取相邻体素的索引
@@ -820,7 +850,7 @@ namespace Uniblocks
         /// <summary>
         /// 获取纹理偏移点
         /// </summary>
-        /// <param name="voxel">体素（代号）</param>
+        /// <param name="voxel">体素ID（体素块的类型）</param>
         /// <param name="facing">面向</param>
         /// <returns>如没定义纹理则返回Vector2(0, 0)，如体素没用自定义单面纹理则返回顶部纹理点，如请求一个没定义的纹理则抓取最后定义纹理点来返回</returns>
         public static Vector2 GetTextureOffset(ushort voxel, Facing facing)

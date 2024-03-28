@@ -4,6 +4,9 @@ using UnityStandardAssets.CrossPlatformInput.PlatformSpecific;
 
 namespace UnityStandardAssets.CrossPlatformInput
 {
+	/// <summary>
+	/// 跨平台输入管理器
+	/// </summary>
 	public static class CrossPlatformInputManager
 	{
 		public enum ActiveInputMethod
@@ -12,20 +15,20 @@ namespace UnityStandardAssets.CrossPlatformInput
 			Touch
 		}
 
-
 		private static VirtualInput activeInput;
 
 		private static VirtualInput s_TouchInput;
 		private static VirtualInput s_HardwareInput;
 
-
-		static CrossPlatformInputManager()
+        static CrossPlatformInputManager()
 		{
 			s_TouchInput = new MobileInput();
 			s_HardwareInput = new StandaloneInput();
 #if MOBILE_INPUT
+            //触控输入
             activeInput = s_TouchInput;
 #else
+			//硬件输入
 			activeInput = s_HardwareInput;
 #endif
 		}
@@ -89,8 +92,12 @@ namespace UnityStandardAssets.CrossPlatformInput
 		}
 
 
-		// returns the platform appropriate axis for the given name
-		public static float GetAxis(string name)
+        /// <summary>
+        /// returns the platform appropriate axis for the given name.返回给定名称对应的轴
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static float GetAxis(string name)
 		{
 			return GetAxis(name, false);
 		}

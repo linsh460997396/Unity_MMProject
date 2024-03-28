@@ -99,7 +99,6 @@ T:\Work\Unity\FuncWorld\Temp\bin\Debug\Boo.Lang.Useful.dll
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\Unity.CecilTools.dll
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\Unity.Cecil.Pdb.dll
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\Unity.Cecil.Mdb.dll
-T:\Work\Unity\FuncWorld\Temp\bin\Debug\Assembly-CSharp-firstpass.pdb
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\UnityEngine.xml
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\UnityEditor.xml
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\UnityEngine.AIModule.xml

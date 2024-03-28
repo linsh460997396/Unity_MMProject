@@ -1,19 +1,19 @@
 ﻿using UnityEngine;
 using Uniblocks;
 
-public class BlockManager : MonoBehaviour {
-
-    public int range = 10;
-
+/// <summary>
+/// 体素块管理器
+/// </summary>
+public class BlockManager : MonoBehaviour 
+{
     private ushort blockID = 0;
     private Transform selectedBlockEffect;
-	// Use this for initialization
+
 	void Start () {
-        selectedBlockEffect = GameObject.Find("SelectedBox").transform;
-        selectedBlockEffect.gameObject.SetActive(false);
+        selectedBlockEffect = GameObject.Find("SelectedBox").transform;//获取选择框
+        selectedBlockEffect.gameObject.SetActive(false);//选择框状态不激活（会隐藏起来）
 	}
 	
-	// Update is called once per frame
 	void Update () {
         SelectBlockID();
 
