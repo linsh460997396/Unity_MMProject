@@ -14,7 +14,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 
-//"我的世界"功能模拟插件Uniblocks的主要命名空间
 namespace Uniblocks
 {
     #region 枚举
@@ -122,7 +121,7 @@ namespace Uniblocks
     #endregion
 
     /// <summary>
-    /// Uniblocks引擎（核心组件N0.1）。Engine是Uniblocks核心类型，作为对象的组件用法：Unity中随便新建一个空对象，把脚本拖进去即挂载（所以Unity要求一个cs文件只能一个类，且类名须与文件名一致）
+    /// 存储全局引擎设置，并提供一些静态功能用于数据转换等。组件用法：Unity中随便新建一个空对象“Engine”，把脚本拖到组件位置即挂载（Unity要求一个cs文件只能一个类，且类名须与文件名一致）
     /// </summary>
     public class Engine : MonoBehaviour
     {
@@ -130,57 +129,60 @@ namespace Uniblocks
 
         #region 字段、属性方法
 
+        // 引擎的每个静态变量都有一个非静态的等价物。非静态变量的名称与静态变量相同，只是在开头用小写的L，使用这些变量是为了能够在Unity中编辑这些变量，包括在引擎设置窗口中。
+        // 在编辑器的Awake功能中，非静态变量被应用于它们的静态对应(通过场景中的Engine游戏对象)，所以在运行时改变非静态变量不会产生任何影响。
+
         /// <summary>
-        /// 世界名称，用于档案
+        /// 当前活动世界的名称（对应存储世界数据的文件夹）
         /// </summary>
         public static string WorldName;
 
         /// <summary>
-        /// 世界路径，用于档案
+        /// 世界数据文件的路径（默认路径为/application_root/world_name/），可通过直接编辑Engine脚本内的UpdateWorldPath私有函数来更改世界路径。
         /// </summary>
         public static string WorldPath;
 
         /// <summary>
-        /// 体素块路径，用于档案
+        /// 体素块路径（Unity项目中块预制体的路径），这是块编辑器用来查找块的。
         /// </summary>
         public static string BlocksPath;
 
         /// <summary>
-        /// 世界种子，用于档案
+        /// 当前活动世界的种子，可用于程序地形生成，种子存储在世界数据文件夹中
         /// </summary>
         public static int WorldSeed;
 
         /// <summary>
-        /// 世界名称，GUI界面输入
+        /// [GUI界面输入]世界数据文件的路径（默认路径为/application_root/world_name/），可通过直接编辑Engine脚本内的UpdateWorldPath私有函数来更改世界路径。
         /// </summary>
         public string lWorldName = "Default";
 
         /// <summary>
-        /// 体素块路径，GUI界面输入
+        /// [GUI界面输入]体素块路径（Unity项目中块预制体的路径），这是块编辑器用来查找块的。
         /// </summary>
         public string lBlocksPath;
 
         /// <summary>
-        /// 三维立体像素块（体素块），在块编辑器中定义
+        /// 三维立体像素块（体素块）预制体，在块编辑器中定义，数组索引对应于块的体素ID（体素块预制体种类）。
         /// </summary>
         public static GameObject[] Blocks;
         /// <summary>
-        /// 三维立体像素块（体素块），GUI界面输入
+        /// [GUI界面输入]三维立体像素块（体素块）预制体，在块编辑器中定义，数组索引对应于块的体素ID（体素块预制体种类）。
         /// </summary>
         public GameObject[] lBlocks;
 
         // 团块创建设置（团块就是这些体素块的集合、由小块堆组成的大块）
 
         /// <summary>
-        /// 团块自动创建时高度范围限制（如果是3，表示高度Y最大是3个团块范围，如果团块是16边长，那么Y最大高度48）
+        /// 衍生团块的最大正负垂直块索引，即团块自动创建时高度范围限值（如果是3，表示高度Y最大是3个团块范围，如果团块是16边长，那么Y最大高度48）
         /// </summary>
         public static int HeightRange;
         /// <summary>
-        /// 团块自动创建时距离限制（如果是8，则始终在玩家周围保证有8范围的团块）
+        /// 从原点到生成团块的水平距离(以团块为单位)，是团块自动创建时的距离限制（如果是8，则始终在玩家周围保证有8范围的团块）
         /// </summary>
         public static int ChunkSpawnDistance;
         /// <summary>
-        /// 团块自动创建时的尺寸边长（如果是16，则团块由16*16*16个体素块组成）
+        /// 一个团块的边长(以体素为单位)，即团块自动创建时的正方形单边尺寸边长（如果是16，则团块由16*16*16个体素块组成）
         /// </summary>
         public static int ChunkSideLength;
         /// <summary>
@@ -191,151 +193,162 @@ namespace Uniblocks
         // 团块创建设置，GUI界面输入
 
         /// <summary>
-        /// 团块自动创建时高度范围限制（如果是3，表示高度Y最大是3个团块范围，如果团块是16边长，那么Y最大高度48）
+        /// [GUI界面输入]衍生团块的最大正负垂直块索引，即团块自动创建时高度范围限值（如果是3，表示高度Y最大是3个团块范围，如果团块是16边长，那么Y最大高度48）
         /// </summary>
         public int lHeightRange;
         /// <summary>
-        /// 团块自动创建时距离限制（如果是8，则始终在玩家周围保证有8范围的团块）
+        /// [GUI界面输入]从原点到生成团块的水平距离(以团块为单位)，是团块自动创建时的距离限制（如果是8，则始终在玩家周围保证有8范围的团块）
         /// </summary>
         public int lChunkSpawnDistance;
         /// <summary>
-        /// 团块自动创建时的尺寸边长（如果是16，则团块由16*16*16个体素块组成）
+        /// [GUI界面输入]一个团块的边长(以体素为单位)，即团块自动创建时的正方形单边尺寸边长（如果是16，则团块由16*16*16个体素块组成）
         /// </summary>
         public int lChunkSideLength;
         /// <summary>
-        /// 团块自动摧毁时的判断距离（如果是3，则团块会在距离玩家ChunkSpawnDistance+3个团块距离时进行摧毁，摧毁时会存入档案以便玩家走过来时读取生成）
+        /// [GUI界面输入]团块自动摧毁时的判断距离（如果是3，则团块会在距离玩家ChunkSpawnDistance+3个团块距离时进行摧毁，摧毁时会存入档案以便玩家走过来时读取生成）
         /// </summary>
         public int lChunkDespawnDistance;
 
         // 纹理设置
 
         /// <summary>
-        /// 纹理单元倍率，形象说明的话相当于每个精灵在整张图片中的比例，默认是0.125说明整张图片被横竖均分8x8个纹理单元
+        /// 纹理单元倍率（一个块的纹理边长与纹理表边长之比，用于计算体素块纹理），形象说明的话相当于每个精灵在整张图片中的比例，默认是0.125说明整张图片被横竖均分8x8个纹理单元
         /// </summary>
         public static float TextureUnit;
         /// <summary>
-        /// 每个纹理单元之间填充缝的大小（依然是整张图片的倍率，如图片是512x512像素，要在纹理各单元间填充1像素需填写1/512），填充以避免取到别的纹理单元
+        /// 纹理表上纹理之间的填充，作为单个体素块纹理大小的一小部分。即每个纹理单元之间填充缝的大小（依然是整张图片的倍率，如图片是512x512像素，要在纹理各单元间填充1像素需填写1/512），填充以避免取到别的纹理单元
         /// </summary>
         public static float TexturePadding;
 
         // 纹理设置，GUI界面输入
 
-        /// 纹理单元倍率，形象说明的话相当于每个精灵在整张图片中的比例，默认是0.125说明整张图片被横竖均分8x8个纹理单元
+        /// <summary>
+        /// [GUI界面输入]纹理单元倍率（一个块的纹理边长与纹理表边长之比，用于计算体素块纹理），形象说明的话相当于每个精灵在整张图片中的比例，默认是0.125说明整张图片被横竖均分8x8个纹理单元
         /// </summary>
         public float lTextureUnit;
-        /// 每个纹理单元之间填充缝的大小（依然是整张图片的倍率，如图片是512x512像素，要在纹理各单元间填充1像素需填写1/512），填充以避免取到别的纹理单元
+        /// <summary>
+        /// [GUI界面输入]纹理表上纹理之间的填充，作为单个体素块纹理大小的一小部分。即每个纹理单元之间填充缝的大小（依然是整张图片的倍率，如图片是512x512像素，要在纹理各单元间填充1像素需填写1/512），填充以避免取到别的纹理单元
         /// </summary>
         public float lTexturePadding;
 
         // 平台设置
 
         /// <summary>
-        /// 目标帧率
+        /// 目标（预期）帧率，并非实际，如果计时器记录每帧处理用时超过它，则可以将动作放在下一帧继续步进，防止卡在这一帧（让外围团块慢慢生成），所以这个值并非期望越高越好而是应尽量贴近实际。
         /// </summary>
         public static int TargetFPS;
         /// <summary>
-        /// 团块保存上限
+        /// 每帧的团块保存上限（决定每帧保存团块的最大处理速率），用于跟ChunkManager的当前帧的团块已保存数量SavesThisFrame进行比对
         /// </summary>
         public static int MaxChunkSaves;
         /// <summary>
-        /// 团块数据请求上限
+        /// 团块数据请求上限：每个客户端一次可以在服务器中排队的最大团块数据请求数(0=无限制)。如客户端生成数据块的速度太快且你发现你的服务器无法跟上数据请求的速度，那么降低这个限制。
         /// </summary>
         public static int MaxChunkDataRequests;
 
         // 平台设置，GUI界面输入
 
         /// <summary>
-        /// 目标帧率
+        /// [GUI界面输入]目标（预期）帧率，并非实际，如果计时器记录每帧处理用时超过它，则可以将动作放在下一帧继续步进，防止卡在这一帧（让外围团块慢慢生成），所以这个值并非期望越高越好而是应尽量贴近实际。
         /// </summary>
         public int lTargetFPS;
         /// <summary>
-        /// 团块保存上限（用于多人在线）
+        /// [GUI界面输入]团块保存上限（决定每帧保存团块的最大处理速率）
         /// </summary>
         public int lMaxChunkSaves;
         /// <summary>
-        /// 团块数据请求上限（用于多人在线）
+        /// [GUI界面输入]团块数据请求上限：每个客户端一次可以在服务器中排队的最大团块数据请求数(0=无限制)。如客户端生成数据块的速度太快且你发现你的服务器无法跟上数据请求的速度，那么降低这个限制。
         /// </summary>
         public int lMaxChunkDataRequests;
 
         // 全局设置
 
+        /// <summary>
+        /// 体素块的侧面可见（前提是没有与它们接壤的团块实例）
+        /// </summary>
         public static bool ShowBorderFaces;
         /// <summary>
-        /// 产生碰撞体
+        /// 产生碰撞体（为false则团块将不会生成任何Colliders）
         /// </summary>
         public static bool GenerateColliders;
         /// <summary>
-        /// 发送镜头注视事件
+        /// 发送镜头注视事件（如果为true, CameraEventsSender组件将把事件发送到主摄像机视场中心指着的体素块）
         /// </summary>
         public static bool SendCameraLookEvents;
         /// <summary>
-        /// 发送鼠标指针事件
+        /// 发送鼠标指针事件（如果为true, CameraEventsSender组件将将把事件发送到当前鼠标光标指着的体素块）
         /// </summary>
         public static bool SendCursorEvents;
         /// <summary>
-        /// 允许多人玩家
+        /// 允许多人玩家（团块将从服务器请求体素数据而不是从硬盘生成或加载，另外Voxel.ChangeBlock、Voxel.PlaceBlock和Voxel.DestroyBlock会将体素变化发送到服务器以便重新分发给其他连接的玩家）
         /// </summary>
         public static bool EnableMultiplayer;
         /// <summary>
-        /// 用于确定网络同步轨道位置的处理方式。
+        /// 用于确定网络同步轨道位置的处理方式，服务器检查玩家的位置以确定是否需要将体素更改发送给该玩家，客户端则会通过ChunkLoader脚本向服务器发送一个玩家位置更新。
         /// 在多人游戏中，通常需要将物体的位置同步到其他客户端。轨道位置是指物体沿着一条路径或轨道移动时所处的位置。如果将MultiplayerTrackPosition字段设置为true，则表示该物体的位置将在网络上进行同步，且每个客户端都将跟踪该物体的轨道位置。
         /// 如果将MultiplayerTrackPosition字段设置为false，则表示该物体的位置不会在网络上进行同步，而客户端将不会跟踪其轨道位置。
         /// 在具有大量移动物体的多人游戏中，使用MultiplayerTrackPosition字段可以减少网络通信量并提高性能。例如，如果某个物体在场景中静止不动，则将其MultiplayerTrackPosition字段设置为false可以避免不必要的网络同步。
         /// </summary>
         public static bool MultiplayerTrackPosition;
-        //保存体素数据
+        /// <summary>
+        /// 保存体素数据。为false则团块将不会加载或保存体素数据，反之在生成团块时总是会生成新的数据。
+        /// </summary>
         public static bool SaveVoxelData;
-        //产生网格
+        /// <summary>
+        /// 产生网格
+        /// </summary>
         public static bool GenerateMeshes;
 
         // 全局设置，GUI界面输入
 
         /// <summary>
-        /// 全局设置，GUI界面输入
+        /// [GUI界面输入]体素块的侧面可见（前提是没有与它们接壤的团块实例）
         /// </summary>
         public bool lShowBorderFaces;
         /// <summary>
-        /// 产生碰撞体
+        /// [GUI界面输入]产生碰撞体（为false则团块将不会生成任何Colliders）
         /// </summary>
         public bool lGenerateColliders;
         /// <summary>
-        /// 发送镜头注视事件
+        /// [GUI界面输入]发送镜头注视事件（如果为true, CameraEventsSender组件将把事件发送到主摄像机视场中心指着的体素块）
         /// </summary>
         public bool lSendCameraLookEvents;
         /// <summary>
-        /// 发送鼠标指针事件
+        /// [GUI界面输入]发送鼠标指针事件（如果为true, CameraEventsSender组件将将把事件发送到当前鼠标光标指着的体素块）
         /// </summary>
         public bool lSendCursorEvents;
         /// <summary>
-        /// 允许多人玩家
+        /// [GUI界面输入]允许多人玩家（团块将从服务器请求体素数据而不是从硬盘生成或加载，另外Voxel.ChangeBlock、Voxel.PlaceBlock和Voxel.DestroyBlock会将体素变化发送到服务器以便重新分发给其他连接的玩家）
         /// </summary>
         public bool lEnableMultiplayer;
         /// <summary>
-        /// 用于确定网络同步轨道位置的处理方式。
+        /// [GUI界面输入]用于确定网络同步轨道位置的处理方式，服务器检查玩家的位置以确定是否需要将体素更改发送给该玩家，客户端则会通过ChunkLoader脚本向服务器发送一个玩家位置更新。
         /// 在多人游戏中，通常需要将物体的位置同步到其他客户端。轨道位置是指物体沿着一条路径或轨道移动时所处的位置。如果将MultiplayerTrackPosition字段设置为true，则表示该物体的位置将在网络上进行同步，且每个客户端都将跟踪该物体的轨道位置。
         /// 如果将MultiplayerTrackPosition字段设置为false，则表示该物体的位置不会在网络上进行同步，而客户端将不会跟踪其轨道位置。
         /// 在具有大量移动物体的多人游戏中，使用MultiplayerTrackPosition字段可以减少网络通信量并提高性能。例如，如果某个物体在场景中静止不动，则将其MultiplayerTrackPosition字段设置为false可以避免不必要的网络同步。
         /// </summary>
         public bool lMultiplayerTrackPosition;
         /// <summary>
-        /// 保存体素数据
+        /// [GUI界面输入]保存体素数据。为false则团块将不会加载或保存体素数据，反之在生成团块时总是会生成新的数据。
         /// </summary>
         public bool lSaveVoxelData;
         /// <summary>
-        /// 产生网格
+        /// [GUI界面输入]产生网格
         /// </summary>
         public bool lGenerateMeshes;
 
         /// <summary>
-        /// 团块超时
+        /// 团块超时：如一团块通过ChunkManager.SpawnChunk动作创建，但在ChunkTimeout这段时间内没有被访问，它将被销毁(在保存它的体素数据后)。
+        /// 来自客户端的体素数据请求和团块中的体素变化将重置计时器。当值为0将禁用此功能。
         /// </summary>
         public static float ChunkTimeout;
         /// <summary>
-        /// 团块超时，GUI界面输入
+        /// 团块超时：如一团块通过ChunkManager.SpawnChunk动作创建，但在ChunkTimeout这段时间内没有被访问，它将被销毁(在保存它的体素数据后)。
+        /// 来自客户端的体素数据请求和团块中的体素变化将重置计时器。当值为0将禁用此功能。
         /// </summary>
         public float lChunkTimeout;
         /// <summary>
-        /// 允许团块超时
+        /// 允许团块超时（如果Engine.ChunkTimeout>0这个变量会自动设置为true）
         /// </summary>
         public static bool EnableChunkTimeout;
 
@@ -358,7 +371,7 @@ namespace Uniblocks
         /// </summary>
         public static ChunkManager ChunkManagerInstance;
         /// <summary>
-        /// 团块缩放比例
+        /// 团块预制体的大小（缩放比例）
         /// </summary>
         public static Vector3 ChunkScale;
         /// <summary>
@@ -568,7 +581,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 设置世界名字（设置后世界种子将被重置为0，并刷新用于档案存储的世界路径）
+        /// 设置活动世界名称（设置后世界种子将被重置为0，并刷新用于档案存储的世界路径）。可用本函数在运行时更改世界名称。
         /// </summary>
         /// <param name="worldName"></param>
         public static void SetWorldName(string worldName)
@@ -579,13 +592,13 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 获取世界种子（如存在则从文件中读取，否则创建一个新种子并将其保存到文件中）
+        /// 从文件中读取当前活动世界的种子，或者如果没有找到种子文件则随机生成一个新的种子，并将其存储在Engine.WorldSeed变量中。
         /// </summary>
         public static void GetSeed()
         { // reads the world seed from file if it exists, else creates a new seed and saves it to file
 
             //if (Application.isWebPlayer) { // don't save to file if webplayer		
-            //	Engine.WorldSeed = Random.Range (ushort.MinValue, ushort.MaxValue);
+            //	Engine.WorldSeed = Random.CameraLookRange (ushort.MinValue, ushort.MaxValue);
             //	return;
             //}		
 
@@ -624,7 +637,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 保存多个帧的数据
+        /// 将所有当前实例化团块的数据保存到磁盘，在Engine.MaxChunkSaves中可指定每帧保存团块的最大处理速率。
         /// </summary>
         public static void SaveWorld()
         { // saves the data over multiple frames
@@ -634,7 +647,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 将TempChunkData中的数据写入区域文件
+        /// 将所有当前实例化的团块数据保存到磁盘存档，单帧动作一次全执行，这很可能会使游戏冻结几秒钟，因此不建议在游戏过程中使用此功能。
         /// </summary>
         public static void SaveWorldInstant()
         { // writes data from TempChunkData into region files
@@ -645,9 +658,9 @@ namespace Uniblocks
         // ==== other ====	
 
         /// <summary>
-        /// 获取体素对应的游戏物体对象
+        /// 获取体素ID对应的体素块预制体
         /// </summary>
-        /// <param name="voxelId">体素ID（体素块的类型）</param>
+        /// <param name="voxelId">体素ID（体素块预制体种类）</param>
         /// <returns>返回体素ID对应体素块种类的游戏物体对象，体素ID=0或65535时返回空块</returns>
         public static GameObject GetVoxelGameObject(ushort voxelId)
         {
@@ -678,9 +691,9 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 获取体素类型组件
+        /// 获取体素ID对应的体素块预制体的体素类型组件
         /// </summary>
-        /// <param name="voxelId">体素ID（体素块的类型）</param>
+        /// <param name="voxelId">体素ID（体素块预制体种类）</param>
         /// <returns>返回体素ID对应体素块上的体素类型组件，体素ID=0或65535时返回空块上的体素类型组件</returns>
         public static Voxel GetVoxelType(ushort voxelId)
         {
@@ -711,7 +724,8 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 一个光线投射，它返回触碰到的体素信息（存储体素的索引、体素所在团块及其在团块的位置信息）
+        /// 使用指定原点、方向和范围执行光线投射，并返回体素索引，其中包含命中团块的游戏物体(VoxelInfo.chunk)、命中体素的索引(VoxelInfo.index)及与命中面相邻体素索引(VoxelInfo.adjacentindex)。
+        /// “ignoreTransparent”为true时光线投射将穿透透明或半透明的体素块，若没有击中则返回null。注意：如果碰撞体生成被禁用，此函数将不起作用。
         /// </summary>
         /// <param name="origin"></param>
         /// <param name="direction"></param>
@@ -740,10 +754,10 @@ namespace Uniblocks
                     //根据hit碰撞面法线方向来推离或推进hit位置，后将新位置转为在团块的本地局部坐标（相对位置）来获取体素索引（false指不获取相邻体素，则推进hit到所碰体素块内部），最终将hit新位置进行四舍五入修正以靠近最近顶点作为体素索引返回
                     Index hitIndex = hitObject.GetComponent<Chunk>().PositionToVoxelIndex(hit.point, hit.normal, false);
                     
-                    //忽略透明
+                    //忽略透明（功能尚未完善）
                     if (ignoreTransparent)
                     { // punch through transparent voxels by raycasting again when a transparent voxel is hit.当一个透明体素被击中时，再次通过光线投射穿透透明体素
-                        ushort hitVoxel = hitObject.GetComponent<Chunk>().GetVoxel(hitIndex.x, hitIndex.y, hitIndex.z); //通过体素索引从团块里获得体素ID（体素块的类型）
+                        ushort hitVoxel = hitObject.GetComponent<Chunk>().GetVoxel(hitIndex.x, hitIndex.y, hitIndex.z); //通过体素索引从团块里获得体素ID（体素块预制体种类）
                         //如果命中的体素类型的VTransparency属性!=固体，说明是透明或半透明
                         if (GetVoxelType(hitVoxel).VTransparency != Transparency.solid)
                         {
@@ -768,7 +782,8 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 一个光线投射，它返回触碰到的体素信息（存储体素的索引、体素所在团块及其在团块的位置信息）
+        /// 使用指定射线和范围执行光线投射，并返回VoxelInfo，其中包含命中团块GameObject(VoxelInfo.chunk)、命中体素的索引(VoxelInfo.index)及与命中面相邻体素的索引(VoxelInfo. adjacentindex)。
+        /// “ignoreTransparent”为true时光线投射将穿透透明或半透明的体素块。若没有击中任何块，则返回null。注意：如果碰撞体生成被禁用，此函数将不起作用。
         /// </summary>
         /// <param name="ray"></param>
         /// <param name="range"></param>
@@ -780,7 +795,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 将位置转换成团块索引
+        /// 返回与给定世界位置相对应的团块索引
         /// </summary>
         /// <param name="position">团块位置</param>
         /// <returns></returns>
@@ -793,7 +808,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 将位置转换成团块
+        /// 返回与给定世界位置相对应的团块游戏对象，若团块没有实例化则返回null。
         /// </summary>
         /// <param name="position">团块位置</param>
         /// <returns></returns>
@@ -807,7 +822,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 将位置转换成体素信息
+        /// 将位置转换成体素信息（其中包含与给定世界位置对应的体素，如体素的团块没被实例化则返回null）
         /// </summary>
         /// <param name="position"></param>
         /// <returns></returns>
@@ -828,7 +843,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 将体素信息转换成位置
+        /// 返回指定体素中心点的世界位置。
         /// </summary>
         /// <param name="voxelInfo"></param>
         /// <returns></returns>
@@ -850,7 +865,7 @@ namespace Uniblocks
         /// <summary>
         /// 获取纹理偏移点
         /// </summary>
-        /// <param name="voxel">体素ID（体素块的类型）</param>
+        /// <param name="voxel">体素ID（体素块预制体种类）</param>
         /// <param name="facing">面向</param>
         /// <returns>如没定义纹理则返回Vector2(0, 0)，如体素没用自定义单面纹理则返回顶部纹理点，如请求一个没定义的纹理则抓取最后定义纹理点来返回</returns>
         public static Vector2 GetTextureOffset(ushort voxel, Facing facing)

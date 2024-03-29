@@ -30,12 +30,12 @@ namespace MetalMaxSystem
         public int InvokeCountMax { get; set; }
 
         /// <summary>
-        /// 【MM_函数库】周期触发器Update事件前摇，未设置直接启动TriggerStart则默认为0
+        /// 【MM_函数库】周期触发器Update事件前摇（毫秒数），未设置直接启动TriggerStart则默认为0ms
         /// </summary>
         public int Duetime { get; set; }
 
         /// <summary>
-        /// 【MM_函数库】周期触发器的运行间隔属性，未设置直接启动TriggerStart则默认为1s
+        /// 【MM_函数库】周期触发器的运行间隔（毫秒数），未设置直接启动TriggerStart则默认为1000ms
         /// </summary>
         public int Period { get; set; }
 

@@ -35,11 +35,11 @@ namespace MetalMaxSystem
         public static bool TimerStop { get; set; }
 
         /// <summary>
-        /// 【MM_函数库】主循环Update阶段前摇时间，设置后每次循环前都会等待
+        /// 【MM_函数库】主循环Update阶段前摇时间（毫秒数），设置后每次循环前都会等待
         /// </summary>
         public static int Duetime { get; set; }
         /// <summary>
-        /// 【MM_函数库】主循环Update阶段间隔运行时间
+        /// 【MM_函数库】主循环Update阶段间隔运行时间（毫秒数）
         /// </summary>
         public static int Period { get; set; }
 

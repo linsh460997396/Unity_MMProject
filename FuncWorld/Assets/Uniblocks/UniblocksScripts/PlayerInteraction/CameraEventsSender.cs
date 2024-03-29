@@ -5,23 +5,24 @@ using UnityEngine;
 namespace Uniblocks
 {
     /// <summary>
-    /// 摄像机镜头注视（包含鼠标指针）事件发送功能
+    /// 利用主摄像机镜头注视（含鼠标指针）事件发送功能增删体素块，也管理着选择框的实时位置更新。
+    /// 组件用法：Unity中随便新建一个空对象“Manager”，把脚本拖到组件位置即挂载（Unity要求一个cs文件只能一个类，且类名须与文件名一致）
     /// </summary>
     public class CameraEventsSender : MonoBehaviour
     {
 
         //Unity对公开字段会默认序列化，显示在挂载游戏物体的GUI界面（可在该界面输入来完成初始赋值）
 
-        public float Range;
+        public float CameraLookRange;
         private GameObject SelectedBlockGraphics;
 
         public void Awake()
         {
-            if (Range <= 0)
+            if (CameraLookRange <= 0)
             {
-                Debug.LogWarning("Uniblocks: CameraEventSender.Range must be greater than 0. Setting Range to 5." +
+                Debug.LogWarning("Uniblocks: CameraEventSender.CameraLookRange must be greater than 0. Setting CameraLookRange to 5." +
                     "Range必须大于0，将默认设置范围:5");
-                Range = 5.0f;
+                CameraLookRange = 5.0f;
             }
 
             SelectedBlockGraphics = GameObject.Find("SelectedBox");
@@ -95,7 +96,7 @@ namespace Uniblocks
         private void CameraLookEvents()
         { // first person camera
 
-            VoxelInfo raycast = Engine.VoxelRaycast(Camera.main.transform.position, Camera.main.transform.forward, Range, false);
+            VoxelInfo raycast = Engine.VoxelRaycast(Camera.main.transform.position, Camera.main.transform.forward, CameraLookRange, false);
 
             if (raycast != null)
             {

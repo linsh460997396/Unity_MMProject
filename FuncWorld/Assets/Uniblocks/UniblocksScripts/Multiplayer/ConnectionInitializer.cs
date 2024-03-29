@@ -2,10 +2,8 @@
 
 namespace Uniblocks
 {
-    //核心组件用法：Unity中随便新建一个空对象，挂载脚本
-
     /// <summary>
-    /// 连接初始化（核心组件N0.3）
+    /// 连接初始化
     /// </summary>
     public class ConnectionInitializer : MonoBehaviour
     {

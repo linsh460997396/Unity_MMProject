@@ -2,16 +2,18 @@
 using Uniblocks;
 
 /// <summary>
-/// 体素块管理器
+/// 体素块管理器，利用主摄像机注视增删体素块，也管理着选择框的实时位置更新。
+/// 组件用法：Unity中随便新建一个空对象“Manager”，把脚本拖到组件位置即挂载（Unity要求一个cs文件只能一个类，且类名须与文件名一致）。
+/// （注：本类属于自定义测试用，非Uniblocks插件核心组件，效果等同CameraEventsSender.cs）。
 /// </summary>
 public class BlockManager : MonoBehaviour 
 {
     private ushort blockID = 0;
-    private Transform selectedBlockEffect;
+    private Transform SelectedBoxTransform;
 
 	void Start () {
-        selectedBlockEffect = GameObject.Find("SelectedBox").transform;//获取选择框
-        selectedBlockEffect.gameObject.SetActive(false);//选择框状态不激活（会隐藏起来）
+        SelectedBoxTransform = GameObject.Find("SelectedBox").transform;//获取选择框
+        SelectedBoxTransform.gameObject.SetActive(false);//选择框状态不激活（会隐藏起来）
 	}
 	
 	void Update () {
@@ -31,7 +33,7 @@ public class BlockManager : MonoBehaviour
                 Voxel.PlaceBlock(newInfo, blockID);
             }
         }
-        UpdateSelectedBlockEffect(info);
+        UpdateSelectedBox(info);
     }
 
     private void SelectBlockID()
@@ -45,16 +47,16 @@ public class BlockManager : MonoBehaviour
         }
     }
 
-    private void UpdateSelectedBlockEffect(VoxelInfo info)
+    private void UpdateSelectedBox(VoxelInfo info)
     {
         if (info != null)
         {
-            selectedBlockEffect.gameObject.SetActive(true);
-            selectedBlockEffect.position = info.chunk.VoxelIndexToPosition(info.index);
+            SelectedBoxTransform.gameObject.SetActive(true);
+            SelectedBoxTransform.position = info.chunk.VoxelIndexToPosition(info.index);
         }
         else
         {
-            selectedBlockEffect.gameObject.SetActive(false);
+            SelectedBoxTransform.gameObject.SetActive(false);
         }
     }
 }

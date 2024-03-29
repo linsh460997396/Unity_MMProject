@@ -5,7 +5,10 @@ using System.Collections;
 
 namespace Uniblocks
 {
-
+    /// <summary>
+    /// 团块加载器，在玩家角色周围触发自动化的团块生成。
+    /// 组件用法：把脚本拖到控制对象（玩家角色）的组件位置即挂载（Unity要求一个cs文件只能一个类，且类名须与文件名一致），地形会在其周围产生且随角色移动实时刷新。
+    /// </summary>
     public class ChunkLoader : MonoBehaviour
     {
 

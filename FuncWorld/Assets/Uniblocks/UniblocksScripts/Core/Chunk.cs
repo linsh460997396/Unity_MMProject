@@ -3,14 +3,29 @@ using System.Collections;
 
 namespace Uniblocks
 {
-
+    /// <summary>
+    /// 管理团块的各种基本功能，存储体素数据等。
+    /// </summary>
     public class Chunk : MonoBehaviour
     {
-
         // Chunk data
+
+        /// <summary>
+        /// 主数据数组，其中包含团块中每个体素块ID（使用GetVoxel和SetVoxel函数访问）
+        /// </summary>
         public ushort[] VoxelData; // main voxel data array
+        /// <summary>
+        /// 团块索引(x,y,z)，这与它在世界上的位置直接相关。团块的位置始终是ChunkIndex*Engine.ChunkSideLength（比如对于团块来说其索引位置增1就实际经过默认16个体素块长度，很容易理解）。
+        /// </summary>
         public Index ChunkIndex; // corresponds to the position of the chunk
+        /// <summary>
+        /// 包含对团块所有直接相邻团块的引用数组。这些团块按照Direction枚举的顺序存储(上、下、右、左、前、后)，例如NeighborChunks[0]返回这个上面的团块。
+        /// 这个数组只有在一个团块需要检查它相邻团块的体素数据时才会被填充和更新，比如在更新团块的网格时，这意味着在某些时候这个数组不会完全更新，可手动调用GetNeighbors()来立即更新这个数组。
+        /// </summary>
         public Chunk[] NeighborChunks; // references to GameObjects of neighbor chunks
+        /// <summary>
+        /// 团块是空的状态
+        /// </summary>
         public bool Empty;
 
         // Settings & flags
@@ -157,18 +172,44 @@ namespace Uniblocks
 
 
         // == set voxel
+
+        /// <summary>
+        /// 更改指定数组索引处的体素数据(平面1D数组索引，而不是x,y,z的3D空间坐标)。
+        /// </summary>
+        /// <param name="rawIndex">平面1D数组索引</param>
+        /// <param name="data">体素ID，将变更成这个体素块种类</param>
         public void SetVoxelSimple(int rawIndex, ushort data)
         {
             VoxelData[rawIndex] = data;
         }
+        /// <summary>
+        /// 更改指定索引处的体素数据但不更新网格。此外，与SetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于块边长-1)。
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="data">体素ID，将变更成这个体素块种类</param>
         public void SetVoxelSimple(int x, int y, int z, ushort data)
         {
             VoxelData[(z * SquaredSideLength) + (y * SideLength) + x] = data;
         }
+        /// <summary>
+        /// 更改指定索引处的体素数据但不更新网格。此外，与SetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="data">体素ID，将变更成这个体素块种类</param>
         public void SetVoxelSimple(Index index, ushort data)
         {
             VoxelData[(index.z * SquaredSideLength) + (index.y * SideLength) + index.x] = data;
         }
+        /// <summary>
+        /// 更改指定索引处的体素数据。如果updateMesh为true，则对标记团块的网格进行更新。当团块索引超过团块边界时将改变相应团块中的体素数据（如当前已实例化）。
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="data">体素ID，将变更成这个体素块种类</param>
+        /// <param name="updateMesh"></param>
         public void SetVoxel(int x, int y, int z, ushort data, bool updateMesh)
         {
 
@@ -212,24 +253,55 @@ namespace Uniblocks
                 FlagToUpdate();
             }
         }
+        /// <summary>
+        /// 更改指定索引处的体素数据。如果updateMesh为true，则对标记团块的网格进行更新。当团块索引超过团块边界时将改变相应团块中的体素数据（如当前已实例化）。
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="data">体素ID，将变更成这个体素块种类</param>
+        /// <param name="updateMesh"></param>
         public void SetVoxel(Index index, ushort data, bool updateMesh)
         {
             SetVoxel(index.x, index.y, index.z, data, updateMesh);
         }
 
         // == get voxel
+
+        /// <summary>
+        /// 返回指定数组索引处的体素数据(平面1D数组索引，而不是x,y,z的3D空间坐标)。
+        /// </summary>
+        /// <param name="rawIndex">平面1D数组索引</param>
+        /// <returns></returns>
         public ushort GetVoxelSimple(int rawIndex)
         {
             return VoxelData[rawIndex];
         }
+        /// <summary>
+        /// 返回指定索引处的体素数据。与GetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
         public ushort GetVoxelSimple(int x, int y, int z)
         {
             return VoxelData[(z * SquaredSideLength) + (y * SideLength) + x];
         }
+        /// <summary>
+        /// 返回指定索引处的体素数据。与GetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public ushort GetVoxelSimple(Index index)
         {
             return VoxelData[(index.z * SquaredSideLength) + (index.y * SideLength) + index.x];
         }
+        /// <summary>
+        /// 返回指定索引处的体素数据。当团块索引超过团块边界时将返回相应团块中的体素数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（体素块种类ID的最大上限值65535）
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
         public ushort GetVoxel(int x, int y, int z)
         {
 
@@ -288,6 +360,11 @@ namespace Uniblocks
                 return VoxelData[(z * SquaredSideLength) + (y * SideLength) + x];
             }
         }
+        /// <summary>
+        /// 返回指定索引处的体素数据。当团块索引超过团块边界时将返回相应团块中的体素数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（体素块种类ID的最大上限值65535）
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public ushort GetVoxel(Index index)
         {
             return GetVoxel(index.x, index.y, index.z);
@@ -296,20 +373,27 @@ namespace Uniblocks
 
         // ==== Flags =======================================================================================
 
+        /// <summary>
+        /// 给团块贴上移除标记
+        /// </summary>
         public void FlagToRemove()
         {
             FlaggedToRemove = true;
         }
+
+        /// <summary>
+        /// 给团块贴上更新标记
+        /// </summary>
         public void FlagToUpdate()
         {
             FlaggedToUpdate = true;
         }
 
-
         // ==== Update ====
 
         public void Update()
         {
+            //当前帧的团块已保存数量清零
             ChunkManager.SavesThisFrame = 0;
         }
 
@@ -377,6 +461,13 @@ namespace Uniblocks
             //if (Application.isWebPlayer == false) {	
             //	GetComponent<ChunkDataFiles>().SaveData();		
             //}
+
+#if UNITY_WEBPLAYER
+            //当前平台是WebPlayer，本地化存储应取消
+#else
+            //当前平台不是WebPlayer
+            GetComponent<ChunkDataFiles>().SaveData();
+#endif
         }
 
 
@@ -429,11 +520,24 @@ namespace Uniblocks
 
         }
 
+        /// <summary>
+        /// 返回给定方向上与给定团块索引相邻的团块索引。例如(0,0,0,Direction.left)将返回(-1,0,0)。
+        /// </summary>
+        /// <param name="index">团块索引</param>
+        /// <param name="direction"></param>
+        /// <returns></returns>
         public Index GetAdjacentIndex(Index index, Direction direction)
         {
             return GetAdjacentIndex(index.x, index.y, index.z, direction);
         }
-
+        /// <summary>
+        /// 返回给定方向上与给定团块索引(x,y,z)相邻的团块索引。例如(0,0,0,Direction.left)将返回(-1,0,0)。
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="direction"></param>
+        /// <returns></returns>
         public Index GetAdjacentIndex(int x, int y, int z, Direction direction)
         { // converts x,y,z, direction into a specific index
 
@@ -452,7 +556,12 @@ namespace Uniblocks
             }
         }
 
-
+        /// <summary>
+        /// 在需要时更新相邻团块：如果团块索引位于团块的边界，则对位于该边界的相邻团块贴上更新标记
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
         public void UpdateNeighborsIfNeeded(int x, int y, int z)
         { // if the index lies at the border of a chunk, FlagToUpdate the neighbor at that border
 
@@ -490,7 +599,11 @@ namespace Uniblocks
 
         // ==== position / voxel index =======================================================================================
 
-
+        /// <summary>
+        /// 返回体素在给定世界位置的团块索引。请注意，位置以及因此返回的团块索引可以在团块的边界之外。
+        /// </summary>
+        /// <param name="position"></param>
+        /// <returns></returns>
         public Index PositionToVoxelIndex(Vector3 position)
         {
 
@@ -505,6 +618,11 @@ namespace Uniblocks
             return index;
         }
 
+        /// <summary>
+        /// 返回给定体素索引中心的绝对世界位置。
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public Vector3 VoxelIndexToPosition(Index index)
         {
 
@@ -513,6 +631,13 @@ namespace Uniblocks
 
         }
 
+        /// <summary>
+        /// 返回给定体素索引中心的绝对世界位置。
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <returns></returns>
         public Vector3 VoxelIndexToPosition(int x, int y, int z)
         {
 
@@ -521,7 +646,8 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 将绝对位置转换为体素的索引
+        /// 返回给定世界位置的体素索引。根据给定的法线方向和returnAdjacent布尔值偏移半个体素块距离，这通常在对体素块进行光线投射时使用。
+        /// 当光线投射击中体素块壁时，命中位置将被推入体素块内(returnAdjacent ==false)或推入相邻体素块内(returnAdjacent ==true)，因此返回被光线投射击中的体素块（或被击中体素块壁附近相邻体素块）。
         /// </summary>
         /// <param name="position"></param>
         /// <param name="normal"></param>
@@ -557,10 +683,14 @@ namespace Uniblocks
         // ==== network ==============
 
         /// <summary>
-        /// 当前有多少团块数据请求在服务器上为客户端排队，当团块每次请求数据时增1，当团块接收数据时减1
+        /// [NetWork]当前有多少团块数据请求在服务器上为客户端排队，当服务器每次收到团块数据请求时增1，当服务器已接收团块数据时减1
         /// </summary>
         public static int CurrentChunkDataRequests; // how many chunk requests are currently queued in the server for this client. Increased by 1 every time a chunk requests data, and reduced by 1 when a chunk receives data.
-        
+
+        /// <summary>
+        /// [NetWork][协程]请求体素数据：等待直到连接到服务器，然后发送这个团块体素数据的请求到服务器，如果没有连接就重置计数器
+        /// </summary>
+        /// <returns></returns>
         IEnumerator RequestVoxelData()
         { // waits until we're connected to a server and then sends a request for voxel data for this chunk to the server.
           // 等待直到连接到服务器，然后发送这个团块体素数据的请求到服务器
