@@ -10,7 +10,9 @@ namespace Uniblocks
     {
         none, back, left, right
     }
-
+    /// <summary>
+    /// 团块网格创建器
+    /// </summary>
     public class ChunkMeshCreator : MonoBehaviour
     {
 
@@ -54,7 +56,9 @@ namespace Uniblocks
         // ==== Voxel updates =====================================================================================
 
 
-
+        /// <summary>
+        /// 立即重建团块网格，在大多数情况下应使用Chunk.FlagToUpdate()
+        /// </summary>
         public void RebuildMesh()
         {
 
@@ -63,7 +67,7 @@ namespace Uniblocks
                 Initialize();
             }
 
-            // destroy additional mesh containers
+            // destroy additional mesh containers.销毁额外的网状容器
             foreach (Transform child in transform)
             {
                 Destroy(child.gameObject);
@@ -71,10 +75,17 @@ namespace Uniblocks
 
             int x = 0, y = 0, z = 0;
 
-            // Refresh neighbor chunks
+            // Refresh neighbor chunks.刷新相邻团块
             chunk.GetNeighbors();
 
             // for each voxel in Voxels, check if any of the voxel's faces are exposed, and if so, add their faces to the main mesh arrays (named Vertices and Faces)
+
+            //意思是对于Voxels中的每一个体素（voxel），检查它是否有任何一面是暴露在外的，如果有就把这一面添加到体素网格数组（名为 Vertices 和 Faces的列表）中
+            //Vertices和Faces是两个数组，分别表示三维空间中的顶点坐标和多边形的面信息
+            //Vertices 数组存储了所有顶点的坐标，而 Faces 数组则存储了由这些顶点构成的多边形的面信息
+            //如果一个体素的某个面暴露在外，那么就会把该面的顶点坐标添加到 Vertices 数组中，并把该面的信息（即哪些顶点构成了这个面）添加到 Faces 数组中
+            //通过这种方式，可以构建出一个包含所有体素的三维模型，便于后续的渲染和显示
+
             while (x < SideLength)
             {
                 while (y < SideLength)

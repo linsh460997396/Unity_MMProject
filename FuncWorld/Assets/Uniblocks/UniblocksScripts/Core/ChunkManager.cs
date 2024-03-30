@@ -8,13 +8,13 @@ using System.Diagnostics;
 namespace Uniblocks
 {
     /// <summary>
-    /// 团块管理器，控制团块的创建和摧毁。组件用法：Unity中随便新建一个空对象“Engine”，把脚本拖到组件位置即挂载（Unity要求一个cs文件只能一个类，且类名须与文件名一致）
+    /// 团块管理器，控制团块创建和摧毁。组件用法：Unity中随便新建一个空对象“Engine”，把脚本拖到组件位置即挂载（Unity要求一个cs文件只能一个类，且类名须与文件名一致）
     /// </summary>
     public class ChunkManager : MonoBehaviour
     {
 
         /// <summary>
-        /// 团块预制体（Chunk Prefab）
+        /// 团块预制体（Chunk Prefab），在数据上它已经是个实例，可看成活动内存模板数据，但尚未被用于继续实例化到场景（待成为场景实例）
         /// </summary>
         public GameObject ChunkObject;
 
@@ -47,7 +47,7 @@ namespace Uniblocks
         /// </summary>
         public static bool SpawningChunks; // true if the ChunkManager is currently spawning chunks
         /// <summary>
-        /// 当为true时，当前的SpawnChunks序列将被终止(然后将其设置为false)
+        /// 当为true时，当前的SpawnChunks序列动作将被终止(然后将其设置为false)
         /// </summary>
         public static bool StopSpawning; // when true, the current SpawnChunks sequence is aborted (and this is set back to false afterwards)
         /// <summary>
@@ -131,7 +131,8 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 处理团块队列（从SpawnChunks循环调用来更新块网格）
+        /// 处理团块队列（从SpawnChunks循环调用来更新块网格）：
+        /// 更新第一个块并将其从队列中删除,当前团块不为空且没有被禁用网格时重新建立网格,当前团块的Fresh属性置为假并从队列中删除它
         /// </summary>
         private void ProcessChunkQueue()
         { // called from the SpawnChunks loop to update chunk meshes
@@ -141,7 +142,7 @@ namespace Uniblocks
 
             if (!currentChunk.Empty && !currentChunk.DisableMesh)
             {
-                //当前团块不为空且没有被禁用网格时，重新建立网格
+                //当前团块不为空且没有被禁用网格时重新建立网格
                 currentChunk.RebuildMesh();
             }
             //当前团块的Fresh属性置为假
@@ -521,23 +522,26 @@ namespace Uniblocks
                     {
                         for (var z = originZ - currentLoop; z <= originZ + currentLoop; z++)
                         {
-                            //绝对值不能超过高度范围
+                            //索引的高度绝对值不能超过高度范围（比如3个团块高度），那么这个索引才是有效的
                             if (Mathf.Abs(y) <= heightRange)
-                            { // skip chunks outside of height range.跳过高度范围之外的团块
-                                if (Mathf.Abs(originX - x) + Mathf.Abs(originZ - z) < range * 1.3f)
-                                { // skip corners.跳过距离玩家过远的角落团块
+                            { // skip chunks outside of height range.这里跳过了高度范围之外的团块
+                                if (Mathf.Abs(originX - x) + Mathf.Abs(originZ - z) < range * 1.3f) //角落团块在X-Z平面是根号2倍边长距离<1.3倍，所以达不到那个索引
+                                { // skip corners.这里跳过了距离玩家过远的角落团块
 
-                                    // pause loop while the queue is not empty.当队列不为空时暂停循环
+                                    //当团块更新队列不为空时
                                     while (ChunkUpdateQueue.Count > 0)
                                     {
                                         //处理团块队列
                                         ProcessChunkQueue();
+                                        //如果帧计时器经过时间超过了目标帧率设定的时间
                                         if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                         {
+                                            //协程暂停让当前帧进行渲染直到下次继续剩余动作
                                             yield return new WaitForEndOfFrame();
                                         }
                                     }
 
+                                    //返回指定索引的团块
                                     Chunk currentChunk = GetChunkComponent(x, y, z);
 
 
@@ -572,65 +576,70 @@ namespace Uniblocks
                                                 // always add the neighbor to NeighborChunks, in case it's not there already.总是添加相邻团块到NeighborChunks，以防它还没有在那
                                                 currentChunk.NeighborChunks[d] = neighborChunk.GetComponent<Chunk>();
 
-                                                // continue loop in next frame if the current frame time is exceeded.如果超出当前帧时间，则在下一帧继续循环
+                                                // continue loop in next frame if the current frame time is exceeded.如果帧计时器经过时间超过了目标帧率设定的时间，协程暂停让当前帧进行渲染直到下次继续剩余动作
                                                 if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                                 {
                                                     yield return new WaitForEndOfFrame();
                                                 }
+                                                //如果团块管理器通知"终止团块创建序列"
                                                 if (StopSpawning)
                                                 {
+                                                    //结束序列动作
                                                     EndSequence();
                                                     yield break;
                                                 }
                                             }
 
+                                            //当前团块不存在
                                             if (currentChunk != null)
+                                                //当团块和所有已知邻居的数据准备就绪时，将团块添加到更新队列
                                                 currentChunk.AddToQueueWhenReady();
                                         }
-
-
                                     }
-
                                     else
                                     {
                                         // if chunk doesn't exist, create new chunk (it adds itself to the update queue when its data is ready)
-                                        //如果chunk不存在，则创建新的chunk(当它的数据准备好时，它将自己添加到更新队列中)
+                                        //如果chunk不存在，则创建新的chunk(当它的数据准备好时会将自己添加到更新队列中)
 
-                                        // spawn chunk
-                                        GameObject newChunk = Instantiate(ChunkObject, new Vector3(x, y, z), transform.rotation) as GameObject; // Spawn a new chunk.
+                                        // spawn chunk.团块创建
+                                        GameObject newChunk = Instantiate(ChunkObject, new Vector3(x, y, z), transform.rotation); // Spawn a new chunk.团块实例化到场景（是从几乎空的团块预制体创建的）
                                         currentChunk = newChunk.GetComponent<Chunk>();
 
-                                        // spawn neighbor chunks if they're not spawned yet.当相邻团块没在创建时创建它们
+                                        // spawn neighbor chunks if they're not spawned yet.当相邻团块没在创建时创建它们，循环6次代表6个朝向（枚举整数索引0-5）
                                         for (int d = 0; d < 6; d++)
                                         {
+                                            //返回与给定方向上index相邻的新索引
                                             Index neighborIndex = currentChunk.ChunkIndex.GetAdjacentIndex((Direction)d);
+                                            //获取相邻团块
                                             GameObject neighborChunk = GetChunk(neighborIndex);
                                             if (neighborChunk == null)
                                             {
-                                                neighborChunk = Instantiate(ChunkObject, neighborIndex.ToVector3(), transform.rotation) as GameObject;
+                                                //相邻团块不存在则采用团块预制体进行实例化
+                                                neighborChunk = Instantiate(ChunkObject, neighborIndex.ToVector3(), transform.rotation);
                                             }
 
                                             // always add the neighbor to NeighborChunks, in case it's not there already
-                                            //总是添加相邻团块到NeighborChunks，以防它还没有在那里
+                                            //总是添加相邻团块到NeighborChunks属性数组，以防它还没有在那里
                                             currentChunk.NeighborChunks[d] = neighborChunk.GetComponent<Chunk>();
 
-                                            // continue loop in next frame if the current frame time is exceeded.如果超出当前帧时间，则在下一帧继续循环
+                                            // continue loop in next frame if the current frame time is exceeded.如果超出当前帧时间，协程暂停让当前帧进行渲染直到下次继续剩余动作
                                             if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                             {
                                                 yield return new WaitForEndOfFrame();
                                             }
+                                            //如果团块管理器通知"终止团块创建序列"
                                             if (StopSpawning)
                                             {
+                                                //结束序列动作
                                                 EndSequence();
                                                 yield break;
                                             }
                                         }
 
+                                        //当前团块不存在
                                         if (currentChunk != null)
+                                            //当团块和所有已知邻居的数据准备就绪时，将团块添加到更新队列
                                             currentChunk.AddToQueueWhenReady();
-
-
-
                                     }
 
                                 }
@@ -638,29 +647,30 @@ namespace Uniblocks
 
 
 
-                            // continue loop in next frame if the current frame time is exceeded.如果超出当前帧时间，则在下一帧继续循环
+                            // continue loop in next frame if the current frame time is exceeded.如果超出当前帧时间，协程暂停让当前帧进行渲染直到下次继续剩余动作
                             if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                             {
                                 yield return new WaitForEndOfFrame();
                             }
+                            //如果团块管理器通知"终止团块创建序列"
                             if (StopSpawning)
                             {
+                                //结束序列动作
                                 EndSequence();
                                 yield break;
                             }
-
-
                         }
                     }
                 }
             }
-
+            //协程暂停让当前帧进行渲染直到下次继续剩余动作
             yield return new WaitForEndOfFrame();
+            //结束序列动作
             EndSequence();
         }
 
         /// <summary>
-        /// 结束序列
+        /// 结束序列，具体动作：创建团块动作=假，卸载未被引用的资源，终止序列状态=假，遍历团块摧毁列表为每个团块添上移除标记
         /// </summary>
         private void EndSequence()
         {
@@ -668,11 +678,14 @@ namespace Uniblocks
             SpawningChunks = false;
             //卸载未被引用的资源
             Resources.UnloadUnusedAssets();
+            //允许开始创建新团块
             Done = true;
+            //终止序列状态=假
             StopSpawning = false;
-
+            //遍历团块摧毁列表
             foreach (Chunk chunk in ChunksToDestroy)
             {
+                //为每个团块添上移除标记
                 chunk.FlagToRemove();
             }
         }

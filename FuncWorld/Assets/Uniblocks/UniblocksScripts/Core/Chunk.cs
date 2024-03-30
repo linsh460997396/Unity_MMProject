@@ -11,7 +11,9 @@ namespace Uniblocks
         // Chunk data
 
         /// <summary>
-        /// 主数据数组，其中包含团块中每个体素块ID（使用GetVoxel和SetVoxel函数访问）
+        /// 体素数据数组，其中包含团块中每个体素块ID（使用GetVoxel和SetVoxel函数访问）
+        /// 假设边长4形成4*4*4=64个体素块组成团块，原点是左下顶点，那最后一个体素块索引是(3,3,3)，代表其顶点在第3深度第3高度往右第3，是数组中第64个元素用[63]表示（第一个元素是[0]），
+        /// 那么由(3,3,3)返回[63]的公式VoxelData[(z * SquaredSideLength) + (y * SideLength) + x]=3*16+3*4+3=63，边长为任意时同理。
         /// </summary>
         public ushort[] VoxelData; // main voxel data array
         /// <summary>
@@ -52,19 +54,47 @@ namespace Uniblocks
         public float Lifetime; // how long since the chunk has been spawned
 
         // update queue
-        public bool FlaggedToUpdate,
-        InUpdateQueue,
-        VoxelsDone; // true when this chunk has finished generating or loading voxel data
+
+        /// <summary>
+        /// 团块更新标记
+        /// </summary>
+        public bool FlaggedToUpdate;
+        /// <summary>
+        /// 在团块更新队列
+        /// </summary>
+        public bool InUpdateQueue;
+        /// <summary>
+        /// 当此团块完成生成或加载体素数据后为True
+        /// </summary>
+        public bool VoxelsDone; // true when this chunk has finished generating or loading voxel data
 
 
-        // Semi-constants
+        // Semi-constants.
+
+        /// <summary>
+        /// 团块边长
+        /// </summary>
         public int SideLength;
+        /// <summary>
+        /// 团块边长平方
+        /// </summary>
         private int SquaredSideLength;
 
+        /// <summary>
+        /// 网格创建者
+        /// </summary>
         private ChunkMeshCreator MeshCreator;
 
         // object prefabs
-        public GameObject MeshContainer, ChunkCollider;
+
+        /// <summary>
+        /// 网格容器（预制体）
+        /// </summary>
+        public GameObject MeshContainer;
+        /// <summary>
+        /// 团块碰撞体（预制体）
+        /// </summary>
+        public GameObject ChunkCollider;
 
 
 
@@ -74,55 +104,77 @@ namespace Uniblocks
         { // chunk initialization (load/generate data, set position, etc.)
 
             // Set variables
+
+            //在脚本所挂载的团块位置建立团块索引（该团块经由团块管理器脚本实例化到场景）
             ChunkIndex = new Index(transform.position);
+            //读取团块预设边长
             SideLength = Engine.ChunkSideLength;
+            //确定团块预设边长的平方
             SquaredSideLength = SideLength * SideLength;
+            //建立当前团块的相邻团块组（防止遍历时超限，数组上限+1）
             NeighborChunks = new Chunk[6]; // 0 = up, 1 = down, 2 = right, 3 = left, 4 = forward, 5 = back
+            //获取团块网格创建器
             MeshCreator = GetComponent<ChunkMeshCreator>();
+            //流程新鲜状态=真
             Fresh = true;
 
-            // Register chunk
+            // Register chunk.注册本团块
             ChunkManager.RegisterChunk(this);
 
-            // Clear the voxel data
+            // Clear the voxel data.清空团块体素数据数组（创建一个新的ushort数组来处理新数据）
             VoxelData = new ushort[SideLength * SideLength * SideLength];
 
-            // Set actual position
+            // Set actual position.设置团块在世界的实际位置（也就是想要控制生成平地团块只要控制团块索引高度）
             transform.position = ChunkIndex.ToVector3() * SideLength;
 
-            // multiply by scale
+            // multiply by scale.如果团块缩放比例不是默认的1.0，则实际位置要根据缩放情况进行修改
             transform.position = new Vector3(transform.position.x * transform.localScale.x, transform.position.y * transform.localScale.y, transform.position.z * transform.localScale.z);
 
-            // Grab voxel data
+            // Grab voxel data.获取体素数据
             if (Engine.EnableMultiplayer && !Network.isServer)
             {
-                StartCoroutine(RequestVoxelData()); // if multiplayer, get data from server
+                StartCoroutine(RequestVoxelData()); // if multiplayer, get data from server.如果是多人玩家模式，从服务器获取数据
             }
             else if (Engine.SaveVoxelData && TryLoadVoxelData() == true)
             {
-                // data is loaded through TryLoadVoxelData()
+                // data is loaded through TryLoadVoxelData().尝试从磁盘加载体素数据，如数据不能找到将抛出错误，所以一定要先调用CheckIfFileExists()进行检查
             }
             else
             {
+                //不存在则生成体素数据
                 GenerateVoxelData();
             }
 
         }
 
+        /// <summary>
+        /// 从磁盘加载体素数据。如数据不能找到将抛出错误，所以一定要先调用CheckIfFileExists()。
+        /// </summary>
+        /// <returns></returns>
         public bool TryLoadVoxelData()
         { // returns true if data was loaded successfully, false if data was not found
             return GetComponent<ChunkDataFiles>().LoadData();
         }
 
+        /// <summary>
+        /// 生成体素数据。在安排地形生成器的脚本里调用GenerateVoxelData()
+        /// </summary>
         public void GenerateVoxelData()
-        {
+        { //Calls GenerateVoxelData() in the script assigned in the TerrainGenerator variable.
             GetComponent<TerrainGenerator>().InitializeGenerator();
         }
 
+        /// <summary>
+        /// 当团块和所有已知邻居的数据准备就绪时，将团块添加到更新队列
+        /// </summary>
         public void AddToQueueWhenReady()
         { // adds chunk to the UpdateQueue when this chunk and all known neighbors have their data ready
             StartCoroutine(DoAddToQueueWhenReady());
         }
+        /// <summary>
+        /// [协程]当团块和所有已知邻居的数据准备就绪时，将团块添加到更新队列
+        /// </summary>
+        /// <returns></returns>
         private IEnumerator DoAddToQueueWhenReady()
         {
             while (VoxelsDone == false || AllNeighborsHaveData() == false)
@@ -136,7 +188,10 @@ namespace Uniblocks
             }
             ChunkManager.AddChunkToUpdateQueue(this);
         }
-
+        /// <summary>
+        /// 检查所有相邻团块是否准备好数据
+        /// </summary>
+        /// <returns>如至少有一个相邻团块是已知的但还没有准备好数据，那么返回false</returns>
         private bool AllNeighborsHaveData()
         { // returns false if at least one neighbor is known but doesn't have data ready yet
             foreach (Chunk neighbor in NeighborChunks)
@@ -152,19 +207,28 @@ namespace Uniblocks
             return true;
         }
 
+        /// <summary>
+        /// 摧毁团块实例（自身）
+        /// </summary>
         private void OnDestroy()
-        {
+        { // OnDestroy() 是一个 MonoBehaviour 方法，当游戏对象即将被销毁时调用。这通常发生在游戏对象被删除或当场景正在加载时。
             ChunkManager.UnregisterChunk(this);
         }
 
 
         // ==== data =======================================================================================
 
+        /// <summary>
+        /// 清除体素数据数组。
+        /// </summary>
         public void ClearVoxelData()
         {
             VoxelData = new ushort[SideLength * SideLength * SideLength];
         }
-
+        /// <summary>
+        /// 返回体素数据数组长度。
+        /// </summary>
+        /// <returns></returns>
         public int GetDataLength()
         {
             return VoxelData.Length;
@@ -174,7 +238,7 @@ namespace Uniblocks
         // == set voxel
 
         /// <summary>
-        /// 更改指定数组索引处的体素数据(平面1D数组索引，而不是x,y,z的3D空间坐标)。
+        /// 更改指定数组索引处的体素数据（即修改体素块的种类），函数采用平面1D数组索引作为参数而不是x,y,z的3D空间坐标。
         /// </summary>
         /// <param name="rawIndex">平面1D数组索引</param>
         /// <param name="data">体素ID，将变更成这个体素块种类</param>
@@ -182,8 +246,9 @@ namespace Uniblocks
         {
             VoxelData[rawIndex] = data;
         }
+
         /// <summary>
-        /// 更改指定索引处的体素数据但不更新网格。此外，与SetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于块边长-1)。
+        /// 更改指定索引处的体素数据（即修改体素块的种类）但不更新网格。此外，与SetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于块边长-1)。
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -193,8 +258,9 @@ namespace Uniblocks
         {
             VoxelData[(z * SquaredSideLength) + (y * SideLength) + x] = data;
         }
+
         /// <summary>
-        /// 更改指定索引处的体素数据但不更新网格。此外，与SetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
+        /// 更改指定索引处的体素数据（即修改体素块的种类）但不更新网格。此外，与SetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
         /// </summary>
         /// <param name="index"></param>
         /// <param name="data">体素ID，将变更成这个体素块种类</param>
@@ -202,8 +268,9 @@ namespace Uniblocks
         {
             VoxelData[(index.z * SquaredSideLength) + (index.y * SideLength) + index.x] = data;
         }
+
         /// <summary>
-        /// 更改指定索引处的体素数据。如果updateMesh为true，则对标记团块的网格进行更新。当团块索引超过团块边界时将改变相应团块中的体素数据（如当前已实例化）。
+        /// 更改指定索引处的体素数据（即修改体素块的种类）。如果updateMesh为true，则对标记团块的网格进行更新。当团块索引超过团块边界时将改变相应团块中的体素数据（如当前已实例化）。
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -253,8 +320,9 @@ namespace Uniblocks
                 FlagToUpdate();
             }
         }
+
         /// <summary>
-        /// 更改指定索引处的体素数据。如果updateMesh为true，则对标记团块的网格进行更新。当团块索引超过团块边界时将改变相应团块中的体素数据（如当前已实例化）。
+        /// 更改指定索引处的体素数据（即修改体素块的种类）。如果updateMesh为true，则对标记团块的网格进行更新。当团块索引超过团块边界时将改变相应团块中的体素数据（如当前已实例化）。
         /// </summary>
         /// <param name="index"></param>
         /// <param name="data">体素ID，将变更成这个体素块种类</param>
@@ -267,7 +335,7 @@ namespace Uniblocks
         // == get voxel
 
         /// <summary>
-        /// 返回指定数组索引处的体素数据(平面1D数组索引，而不是x,y,z的3D空间坐标)。
+        /// 返回指定数组索引处的体素数据（即修改体素块的种类），函数采用平面1D数组索引作为参数而不是x,y,z的3D空间坐标。
         /// </summary>
         /// <param name="rawIndex">平面1D数组索引</param>
         /// <returns></returns>
@@ -275,8 +343,9 @@ namespace Uniblocks
         {
             return VoxelData[rawIndex];
         }
+
         /// <summary>
-        /// 返回指定索引处的体素数据。与GetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
+        /// 返回指定索引处的体素数据（即修改体素块的种类）。与GetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -286,8 +355,9 @@ namespace Uniblocks
         {
             return VoxelData[(z * SquaredSideLength) + (y * SideLength) + x];
         }
+
         /// <summary>
-        /// 返回指定索引处的体素数据。与GetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
+        /// 返回指定索引处的体素数据（即修改体素块的种类）。与GetVoxel不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
@@ -295,8 +365,9 @@ namespace Uniblocks
         {
             return VoxelData[(index.z * SquaredSideLength) + (index.y * SideLength) + index.x];
         }
+
         /// <summary>
-        /// 返回指定索引处的体素数据。当团块索引超过团块边界时将返回相应团块中的体素数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（体素块种类ID的最大上限值65535）
+        /// 返回指定索引处的体素数据（即修改体素块的种类）。当团块索引超过团块边界时将返回相应团块中的体素数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（体素块种类ID的最大上限值65535）
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -360,8 +431,9 @@ namespace Uniblocks
                 return VoxelData[(z * SquaredSideLength) + (y * SideLength) + x];
             }
         }
+
         /// <summary>
-        /// 返回指定索引处的体素数据。当团块索引超过团块边界时将返回相应团块中的体素数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（体素块种类ID的最大上限值65535）
+        /// 返回指定索引处的体素数据（即修改体素块的种类）。当团块索引超过团块边界时将返回相应团块中的体素数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（体素块种类ID的最大上限值65535）
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>

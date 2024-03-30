@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.IO;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -15,10 +16,13 @@ public class Main : MonoBehaviour
     //上述故障原因跟Unity版本有关，建议用游戏同版本Unity去转AB包素材
 
     //ABTest_CustomGlobalValues，这些全局字段在下面函数里接收获取到的素材
+    [NonSerialized]
     public GameObject[] gameObjectGroup;
+    [NonSerialized]
     public AssetBundle assetBundle;
     public IEnumerator currentIEnumerator;
     public Coroutine currentCoroutine;
+    [NonSerialized]
     public bool isCoroutineRunning = false;
     /// <summary>
     /// 保存所有活动协程的列表，需要Resource.multiCoroutine = true时可用

@@ -1,30 +1,46 @@
 using UnityEngine;
 using System.Collections;
-using System.IO;
 using System.Collections.Generic;
-
+using System.IO;
 
 namespace Uniblocks
 {
-
+    /// <summary>
+    /// 处理团块内体素数据的加载和保存。
+    /// </summary>
     public class ChunkDataFiles : MonoBehaviour
     {
-
+        /// <summary>
+        /// 正在存储团块内体素数据
+        /// </summary>
         public static bool SavingChunks;
+
+        /// <summary>
+        /// 临时存储着团块内体素数据，以便稍后写入区域文件
+        /// </summary>
         public static Dictionary<string, string> TempChunkData; // stores chunk's data to write into a region file later
+
+        /// <summary>
+        /// 当前加载区域的数据
+        /// </summary>
         public static Dictionary<string, string[]> LoadedRegions; // data of currently loaded regions
 
-
+        /// <summary>
+        /// 尝试从文件加载团块内体素数据，如果未找到数据则返回false。
+        /// </summary>
+        /// <returns>如果团块内体素数据为空则返回false，反之加载有效返回true</returns>
         public bool LoadData()
         { // attempts to load data from file, returns false if data is not found
 
-            Chunk chunk = GetComponent<Chunk>();
+            Chunk chunk = GetComponent<Chunk>();//获取团块组件实例对象
+            //根据团块索引获取团块内体素数据
             string chunkData = GetChunkData(chunk.ChunkIndex);
-
+            //如果团块内体素数据不为空
             if (chunkData != "")
             {
-
+                //从先前压缩的字符串中解压缩出团块数据，并将它保存到团块的VoxelData数组中。
                 DecompressData(chunk, GetChunkData(chunk.ChunkIndex));
+                //当此团块完成生成或加载体素数据后VoxelsDone置为True
                 chunk.VoxelsDone = true;
                 return true;
             }
@@ -35,49 +51,65 @@ namespace Uniblocks
             }
         }
 
+        /// <summary>
+        /// 保存团块内体素数据到硬盘。
+        /// </summary>
         public void SaveData()
         {
-
+            //获取团块组件实例对象
             Chunk chunk = GetComponent<Chunk>();
+            //压缩特定团块内体素数据并将其作为字符串返回。
             string compressedData = CompressData(chunk);
-
+            //将压缩后的数据字符串写入TempChunkData字典
             WriteChunkData(chunk.ChunkIndex, compressedData);
         }
 
+        /// <summary>
+        /// 从先前压缩的特定团块内体素数据字符串中解压缩出团块数据，并将它保存到团块的VoxelData数组中。
+        /// </summary>
+        /// <param name="chunk">团块</param>
+        /// <param name="data">先前压缩的特定团块内体素数据字符串</param>
         public static void DecompressData(Chunk chunk, string data)
         { // decompresses voxel data and loads it into the VoxelData array
 
-            // check if chunk is empty
+            // check if chunk is empty.检查先前压缩的特定团块内体素数据字符串是否为空
             if (data.Length == 2 && data[1] == (char)0)
             {
+                //设置团块是空的状态
                 chunk.Empty = true;
             }
-
+            //创建了一个 StringReader 对象，将其初始化为字符串 data
             StringReader reader = new StringReader(data);
 
             int i = 0;
-            int length = chunk.GetDataLength(); // length of VoxelData array
+            int length = chunk.GetDataLength(); // length of VoxelData array.体素数据数组的长度
 
             try
             {
                 while (i < length)
                 { // this loop will stop once the VoxelData array has been populated completely. Iterates once per count-data block.
+                  // 这个循环将在VoxelData数组被完全填充后停止，每个count-data体素块仅迭代一次。
 
-                    ushort currentCount = (ushort)reader.Read(); // read the count
-                    ushort currentData = (ushort)reader.Read(); // read the data
+                    //调用reader.Read()方法读取字符串中的下一个字符。由于reader.Read()方法返回读取的字符的Unicode编码，可使用类型转换将返回的值转换为ushort。
+                    //这是因为Unicode编码使用两个字节表示每个字符，与ushort数据类型相同。因此代码片段将不断读取字符串data中的每个字符，并将其作为ushort值返回。
+
+                    ushort currentCount = (ushort)reader.Read(); // read the count.读取下个字符转为整数（首次读取则为第一个字符），这个整数代表体素的数组索引
+                    ushort currentData = (ushort)reader.Read(); // read the data.读取下个字符转为整数，这个整数代表体素数据（体素块的种类）
 
                     int ii = 0;
 
                     while (ii < currentCount)
                     {
-                        chunk.SetVoxelSimple(i, (ushort)currentData);// write a single voxel for every currentCount
-                        ii++;
-                        i++;
+                        //如此不断循环更改指定数组索引处的体素数据（即修改体素块的种类），函数采用平面1D数组索引作为参数（指i）。
+                        chunk.SetVoxelSimple(i, currentData);// write a single voxel for every currentCount.如果团块内大量连续索引的体素块是同一种，压缩时currentCount计数会较大，在此处产生循环处理
+                        ii++; //处理直到连续索引的体素块都设置好种类
+                        i++; //最终的i肯定不会超过一个团块拥有的体素数据数组的长度的，每次处理后i也要+1
                     }
                 }
             }
             catch (System.Exception)
             {
+                //只有一种情况就是存储团块的数据损坏（可能被第三方改档或使用不同的团块大小进行了保存数据）
                 Debug.LogError("Uniblocks: Corrupt chunk data for chunk: " + chunk.ChunkIndex.ToString() + ". Has the data been saved using a different chunk size?");
                 reader.Close();
                 return;
@@ -87,6 +119,11 @@ namespace Uniblocks
 
         }
 
+        /// <summary>
+        /// 压缩特定团块内体素数据并将其作为字符串返回。
+        /// </summary>
+        /// <param name="chunk"></param>
+        /// <returns></returns>
         public static string CompressData(Chunk chunk)
         { // returns the data of chunk in compressed string format
 
@@ -131,7 +168,7 @@ namespace Uniblocks
             }
 
             string compressedData = writer.ToString();
-            writer.Flush();
+            writer.Flush(); //使用Flush来保证写入（防止程序异常崩溃等情况导致写入错误）
             writer.Close();
             return compressedData;
 
@@ -158,6 +195,11 @@ namespace Uniblocks
 
         }
 
+        /// <summary>
+        /// 将压缩后的数据字符串写入TempChunkData字典
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="data"></param>
         private void WriteChunkData(Index index, string data)
         { // writes the chunk data to the TempChunkData dictionary
             TempChunkData[index.ToString()] = data;
