@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace Uniblocks
 {
     /// <summary>
-    /// 团块管理器，控制团块创建和摧毁。组件用法：Unity中随便新建一个空对象“Engine”，把脚本拖到组件位置即挂载（Unity要求一个cs文件只能一个类，且类名须与文件名一致）
+    /// 团块管理器组件：控制团块创建和摧毁。组件用法：Unity中随便新建一个空对象“Engine”，把脚本拖到组件位置即挂载（Unity要求一个cs文件只能一个类，且类名须与文件名一致）
     /// </summary>
     public class ChunkManager : MonoBehaviour
     {
@@ -425,7 +425,7 @@ namespace Uniblocks
                 StartSpawnChunks(x, y, z);
             }
             else
-            { 
+            {
                 //if we are spawning chunks already, flag to spawn again once the previous round is finished using the last requested position as origin.
                 //如果已经在生成团块，标记以等上一轮结束后再生成，它使用最后请求的位置作为原点
                 LastRequest = new Index(x, y, z);
@@ -443,11 +443,11 @@ namespace Uniblocks
             //当有团块创建队列且团块管理器同意开始创建团块时
             if (SpawnQueue == 1 && Done == true)
             { // if there is a chunk spawn queued up, and if the previous one has finished, run the queued chunk spawn.当有新的团块创建任务，若团块管理器通知前一个已完成，那就开始下个创建团块任务
-                
+
                 //团块创建队列置零
                 SpawnQueue = 0;
                 //开始创建团块（地形）：SpawningChunks=真，团块管理器调为禁止创建团块（Done=false，防止Update中开始下个创建团块动作而是转为步进当前这个团块创建任务直到完成），最后启动协程来创建缺失的团块
-                StartSpawnChunks(LastRequest.x, LastRequest.y, LastRequest.z); 
+                StartSpawnChunks(LastRequest.x, LastRequest.y, LastRequest.z);
             }
 
             // if not currently spawning chunks, process any queued chunks here instead.若当前没新的团块创建任务，在这里步进当前团块创建任务直到完成
@@ -481,7 +481,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// [协程]创建缺失的团块
+        /// [协程]创建缺失的团块（会先将距离过远的团块添加到摧毁队列）
         /// </summary>
         /// <param name="originX"></param>
         /// <param name="originY"></param>
@@ -503,17 +503,17 @@ namespace Uniblocks
                 //团块索引点（世界位置）与角色在世界位置如超过团块创建距离+ChunkDespawnDistance（默认8+3=11）
                 if (Vector2.Distance(new Vector2(chunk.ChunkIndex.x, chunk.ChunkIndex.z), new Vector2(originX, originZ)) > range + Engine.ChunkDespawnDistance)
                 {
+                    //将这些距离过远的团块添加到摧毁队列
                     ChunksToDestroy.Add(chunk);
                 }
-
+                //如果团块索引点（世界位置）的高度超过团块创建距离+ChunkDespawnDistance（默认8+3=11）
                 else if (Mathf.Abs(chunk.ChunkIndex.y - originY) > range + Engine.ChunkDespawnDistance)
-                { // destroy chunks outside of vertical range.摧毁垂直范围外的团块
+                { // destroy chunks outside of vertical range.摧毁垂直距离过远的团块
                     ChunksToDestroy.Add(chunk);
                 }
             }
 
-
-            //主循环
+            //主循环开始创建缺失的团块
             for (int currentLoop = 0; currentLoop <= range; currentLoop++)
             {
                 for (var x = originX - currentLoop; x <= originX + currentLoop; x++)
@@ -663,6 +663,7 @@ namespace Uniblocks
                     }
                 }
             }
+
             //协程暂停让当前帧进行渲染直到下次继续剩余动作
             yield return new WaitForEndOfFrame();
             //结束序列动作

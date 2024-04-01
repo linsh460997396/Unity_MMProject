@@ -201,3 +201,5 @@ T:\Work\Unity\FuncWorld\obj\Debug\Assembly.1F1299F3.Up2Date
 T:\Work\Unity\FuncWorld\obj\Debug\Assembly-CSharp-Editor.dll
 T:\Work\Unity\FuncWorld\obj\Debug\Assembly-CSharp-Editor.pdb
 T:\Work\Unity\FuncWorld\Temp\bin\Debug\HtmlAgilityPack.dll
+T:\Work\Unity\FuncWorld\Temp\bin\Debug\Assembly-CSharp.pdb
+T:\Work\Unity\FuncWorld\Temp\bin\Debug\Assembly-CSharp-Editor-firstpass.pdb

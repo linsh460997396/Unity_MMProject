@@ -6,36 +6,36 @@ using System.IO;
 namespace Uniblocks
 {
     /// <summary>
-    /// 处理团块内体素数据的加载和保存。
+    /// 团块数据文件组件：处理团块的体素数据的加载和保存。
     /// </summary>
     public class ChunkDataFiles : MonoBehaviour
     {
         /// <summary>
-        /// 正在存储团块内体素数据
+        /// 正在存储团块的体素数据
         /// </summary>
         public static bool SavingChunks;
 
         /// <summary>
-        /// 临时存储着团块内体素数据，以便稍后写入区域文件
+        /// 该数组临时存储着所有团块数据，以便稍后写入区域文件
         /// </summary>
         public static Dictionary<string, string> TempChunkData; // stores chunk's data to write into a region file later
 
         /// <summary>
-        /// 当前加载区域的数据
+        /// 当前已加载区域组
         /// </summary>
         public static Dictionary<string, string[]> LoadedRegions; // data of currently loaded regions
 
         /// <summary>
-        /// 尝试从文件加载团块内体素数据，如果未找到数据则返回false。
+        /// 尝试从文件加载团块的体素数据，如果未找到数据则返回false。
         /// </summary>
-        /// <returns>如果团块内体素数据为空则返回false，反之加载有效返回true</returns>
+        /// <returns>如果团块的体素数据为空则返回false，反之加载有效返回true</returns>
         public bool LoadData()
         { // attempts to load data from file, returns false if data is not found
 
             Chunk chunk = GetComponent<Chunk>();//获取团块组件实例对象
-            //根据团块索引获取团块内体素数据
+            //根据团块索引获取团块的体素数据
             string chunkData = GetChunkData(chunk.ChunkIndex);
-            //如果团块内体素数据不为空
+            //如果团块的体素数据不为空
             if (chunkData != "")
             {
                 //从先前压缩的字符串中解压缩出团块数据，并将它保存到团块的VoxelData数组中。
@@ -52,27 +52,27 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 保存团块内体素数据到硬盘。
+        /// 保存团块的体素数据到内存（TempChunkData）
         /// </summary>
         public void SaveData()
         {
             //获取团块组件实例对象
             Chunk chunk = GetComponent<Chunk>();
-            //压缩特定团块内体素数据并将其作为字符串返回。
+            //压缩特定团块的体素数据并将其作为字符串返回。
             string compressedData = CompressData(chunk);
             //将压缩后的数据字符串写入TempChunkData字典
             WriteChunkData(chunk.ChunkIndex, compressedData);
         }
 
         /// <summary>
-        /// 从先前压缩的特定团块内体素数据字符串中解压缩出团块数据，并将它保存到团块的VoxelData数组中。
+        /// 从先前压缩的特定团块的体素数据字符串中解压缩出团块数据，并将它保存到团块的VoxelData数组中。
         /// </summary>
         /// <param name="chunk">团块</param>
-        /// <param name="data">先前压缩的特定团块内体素数据字符串</param>
+        /// <param name="data">先前压缩的特定团块的体素数据字符串</param>
         public static void DecompressData(Chunk chunk, string data)
         { // decompresses voxel data and loads it into the VoxelData array
 
-            // check if chunk is empty.检查先前压缩的特定团块内体素数据字符串是否为空
+            // check if chunk is empty.检查先前压缩的特定团块的体素数据字符串是否为空
             if (data.Length == 2 && data[1] == (char)0)
             {
                 //设置团块是空的状态
@@ -120,7 +120,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 压缩特定团块内体素数据并将其作为字符串返回。
+        /// 压缩特定团块的体素数据并将其作为字符串返回。
         /// </summary>
         /// <param name="chunk"></param>
         /// <returns></returns>
@@ -130,37 +130,38 @@ namespace Uniblocks
             StringWriter writer = new StringWriter();
 
             int i = 0;
-            int length = chunk.GetDataLength(); // length of VoxelData array
+            int length = chunk.GetDataLength(); // length of VoxelData array.团块的体素数据数组长度
 
-            ushort currentCount = 0; // count of consecutive voxels of the same type
-            ushort currentData = 0; // data of the current voxel
+            ushort currentCount = 0; // count of consecutive voxels of the same type.待处理的连续索引的同种类的体素块数量
+            ushort currentData = 0; // data of the current voxel.当前处理的体素块应赋予的种类
 
             for (i = 0; i < length; i++)
             { // for each voxel
 
-                ushort thisData = chunk.GetVoxelSimple(i); // read raw data at i
+                ushort thisData = chunk.GetVoxelSimple(i); // read raw data at i.读取团块的1维索引下的体素块种类
 
-                if (thisData != currentData)
+                if (thisData != currentData) //如果团块的体素块种类跟当前应赋予的种类不同
                 { // if the data is different from the previous data, write the last block and start a new one
 
                     // write previous block 
                     if (i != 0)
                     { // (don't write in the first loop iteration, because count would be 0 (no previous blocks))
+                        //不要在第一次循环迭代中写入，因为count为0(没有之前的体素块记录)
                         writer.Write((char)currentCount);
                         writer.Write((char)currentData);
                     }
-                    // start new block
+                    // start new block.进行实际体素块的记录
                     currentCount = 1;
                     currentData = thisData;
                 }
 
                 else
-                { // if the data is the same as the last data, simply add to the count
+                { // if the data is the same as the last data, simply add to the count.如果数据与最后一个数据相同，只需添加计数
                     currentCount++;
                 }
 
                 if (i == length - 1)
-                { // if this is the last iteration of the loop, close and write the current block
+                { // if this is the last iteration of the loop, close and write the current block.如果这是循环的最后一次迭代，关闭并写入当前体素块
                     writer.Write((char)currentCount);
                     writer.Write((char)currentData);
                 }
@@ -174,18 +175,25 @@ namespace Uniblocks
 
         }
 
+        /// <summary>
+        /// 返回团块数据(来自内存或文件)，如果找不到数据则返回空字符串
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
         private string GetChunkData(Index index)
         { // returns the chunk data (from memory or from file), or an empty string if data can't be found
 
-            // try to load from TempChunkData
+            // try to load from TempChunkData.尝试从TempChunkData加载
             string indexString = index.ToString();
             if (TempChunkData.ContainsKey(indexString))
             {
+                //如果TempChunkData字典存在index键，返回其对应的值（团块的体素数据）
                 return TempChunkData[indexString];
             }
 
-            // try to load from region, return empty if not found
-            int regionIndex = GetChunkRegionIndex(index);
+            // try to load from region, return empty if not found.尝试从区域加载，如果未找到则返回空
+            int regionIndex = GetChunkRegionIndex(index); //获取团块索引对应区域文件中存储的团块数据数组的一维索引（即团块在区域中属于第几个元素）
+            //获取区域的团块数据种类的数组集合
             string[] regionData = GetRegionData(GetParentRegion(index));
             if (regionData == null)
             {
@@ -196,25 +204,32 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 将压缩后的数据字符串写入TempChunkData字典
+        /// 将压缩后的数据字符串写入TempChunkData字典（存储着团块的体素数据）
         /// </summary>
-        /// <param name="index"></param>
-        /// <param name="data"></param>
+        /// <param name="index">团块索引</param>
+        /// <param name="data">压缩后团块的体素数据</param>
         private void WriteChunkData(Index index, string data)
         { // writes the chunk data to the TempChunkData dictionary
             TempChunkData[index.ToString()] = data;
         }
 
+        /// <summary>
+        /// 返回团块索引对应区域文件中存储的团块数据数组的一维索引（即团块在区域中属于第几个元素）。存储时，区域边长设定为10，一个区域存储1K个团块。
+        /// </summary>
+        /// <param name="index">团块索引</param>
+        /// <returns></returns>
         private static int GetChunkRegionIndex(Index index)
         { // returns the 1d index of a chunk's data in the region file
 
             Index newIndex = new Index(index.x, index.y, index.z);
+            //如果团块索引是负的，以数据原点进行纠正，方便后面计算数组的一维索引
             if (newIndex.x < 0) newIndex.x = -newIndex.x - 1;
             if (newIndex.y < 0) newIndex.y = -newIndex.y - 1;
             if (newIndex.z < 0) newIndex.z = -newIndex.z - 1;
 
+            //存储时，区域边长设定为10（存储1K个团块），用上面纠正好的新索引计算区域的团块数据数组1D索引
             int flatIndex = (newIndex.z * 100) + (newIndex.y * 10) + newIndex.x;
-
+            //保证索引从0~999
             while (flatIndex > 999)
             {
                 flatIndex -= 1000;
@@ -223,11 +238,17 @@ namespace Uniblocks
             return flatIndex;
         }
 
+        /// <summary>
+        /// 读取区域索引对应的区域数据成功时，返回区域索引对应的区域（文件名）。
+        /// </summary>
+        /// <param name="regionIndex">区域索引</param>
+        /// <returns>加载区域数据并从文件返回该数据，如果未找到区域文件则返回null</returns>
         private static string[] GetRegionData(Index regionIndex)
         { // loads region data and from file returns it, or returns null if region file is not found
-
+            //读取区域索引对应的区域数据成功时
             if (LoadRegionData(regionIndex) == true)
             {
+                //返回区域索引对应的区域（文件名）
                 return LoadedRegions[regionIndex.ToString()];
             }
             else
@@ -236,22 +257,29 @@ namespace Uniblocks
             }
         }
 
+        /// <summary>
+        /// 打开区域索引对应的路径下的文件，读取全部内容并分割进区域数据数组，最后将这个数组作为单个键的值，存储到当前已加载区域组
+        /// </summary>
+        /// <param name="regionIndex">区域索引</param>
+        /// <returns>如果区域文件存在且尚未加载，则将区域数据加载到内存中，如数据存在(且已加载)则返回true，否则返回false</returns>
         private static bool LoadRegionData(Index regionIndex)
         { // loads the region data into memory if file exists and it's not already loaded, returns true if data exists (and is loaded), else false
-
+            //获取区域索引对应的字符串
             string indexString = regionIndex.ToString();
+            //如果当前已加载区域组不包含参数指定的区域
             if (LoadedRegions.ContainsKey(indexString) == false)
-            { // if not loaded
+            { // if not loaded.指定区域还没被加载
 
-                // load data if region file exists
-                string regionPath = GetRegionPath(regionIndex);
+                // load data if region file exists.如指定区域的文件存在，则加载数据
+                string regionPath = GetRegionPath(regionIndex); //获取指定区域索引对应的区域文件路径
                 if (File.Exists(regionPath))
                 {
-
                     StreamReader reader = new StreamReader(regionPath);
-                    string[] regionData = reader.ReadToEnd().Split((char)ushort.MaxValue);
+                    string temp = reader.ReadToEnd();
+                    char splitChar = (char)ushort.MaxValue;
+                    string[] regionData = temp.Split(splitChar);
                     reader.Close();
-                    LoadedRegions[indexString] = regionData;
+                    LoadedRegions[indexString] = regionData; //将区域数据数组作为单个键的值，存储到当前已加载区域组
 
                     return true;
 
@@ -266,17 +294,28 @@ namespace Uniblocks
             return true; // return true if data is already loaded
         }
 
+        /// <summary>
+        /// 获取区域索引对应的区域文件路径
+        /// </summary>
+        /// <param name="regionIndex"></param>
+        /// <returns></returns>
         private static string GetRegionPath(Index regionIndex)
         {
 
             return Engine.WorldPath + (regionIndex.ToString() + ",.region");
         }
 
+        /// <summary>
+        /// 获取团块索引对应的区域索引
+        /// </summary>
+        /// <param name="index">团块索引</param>
+        /// <returns>返回包含特定团块的区域索引</returns>
         private static Index GetParentRegion(Index index)
         { // returns the index of the region containing a specific chunk
 
             Index newIndex = new Index(index.x, index.y, index.z);
 
+            //由于区域边长=10个团块，这里进行转换
             if (index.x < 0) newIndex.x -= 9;
             if (index.y < 0) newIndex.y -= 9;
             if (index.z < 0) newIndex.z -= 9;
@@ -288,15 +327,21 @@ namespace Uniblocks
             return new Index(x, y, z);
         }
 
+        /// <summary>
+        /// 创建一个空的区域文件
+        /// </summary>
+        /// <param name="index">区域索引</param>
         private static void CreateRegionFile(Index index)
         { // creates an empty region file
 
-            Directory.CreateDirectory(Engine.WorldPath);
-            StreamWriter writer = new StreamWriter(GetRegionPath(index));
+            Directory.CreateDirectory(Engine.WorldPath); //创建世界名称文件夹（如果不存在时）
+            StreamWriter writer = new StreamWriter(GetRegionPath(index)); //根据区域索引获取区域文件应存在的路径，建立写入流
 
             for (int i = 0; i < 999; i++)
             {
-                writer.Write((char)ushort.MaxValue);
+                //ushort和char类型数据长度都是16位
+                //写入一个65535对应的Char（Unicode中的一个保留字符，它不表示任何特定符号，当尝试显示或读取时应是乱码，因为大多数编码无法正确处理超出其字符范围的值）
+                writer.Write((char)ushort.MaxValue); //在没有数据情况下这里预先写入了1000个Char
             }
 
             writer.Flush();
@@ -304,7 +349,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 使用Unity自带协程（异步）进行存档
+        /// 使用Unity自带协程（异步）进行存档，将团块的体素数据保存到内存和硬盘
         /// </summary>
         /// <returns></returns>
         public static IEnumerator SaveAllChunks()
@@ -312,7 +357,7 @@ namespace Uniblocks
 
             if (!Engine.SaveVoxelData)
             {
-                //设置里被禁止存档时，进行协程终止
+                //设置里被禁止存档体素数据时，协程终止
                 Debug.LogWarning("Uniblocks: Saving is disabled. You can enable it in the Engine Settings.");
                 yield break;
             }
@@ -326,18 +371,19 @@ namespace Uniblocks
             SavingChunks = true;
 
             // for each chunk object, save data to memory
+
             int count = 0;
-            List<Chunk> chunksToSave = new List<Chunk>(ChunkManager.Chunks.Values);  //字典中的每个团块
+            List<Chunk> chunksToSave = new List<Chunk>(ChunkManager.Chunks.Values);  //存储字典中的每个团块
 
-
+            //遍历字典中的每个团块
             foreach (Chunk chunk in chunksToSave)
             {
-                //调用团块实例对象的ChunkDataFiles组件（脚本）内的Save方法
+                //获取团块实例对象的ChunkDataFiles组件实例，调用其脚本内的Save方法将团块的体素数据保存到内存
                 chunk.gameObject.GetComponent<ChunkDataFiles>().SaveData();
                 count++;
                 if (count > Engine.MaxChunkSaves)
                 {
-                    //超过团块存储上限则在每帧屏幕所有相机和GUI被渲染完成前等待之后再步进（应该是限制每帧存储动作数量）
+                    //超过每帧团块数据存储的处理上限则在屏幕所有相机和GUI被渲染完成前等待，下一帧再继续处理
                     yield return new WaitForEndOfFrame();
                     count = 0;
                 }
@@ -351,24 +397,26 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// writes data from TempChunkData into region files
+        /// 存储所有团块实例：将TempChunkData中的数据写入区域文件
         /// </summary>
         public static void SaveAllChunksInstant()
         {
+            //禁用存储体素数据时
             if (!Engine.SaveVoxelData)
             {
-                //设置里的保存体素数据没有允许
+                //警告：设置里的保存体素数据没有允许
                 Debug.LogWarning("Uniblocks: Saving is disabled. You can enable it in the Engine Settings.");
                 return;
             }
 
-            // for each chunk object, save data to memory
+            // for each chunk object, save data to memory.遍历每个团块对象，将其数据保存到内存（TempChunkData）中（同时方便快速加载）
             foreach (Chunk chunk in ChunkManager.Chunks.Values)
             {
+                //通过ChunkDataFiles中的方法来存储团块的体素数据
                 chunk.gameObject.GetComponent<ChunkDataFiles>().SaveData();
             }
 
-            //从内存写入本地存档
+            //将所有团块的体素数据从内存写入磁盘，并清除内存
             WriteLoadedChunks();
 
             Debug.Log("Uniblocks: World saved successfully. (Instant)");
@@ -376,58 +424,66 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// writes all chunk data from memory to disk, and clears memory
+        /// 将所有团块的体素数据从内存写入磁盘，并清除内存
         /// </summary>
         public static void WriteLoadedChunks()
-        {
-            // for every chunk loaded in dictionary
+        { //writes all chunk data from memory to disk, and clears memory
+
+            // for every chunk loaded in dictionary.遍历存储团块数据的临时内存
             foreach (string chunkIndex in TempChunkData.Keys)
             {
-
+                //获取每个团块索引
                 Index index = Index.FromString(chunkIndex);
+                //获取团块索引对应的区域索引
                 string region = GetParentRegion(index).ToString();
 
-                // check if region is loaded, and load it if it's not
+                // check if region is loaded, and load it if it's not.检查区域是否已加载，如果未加载则加载
                 if (LoadRegionData(GetParentRegion(index)) == false)
                 {
+                    //利用团块索引对应的区域索引来创建1个空的区域文件
                     CreateRegionFile(GetParentRegion(index));
+                    //利用团块索引对应的区域索引来写入区域数据
                     LoadRegionData(GetParentRegion(index));
                 }
 
-                // write chunk data into region dictionary
-                int chunkRegionIndex = GetChunkRegionIndex(index);
-                LoadedRegions[region][chunkRegionIndex] = TempChunkData[chunkIndex];
+                // write chunk data into region dictionary.将团块数据写入区域字典
+                int chunkRegionIndex = GetChunkRegionIndex(index); //返回团块索引对应区域文件中存储的团块数据数组的一维索引（即团块在区域中属于第几个元素）
+                LoadedRegions[region][chunkRegionIndex] = TempChunkData[chunkIndex]; //将内存中的当前团块数据数组作为1个值写入到已加载区域组对应键值上，遍历以完成区域内全部团块数据的写入
             }
-            TempChunkData.Clear();
+            TempChunkData.Clear();//清空团块数据数组
 
 
-            // for every region loaded in dictionary
+            // for every region loaded in dictionary.遍历字典中存储的每个已加载区域的键（区域索引类型）
             foreach (string regionIndex in LoadedRegions.Keys)
             {
+                //写入区域文件
                 WriteRegionFile(regionIndex);
             }
-            LoadedRegions.Clear();
+            LoadedRegions.Clear();//清空团块数据数组
 
         }
 
         private static void WriteRegionFile(string regionIndex)
         {
-
+            //区域数据数组=已加载区域[区域索引]
             string[] regionData = LoadedRegions[regionIndex];
-
+            //根据区域文件路径，创建写入流
             StreamWriter writer = new StreamWriter(GetRegionPath(Index.FromString(regionIndex)));
             int count = 0;
+            //遍历每个区域数据中的团块数据（字符串形式）
             foreach (string chunk in regionData)
             {
+                //将每个团块数据写入区域文件
                 writer.Write(chunk);
                 if (count != regionData.Length - 1)
                 {
+                    //如果计数没有达到区域数据长度上限，在每个团块数据后面进行字符插值（用于读取时分割子字符串）
                     writer.Write((char)ushort.MaxValue);
                 }
                 count++;
             }
 
-            writer.Flush();
+            writer.Flush(); //保证写入
             writer.Close();
         }
     }

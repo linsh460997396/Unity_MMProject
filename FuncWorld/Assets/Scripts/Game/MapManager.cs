@@ -20,15 +20,21 @@ public class MapManager : MonoBehaviour
         playerTransform = GameObject.Find("Player").transform; //找到Player的转换组件，届时在玩家周围刷地图
 
         //InvokeRepeating用于特定时间间隔内执行与游戏自动更新频率不同步的情况，如在游戏开始后1秒执行操作来让主要组件充分调度完毕，然后每隔指定秒执行一次
-        InvokeRepeating("InitMap", 1.0f, 0.0625f);//开启Unity自带的周期计时器，第三个参数在运行过程修改无效（类似GE的周期计时器但有办法重写其调用的内部方法来支持变量）
+        InvokeRepeating("InitMap", 1.0f, 0.00625f);//不会新开线程，它是在Unity主线程中间隔执行，且第三个参数在运行过程修改无效（类似GE的周期计时器但有办法重写其调用的内部方法来支持变量）
 
-        //Unity无法使用主线程外的新线程创建，调用MM库里新周期触发器TimerUpdate时报错
+        //如果有主线程创建的实例，在子线程中需使用回调，不然会报错
         //TimerUpdate timerUpdate = new TimerUpdate();
         //timerUpdate.Update += InitMapFunc;
         //timerUpdate.Duetime = 1000;//前摇等待1s
-        //timerUpdate.Period = 50;//20ms执行一次
+        //timerUpdate.Period = 500;//500ms执行一次
         //timerUpdate.TriggerStart(true);//后台运行触发
     }
+
+    private void test()
+    {
+        Debug.Log("timerUpdate!");
+    }
+
 
     //private void Update()
     //{
@@ -41,7 +47,7 @@ public class MapManager : MonoBehaviour
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    //private void InitMapFunc(object sender, EventArgs e) { InitMap(); }
+    private void InitMapFunc(object sender, EventArgs e) { test(); }
 
     private void InitMap()
     {

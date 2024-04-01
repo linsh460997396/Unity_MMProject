@@ -26,23 +26,23 @@ namespace Uniblocks
         /// <summary>
         /// 上面
         /// </summary>
-        up, 
+        up,
         /// <summary>
         /// 下面
         /// </summary>
-        down, 
+        down,
         /// <summary>
         /// 右面
         /// </summary>
-        right, 
+        right,
         /// <summary>
         /// 左面
         /// </summary>
-        left, 
+        left,
         /// <summary>
         /// 前面
         /// </summary>
-        forward, 
+        forward,
         /// <summary>
         /// 后面
         /// </summary>
@@ -57,23 +57,23 @@ namespace Uniblocks
         /// <summary>
         /// 朝上
         /// </summary>
-        up, 
+        up,
         /// <summary>
         /// 朝下
         /// </summary>
-        down, 
+        down,
         /// <summary>
         /// 朝右
         /// </summary>
-        right, 
+        right,
         /// <summary>
         /// 朝左
         /// </summary>
-        left, 
+        left,
         /// <summary>
         /// 朝前
         /// </summary>
-        forward, 
+        forward,
         /// <summary>
         /// 朝后
         /// </summary>
@@ -86,13 +86,13 @@ namespace Uniblocks
     public enum Transparency
     {
         /// <summary>
-        /// 固态
+        /// 实心
         /// </summary>
         solid,
         /// <summary>
         /// 半透明
         /// </summary>
-        semiTransparent, 
+        semiTransparent,
         /// <summary>
         /// 透明
         /// </summary>
@@ -107,11 +107,11 @@ namespace Uniblocks
         /// <summary>
         /// 立方体
         /// </summary>
-        cube, 
+        cube,
         /// <summary>
         /// 网格
         /// </summary>
-        mesh, 
+        mesh,
         /// <summary>
         /// 无
         /// </summary>
@@ -129,7 +129,7 @@ namespace Uniblocks
 
         #region 字段、属性方法
 
-        // 引擎的每个静态变量都有一个非静态的等价物。非静态变量的名称与静态变量相同，只是在开头用小写的L，使用这些变量是为了能够在Unity中编辑这些变量，包括在引擎设置窗口中。
+        // Engine的每个静态变量都有一个非静态的等价物。非静态变量的名称与静态变量相同，只是在开头用小写的L，使用这些变量是为了能够在Unity中编辑这些变量，包括在引擎设置窗口中。
         // 在编辑器的Awake功能中，非静态变量被应用于它们的静态对应(通过场景中的Engine游戏对象)，所以在运行时改变非静态变量不会产生任何影响。
 
         /// <summary>
@@ -189,6 +189,30 @@ namespace Uniblocks
         /// 团块自动摧毁时的判断距离（如果是3，则团块会在距离玩家ChunkSpawnDistance+3个团块距离时进行摧毁，摧毁时会存入档案以便玩家走过来时读取生成）
         /// </summary>
         public static int ChunkDespawnDistance;
+
+        /// <summary>
+        /// 保持地形高度
+        /// </summary>
+        public static bool KeepTerrainHeight;
+        /// <summary>
+        /// 地形高度
+        /// </summary>
+        private static int _terrainHeight;
+        /// <summary>
+        /// 地形高度
+        /// </summary>
+        public static int TerrainHeight
+        {
+            get
+            {
+                return _terrainHeight;
+            }
+
+            set
+            {
+                _terrainHeight = value;
+            }
+        }
 
         // 团块创建设置，GUI界面输入
 
@@ -753,12 +777,12 @@ namespace Uniblocks
 
                     //根据hit碰撞面法线方向来推离或推进hit位置，后将新位置转为在团块的本地局部坐标（相对位置）来获取体素索引（false指不获取相邻体素，则推进hit到所碰体素块内部），最终将hit新位置进行四舍五入修正以靠近最近顶点作为体素索引返回
                     Index hitIndex = hitObject.GetComponent<Chunk>().PositionToVoxelIndex(hit.point, hit.normal, false);
-                    
+
                     //忽略透明（功能尚未完善）
                     if (ignoreTransparent)
                     { // punch through transparent voxels by raycasting again when a transparent voxel is hit.当一个透明体素被击中时，再次通过光线投射穿透透明体素
                         ushort hitVoxel = hitObject.GetComponent<Chunk>().GetVoxel(hitIndex.x, hitIndex.y, hitIndex.z); //通过体素索引从团块里获得体素ID（体素块预制体种类）
-                        //如果命中的体素类型的VTransparency属性!=固体，说明是透明或半透明
+                        //如果命中的体素类型的VTransparency属性!=实心，说明是透明或半透明
                         if (GetVoxelType(hitVoxel).VTransparency != Transparency.solid)
                         {
                             Vector3 newOrigin = hit.point; //存储hit坐标
@@ -769,7 +793,7 @@ namespace Uniblocks
 
                         }
                     }
-                    
+
                     return new VoxelInfo(
                                          hitObject.GetComponent<Chunk>().PositionToVoxelIndex(hit.point, hit.normal, false), // get hit voxel index.获取击中体素的索引
                                          hitObject.GetComponent<Chunk>().PositionToVoxelIndex(hit.point, hit.normal, true), // get adjacent voxel index.获取相邻体素的索引

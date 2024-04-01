@@ -36,7 +36,7 @@ namespace Uniblocks
             // get chunk component.获取团块组件
             chunk = GetComponent<Chunk>();
 
-            // generate data.生成数据
+            // generate data.生成体素数据
             GenerateVoxelData();
 
             // set empty.设置团块为空状态

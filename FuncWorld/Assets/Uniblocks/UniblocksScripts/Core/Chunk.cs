@@ -4,14 +4,14 @@ using System.Collections;
 namespace Uniblocks
 {
     /// <summary>
-    /// 管理团块的各种基本功能，存储体素数据等。
+    /// 团块组件：管理团块的各种基本功能，存储团块体素数据等。
     /// </summary>
     public class Chunk : MonoBehaviour
     {
         // Chunk data
 
         /// <summary>
-        /// 体素数据数组，其中包含团块中每个体素块ID（使用GetVoxel和SetVoxel函数访问）
+        /// 团块的体素数据数组，其中包含团块中每个体素ID-即体素块种类（使用GetVoxel和SetVoxel函数访问）
         /// 假设边长4形成4*4*4=64个体素块组成团块，原点是左下顶点，那最后一个体素块索引是(3,3,3)，代表其顶点在第3深度第3高度往右第3，是数组中第64个元素用[63]表示（第一个元素是[0]），
         /// 那么由(3,3,3)返回[63]的公式VoxelData[(z * SquaredSideLength) + (y * SideLength) + x]=3*16+3*4+3=63，边长为任意时同理。
         /// </summary>
@@ -68,7 +68,6 @@ namespace Uniblocks
         /// </summary>
         public bool VoxelsDone; // true when this chunk has finished generating or loading voxel data
 
-
         // Semi-constants.
 
         /// <summary>
@@ -79,7 +78,6 @@ namespace Uniblocks
         /// 团块边长平方
         /// </summary>
         private int SquaredSideLength;
-
         /// <summary>
         /// 网格创建者
         /// </summary>
@@ -95,8 +93,6 @@ namespace Uniblocks
         /// 团块碰撞体（预制体）
         /// </summary>
         public GameObject ChunkCollider;
-
-
 
         // ==== maintenance ===========================================================================================
 
@@ -130,30 +126,36 @@ namespace Uniblocks
             // multiply by scale.如果团块缩放比例不是默认的1.0，则实际位置要根据缩放情况进行修改
             transform.position = new Vector3(transform.position.x * transform.localScale.x, transform.position.y * transform.localScale.y, transform.position.z * transform.localScale.z);
 
-            // Grab voxel data.获取体素数据
+            // Grab voxel data.获取团块的体素数据
+
+            //多人模式下本机并非服务器
             if (Engine.EnableMultiplayer && !Network.isServer)
             {
-                StartCoroutine(RequestVoxelData()); // if multiplayer, get data from server.如果是多人玩家模式，从服务器获取数据
+                //从服务器获取数据
+                StartCoroutine(RequestVoxelData());
             }
+            //允许存储体素数据时尝试从磁盘加载体素数据
             else if (Engine.SaveVoxelData && TryLoadVoxelData() == true)
             {
-                // data is loaded through TryLoadVoxelData().尝试从磁盘加载体素数据，如数据不能找到将抛出错误，所以一定要先调用CheckIfFileExists()进行检查
+                // data is loaded through TryLoadVoxelData()
+                //尝试从磁盘加载体素数据，TryLoadVoxelData()这个动作在条件里已经完成
             }
             else
             {
-                //不存在则生成体素数据
+                //不存在则生成新的体素数据
                 GenerateVoxelData();
             }
 
         }
 
         /// <summary>
-        /// 从磁盘加载体素数据。如数据不能找到将抛出错误，所以一定要先调用CheckIfFileExists()。
+        /// 从磁盘加载体素数据。
         /// </summary>
         /// <returns></returns>
         public bool TryLoadVoxelData()
         { // returns true if data was loaded successfully, false if data was not found
-            return GetComponent<ChunkDataFiles>().LoadData();
+            //尝试从文件加载团块的体素数据，如果未找到数据则返回false。
+            return GetComponent<ChunkDataFiles>().LoadData(); 
         }
 
         /// <summary>
@@ -161,49 +163,61 @@ namespace Uniblocks
         /// </summary>
         public void GenerateVoxelData()
         { //Calls GenerateVoxelData() in the script assigned in the TerrainGenerator variable.
-            GetComponent<TerrainGenerator>().InitializeGenerator();
+            GetComponent<TerrainGenerator>().InitializeGenerator(); //初始化地形生成器
         }
 
         /// <summary>
-        /// 当团块和所有已知邻居的数据准备就绪时，将团块添加到更新队列
+        /// 当团块和所有已知相邻团块的数据准备就绪时，将团块添加到更新队列
         /// </summary>
         public void AddToQueueWhenReady()
         { // adds chunk to the UpdateQueue when this chunk and all known neighbors have their data ready
             StartCoroutine(DoAddToQueueWhenReady());
         }
+
         /// <summary>
-        /// [协程]当团块和所有已知邻居的数据准备就绪时，将团块添加到更新队列
+        /// [协程]当团块和所有已知相邻团块的数据准备就绪时，将团块添加到更新队列
         /// </summary>
         /// <returns></returns>
         private IEnumerator DoAddToQueueWhenReady()
         {
+            //当团块未完成体素的生成或加载，或者所有相邻体素未准备好数据
             while (VoxelsDone == false || AllNeighborsHaveData() == false)
             {
+                //如果团块管理器主动停止序列
                 if (ChunkManager.StopSpawning)
                 { // interrupt if the chunk spawn sequence is stopped. This will be restarted in the correct order from ChunkManager
+                    //如果团块管理器主动停止序列则中断，这将从团块管理器中以正确的顺序重新启动
                     yield break;
                 }
+                //协程停止，等待当前帧刷新画面
                 yield return new WaitForEndOfFrame();
 
             }
+            //添加当前团块到更新队列
             ChunkManager.AddChunkToUpdateQueue(this);
         }
+
         /// <summary>
         /// 检查所有相邻团块是否准备好数据
         /// </summary>
         /// <returns>如至少有一个相邻团块是已知的但还没有准备好数据，那么返回false</returns>
         private bool AllNeighborsHaveData()
         { // returns false if at least one neighbor is known but doesn't have data ready yet
+            //遍历每个相邻团块
             foreach (Chunk neighbor in NeighborChunks)
             {
+                //相邻团块不为空
                 if (neighbor != null)
                 {
+                    //如果有任意相邻团块未完成生成或加载体素数据
                     if (neighbor.VoxelsDone == false)
                     {
+                        //返回没有准备好
                         return false;
                     }
                 }
             }
+            //都准备好了
             return true;
         }
 
@@ -219,14 +233,16 @@ namespace Uniblocks
         // ==== data =======================================================================================
 
         /// <summary>
-        /// 清除体素数据数组。
+        /// 清除团块的体素数据数组（存储着具体体素块的种类）。
         /// </summary>
         public void ClearVoxelData()
         {
+            //指向了一个新的实例数组
             VoxelData = new ushort[SideLength * SideLength * SideLength];
         }
+
         /// <summary>
-        /// 返回体素数据数组长度。
+        /// 返回体素数据数组长度（团块边长的立方大小个元素）。
         /// </summary>
         /// <returns></returns>
         public int GetDataLength()
@@ -244,6 +260,7 @@ namespace Uniblocks
         /// <param name="data">体素ID，将变更成这个体素块种类</param>
         public void SetVoxelSimple(int rawIndex, ushort data)
         {
+            //团块边长的立方个索引的第rawIndex个元素=具体体素块的种类
             VoxelData[rawIndex] = data;
         }
 
@@ -367,15 +384,15 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 返回指定索引处的体素数据（即修改体素块的种类）。当团块索引超过团块边界时将返回相应团块中的体素数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（体素块种类ID的最大上限值65535）
+        /// 返回指定体素索引处的体素数据（即修改体素块的种类）。当体素索引超过团块边界时将返回相邻团块中的体素数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（体素块种类ID的最大上限值65535）
         /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="z"></param>
+        /// <param name="x">体素索引</param>
+        /// <param name="y">体素索引</param>
+        /// <param name="z">体素索引</param>
         /// <returns></returns>
         public ushort GetVoxel(int x, int y, int z)
         {
-
+            //体素索引出了本团块，就去相邻团块寻找体素
             if (x < 0)
             {
                 if (NeighborChunks[(int)Direction.left] != null)
@@ -424,8 +441,6 @@ namespace Uniblocks
                 }
                 else return ushort.MaxValue;
             }
-
-
             else
             {
                 return VoxelData[(z * SquaredSideLength) + (y * SideLength) + x];
@@ -433,7 +448,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 返回指定索引处的体素数据（即修改体素块的种类）。当团块索引超过团块边界时将返回相应团块中的体素数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（体素块种类ID的最大上限值65535）
+        /// 返回指定索引处的体素数据（即修改体素块的种类）。当团块索引超过团块边界时将返回相邻团块中的体素数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（体素块种类ID的最大上限值65535）
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
@@ -471,60 +486,75 @@ namespace Uniblocks
 
         public void LateUpdate()
         {
-
-            // timeout
+            // timeout.允许团块超时时的检查
             if (Engine.EnableChunkTimeout && EnableTimeout)
             {
+                //允许团块超时情况下，记录团块被生成了多久
                 Lifetime += Time.deltaTime;
+                //如果团块的已生成时间超过了团块允许的超时时间
                 if (Lifetime > Engine.ChunkTimeout)
                 {
+                    //将团块打上移除标记
                     FlaggedToRemove = true;
                 }
             }
 
+            //团块更新标记+可以开始新的团块体素数据生成（加载）+没有禁用网格生成+引擎设置允许生成网格
             if (FlaggedToUpdate && VoxelsDone && !DisableMesh && Engine.GenerateMeshes)
             { // check if we should update the mesh
-                FlaggedToUpdate = false;
-                RebuildMesh();
+                FlaggedToUpdate = false; //关闭当前团块更新标记
+                RebuildMesh(); //团块网格重建
             }
 
+            //标记了移除
             if (FlaggedToRemove)
             {
-
+                //允许保存体素数据
                 if (Engine.SaveVoxelData)
                 { // save data over time, destroy chunk when done
+                    //如果当前未在存储团块的体素数据
                     if (ChunkDataFiles.SavingChunks == false)
                     { // only destroy chunks if they are not being saved currently
+                        //当前帧的已保存团块数量<上限
                         if (ChunkManager.SavesThisFrame < Engine.MaxChunkSaves)
                         {
+                            //当前帧的已保存团块数量+1
                             ChunkManager.SavesThisFrame++;
+                            //保存团块数据
                             SaveData();
+                            //摧毁团块实例
                             Destroy(this.gameObject);
                         }
                     }
                 }
-
                 else
-                { // if saving is disabled, destroy immediately
+                { // if saving is disabled, destroy immediately.如果设置不允许保存，这里只需立即摧毁团块实例
                     Destroy(this.gameObject);
                 }
 
             }
         }
 
+        /// <summary>
+        /// 团块网格重建：立即重建团块网格，然后更新所有相邻团块的网格
+        /// </summary>
         public void RebuildMesh()
         {
+            //立即重建团块网格
             MeshCreator.RebuildMesh();
+            //更新所有相邻团块的网格
             ConnectNeighbors();
         }
 
-
+        /// <summary>
+        /// 保存团块的体素数据到内存（TempChunkData），内部调用了ChunkDataFiles类的SaveData方法，如当前平台是WebPlayer则本地化存储会取消（本函数无效）
+        /// </summary>
         private void SaveData()
         {
-
+            //禁用了体素数据保存
             if (Engine.SaveVoxelData == false)
             {
-                Debug.LogWarning("Uniblocks: Saving is disabled. You can enable it in the Engine Settings.");
+                Debug.LogWarning("Uniblocks: Saving is disabled. You can enable it in the Engine Settings.禁用了体素数据保存功能，请在引擎设置中启用它");
                 return;
             }
 
@@ -542,10 +572,11 @@ namespace Uniblocks
 #endif
         }
 
-
-
         // ==== Neighbors =======================================================================================
 
+        /// <summary>
+        /// 更新所有相邻团块的网格
+        /// </summary>
         public void ConnectNeighbors()
         { // update the mesh on all neighbors that have a mesh but don't know about this chunk yet, and also pass them the reference to this chunk
 
@@ -556,26 +587,32 @@ namespace Uniblocks
             {
                 if (loop % 2 == 0)
                 { // for even indexes, add one; for odd, subtract one (because the neighbors are in opposite direction to this chunk)
+                    //对于偶数索引加1，对于奇数减1(因为相邻团块与本团块方向相反，i用于从相邻团块回到本团块)
                     i = loop + 1;
                 }
                 else
                 {
                     i = loop - 1;
                 }
-
+                //如果相邻团块不为空且相邻团块的“网格过滤器”组件的共享网格（主网格）不为空
                 if (NeighborChunks[loop] != null && NeighborChunks[loop].gameObject.GetComponent<MeshFilter>().sharedMesh != null)
                 {
+                    //如果相邻团块的相邻团块（这里i作用是回到本团块）为空
                     if (NeighborChunks[loop].NeighborChunks[i] == null)
                     {
+                        //当相邻团块和其所有已知相邻团块的数据准备就绪时，将这个相邻团块添加到更新队列
                         NeighborChunks[loop].AddToQueueWhenReady();
-                        NeighborChunks[loop].NeighborChunks[i] = this;
+                        NeighborChunks[loop].NeighborChunks[i] = this;//给相邻团块的属性"相邻团块"进行赋值
                     }
                 }
-
+                //继续循环相邻的其他几个团块
                 loop++;
             }
         }
 
+        /// <summary>
+        /// 如果相邻团块游戏对象未空，则从6个相邻团块获取Chunk组件实例，并且赋值给本团块的NeighborChunks属性数组
+        /// </summary>
         public void GetNeighbors()
         { // assign the neighbor chunk gameobjects to the NeighborChunks array
 
