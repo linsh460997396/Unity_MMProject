@@ -3,84 +3,20 @@
   "WorkspaceRootPath": "T:\\Work\\Unity\\FuncWorld\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\examples\\exampleterraingeneratorwithtrees.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\examples\\exampleterraingeneratorwithtrees.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\core\\engine.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|t:\\work\\unity\\funcworld\\assets\\uniblocks\\uniblocksscripts\\core\\engine.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\core\\engine.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\core\\chunk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\core\\chunk.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|t:\\work\\unity\\funcworld\\assets\\uniblocks\\uniblocksscripts\\examples\\exampleterraingeneratorwithtrees.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\examples\\exampleterraingeneratorwithtrees.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\core\\chunkmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\core\\chunkmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\core\\chunkmeshcreator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\core\\chunkmeshcreator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|t:\\work\\unity\\funcworld\\assets\\uniblocks\\uniblocksscripts\\examples\\exampleterraingenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\examples\\exampleterraingenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\core\\terraingenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\core\\terraingenerator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\core\\voxel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\core\\voxel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\core\\voxelinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\core\\voxelinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\multiplayer\\connectioninitializer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\multiplayer\\connectioninitializer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{C1F46CCF-2900-CEBE-9DF0-896F4610040D}|Assembly-CSharp-firstpass.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\standard assets\\characters\\firstpersoncharacter\\scripts\\firstpersoncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{C1F46CCF-2900-CEBE-9DF0-896F4610040D}|Assembly-CSharp-firstpass.csproj|solutionrelative:assets\\standard assets\\characters\\firstpersoncharacter\\scripts\\firstpersoncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\playerinteraction\\cameraeventssender.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\playerinteraction\\cameraeventssender.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|t:\\work\\unity\\funcworld\\assets\\scripts\\game\\mapmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\game\\mapmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\game\\main.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\game\\main.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\core\\chunkdatafiles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\core\\chunkdatafiles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\core\\chunkextension.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\core\\chunkextension.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{2A19A420-EB9D-25DD-62E9-4C8B8730D4F3}|Assembly-CSharp-Editor.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\editor\\blockeditor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{2A19A420-EB9D-25DD-62E9-4C8B8730D4F3}|Assembly-CSharp-Editor.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\editor\\blockeditor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\core\\index.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\core\\index.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\metalmaxsystem\\class\\timerupdate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\timerupdate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\scripts\\metalmaxsystem\\class\\mainupdate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\scripts\\metalmaxsystem\\class\\mainupdate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|T:\\Work\\Unity\\FuncWorld\\assets\\uniblocks\\uniblocksscripts\\examples\\frameratedisplay.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{F62715A7-C2B1-32F6-0452-E163FEEE12A8}|Assembly-CSharp.csproj|solutionrelative:assets\\uniblocks\\uniblocksscripts\\examples\\frameratedisplay.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -90,266 +26,58 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Chunk.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\Chunk.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Core\\Chunk.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\Chunk.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Core\\Chunk.cs",
-              "ViewState": "AQIAANQCAAAAAAAAAADwv/ICAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-28T11:31:00.04Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "ChunkMeshCreator.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkMeshCreator.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkMeshCreator.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkMeshCreator.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkMeshCreator.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAALEBAAATAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-28T18:23:48.913Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "VoxelInfo.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\VoxelInfo.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Core\\VoxelInfo.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\VoxelInfo.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Core\\VoxelInfo.cs",
-              "ViewState": "AQIAAF0AAAAAAAAAAAAAAIAAAAA6AAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-29T08:02:17.781Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "Voxel.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\Voxel.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Core\\Voxel.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\Voxel.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Core\\Voxel.cs",
-              "ViewState": "AQIAAHIAAAAAAAAAAAAAAIoAAAAhAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-29T07:53:54.632Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "Engine.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\Engine.cs",
+              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Core\\Engine.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\Engine.cs",
+              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Core\\Engine.cs",
+              "ViewState": "AQIAALEAAAAAAAAAAADwv8kAAAAVAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-02T13:55:30.167Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ExampleTerrainGenerator.cs",
+              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Examples\\ExampleTerrainGenerator.cs",
+              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Examples\\ExampleTerrainGenerator.cs",
+              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Examples\\ExampleTerrainGenerator.cs",
+              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Examples\\ExampleTerrainGenerator.cs",
+              "ViewState": "AQIAACQAAAAAAAAAAAAAAD8AAAB9AAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2024-04-02T13:29:54.495Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "ExampleTerrainGeneratorWithTrees.cs",
               "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Examples\\ExampleTerrainGeneratorWithTrees.cs",
               "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Examples\\ExampleTerrainGeneratorWithTrees.cs",
               "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Examples\\ExampleTerrainGeneratorWithTrees.cs",
               "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Examples\\ExampleTerrainGeneratorWithTrees.cs",
-              "ViewState": "AQIAAAwAAAAAAAAAAAAAABwAAAAAAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABIAAAAgAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-03-31T18:43:47.061Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "Engine.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\Engine.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Core\\Engine.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\Engine.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Core\\Engine.cs",
-              "ViewState": "AQIAAKsAAAAAAAAAAADwv9AAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-26T05:38:11.011Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 3,
               "Title": "TerrainGenerator.cs",
               "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\TerrainGenerator.cs",
               "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Core\\TerrainGenerator.cs",
               "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\TerrainGenerator.cs",
               "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Core\\TerrainGenerator.cs",
-              "ViewState": "AQIAABMAAAAAAAAAAADwvzwAAAAtAAAA",
+              "ViewState": "AQIAABMAAAAAAAAAAADwvywAAAAiAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2024-03-30T12:02:41.182Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "ChunkManager.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkManager.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkManager.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkManager.cs",
-              "ViewState": "AQIAAPIBAAAAAAAAAADwv5wCAAAUAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-29T15:52:24.61Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "ConnectionInitializer.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Multiplayer\\ConnectionInitializer.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Multiplayer\\ConnectionInitializer.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Multiplayer\\ConnectionInitializer.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Multiplayer\\ConnectionInitializer.cs",
-              "ViewState": "AQIAABoAAAAAAAAAAADwv0AAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-29T07:07:59.679Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "FirstPersonController.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Standard Assets\\Characters\\FirstPersonCharacter\\Scripts\\FirstPersonController.cs",
-              "RelativeDocumentMoniker": "Assets\\Standard Assets\\Characters\\FirstPersonCharacter\\Scripts\\FirstPersonController.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Standard Assets\\Characters\\FirstPersonCharacter\\Scripts\\FirstPersonController.cs",
-              "RelativeToolTip": "Assets\\Standard Assets\\Characters\\FirstPersonCharacter\\Scripts\\FirstPersonController.cs",
-              "ViewState": "AQIAAPAAAAAAAAAAAADwv+MAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-28T17:25:46.614Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "CameraEventsSender.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\PlayerInteraction\\CameraEventsSender.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\PlayerInteraction\\CameraEventsSender.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\PlayerInteraction\\CameraEventsSender.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\PlayerInteraction\\CameraEventsSender.cs",
-              "ViewState": "AQIAAAoAAAAAAAAAAADwvykAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-29T12:59:15.714Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
-              "Title": "MapManager.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Game\\MapManager.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Game\\MapManager.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Game\\MapManager.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Game\\MapManager.cs",
-              "ViewState": "AQIAABIAAAAAAAAAAAAAAB4AAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-29T13:04:39.591Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 13,
-              "Title": "ChunkDataFiles.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkDataFiles.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkDataFiles.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkDataFiles.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkDataFiles.cs",
-              "ViewState": "AQIAAC0AAAAAAAAAAAAAAAgAAAARAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-30T13:34:40.95Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 12,
-              "Title": "Main.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Game\\Main.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\Game\\Main.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\Game\\Main.cs",
-              "RelativeToolTip": "Assets\\Scripts\\Game\\Main.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAKYBAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-28T15:44:46.433Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 15,
-              "Title": "BlockEditor.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Editor\\BlockEditor.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Editor\\BlockEditor.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Editor\\BlockEditor.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Editor\\BlockEditor.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABgAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-29T08:00:42.769Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 16,
-              "Title": "Index.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\Index.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Core\\Index.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\Index.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Core\\Index.cs",
-              "ViewState": "AQIAABsAAAAAAAAAAADwvzgAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-29T07:29:44.415Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 14,
-              "Title": "ChunkExtension.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkExtension.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkExtension.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkExtension.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Core\\ChunkExtension.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAMAAAAqAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-04-01T10:40:15.296Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 17,
-              "Title": "TimerUpdate.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\TimerUpdate.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\TimerUpdate.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\TimerUpdate.cs",
-              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\TimerUpdate.cs",
-              "ViewState": "AQIAAPcAAAAAAAAAAABIwPkAAAAgAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-29T17:02:45.875Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 18,
-              "Title": "MainUpdate.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\MainUpdate.cs",
-              "RelativeDocumentMoniker": "Assets\\Scripts\\MetalMaxSystem\\Class\\MainUpdate.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Scripts\\MetalMaxSystem\\Class\\MainUpdate.cs",
-              "RelativeToolTip": "Assets\\Scripts\\MetalMaxSystem\\Class\\MainUpdate.cs",
-              "ViewState": "AQIAACMAAAAAAAAAAABIwCUAAAAhAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-29T17:06:08.398Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 19,
-              "Title": "FrameRateDisplay.cs",
-              "DocumentMoniker": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Examples\\FrameRateDisplay.cs",
-              "RelativeDocumentMoniker": "Assets\\Uniblocks\\UniblocksScripts\\Examples\\FrameRateDisplay.cs",
-              "ToolTip": "T:\\Work\\Unity\\FuncWorld\\Assets\\Uniblocks\\UniblocksScripts\\Examples\\FrameRateDisplay.cs",
-              "RelativeToolTip": "Assets\\Uniblocks\\UniblocksScripts\\Examples\\FrameRateDisplay.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-03-26T11:51:28.56Z",
               "EditorCaption": ""
             }
           ]

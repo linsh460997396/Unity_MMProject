@@ -741,7 +741,7 @@ namespace Uniblocks
         }
 
         /// <summary>
-        /// 返回给定体素索引中心的绝对世界位置。
+        /// 返回给定体素索引的绝对世界位置。
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
