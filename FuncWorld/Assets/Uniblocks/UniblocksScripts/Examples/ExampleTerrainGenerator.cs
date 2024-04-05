@@ -32,6 +32,9 @@ namespace Uniblocks
 
                         Vector3 voxelPos = chunk.VoxelIndexToPosition(x, y, z); // get absolute position for the voxel.获取体素索引的绝对世界位置
                         voxelPos = new Vector3(voxelPos.x + seed, voxelPos.y, voxelPos.z + seed); // offset by seed.用世界种子进行噪声修正，种子是30625这种数字
+
+                        //Mathf.PerlinNoise()参数固定会形成固定的噪声，只需调整噪声函数返回结果接近某种高度，再遍历团块内体素块高度来比对，就可布置该高度形状上的体素块种类形成固定地貌
+
                         //制造主要地形（大山和小山）
                         float perlin1 = Mathf.PerlinNoise(voxelPos.x * 0.010f, voxelPos.z * 0.010f) * 70.1f; // major (mountains & big hills)，22左右波动（数值变化平稳，噪声系数0.010f）
                         //制造次要地形（精致的细节）

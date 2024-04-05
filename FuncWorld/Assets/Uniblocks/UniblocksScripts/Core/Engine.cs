@@ -195,7 +195,7 @@ namespace Uniblocks
         /// </summary>
         public static bool KeepTerrainHeight;
         /// <summary>
-        /// 地形高度
+        /// 地形高度（世界坐标）
         /// </summary>
         private static int _terrainHeight;
         /// <summary>
