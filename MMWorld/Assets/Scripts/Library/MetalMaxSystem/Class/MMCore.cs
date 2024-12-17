@@ -17,8 +17,9 @@ using Vector3F = UnityEngine.Vector3;
 #else
 using Mathf = System.MathF;
 using Debug = System.Diagnostics.Debug;
+#if WINDOWS 
 using System.Management;
-
+#endif
 #if MonoGame
 //使用VS2022的MonoGame插件框架
 using Vector2F = Microsoft.Xna.Framework.Vector2;
@@ -1410,7 +1411,7 @@ namespace MetalMaxSystem
             return len;
         }
 
-#if !(UNITY_EDITOR || UNITY_STANDALONE)
+#if WINDOWS 
         /// <summary>
         /// 取得设备硬盘的卷序列号（在Unity、MonoGame不适用）
         /// </summary>
