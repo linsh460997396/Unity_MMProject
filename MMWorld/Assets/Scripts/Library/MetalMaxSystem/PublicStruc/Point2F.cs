@@ -1,7 +1,13 @@
-﻿#if UNITY_EDITOR|| UNITY_STANDALONE
+﻿#define NETFRAMEWORK
+
+#if UNITY_EDITOR|| UNITY_STANDALONE
 using Mathf = UnityEngine.Mathf;
 #else
+#if NETFRAMEWORK
+using Mathf = System.Math;
+#else
 using Mathf = System.MathF;
+#endif
 #endif
 
 namespace MetalMaxSystem
@@ -34,7 +40,11 @@ namespace MetalMaxSystem
         {
             float dx = otherPoint.x - x;
             float dy = otherPoint.y - y;
+#if NETFRAMEWORK
+            return (float)Mathf.Sqrt(dx * dx + dy * dy);
+#else
             return Mathf.Sqrt(dx * dx + dy * dy);
+#endif
         }
 
         public static Point2F operator +(Point2F point1, Point2F point2)

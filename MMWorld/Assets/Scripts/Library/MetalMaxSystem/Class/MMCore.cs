@@ -1,4 +1,7 @@
-﻿using System;
+﻿//#define NETFRAMEWORK
+//#define MonoGame
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -15,7 +18,11 @@ using Debug = UnityEngine.Debug;
 using Vector2F = UnityEngine.Vector2;
 using Vector3F = UnityEngine.Vector3;
 #else
+#if NETFRAMEWORK
+using Mathf = System.Math;
+#else
 using Mathf = System.MathF;
+#endif
 using Debug = System.Diagnostics.Debug;
 #if WINDOWS 
 using System.Management;
@@ -661,17 +668,16 @@ namespace MetalMaxSystem
             Vector2F vector1 = new Vector2F(x, y);
             Vector2F vector2 = new Vector2F(a, b);
             float dotProduct = Vector2F.Dot(vector1, vector2);
+#if NETFRAMEWORK
+            float magnitude1 = (float)Mathf.Sqrt(vector1.X * vector1.X + vector1.Y * vector1.Y);
+            float magnitude2 = (float)Mathf.Sqrt(vector2.X * vector2.X + vector2.Y * vector2.Y);
+            //180除以π（圆周率）的结果等于57.29578
+            float angle = (float)(Mathf.Acos(dotProduct / (magnitude1 * magnitude2)) * 180 / Mathf.PI);
+#else
             float magnitude1 = Mathf.Sqrt(vector1.X * vector1.X + vector1.Y * vector1.Y);
             float magnitude2 = Mathf.Sqrt(vector2.X * vector2.X + vector2.Y * vector2.Y);
-            //Rad2Deg等于57.29578，它是180除以π（圆周率）的结果
             float angle = Mathf.Acos(dotProduct / (magnitude1 * magnitude2)) * 180 / Mathf.PI;
-
-            //Vector2F vector1 = new Vector2F(pixelX, pixelY);
-            //Vector2F vector2 = new Vector2F(a, b);
-            //float dotProduct = Vector2F.Dot(vector1, vector2);
-            //float magnitudeProduct = vector1.magnitude * vector2.magnitude;
-            ////Mathf.Rad2Deg等于57.29578，它是180除以π（圆周率）的结果
-            //double angle = Mathf.Acos(dotProduct / magnitudeProduct) * Mathf.Rad2Deg;
+#endif
 
             return angle;
 #endif
@@ -695,9 +701,15 @@ namespace MetalMaxSystem
             Vector3F vector1 = new Vector3F(x, y, z);
             Vector3F vector2 = new Vector3F(a, b, c);
             float dotProduct = Vector3F.Dot(vector1, vector2);
+#if NETFRAMEWORK
+            float magnitude1 = (float)Mathf.Sqrt(vector1.X * vector1.X + vector1.Y * vector1.Y + vector1.Z * vector1.Z);
+            float magnitude2 = (float)Mathf.Sqrt(vector2.X * vector2.X + vector2.Y * vector2.Y + vector2.Z * vector2.Z);
+            float angle = (float)(Mathf.Acos(dotProduct / (magnitude1 * magnitude2)) * 180 / Mathf.PI);
+#else
             float magnitude1 = Mathf.Sqrt(vector1.X * vector1.X + vector1.Y * vector1.Y + vector1.Z * vector1.Z);
             float magnitude2 = Mathf.Sqrt(vector2.X * vector2.X + vector2.Y * vector2.Y + vector2.Z * vector2.Z);
             float angle = Mathf.Acos(dotProduct / (magnitude1 * magnitude2)) * 180 / Mathf.PI;
+#endif
             return angle;
 #endif
         }
@@ -715,7 +727,11 @@ namespace MetalMaxSystem
             return Vector2F.Angle(new Vector2F(point1.x, point1.y), new Vector2F(point2.x, point2.y));
 #else
             float X1 = point1.x, Y1 = point1.y, X2 = point2.y, Y2 = point2.y;
+#if NETFRAMEWORK
+            float angleOfLine = (float)(Mathf.Atan2((Y2 - Y1), (X2 - X1)) * 180 / Mathf.PI);
+#else
             float angleOfLine = Mathf.Atan2((Y2 - Y1), (X2 - X1)) * 180 / Mathf.PI;
+#endif
             return angleOfLine;
 #endif
         }
@@ -734,10 +750,17 @@ namespace MetalMaxSystem
             float X1 = point1.x, Y1 = point1.y, Z1 = point1.z;
             float X2 = point2.x, Y2 = point2.y, Z2 = point2.z;
             float dotProduct = X1 * X2 + Y1 * Y2 + Z1 * Z2;
+#if NETFRAMEWORK
+            float magnitude1 = (float)Mathf.Sqrt(X1 * X1 + Y1 * Y1 + Z1 * Z1);
+            float magnitude2 = (float)Mathf.Sqrt(X2 * X2 + Y2 * Y2 + Z2 * Z2);
+            float cosineOfAngle = dotProduct / (magnitude1 * magnitude2);
+            float angle = (float)(Mathf.Acos(cosineOfAngle) * 180 / Mathf.PI);
+#else
             float magnitude1 = Mathf.Sqrt(X1 * X1 + Y1 * Y1 + Z1 * Z1);
             float magnitude2 = Mathf.Sqrt(X2 * X2 + Y2 * Y2 + Z2 * Z2);
             float cosineOfAngle = dotProduct / (magnitude1 * magnitude2);
             float angle = Mathf.Acos(cosineOfAngle) * 180 / Mathf.PI;
+#endif
             return angle;
 #endif
 
@@ -755,11 +778,15 @@ namespace MetalMaxSystem
             return Vector2F.Angle(vector1, vector2);
 #else
             float dotProduct = Vector2F.Dot(vector1, vector2);
+#if NETFRAMEWORK
+            float magnitude1 = (float)Mathf.Sqrt(vector1.X * vector1.X + vector1.Y * vector1.Y);
+            float magnitude2 = (float)Mathf.Sqrt(vector2.X * vector2.X + vector2.Y * vector2.Y);
+            float angle = (float)(Mathf.Acos(dotProduct / (magnitude1 * magnitude2)) * 180 / Mathf.PI);
+#else
             float magnitude1 = Mathf.Sqrt(vector1.X * vector1.X + vector1.Y * vector1.Y);
             float magnitude2 = Mathf.Sqrt(vector2.X * vector2.X + vector2.Y * vector2.Y);
-            //Rad2Deg等于57.29578，它是180除以π（圆周率）的结果
             float angle = Mathf.Acos(dotProduct / (magnitude1 * magnitude2)) * 180 / Mathf.PI;
-
+#endif
             return angle;
 #endif
         }
@@ -776,9 +803,15 @@ namespace MetalMaxSystem
             return Vector3F.Angle(vector1, vector2);
 #else
             float dotProduct = Vector3F.Dot(vector1, vector2);
+#if NETFRAMEWORK
+            float magnitude1 = (float)Mathf.Sqrt(vector1.X * vector1.X + vector1.Y * vector1.Y + vector1.Z * vector1.Z);
+            float magnitude2 = (float)Mathf.Sqrt(vector2.X * vector2.X + vector2.Y * vector2.Y + vector2.Z * vector2.Z);
+            float angle = (float)(Mathf.Acos(dotProduct / (magnitude1 * magnitude2)) * 180 / Mathf.PI);
+#else
             float magnitude1 = Mathf.Sqrt(vector1.X * vector1.X + vector1.Y * vector1.Y + vector1.Z * vector1.Z);
             float magnitude2 = Mathf.Sqrt(vector2.X * vector2.X + vector2.Y * vector2.Y + vector2.Z * vector2.Z);
             float angle = Mathf.Acos(dotProduct / (magnitude1 * magnitude2)) * 180 / Mathf.PI;
+#endif
             return angle;
 #endif
         }
@@ -798,8 +831,11 @@ namespace MetalMaxSystem
 
             float x2 = a;
             float y2 = b;
-
+#if NETFRAMEWORK
+            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2));
+#else
             float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2));
+#endif
             return result;
         }
 
@@ -816,8 +852,11 @@ namespace MetalMaxSystem
 
             float x2 = point2.x;
             float y2 = point2.y;
-
+#if NETFRAMEWORK
+            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2));
+#else
             float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2));
+#endif
             return result;
         }
 
@@ -840,7 +879,11 @@ namespace MetalMaxSystem
             float y1 = vector1.Y;
             float x2 = vector2.X;
             float y2 = vector2.Y;
+#if NETFRAMEWORK
+            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2));
+#else
             float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2));
+#endif
 #endif
             return result;
         }
@@ -864,8 +907,11 @@ namespace MetalMaxSystem
             float x2 = a;
             float y2 = b;
             float z2 = c;
-
+#if NETFRAMEWORK
+            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
+#else
             float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
+#endif
             return result;
         }
 
@@ -884,8 +930,11 @@ namespace MetalMaxSystem
             float x2 = point2.x;
             float y2 = point2.y;
             float z2 = point2.z;
-
+#if NETFRAMEWORK
+            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
+#else
             float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
+#endif
             return result;
         }
 
@@ -912,12 +961,16 @@ namespace MetalMaxSystem
             float x2 = vector2.X;
             float y2 = vector2.Y;
             float z2 = vector2.Z;
+#if NETFRAMEWORK
+            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
+#else
             float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
+#endif
 #endif
             return result;
         }
 
-#endregion
+        #endregion
 
         #region Functions 通用功能
 
@@ -1091,17 +1144,7 @@ namespace MetalMaxSystem
         public static void DelDirectoryRecursively(string dirPath)
         {
             DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
-            foreach (DirectoryInfo newInfo in dirInfo.GetDirectories())
-            {
-                DelDirectoryRecursively(newInfo);
-            }
-            foreach (FileInfo newInfo in dirInfo.GetFiles())
-            {
-                newInfo.Attributes &= ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
-                newInfo.Delete();
-            }
-            dirInfo.Attributes &= ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
-            dirInfo.Delete(true);
+            DelDirectoryRecursively(dirInfo);
 
         }
 
@@ -2091,7 +2134,7 @@ namespace MetalMaxSystem
 
         #endregion
 
-#endregion
+        #endregion
 
         #region Functions 数据表功能
 
@@ -6603,7 +6646,7 @@ namespace MetalMaxSystem
         #endregion
 
         #region 基础数据表（提供哈希、字典、跨线程字典）
-       
+
         #region 哈希表（任意类型）
 
         //使用哈希表设计存取任意类型（不支持泛型）
@@ -11672,7 +11715,7 @@ namespace MetalMaxSystem
         {
             bool torf;
             float tempValue = 0f;
-            if (place) { torf= globalCDictionaryFloat.TryGetValue(key, out tempValue); }
+            if (place) { torf = globalCDictionaryFloat.TryGetValue(key, out tempValue); }
             else { torf = localCDictionaryFloat.TryGetValue(key, out tempValue); }
             if (torf) { return tempValue == value; } else { return false; }
         }
@@ -12417,8 +12460,8 @@ namespace MetalMaxSystem
         {
             bool torf;
             bool tempValue = false;
-            if (place) { torf= globalCDictionaryBool.TryGetValue(key, out tempValue); }
-            else { torf= localCDictionaryBool.TryGetValue(key, out tempValue); }
+            if (place) { torf = globalCDictionaryBool.TryGetValue(key, out tempValue); }
+            else { torf = localCDictionaryBool.TryGetValue(key, out tempValue); }
             if (torf) { return tempValue == value; } else { return false; }
         }
 
@@ -12788,8 +12831,8 @@ namespace MetalMaxSystem
         {
             bool torf;
             byte tempValue = new byte();
-            if (place) { torf= globalCDictionaryByte.TryGetValue(key, out tempValue); }
-            else { torf= localCDictionaryByte.TryGetValue(key, out tempValue); }
+            if (place) { torf = globalCDictionaryByte.TryGetValue(key, out tempValue); }
+            else { torf = localCDictionaryByte.TryGetValue(key, out tempValue); }
             if (torf) { return tempValue == value; } else { return false; }
         }
 
@@ -13161,8 +13204,8 @@ namespace MetalMaxSystem
         {
             bool torf;
             Vector2F tempValue = new Vector2F();
-            if (place) { torf= globalCDictionaryVector.TryGetValue(key, out tempValue); }
-            else { torf= localCDictionaryVector.TryGetValue(key, out tempValue); }
+            if (place) { torf = globalCDictionaryVector.TryGetValue(key, out tempValue); }
+            else { torf = localCDictionaryVector.TryGetValue(key, out tempValue); }
             if (torf) { return tempValue == value; } else { return false; }
         }
 
@@ -13536,8 +13579,8 @@ namespace MetalMaxSystem
         {
             bool torf;
             object tempValue = null;
-            if (place) { torf= globalCDictionaryObject.TryGetValue(key, out tempValue); }
-            else { torf= localCDictionaryObject.TryGetValue(key, out tempValue); }
+            if (place) { torf = globalCDictionaryObject.TryGetValue(key, out tempValue); }
+            else { torf = localCDictionaryObject.TryGetValue(key, out tempValue); }
             if (torf) { return tempValue == value; } else { return false; }
         }
 
@@ -13824,8 +13867,8 @@ namespace MetalMaxSystem
         {
             bool torf;
             string tempValue = null;
-            if (place) { torf= globalCDictionaryString.TryGetValue(key, out tempValue); }
-            else { torf= localCDictionaryString.TryGetValue(key, out tempValue); }
+            if (place) { torf = globalCDictionaryString.TryGetValue(key, out tempValue); }
+            else { torf = localCDictionaryString.TryGetValue(key, out tempValue); }
             if (torf) { return tempValue == value; } else { return false; }
         }
 
@@ -16312,7 +16355,7 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认值"_Int"</param>
         /// <param name="lp_inherentStats">固有状态</param>
         /// <param name="lp_inherentCustomValue">固有自定义值</param>
-        public static void HD_RegInt(int lp_integer, string lp_key, string lp_inherentStats="true", string lp_inherentCustomValue = "")
+        public static void HD_RegInt(int lp_integer, string lp_key, string lp_inherentStats = "true", string lp_inherentCustomValue = "")
         {
             // Variable Declarations
             string lv_str;
