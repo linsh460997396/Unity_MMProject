@@ -251,11 +251,11 @@ namespace CellSpace
         // 纹理设置
 
         /// <summary>
-        /// 纹理单元倍率（一个块的纹理边长与纹理表边长之比，用于计算单元纹理），形象说明的话相当于每个精灵在整张图片中的比例，填8则X方向均分8个纹理单元
+        /// 纹理表边长/纹理单元边长的倍率（用于计算单元纹理划区大小），形象说明的话相当于每个精灵在整张图片中的比例的倒数，填8则X方向均分8个纹理单元
         /// </summary>
         public static float[] TextureUnitX;
         /// <summary>
-        /// 纹理单元倍率（一个块的纹理边长与纹理表边长之比，用于计算单元纹理），形象说明的话相当于每个精灵在整张图片中的比例，填8则Y方向均分8个纹理单元
+        /// 纹理表边长/纹理单元边长的倍率（用于计算单元纹理划区大小），形象说明的话相当于每个精灵在整张图片中的比例的倒数，填8则Y方向均分8个纹理单元
         /// </summary>
         public static float[] TextureUnitY;
         /// <summary>
@@ -272,11 +272,11 @@ namespace CellSpace
         // 纹理设置，GUI界面输入
 
         /// <summary>
-        /// [GUI界面输入]纹理单元倍率（一个块的纹理边长与纹理表边长之比，用于计算单元纹理），形象说明的话相当于每个精灵在整张图片中的比例，默认是0.125说明整张图片被横竖均分8x8个纹理单元
+        /// [GUI界面输入]纹理表边长/纹理单元边长的倍率（用于计算单元纹理划区大小），形象说明的话相当于每个精灵在整张图片中的比例的倒数，填8则X方向均分8个纹理单元
         /// </summary>
         public float[] lTextureUnitX;
         /// <summary>
-        /// [GUI界面输入]纹理单元倍率（一个块的纹理边长与纹理表边长之比，用于计算单元纹理），形象说明的话相当于每个精灵在整张图片中的比例，默认是0.125说明整张图片被横竖均分8x8个纹理单元
+        /// [GUI界面输入]纹理表边长/纹理单元边长的倍率（用于计算单元纹理划区大小），形象说明的话相当于每个精灵在整张图片中的比例的倒数，填8则X方向均分8个纹理单元
         /// </summary>
         public float[] lTextureUnitY;
         /// <summary>
@@ -433,7 +433,7 @@ namespace CellSpace
         /// </summary>
         public float lChunkTimeout;
         /// <summary>
-        /// 允许团块超时（如果Engine.ChunkTimeout>0这个变量会自动设置为true）
+        /// 允许团块超时（若Engine.ChunkTimeout>0则此变量会自动设为true）
         /// </summary>
         public static bool EnableChunkTimeout;
 
@@ -469,75 +469,132 @@ namespace CellSpace
         // ==== initialization ====
 
         /// <summary>
-        /// 由于手动制作每种地块的预制体太慢，这里用脚本批处理创建预制体实例化后的GameObject，会立即出现在场景（可手动隐藏），如要重复利用可手动存入对象池。
+        /// 创建预制体实例。因GUI手填地块预制体太慢，这里用脚本批处理创建预制体实例化后的GameObject。
+        /// 虽然它们在创建后会立即出现在场景，但因要重复利用所以创建后退入对象池会失活隐藏（请在需要时取出并激活GameObject）。
+        /// 注意本函数创建的预制体实例会填充内部调用的Blocks数组。
         /// </summary>
         /// <param name="cellID"></param>
         /// <param name="vector"></param>
         /// <param name="subMeshIndex"></param>
-        void CreatePrefab(ushort cellID, ushort subMeshIndex, Vector2 vector)
+        /// <param name="torf">默认true在游戏物体创建后退回OP对象池（待使用时取出），反之创建后的游戏物体在场景中是激活状态</param>
+        static void CreatePrefab(ushort cellID, ushort subMeshIndex, Vector2 vector, bool torf = true)
         {
             string name = "cell_" + cellID;
             CPEngine.PrefabOPs[cellID].gameObject = new GameObject(name);
-            Cell cell = CPEngine.PrefabOPs[cellID].gameObject.AddComponent<Cell>();
+            Cell cell = CPEngine.PrefabOPs[cellID].gameObject.AddComponent<Cell>();//在GameObject上添加单元组件对象
             cell.VName = name;
             cell.VTexture = new Vector2[6];
             cell.VTexture[0] = vector;
             cell.VTransparency = Transparency.solid;
+            //非GUI编辑器填写而是采用手写录入的默认按cube碰撞类型
             cell.VColliderType = ColliderType.cube;
-            //根据纹理编号设置单元碰撞类型
+            //根据纹理编号来设置单元碰撞类型
             //if (cubeColliderIDs.Contains(cellID))
-            //{//需要碰撞的纹理
+            //{//有碰撞类型
             //    cell.VColliderType = ColliderType.cube;
             //}
             //else
-            //{
+            //{//无碰撞类型
             //    cell.VColliderType = ColliderType.none;
             //}
             cell.VSubmeshIndex = subMeshIndex; //大地图纹理在索引1的材质里
             cell.VRotation = MeshRotation.none;
+            Blocks[cellID] = PrefabOPs[cellID].gameObject;//填充内部调用的Blocks数组
+            OP.pool.Push(PrefabOPs[cellID]);//将OP上的游戏物体对象退回栈，待使用时取出
         }
 
         /// <summary>
-        /// 自动识别网格渲染器对应索引材质的纹理，按行列分割UV，批转化为预制体存入CPEngine.PrefabOPs数组
+        /// 批创建预制体实例。自动识别网格渲染器对应材质主纹理并按行列分割UV，批转化为预制体实例并存入CPEngine.PrefabOPs数组
         /// </summary>
         /// <param name="cellID">特征图的第一个CellID</param>
         /// <param name="endID">特征图的最后一个CellID</param>
         /// <param name="textureRow">Y方向行数</param>
         /// <param name="textureCol">X方向列数</param>
         /// <param name="subMeshIndex">网格渲染器的材质索引</param>
-        void CreateTexPrefabBatch(ushort cellID, ushort endID, ushort subMeshIndex, ushort textureRow, ushort textureCol)
+        /// <param name="torf">默认true当lBlocks为null时才进行CreatePrefab（若lBlocks已有GUI填入的地块预制体则直接使用），否则总是CreatePrefab（不使用GUI填的地块预制体）</param>
+        /// <param name="XIncrement">默认true则UV划区时（左下为原点）先以X方向自增，若为flase则先以Y方向自增</param>
+        static void CreateTexPrefabBatch(ushort cellID, ushort endID, ushort subMeshIndex, ushort textureCol, ushort textureRow, bool torf = true, bool XIncrement = true)
         {
             ushort index = cellID;
-            ushort X; // 当前X坐标
-            ushort Y = 0; // 当前Y坐标
-
-            // 遍历所有切片，注意检查索引是否越界
-            for (ushort row = 0; row < textureRow; row++)
+            ushort x = 0; //当前X坐标
+            ushort y = 0; //当前Y坐标
+            if (XIncrement)
             {
-                X = 0;
-                for (ushort col = 0; col < textureCol; col++)
-                {
-                    // 检查索引是否越界
-                    if (index >= PrefabOPs.Length)
+                //遍历所有切片，注意检查索引是否越界
+                for (ushort row = 0; row < textureRow; row++)
+                {//Y自增时，X重置为0
+                    x = 0;
+                    for (ushort col = 0; col < textureCol; col++)
                     {
-                        Debug.LogError("Index out of range!");
-                        return; // 或者处理越界情况
+                        //检查索引是否越界
+                        if (index >= PrefabOPs.Length)
+                        {
+                            Debug.LogError("Index out of range!");
+                            return; //返回或处理越界情况
+                        }
+                        if (torf == false || (torf == true && Blocks[index] == null))
+                        {//torf为false时总是CreatePrefab，为true时仅当lBlocks无值才进行CreatePrefab
+                            CreatePrefab(index, subMeshIndex, new Vector2(x, y));
+                        }
+                        else
+                        {//若已有GUI填入的地块预制体则直接使用
+                            PrefabOPs[index].gameObject = Instantiate(GetCellGameObject(index)); //OP对象绑定各自预制体实例化后的GameObject（由于是GUI填入的，Cell参数会自动填充）
+                        }
+                        index++;
+                        //下个处理ID超过特征图最后CellID时直接跳出函数
+                        if (index > endID) { return; }
+                        x++;
                     }
-                    CreatePrefab(index, subMeshIndex, new Vector2(X, Y));
-                    index++;
-                    //下个处理ID超过特征图最后CellID时直接跳出函数
-                    if (index > endID) { return; }
-                    X++;
+                    y++;
                 }
-                Y++;
+            }
+            else
+            {
+                //遍历所有切片，注意检查索引是否越界
+                for (ushort col = 0; col < textureCol; col++)
+                {//X自增时，Y重置为0
+                    y = 0;
+                    for (ushort row = 0; row < textureRow; row++)
+                    {
+                        //检查索引是否越界
+                        if (index >= PrefabOPs.Length)
+                        {
+                            Debug.LogError("Index out of range!");
+                            return; //返回或处理越界情况
+                        }
+                        if (torf == false || (torf == true && Blocks[index] == null))
+                        {//torf为false时总是CreatePrefab，为true时仅当lBlocks无值才进行CreatePrefab
+                            CreatePrefab(index, subMeshIndex, new Vector2(x, y));
+                        }
+                        else
+                        {//若已有GUI填入的地块预制体则直接使用
+                            PrefabOPs[index].gameObject = Instantiate(GetCellGameObject(index)); //OP对象绑定各自预制体实例化后的GameObject（由于是GUI填入的，Cell参数会自动填充）
+                        }
+                        index++;
+                        //下个处理ID超过特征图最后CellID时直接跳出函数
+                        if (index > endID) { return; }
+                        y++;
+                    }
+                    x++;
+                }
             }
         }
 
         /// <summary>
-        /// 读取材质纹理对应的地图纹理ID文本
+        /// 读各场景纹理ID文本（用于地图自动绘制）
         /// </summary>
-        void LoadTXT()
+        static void LoadTXT()
         {
+            //读取ID文本前初始化数组中的每个List元素（用于存放场景纹理ID）
+            for (int i = 0; i < mapContents.Length; i++)
+            {
+                mapContents[i] = new List<string>();
+            }
+            for (int i = 0; i < mapIDs.Length; i++)
+            {
+                mapIDs[i] = new List<ushort>();
+            }
+
             //0，重装机兵大地图
             TextAsset textAsset = Resources.Load<TextAsset>("MapIndex/World");
             string tempContent = textAsset.text;
@@ -592,63 +649,58 @@ namespace CellSpace
             }
         }
 
-        void BlocksRefresh()
+        /// <summary>
+        /// 更新块（必须在使用前完整刷新地块数据）
+        /// </summary>
+        static void BlocksRefresh()
         {
             //Unity不能直接判断一个未实例化的预制体上是否附加了特定的组件，因为未实例化的预制体本身只是一个模板（用于创建具体的GameObject场景实例）
             //预制体上的组件只有在实例化后才会真正存在并可被访问，此处我们将频繁使用的预制体实例化后存入对象池
-
-            ushort num0 = 11; //GUI界面手动拖入的Cell预制体数量，这些采用预制体实例化后再存入对象池
-            ushort num1 = (ushort)(num0 + 152);//163
+            //根据材质纹理数量进行规划
+            ushort num0 = 11; //材质[0]主纹理默认有11个地块纹理，是GUI界面手动拖入的Cell预制体数量，这些已有填入的预制体，将在实例化后存入对象池
+            //接下来是其他材质主纹理所划分的地块纹理数量（因数量巨多，不再手动从GUI拖入）
+            ushort num1 = (ushort)(num0 + 152);//163 
             ushort num2 = (ushort)(num1 + 1360);//1523
-            ushort num3 = (ushort)(num2 + 892);//2415
-            PrefabOPs = new OP[Blocks.Length]; //GUI界面lBlocks填了2415数组容量，创建同样Blocks.Length个OP对象，它们共享对象池
-            //对象池预填充↓
-            OP.pool = new(Blocks.Length); //对象池容量为Blocks.Length（即使Push数量超过初始容量，栈也会自动扩容）
-            for (ushort i = 0; i < num0; i++)
-            {
-                //手动拖入的Cell预制体数量是num0个：cell_0~10（第一材质MC纹理）
-                PrefabOPs[i].gameObject = Instantiate(GetCellGameObject(i)); //OP对象绑定各自预制体实例化后的GameObject
-                OP.pool.Push(PrefabOPs[i]);//将OP对象退回栈，待使用时取出
-            }
-            //额外添加152个大地图纹理：cell_11~162（第二材质）
-            //↓大地图19行8列会自动转换出152个预制体，OP对象会绑定这些转化的预制体
-            CreateTexPrefabBatch(num0, (ushort)(num1 - 1), 1, 19, 8);
-            for (ushort i = num0; i < num1; i++)
-            {
-                Blocks[i] = PrefabOPs[i].gameObject;//填充内部调用的Blocks数组（2415个元素，前面11个由GUI读取）
-                OP.pool.Push(PrefabOPs[i]);//将OP对象退回栈，待使用时取出
-            }
-            //额外添加1360个小地图纹理：cell_163~1522（第三材质）
-            //↓小地图170行8列会自动转换出1360个预制体，OP对象会绑定这些转化的预制体
-            CreateTexPrefabBatch(num1, (ushort)(num2 - 1), 2, 170, 8);
-            for (ushort i = num1; i < num2; i++)
-            {
-                Blocks[i] = PrefabOPs[i].gameObject;//填充内部调用的Blocks数组（2415个元素，前面11个由GUI读取）
-                OP.pool.Push(PrefabOPs[i]);//将OP对象退回栈，待使用时取出
-            }
+            ushort num3 = (ushort)(num2 + 892);//2415（测试用的龙珠大地图特征纹理）
 
-            //额外添加892小地图纹理：cell_1523~2414（第四材质），包括CellID_0共2415个Block数组元素
-            //↓龙珠地图50行18列会自动转换出892个预制体，OP对象会绑定这些转化的预制体
-            CreateTexPrefabBatch(num2, (ushort)(num3 - 1), 3, 18, 50);
-            for (ushort i = num2; i < num3; i++)
-            {
-                Blocks[i] = PrefabOPs[i].gameObject;//填充内部调用的Blocks数组
-                OP.pool.Push(PrefabOPs[i]);//将OP对象退回栈，待使用时取出
-            }
+            PrefabOPs = new OP[Blocks.Length]; //请在GUI界面lBlocks预填数组容量，以便此处自动创建同样Blocks.Length个OP对象，所有OP对象共享对象池
+            OP.pool = new(Blocks.Length); //对象池预填充，容量为Blocks.Length（即便Push数量超过初始容量，栈也会自动扩容）
 
-            // 初始化数组中的每个List元素（用于存放场景纹理ID）
-            for (int i = 0; i < mapContents.Length; i++)
-            {
-                mapContents[i] = new List<string>();
-            }
-            for (int i = 0; i < mapIDs.Length; i++)
-            {
-                mapIDs[i] = new List<ushort>();
-            }
+            //手动拖入的Cell预制体数量是num0个：cell_0~10（材质[0]主纹理上的）
+            CreateTexPrefabBatch(0, (ushort)(num0 - 1), 0, (ushort)TextureUnitX[0], (ushort)TextureUnitY[0]);
 
+            //额外添加152个大地图纹理：cell_11~162（材质[1]主纹理上的）
+            //↓大地图19行8列会自动按起始和结尾参数转换出152个预制体实例，函数会绑定它们到OP对象gameObject字段
+            CreateTexPrefabBatch(num0, (ushort)(num1 - 1), 1, (ushort)TextureUnitX[1], (ushort)TextureUnitY[1]);
+
+            //额外添加1360个小地图纹理：cell_163~1522（材质[2]主纹理上的）
+            //↓小地图170行8列会自动转换出1360个预制体实例
+            CreateTexPrefabBatch(num1, (ushort)(num2 - 1), 2, (ushort)TextureUnitX[2], (ushort)TextureUnitY[2]);
+
+            //额外添加892小地图纹理：cell_1523~2414（材质[3]主纹理上的），包括CellID_0共2415个Block数组元素
+            //↓龙珠地图目前是临时测试用的，50行18列会自动转换出892个预制体实例
+            CreateTexPrefabBatch(num2, (ushort)(num3 - 1), 3, (ushort)TextureUnitX[3], (ushort)TextureUnitY[3]);
 
             //读取重装机兵全场景纹理ID文本
             LoadTXT();
+        }
+
+        /// <summary>
+        /// 获取体素ID对应材质渲染器上的材质索引
+        /// </summary>
+        /// <param name="cellId"></param>
+        /// <returns></returns>
+        public static ushort GetSubMeshIndex(ushort cellId)
+        {
+            ushort torf = 0;
+            if (cellId >= 11)
+            {
+                if (cellId < 163) { torf = 1; }
+                else if (cellId < 1523) { torf = 2; }
+                else if (cellId < 2415) { torf = 3; }
+                else { Debug.Log("纹理ID超出材质子网格索引上限！"); }
+            }
+            return torf;
         }
 
         //Awake方法在脚本实例被加载时被调用，通常发生在游戏对象被创建或脚本被添加到游戏对象上
@@ -657,6 +709,7 @@ namespace CellSpace
             //本函数负责引擎初始化
 
             //↓录制默认碰撞（碰撞条件：单元纹理ID在人车默认碰撞列表 且 该场景单元ID可进入字段=假（默认都是假，加载场景后可针对如小地图屋子进行设置真））
+
             //人的默认碰撞类型
             for (ushort i = 11; i <= 20; i++) { cubeColliderIDs[0].Add(i); }//大地图左下第一个纹理从11编号起算
             for (ushort i = 23; i <= 24; i++) { cubeColliderIDs[0].Add(i); }
@@ -713,8 +766,6 @@ namespace CellSpace
             BlocksPath = lBlocksPath;
             Blocks = lBlocks; //从GUI界面拖拽到Engine的Cell预制体（只拖拽了一部分，剩下太多了所以接下来用代码追加）
 
-            BlocksRefresh();
-
             TargetFPS = lTargetFPS;
             MaxChunkSaves = lMaxChunkSaves;
             MaxChunkDataRequests = lMaxChunkDataRequests;
@@ -741,6 +792,8 @@ namespace CellSpace
             SquaredSideLength = lChunkSideLength * lChunkSideLength;
 
             #endregion
+
+            BlocksRefresh();
 
             //建立已加载的区域组（字典<string, string[]>）
             CellChunkDataFiles.LoadedRegions = new Dictionary<string, string[]>();
@@ -1012,19 +1065,19 @@ namespace CellSpace
         /// <summary>
         /// 获取体素ID对应的单元预制体的单元类型组件
         /// </summary>
-        /// <param name="cellId">体素ID（单元预制体种类）</param>
+        /// <param name="cellID">体素ID（单元预制体种类）</param>
         /// <returns>返回体素ID对应单元上的单元类型组件，体素ID=0或65535时返回空块上的单元类型组件</returns>
-        public static Cell GetCellType(ushort cellId)
+        public static Cell GetCellType(ushort cellID)
         {
             try
             {
                 //如果体素ID达到ushort数据类型的最大值65535，那么归零（防止从负数开始）
-                if (cellId == ushort.MaxValue) cellId = 0;
-                Cell cell = Blocks[cellId].GetComponent<Cell>();//获取体素ID对应单元上的单元类型组件
+                if (cellID == ushort.MaxValue) cellID = 0;
+                Cell cell = Blocks[cellID].GetComponent<Cell>();//获取体素ID对应单元上的单元类型组件
                 if (cell == null)
                 {
                     //单元组件不存在
-                    Debug.LogError("CellSpace: Cell id " + cellId + " does not have the Cell component attached!");
+                    Debug.LogError("CellSpace: Cell ID " + cellID + " does not have the Cell component attached!");
                     return null;
                 }
                 else
@@ -1037,27 +1090,9 @@ namespace CellSpace
             catch (System.Exception)
             {
                 //报错并指出无效体素ID
-                Debug.LogError("CellSpace: Invalid cell id: " + cellId);
+                Debug.LogError("CellSpace: Invalid Cell ID: " + cellID);
                 return null;
             }
-        }
-
-        /// <summary>
-        /// 获取体素ID对应材质渲染器上的材质索引
-        /// </summary>
-        /// <param name="cellId"></param>
-        /// <returns></returns>
-        public static ushort GetSubMeshIndex(ushort cellId)
-        {
-            ushort torf = 0;
-            if (cellId > 10)
-            {
-                if (cellId < 163) { torf = 1; }
-                else if (cellId < 1523) { torf = 2; }
-                else if (cellId < 2415) { torf = 3; }
-                else { Debug.Log("纹理ID超出材质子网格索引上限！"); }
-            }
-            return torf;
         }
 
         /// <summary>
