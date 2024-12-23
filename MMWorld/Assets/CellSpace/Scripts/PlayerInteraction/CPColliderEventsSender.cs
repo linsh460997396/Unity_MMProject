@@ -17,7 +17,7 @@ namespace CellSpace
             CPIndex cellIndex = chunk.PositionToCellIndex(transform.position);
             CellInfo cellInfo = new CellInfo(cellIndex, chunk);
             //print(cellInfo.GetCellID());
-            //create a local copy of the collision voxel so we can call functions on it.´´½¨Ò»¸öÅö×²ÌåËØµÄ±¾µØ¸±±¾£¬ÕâÑùÎÒÃÇ¾Í¿ÉÒÔÔÚÆäÉÏµ÷ÓÃº¯Êı
+            //create a local copy of the collision voxel so we can call functions on it.åˆ›å»ºä¸€ä¸ªç¢°æ’ä½“ç´ çš„æœ¬åœ°å‰¯æœ¬ï¼Œè¿™æ ·æˆ‘ä»¬å°±å¯ä»¥åœ¨å…¶ä¸Šè°ƒç”¨å‡½æ•°
             GameObject cellObject = Instantiate(CPEngine.GetCellGameObject(cellInfo.GetCellID())) as GameObject;
             CellEvents events = cellObject.GetComponent<CellEvents>();
             if (events != null)

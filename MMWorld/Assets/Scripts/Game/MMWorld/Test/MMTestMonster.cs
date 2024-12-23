@@ -1,4 +1,4 @@
-﻿namespace MMWorld.Test
+namespace MMWorld.Test
 {
     public class MMTestMonster : Monster
     {

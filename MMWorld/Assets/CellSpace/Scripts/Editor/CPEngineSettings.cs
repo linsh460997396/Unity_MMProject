@@ -22,7 +22,7 @@ namespace CellSpace
             return false;
         }
 
-        [MenuItem("CellSpace/ÉèÖÃ")]
+        [MenuItem("CellSpace/è®¾ç½®")]
         static void Init()
         {
             CPEngineSettings window = (CPEngineSettings)GetWindow(typeof(CPEngineSettings));
@@ -101,11 +101,11 @@ namespace CellSpace
 
                 if (GUI.changed)
                 {
-                    // ¼ì²éGameObjectÊÇ·ñÊÇÔ¤ÖÆÌåµÄÊµÀı
+                    // æ£€æŸ¥GameObjectæ˜¯å¦æ˜¯é¢„åˆ¶ä½“çš„å®ä¾‹
                     if (PrefabUtility.GetPrefabInstanceStatus(engine.gameObject) == PrefabInstanceStatus.Connected)
                     {
                         //Debug.Log(selectedObject.name + " is an instance of a prefab.");
-                        //ĞŞ¸Äºó¶ÔÔ¤ÖÆÌå¸²¸Ç£¬Èç¹ûÃ»ÓĞ¹ØÁª»á±¨´í£¨¿ÉÎŞÊÓ£©
+                        //ä¿®æ”¹åå¯¹é¢„åˆ¶ä½“è¦†ç›–ï¼Œå¦‚æœæ²¡æœ‰å…³è”ä¼šæŠ¥é”™ï¼ˆå¯æ— è§†ï¼‰
                         PrefabUtility.ReplacePrefab(engine.gameObject, PrefabUtility.GetPrefabParent(engine.gameObject), ReplacePrefabOptions.ConnectToPrefab);
                     }
                 }

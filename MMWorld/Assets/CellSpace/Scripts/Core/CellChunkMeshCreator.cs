@@ -2,194 +2,194 @@ using UnityEngine;
 using System.Collections.Generic;
 
 // Handles mesh creation and all related functions.
-// ÌåËØµ¥Ôª£¨Cell/Voxel£©
+// ä½“ç´ å•å…ƒï¼ˆCell/Voxelï¼‰
 
 namespace CellSpace
 {
     /// <summary>
-    /// Íø¸ñĞı×ª
+    /// ç½‘æ ¼æ—‹è½¬
     /// </summary>
     public enum MeshRotation
     {
         /// <summary>
-        /// ÍÅ¿éÎŞĞı×ª
+        /// å›¢å—æ— æ—‹è½¬
         /// </summary>
         none,
         /// <summary>
-        /// ÍÅ¿éÏòºóĞı×ª
+        /// å›¢å—å‘åæ—‹è½¬
         /// </summary>
         back,
         /// <summary>
-        /// ÍÅ¿éÏò×óĞı×ª
+        /// å›¢å—å‘å·¦æ—‹è½¬
         /// </summary>
         left,
         /// <summary>
-        /// ÍÅ¿éÏòÓÒĞı×ª
+        /// å›¢å—å‘å³æ—‹è½¬
         /// </summary>
         right
     }
 
     /// <summary>
-    /// ÍÅ¿éÍø¸ñ´´½¨Æ÷×é¼ş
+    /// å›¢å—ç½‘æ ¼åˆ›å»ºå™¨ç»„ä»¶
     /// </summary>
     public class CellChunkMeshCreator : MonoBehaviour
     {
         /// <summary>
-        /// ¿¹ÉÁË¸Íø¸ñ°ë¾¶
+        /// æŠ—é—ªçƒç½‘æ ¼åŠå¾„
         /// </summary>
         const float antiFlickerRadius = meshRadius + antiFlickerOffset;
         /// <summary>
-        /// Íø¸ñ°ë¾¶
+        /// ç½‘æ ¼åŠå¾„
         /// </summary>
         const float meshRadius = 0.5f;
         /// <summary>
-        /// ¿¹ÉÁË¸Æ«ÒÆÁ¿¡£µ±Á½¸öÃæ·Ç³£½Ó½üÊ±£¬ÔÚäÖÈ¾Ê±¿ÉÄÜ»á³öÏÖZ-fighting¼´Á½¸öÃæÒòÎªÉî¶ÈÖµ·Ç³£½Ó½ü¶øÔÚÆÁÄ»ÉÏÉÁË¸£¬ÕâÀïÍ¨¹ıÎ¢Ğ¡µÄ¶îÍâÆ«ÒÆÀ´·ÀÖ¹
+        /// æŠ—é—ªçƒåç§»é‡ã€‚å½“ä¸¤ä¸ªé¢éå¸¸æ¥è¿‘æ—¶ï¼Œåœ¨æ¸²æŸ“æ—¶å¯èƒ½ä¼šå‡ºç°Z-fightingå³ä¸¤ä¸ªé¢å› ä¸ºæ·±åº¦å€¼éå¸¸æ¥è¿‘è€Œåœ¨å±å¹•ä¸Šé—ªçƒï¼Œè¿™é‡Œé€šè¿‡å¾®å°çš„é¢å¤–åç§»æ¥é˜²æ­¢
         /// </summary>
         const float antiFlickerOffset = 0.0001f;
         /// <summary>
-        /// Íø¸ñÎ»ÖÃÆ«ÒÆÁ¿£¨ÍùÕıÖµ·½Ïò½øĞĞÆ«ÒÆ»Ø²åÈëµã£¬·ñÔòÄ¬ÈÏµÄÍø¸ñ²åÈëÔÚÔ­µã¸ºÖµ·½ÏòÆ«ÒÆ1¸öÍø¸ñ°ë¾¶µÄÎ»ÖÃ£©
+        /// ç½‘æ ¼ä½ç½®åç§»é‡ï¼ˆå¾€æ­£å€¼æ–¹å‘è¿›è¡Œåç§»å›æ’å…¥ç‚¹ï¼Œå¦åˆ™é»˜è®¤çš„ç½‘æ ¼æ’å…¥åœ¨åŸç‚¹è´Ÿå€¼æ–¹å‘åç§»1ä¸ªç½‘æ ¼åŠå¾„çš„ä½ç½®ï¼‰
         /// </summary>
         const float meshOffset = meshRadius;
         /// <summary>
-        /// ÍÅ¿é
+        /// å›¢å—
         /// </summary>
         private CellChunk chunk;
         /// <summary>
-        /// ÍÅ¿é±ß³¤
+        /// å›¢å—è¾¹é•¿
         /// </summary>
         private int SideLength;
         /// <summary>
-        /// ÎŞÅö×²Åö×²Ìå
+        /// æ— ç¢°æ’ç¢°æ’ä½“
         /// </summary>
         private GameObject noCollideCollider;
         /// <summary>
-        /// Á¢·½ÌåÍø¸ñ
+        /// ç«‹æ–¹ä½“ç½‘æ ¼
         /// </summary>
         public Mesh Cube;
 
-        // variables for storing the mesh data.´æ´¢Íø¸ñÊı¾İµÄ±äÁ¿
+        // variables for storing the mesh data.å­˜å‚¨ç½‘æ ¼æ•°æ®çš„å˜é‡
 
         /// <summary>
-        /// ´æ´¢Íø¸ñ¶¥µãµÄÊı×é
+        /// å­˜å‚¨ç½‘æ ¼é¡¶ç‚¹çš„æ•°ç»„
         /// </summary>
         private List<Vector3> Vertices = new List<Vector3>();
         /// <summary>
-        /// ´æ´¢Íø¸ñÃæ£¨¶à¸öÈı½ÇĞÎ¶¥µã×é£©µÄÊı×é£¬List<int>ÖĞ3¸öÔªËØ¶ÔÓ¦Ò»¸öÈı½ÇĞÎ£¬ÓÉ2¸öÈı½ÇĞÎ»ò4¸ö¶¥µã¶ÔÓ¦1¸öÃæ
+        /// å­˜å‚¨ç½‘æ ¼é¢ï¼ˆå¤šä¸ªä¸‰è§’å½¢é¡¶ç‚¹ç»„ï¼‰çš„æ•°ç»„ï¼ŒList<int>ä¸­3ä¸ªå…ƒç´ å¯¹åº”ä¸€ä¸ªä¸‰è§’å½¢ï¼Œç”±2ä¸ªä¸‰è§’å½¢æˆ–4ä¸ªé¡¶ç‚¹å¯¹åº”1ä¸ªé¢
         /// </summary>
         private List<List<int>> Faces = new List<List<int>>();
         /// <summary>
-        /// ´æ´¢Íø¸ñÉÏÎÆÀíµÄÊı×é
+        /// å­˜å‚¨ç½‘æ ¼ä¸Šçº¹ç†çš„æ•°ç»„
         /// </summary>
         private List<Vector2> UVs = new List<Vector2>();
         /// <summary>
-        /// Íø¸ñÃæµÄ¼ÆÊı
+        /// ç½‘æ ¼é¢çš„è®¡æ•°
         /// </summary>
         private int FaceCount;
 
-        // variables for storing collider data.´æ´¢Åö×²ÌåÊı¾İµÄ±äÁ¿
+        // variables for storing collider data.å­˜å‚¨ç¢°æ’ä½“æ•°æ®çš„å˜é‡
 
         /// <summary>
-        /// ´æ´¢ÊµĞÄÅö×²Ìå¶¥µãµÄÊı×é
+        /// å­˜å‚¨å®å¿ƒç¢°æ’ä½“é¡¶ç‚¹çš„æ•°ç»„
         /// </summary>
         private List<Vector3> SolidColliderVertices = new List<Vector3>();
         /// <summary>
-        /// ´æ´¢ÊµĞÄÅö×²ÌåµÄÃæ£¨¶à¸ö¶¥µã×é£©µÄÊı×é
+        /// å­˜å‚¨å®å¿ƒç¢°æ’ä½“çš„é¢ï¼ˆå¤šä¸ªé¡¶ç‚¹ç»„ï¼‰çš„æ•°ç»„
         /// </summary>
         private List<int> SolidColliderFaces = new List<int>();
         /// <summary>
-        /// ÊµĞÄ£¨ÍêÈ«²»Í¸Ã÷£©µÄÃæµÄ¼ÆÊı
+        /// å®å¿ƒï¼ˆå®Œå…¨ä¸é€æ˜ï¼‰çš„é¢çš„è®¡æ•°
         /// </summary>
         private int SolidFaceCount;
         /// <summary>
-        /// ´æ´¢ÎŞÅö×²£¨Í¸Ã÷»ò°ëÍ¸Ã÷µÄÌåËØ¿é£©¶¥µãµÄÊı×é
+        /// å­˜å‚¨æ— ç¢°æ’ï¼ˆé€æ˜æˆ–åŠé€æ˜çš„ä½“ç´ å—ï¼‰é¡¶ç‚¹çš„æ•°ç»„
         /// </summary>
         private List<Vector3> NoCollideVertices = new List<Vector3>();
         /// <summary>
-        /// ´æ´¢ÎŞÅö×²µÄÃæ£¨¶à¸ö¶¥µã×é£©µÄÊı×é
+        /// å­˜å‚¨æ— ç¢°æ’çš„é¢ï¼ˆå¤šä¸ªé¡¶ç‚¹ç»„ï¼‰çš„æ•°ç»„
         /// </summary>
         private List<int> NoCollideFaces = new List<int>();
         /// <summary>
-        /// ÎŞÅö×²µÄÃæµÄ¼ÆÊı
+        /// æ— ç¢°æ’çš„é¢çš„è®¡æ•°
         /// </summary>
         private int NoCollideFaceCount;
         /// <summary>
-        /// ÍÅ¿éÍø¸ñ´´½¨Æ÷×é¼ş³õÊ¼»¯×´Ì¬
+        /// å›¢å—ç½‘æ ¼åˆ›å»ºå™¨ç»„ä»¶åˆå§‹åŒ–çŠ¶æ€
         /// </summary>
         private bool initialized;
 
         /// <summary>
-        /// ÍÅ¿éÍø¸ñ´´½¨Æ÷×é¼ş³õÊ¼»¯
+        /// å›¢å—ç½‘æ ¼åˆ›å»ºå™¨ç»„ä»¶åˆå§‹åŒ–
         /// </summary>
         public void Initialize()
         {
-            // set variables.¶ÁÈ¡ÍÅ¿é¼°Æä³¤¶È
+            // set variables.è¯»å–å›¢å—åŠå…¶é•¿åº¦
             chunk = GetComponent<CellChunk>();
             SideLength = chunk.SideLength;
             //Debug.Log(GetComponent<Renderer>().materials.Length);
-            // make a list for each material (each material is a submesh).ÎªÍÅ¿éµÄÍø¸ñäÖÈ¾Æ÷×é¼şÉÏÃ¿Ò»ÖÖ²ÄÖÊÁĞÒ»¸öÇåµ¥(Ã¿Ò»ÖÖ²ÄÖÊ¶¼ÊÇ×ÓÍø¸ñ)
+            // make a list for each material (each material is a submesh).ä¸ºå›¢å—çš„ç½‘æ ¼æ¸²æŸ“å™¨ç»„ä»¶ä¸Šæ¯ä¸€ç§æè´¨åˆ—ä¸€ä¸ªæ¸…å•(æ¯ä¸€ç§æè´¨éƒ½æ˜¯å­ç½‘æ ¼)
             for (int i = 0; i < GetComponent<Renderer>().materials.Length; i++)
             {
-                Faces.Add(new List<int>()); //½«¿ÕµÄÇåµ¥Ìí¼Óµ½´æ´¢Íø¸ñÃæ£¨¶à¸ö¶¥µã×é£©µÄÊı×é
+                Faces.Add(new List<int>()); //å°†ç©ºçš„æ¸…å•æ·»åŠ åˆ°å­˜å‚¨ç½‘æ ¼é¢ï¼ˆå¤šä¸ªé¡¶ç‚¹ç»„ï¼‰çš„æ•°ç»„
             }
-            //³õÊ¼»¯Íê±Ï
+            //åˆå§‹åŒ–å®Œæ¯•
             initialized = true;
         }
 
         // ==== Cell updates =====================================================================================
 
         /// <summary>
-        /// Á¢¼´ÖØ½¨ÍÅ¿éÍø¸ñ£¬ÔÚ´ó¶àÊıÇé¿öÏÂÓ¦Ê¹ÓÃChunk.FlagToUpdate()
+        /// ç«‹å³é‡å»ºå›¢å—ç½‘æ ¼ï¼Œåœ¨å¤§å¤šæ•°æƒ…å†µä¸‹åº”ä½¿ç”¨Chunk.FlagToUpdate()
         /// </summary>
         public void RebuildMesh()
         {
-            //Èç¹ûÍÅ¿éÍø¸ñ´´½¨Æ÷×é¼ş»¹Ã»³õÊ¼»¯Ôò½øĞĞ³õÊ¼»¯
+            //å¦‚æœå›¢å—ç½‘æ ¼åˆ›å»ºå™¨ç»„ä»¶è¿˜æ²¡åˆå§‹åŒ–åˆ™è¿›è¡Œåˆå§‹åŒ–
             if (!initialized)
             {
                 Initialize();
             }
 
-            // destroy additional mesh containers.Ïú»Ù¶îÍâµÄÍø×´ÈİÆ÷
+            // destroy additional mesh containers.é”€æ¯é¢å¤–çš„ç½‘çŠ¶å®¹å™¨
             foreach (Transform child in transform)
             {
-                //±éÀú×ÓÓÎÏ·ÎïÌå½øĞĞ´İ»Ù
+                //éå†å­æ¸¸æˆç‰©ä½“è¿›è¡Œæ‘§æ¯
                 Destroy(child.gameObject);
             }
 
             int x = 0, y = 0, z = 0;
 
-            // Refresh neighbor chunks.Ë¢ĞÂÏàÁÚÍÅ¿é
+            // Refresh neighbor chunks.åˆ·æ–°ç›¸é‚»å›¢å—
             chunk.GetNeighbors();
 
             // for each cellId in Voxels, check if any of the cellId's faces are exposed, and if so, add their faces to the main mesh arrays (named Vertices and Faces)
 
-            //ÒâË¼ÊÇ¶ÔÓÚVoxelsÖĞµÄÃ¿Ò»¸öÌåËØ£¬¼ì²éËüÊÇ·ñÓĞÈÎºÎÒ»ÃæÊÇ±©Â¶ÔÚÍâµÄ£¬Èç¹ûÓĞ¾Í°ÑÕâÒ»ÃæÌí¼Óµ½ÌåËØÍø¸ñÊı×é£¨ÃûÎª Vertices ºÍ FacesµÄÁĞ±í£©ÖĞ
-            //VerticesºÍFacesÊÇÁ½¸öÊı×é£¬·Ö±ğ±íÊ¾ÈıÎ¬¿Õ¼äÖĞµÄ¶¥µã×ø±êºÍ¶à±ßĞÎµÄÃæĞÅÏ¢
-            //Vertices Êı×é´æ´¢ÁËËùÓĞ¶¥µãµÄ×ø±ê£¬¶ø Faces Êı×éÔò´æ´¢ÁËÓÉÕâĞ©¶¥µã¹¹³ÉµÄ¶à±ßĞÎµÄÃæĞÅÏ¢
-            //Èç¹ûÒ»¸öÌåËØµÄÄ³¸öÃæ±©Â¶ÔÚÍâ£¬ÄÇÃ´¾Í»á°Ñ¸ÃÃæµÄ¶¥µã×ø±êÌí¼Óµ½ Vertices Êı×éÖĞ£¬²¢°Ñ¸ÃÃæµÄĞÅÏ¢£¨¼´ÄÄĞ©¶¥µã¹¹³ÉÁËÕâ¸öÃæ£©Ìí¼Óµ½ Faces Êı×éÖĞ
-            //Í¨¹ıÕâÖÖ·½Ê½£¬¿ÉÒÔ¹¹½¨³öÒ»¸ö°üº¬ËùÓĞÌåËØµÄÈıÎ¬Ä£ĞÍ£¬±ãÓÚºóĞøµÄäÖÈ¾ºÍÏÔÊ¾
+            //æ„æ€æ˜¯å¯¹äºVoxelsä¸­çš„æ¯ä¸€ä¸ªä½“ç´ ï¼Œæ£€æŸ¥å®ƒæ˜¯å¦æœ‰ä»»ä½•ä¸€é¢æ˜¯æš´éœ²åœ¨å¤–çš„ï¼Œå¦‚æœæœ‰å°±æŠŠè¿™ä¸€é¢æ·»åŠ åˆ°ä½“ç´ ç½‘æ ¼æ•°ç»„ï¼ˆåä¸º Vertices å’Œ Facesçš„åˆ—è¡¨ï¼‰ä¸­
+            //Verticeså’ŒFacesæ˜¯ä¸¤ä¸ªæ•°ç»„ï¼Œåˆ†åˆ«è¡¨ç¤ºä¸‰ç»´ç©ºé—´ä¸­çš„é¡¶ç‚¹åæ ‡å’Œå¤šè¾¹å½¢çš„é¢ä¿¡æ¯
+            //Vertices æ•°ç»„å­˜å‚¨äº†æ‰€æœ‰é¡¶ç‚¹çš„åæ ‡ï¼Œè€Œ Faces æ•°ç»„åˆ™å­˜å‚¨äº†ç”±è¿™äº›é¡¶ç‚¹æ„æˆçš„å¤šè¾¹å½¢çš„é¢ä¿¡æ¯
+            //å¦‚æœä¸€ä¸ªä½“ç´ çš„æŸä¸ªé¢æš´éœ²åœ¨å¤–ï¼Œé‚£ä¹ˆå°±ä¼šæŠŠè¯¥é¢çš„é¡¶ç‚¹åæ ‡æ·»åŠ åˆ° Vertices æ•°ç»„ä¸­ï¼Œå¹¶æŠŠè¯¥é¢çš„ä¿¡æ¯ï¼ˆå³å“ªäº›é¡¶ç‚¹æ„æˆäº†è¿™ä¸ªé¢ï¼‰æ·»åŠ åˆ° Faces æ•°ç»„ä¸­
+            //é€šè¿‡è¿™ç§æ–¹å¼ï¼Œå¯ä»¥æ„å»ºå‡ºä¸€ä¸ªåŒ…å«æ‰€æœ‰ä½“ç´ çš„ä¸‰ç»´æ¨¡å‹ï¼Œä¾¿äºåç»­çš„æ¸²æŸ“å’Œæ˜¾ç¤º
             if (CPEngine.HorizontalMode)
             {
                 while (x < SideLength)
                 {
                     while (y < SideLength)
                     {
-                        //»ñÈ¡ÌåËØÊı¾İ£¨ÌåËØ¿éµÄÖÖÀà£©
+                        //è·å–ä½“ç´ æ•°æ®ï¼ˆä½“ç´ å—çš„ç§ç±»ï¼‰
                         ushort cellId = chunk.GetCellID(x, y); // the current cellId data
                         if (cellId != 0)
-                        { // don'transform render empty blocks.²»äÖÈ¾¿Õ¿é
-                          //»ñÈ¡ÌåËØÊı¾İ£¨ÌåËØ¿éµÄÖÖÀà£©¶ÔÓ¦µÄÌåËØ£¨ÀàĞÍ£©
+                        { // don'transform render empty blocks.ä¸æ¸²æŸ“ç©ºå—
+                          //è·å–ä½“ç´ æ•°æ®ï¼ˆä½“ç´ å—çš„ç§ç±»ï¼‰å¯¹åº”çš„ä½“ç´ ï¼ˆç±»å‹ï¼‰
                             Cell cellType = CPEngine.GetCellType(cellId);
-                            //ÌåËØµÄ×Ô¶¨ÒåÍø¸ñÎ´ÆôÓÃÊ±
+                            //ä½“ç´ çš„è‡ªå®šä¹‰ç½‘æ ¼æœªå¯ç”¨æ—¶
                             if (cellType.VCustomMesh == false)
-                            { // if cube.Èç¹ûÊÇÁ¢·½Ìå
+                            { // if cube.å¦‚æœæ˜¯ç«‹æ–¹ä½“
                                 //Transparency transparency = CPEngine.GetCellType (chunk.GetCellID(pixelX,pixelY,z)).VTransparency;
-                                Transparency transparency = cellType.VTransparency; //»ñÈ¡ÌåËØÍ¸Ã÷¶È
-                                ColliderType colliderType = cellType.VColliderType; //»ñÈ¡ÌåËØÅö×²ÀàĞÍ
+                                Transparency transparency = cellType.VTransparency; //è·å–ä½“ç´ é€æ˜åº¦
+                                ColliderType colliderType = cellType.VColliderType; //è·å–ä½“ç´ ç¢°æ’ç±»å‹
 
                                 if (CPEngine.MutiHorizontal)
-                                {//¶àÎ¬ºá°æ¹¦ÄÜ¿ªÆôºó¶ÔÓÚÉÏÏÂ×óÓÒ4¸ö²àÃæ£¬Ó¦ÏÔÊ¾×î±ßÔµµÄÃæ
-                                    //¼ì²éÏàÁÚÌåËØÈ»ºó¾ö¶¨Õâ¸öÃæÊÇ·ñĞèÒª±»´´½¨£¨ºá°æÄ£Ê½ºöÂÔÇ°ºóÃæ£©
-                                    ////¿ÉÉè¼Æ¸ÃÃæÈôÊÇÊÓÒ°ÄÚ±ß½çÔòÌõ¼şÊ¼ÖÕÎªÕæ£¨ÈÃ¿´µ½µÄ±ß½ç·â±Õ£©£¬Ò²¿É¶ÔÒª·â±Õ±ß½ç´¦ÏàÁÚ¿éÉè¿Õ¿éÈÃÏÂ·½¶¯×÷×ÔĞĞÅĞ¶Ï´´½¨·â±ÕÃæ
+                                {//å¤šç»´æ¨ªç‰ˆåŠŸèƒ½å¼€å¯åå¯¹äºä¸Šä¸‹å·¦å³4ä¸ªä¾§é¢ï¼Œåº”æ˜¾ç¤ºæœ€è¾¹ç¼˜çš„é¢
+                                    //æ£€æŸ¥ç›¸é‚»ä½“ç´ ç„¶åå†³å®šè¿™ä¸ªé¢æ˜¯å¦éœ€è¦è¢«åˆ›å»ºï¼ˆæ¨ªç‰ˆæ¨¡å¼å¿½ç•¥å‰åé¢ï¼‰
+                                    ////å¯è®¾è®¡è¯¥é¢è‹¥æ˜¯è§†é‡å†…è¾¹ç•Œåˆ™æ¡ä»¶å§‹ç»ˆä¸ºçœŸï¼ˆè®©çœ‹åˆ°çš„è¾¹ç•Œå°é—­ï¼‰ï¼Œä¹Ÿå¯å¯¹è¦å°é—­è¾¹ç•Œå¤„ç›¸é‚»å—è®¾ç©ºå—è®©ä¸‹æ–¹åŠ¨ä½œè‡ªè¡Œåˆ¤æ–­åˆ›å»ºå°é—­é¢
                                     if (CheckAdjacent(x, y, Direction.up, transparency) == true)
                                         CreateFace(cellId, Facing.up, colliderType, x, y);
                                     if (CheckAdjacent(x, y, Direction.down, transparency) == true)
@@ -206,23 +206,23 @@ namespace CellSpace
                                 //CreateFace(cellId, Facing.left, colliderType, pixelX, pixelY);
                                 //CreateFace(cellId, Facing.forward, colliderType, pixelX, pixelY);
 
-                                //¶àÎ¬ºá°æ¹¦ÄÜ¿ªÆô£¬×ÜÊÇÏÔÊ¾Ç°Ãæ
+                                //å¤šç»´æ¨ªç‰ˆåŠŸèƒ½å¼€å¯ï¼Œæ€»æ˜¯æ˜¾ç¤ºå‰é¢
                                 if (CPEngine.MutiHorizontal) CreateFace(cellId, Facing.forward, colliderType, x, y);
 
-                                //ºá°æÄ£Ê½ÏÂ×ÜÊÇÏÔÊ¾ºóÃæ£¨Íæ¼ÒÆÁÄ»¿´µ½µÄÃæ£©
+                                //æ¨ªç‰ˆæ¨¡å¼ä¸‹æ€»æ˜¯æ˜¾ç¤ºåé¢ï¼ˆç©å®¶å±å¹•çœ‹åˆ°çš„é¢ï¼‰
                                 CreateFace(cellId, Facing.back, colliderType, x, y);
 
-                                // if no collider, create a trigger cube collider.Èç¹ûÃ»ÓĞÅö×²Ìå£¬´´½¨Ò»¸öÁ¢·½ÌåÅö×²Ìå
+                                // if no collider, create a trigger cube collider.å¦‚æœæ²¡æœ‰ç¢°æ’ä½“ï¼Œåˆ›å»ºä¸€ä¸ªç«‹æ–¹ä½“ç¢°æ’ä½“
                                 if (colliderType == ColliderType.none && CPEngine.GenerateColliders)
                                 {
-                                    //½«Á¢·½ÌåµÄ¶¥µãºÍÃæÌí¼Óµ½ËùÑ¡ÁĞ±íÖĞ(¶ÔÓÚSolid»ònocollisionÅö×²Æ÷)
+                                    //å°†ç«‹æ–¹ä½“çš„é¡¶ç‚¹å’Œé¢æ·»åŠ åˆ°æ‰€é€‰åˆ—è¡¨ä¸­(å¯¹äºSolidæˆ–nocollisionç¢°æ’å™¨)
                                     AddCubeMesh(x, y, false);
                                 }
                             }
                             else
-                            { // if not cube.Èç¹û²»ÊÇÁ¢·½Ìå
-                                if (CheckAllAdjacent(x, y) == false) //¼ì²éËùÓĞÏàÁÚÌåËØ¿éÊÇ·ñÊµÌå
-                                { // if any adjacent cellId isn'transform opaque, we render the mesh.Èç¹ûÈÎºÎÏàÁÚÌåËØ²»ÊÇ²»Í¸Ã÷µÄ£¬×Ô¶¨ÒåäÖÈ¾Íø¸ñ
+                            { // if not cube.å¦‚æœä¸æ˜¯ç«‹æ–¹ä½“
+                                if (CheckAllAdjacent(x, y) == false) //æ£€æŸ¥æ‰€æœ‰ç›¸é‚»ä½“ç´ å—æ˜¯å¦å®ä½“
+                                { // if any adjacent cellId isn'transform opaque, we render the mesh.å¦‚æœä»»ä½•ç›¸é‚»ä½“ç´ ä¸æ˜¯ä¸é€æ˜çš„ï¼Œè‡ªå®šä¹‰æ¸²æŸ“ç½‘æ ¼
                                     CreateCustomMesh(cellId, x, y, cellType.VMesh);
                                 }
                             }
@@ -241,20 +241,20 @@ namespace CellSpace
                     {
                         while (z < SideLength)
                         {
-                            //»ñÈ¡ÌåËØÊı¾İ£¨ÌåËØ¿éµÄÖÖÀà£©
+                            //è·å–ä½“ç´ æ•°æ®ï¼ˆä½“ç´ å—çš„ç§ç±»ï¼‰
                             ushort voxel = chunk.GetCellID(x, y, z); // the current cellId data
                             if (voxel != 0)
-                            { // don'transform render empty blocks.²»äÖÈ¾¿Õ¿é
-                              //»ñÈ¡ÌåËØÊı¾İ£¨ÌåËØ¿éµÄÖÖÀà£©¶ÔÓ¦µÄÌåËØ£¨ÀàĞÍ£©
+                            { // don'transform render empty blocks.ä¸æ¸²æŸ“ç©ºå—
+                              //è·å–ä½“ç´ æ•°æ®ï¼ˆä½“ç´ å—çš„ç§ç±»ï¼‰å¯¹åº”çš„ä½“ç´ ï¼ˆç±»å‹ï¼‰
                                 Cell voxelType = CPEngine.GetCellType(voxel);
-                                //ÌåËØµÄ×Ô¶¨ÒåÍø¸ñÎ´ÆôÓÃÊ±
+                                //ä½“ç´ çš„è‡ªå®šä¹‰ç½‘æ ¼æœªå¯ç”¨æ—¶
                                 if (voxelType.VCustomMesh == false)
-                                { // if cube.Èç¹ûÊÇÁ¢·½Ìå
+                                { // if cube.å¦‚æœæ˜¯ç«‹æ–¹ä½“
 
                                     //Transparency transparency = CPEngine.GetCellType (chunk.GetCellID(pixelX,pixelY,z)).VTransparency;
-                                    Transparency transparency = voxelType.VTransparency; //»ñÈ¡ÌåËØÍ¸Ã÷¶È
-                                    ColliderType colliderType = voxelType.VColliderType; //»ñÈ¡ÌåËØÅö×²ÀàĞÍ
-                                                                                         //¼ì²éÏàÁÚÌåËØÈ»ºó¾ö¶¨Õâ¸öÃæÊÇ·ñĞèÒª±»´´½¨
+                                    Transparency transparency = voxelType.VTransparency; //è·å–ä½“ç´ é€æ˜åº¦
+                                    ColliderType colliderType = voxelType.VColliderType; //è·å–ä½“ç´ ç¢°æ’ç±»å‹
+                                                                                         //æ£€æŸ¥ç›¸é‚»ä½“ç´ ç„¶åå†³å®šè¿™ä¸ªé¢æ˜¯å¦éœ€è¦è¢«åˆ›å»º
                                     if (CheckAdjacent(x, y, z, Direction.forward, transparency) == true)
                                         CreateFace(voxel, Facing.forward, colliderType, x, y, z);
 
@@ -273,17 +273,17 @@ namespace CellSpace
                                     if (CheckAdjacent(x, y, z, Direction.left, transparency) == true)
                                         CreateFace(voxel, Facing.left, colliderType, x, y, z);
 
-                                    // if no collider, create a trigger cube collider.Èç¹ûÃ»ÓĞÅö×²Ìå£¬´´½¨Ò»¸öÁ¢·½ÌåÅö×²Ìå
+                                    // if no collider, create a trigger cube collider.å¦‚æœæ²¡æœ‰ç¢°æ’ä½“ï¼Œåˆ›å»ºä¸€ä¸ªç«‹æ–¹ä½“ç¢°æ’ä½“
                                     if (colliderType == ColliderType.none && CPEngine.GenerateColliders)
                                     {
-                                        //½«Á¢·½ÌåµÄ¶¥µãºÍÃæÌí¼Óµ½ËùÑ¡ÁĞ±íÖĞ(¶ÔÓÚSolid»ònocollisionÅö×²Æ÷)
+                                        //å°†ç«‹æ–¹ä½“çš„é¡¶ç‚¹å’Œé¢æ·»åŠ åˆ°æ‰€é€‰åˆ—è¡¨ä¸­(å¯¹äºSolidæˆ–nocollisionç¢°æ’å™¨)
                                         AddCubeMesh(x, y, z, false);
                                     }
                                 }
                                 else
-                                { // if not cube.Èç¹û²»ÊÇÁ¢·½Ìå
-                                    if (CheckAllAdjacent(x, y, z) == false) //¼ì²éËùÓĞÏàÁÚÌåËØ¿éÊÇ·ñÊµÌå
-                                    { // if any adjacent cellId isn'transform opaque, we render the mesh.Èç¹ûÈÎºÎÏàÁÚÌåËØ²»ÊÇ²»Í¸Ã÷µÄ£¬×Ô¶¨ÒåäÖÈ¾Íø¸ñ
+                                { // if not cube.å¦‚æœä¸æ˜¯ç«‹æ–¹ä½“
+                                    if (CheckAllAdjacent(x, y, z) == false) //æ£€æŸ¥æ‰€æœ‰ç›¸é‚»ä½“ç´ å—æ˜¯å¦å®ä½“
+                                    { // if any adjacent cellId isn'transform opaque, we render the mesh.å¦‚æœä»»ä½•ç›¸é‚»ä½“ç´ ä¸æ˜¯ä¸é€æ˜çš„ï¼Œè‡ªå®šä¹‰æ¸²æŸ“ç½‘æ ¼
                                         CreateCustomMesh(voxel, x, y, z, voxelType.VMesh);
                                     }
                                 }
@@ -303,14 +303,14 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ¼ì²éÏàÁÚÌåËØÈ»ºó¾ö¶¨Õâ¸öÃæÊÇ·ñĞèÒª±»´´½¨
+        /// æ£€æŸ¥ç›¸é‚»ä½“ç´ ç„¶åå†³å®šè¿™ä¸ªé¢æ˜¯å¦éœ€è¦è¢«åˆ›å»º
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="z"></param>
         /// <param name="direction"></param>
         /// <param name="transparency"></param>
-        /// <returns>Èç¹ûÒ»¸öÃæÓ¦¸Ã±»´´½¨Ê±·µ»Øtrue</returns>
+        /// <returns>å¦‚æœä¸€ä¸ªé¢åº”è¯¥è¢«åˆ›å»ºæ—¶è¿”å›true</returns>
         private bool CheckAdjacent(int x, int y, int z, Direction direction, Transparency transparency)
         { // returns true if a face should be spawned
             if (CPEngine.HorizontalMode)
@@ -322,11 +322,11 @@ namespace CellSpace
                 CPIndex index = chunk.GetAdjacentIndex(x, y, z, direction);
                 ushort adjacentVoxel = chunk.GetCellID(index.x, index.y, index.z);
                 if (adjacentVoxel == ushort.MaxValue)
-                { // if the neighbor chunk is missing.Èç¹ûÏàÁÚÍÅ¿éÊÇÈ±Ê§×´Ì¬£¨CellID·µ»ØÁË65535£©
-                  //Èç¹ûÉèÖÃĞèÒªÏÔÊ¾±ß½çÃæ»òÕßÕâ¸öÃæµÄ³¯ÏòÊÇÏòÉÏµÄ
+                { // if the neighbor chunk is missing.å¦‚æœç›¸é‚»å›¢å—æ˜¯ç¼ºå¤±çŠ¶æ€ï¼ˆCellIDè¿”å›äº†65535ï¼‰
+                  //å¦‚æœè®¾ç½®éœ€è¦æ˜¾ç¤ºè¾¹ç•Œé¢æˆ–è€…è¿™ä¸ªé¢çš„æœå‘æ˜¯å‘ä¸Šçš„
                     if (CPEngine.ShowBorderFaces || direction == Direction.up)
                     {
-                        //ÃæÊÇĞèÒª´´½¨µÄ£¬·µ»ØÕæ
+                        //é¢æ˜¯éœ€è¦åˆ›å»ºçš„ï¼Œè¿”å›çœŸ
                         //Debug.Log("0");
                         return true;
                     }
@@ -336,59 +336,59 @@ namespace CellSpace
                         return false;
                     }
                 }
-                //Èç¹ûÁÚÍÅ´æÔÚ
-                Transparency result = CPEngine.GetCellType(adjacentVoxel).VTransparency; // get the transparency of the adjacent cellId.»ñÈ¡ÏàÁÚÌåËØµÄÍ¸Ã÷¶È
+                //å¦‚æœé‚»å›¢å­˜åœ¨
+                Transparency result = CPEngine.GetCellType(adjacentVoxel).VTransparency; // get the transparency of the adjacent cellId.è·å–ç›¸é‚»ä½“ç´ çš„é€æ˜åº¦
                 // parse the result (taking into account the transparency of the adjacent block as well as the one doing this check)
-                //½âÎö½á¹û(¿¼ÂÇÏàÁÚÌåËØ¿é¼°Ö´ĞĞ´Ë¼ì²éµÄÌåËØ¿éµÄÍ¸Ã÷¶È)
+                //è§£æç»“æœ(è€ƒè™‘ç›¸é‚»ä½“ç´ å—åŠæ‰§è¡Œæ­¤æ£€æŸ¥çš„ä½“ç´ å—çš„é€æ˜åº¦)
                 if (transparency == Transparency.transparent)
-                {//Ö´ĞĞ´Ë¼ì²éµÄÌåËØ¿éÍêÈ«Í¸Ã÷
+                {//æ‰§è¡Œæ­¤æ£€æŸ¥çš„ä½“ç´ å—å®Œå…¨é€æ˜
                     if (result == Transparency.transparent)
-                    {//Èç¹ûÁÚ¿éÊÇÍêÈ«Í¸Ã÷
-                        // don'transform draw a transparent block next to another transparent block.½ûÖ¹ÔÚÒ»¸öÍêÈ«Í¸Ã÷ÌåËØ¿éÅÔ±ß»æÖÆÁíÒ»¸öÍ¸Ã÷¿é
+                    {//å¦‚æœé‚»å—æ˜¯å®Œå…¨é€æ˜
+                        // don'transform draw a transparent block next to another transparent block.ç¦æ­¢åœ¨ä¸€ä¸ªå®Œå…¨é€æ˜ä½“ç´ å—æ—è¾¹ç»˜åˆ¶å¦ä¸€ä¸ªé€æ˜å—
                         //Debug.Log("2");
                         return false;
                     }
                     else
-                    {//Èç¹ûÁÚ¿éÊÇ·ÇÍêÈ«Í¸Ã÷£¨°ëÍ¸Ã÷»ò¹ÌÌå£©
+                    {//å¦‚æœé‚»å—æ˜¯éå®Œå…¨é€æ˜ï¼ˆåŠé€æ˜æˆ–å›ºä½“ï¼‰
                         //Debug.Log("3");
-                        return true; // draw a transparent block next to a solid or semi-transparent.ÔÊĞíÔÚÊµÌå»ò°ëÍ¸Ã÷ÅÔ±ß»­Ò»¸öÍ¸Ã÷µÄ¿é
+                        return true; // draw a transparent block next to a solid or semi-transparent.å…è®¸åœ¨å®ä½“æˆ–åŠé€æ˜æ—è¾¹ç”»ä¸€ä¸ªé€æ˜çš„å—
                     }
 
                 }
                 else
-                {//Ö´ĞĞ´Ë¼ì²éµÄÌåËØ¿é·ÇÍêÈ«Í¸Ã÷£¨°ëÍ¸Ã÷»ò¹ÌÌå£©
+                {//æ‰§è¡Œæ­¤æ£€æŸ¥çš„ä½“ç´ å—éå®Œå…¨é€æ˜ï¼ˆåŠé€æ˜æˆ–å›ºä½“ï¼‰
                     if (result == Transparency.solid)
-                    {//Èç¹ûÁÚ¿éÊÇ¹ÌÌå
+                    {//å¦‚æœé‚»å—æ˜¯å›ºä½“
                         //Debug.Log("4");
-                        return false; // don'transform draw a solid block or a semi-transparent block next to a solid block.½ûÖ¹ÔÚÊµÌåÌåËØ¿éÅÔ±ß»­ÊµÌå»ò°ëÍ¸Ã÷ÌåËØ¿é
+                        return false; // don'transform draw a solid block or a semi-transparent block next to a solid block.ç¦æ­¢åœ¨å®ä½“ä½“ç´ å—æ—è¾¹ç”»å®ä½“æˆ–åŠé€æ˜ä½“ç´ å—
                     }
                     else
-                    {//Èç¹ûÁÚ¿é·Ç¹ÌÌå£¨Í¸Ã÷»ò°ëÍ¸Ã÷£©£¬ÔÊĞí»æÖÆÖ´ĞĞ´Ë¼ì²éµÄÌåËØ¿éµÄ¼ì²éÃæ
+                    {//å¦‚æœé‚»å—éå›ºä½“ï¼ˆé€æ˜æˆ–åŠé€æ˜ï¼‰ï¼Œå…è®¸ç»˜åˆ¶æ‰§è¡Œæ­¤æ£€æŸ¥çš„ä½“ç´ å—çš„æ£€æŸ¥é¢
                         //Debug.Log("5");
-                        return true; // draw a solid block or a semi-transparent block next to both transparent and semi-transparent.ÔÊĞíÔÚÍ¸Ã÷ºÍ°ëÍ¸Ã÷ÌåËØ¿éÅÔ»æÖÆÒ»¸öÊµĞÄ»ò°ëÍ¸Ã÷ÌåËØ¿é
+                        return true; // draw a solid block or a semi-transparent block next to both transparent and semi-transparent.å…è®¸åœ¨é€æ˜å’ŒåŠé€æ˜ä½“ç´ å—æ—ç»˜åˆ¶ä¸€ä¸ªå®å¿ƒæˆ–åŠé€æ˜ä½“ç´ å—
                     }
                 }
             }
         }
         /// <summary>
-        /// ¼ì²éÏàÁÚÌåËØÈ»ºó¾ö¶¨Õâ¸öÃæÊÇ·ñĞèÒª±»´´½¨
+        /// æ£€æŸ¥ç›¸é‚»ä½“ç´ ç„¶åå†³å®šè¿™ä¸ªé¢æ˜¯å¦éœ€è¦è¢«åˆ›å»º
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="direction"></param>
         /// <param name="transparency"></param>
-        /// <returns>Èç¹ûÒ»¸öÃæÓ¦¸Ã±»´´½¨Ê±·µ»Øtrue</returns>
+        /// <returns>å¦‚æœä¸€ä¸ªé¢åº”è¯¥è¢«åˆ›å»ºæ—¶è¿”å›true</returns>
         private bool CheckAdjacent(int x, int y, Direction direction, Transparency transparency)
         { // returns true if a face should be spawned
             CPIndex index = chunk.GetAdjacentIndex(x, y, direction);
-            //adjacentVoxel == 1±íÊ¾ÁÚ¿éÀàĞÍÊÇÍÁ£¬2ÊÇ²İ£¬ËüÃÇ¶¼ÊÇ¹ÌÌåµÄ,0ÊÇ°ëÍ¸Ã÷µÄÄ¬ÈÏÌåËØ£¬Ô¤ÖÆÌåÖĞÔİÃ»ÓĞÍêÈ«Í¸Ã÷µÄ£¨³ı·ÇÊÖ¶¯ĞŞ¸Ä»òÍÅ¿é²»´æÔÚÊ±ÊÇÕâÖÖ×´Ì¬£©
+            //adjacentVoxel == 1è¡¨ç¤ºé‚»å—ç±»å‹æ˜¯åœŸï¼Œ2æ˜¯è‰ï¼Œå®ƒä»¬éƒ½æ˜¯å›ºä½“çš„,0æ˜¯åŠé€æ˜çš„é»˜è®¤ä½“ç´ ï¼Œé¢„åˆ¶ä½“ä¸­æš‚æ²¡æœ‰å®Œå…¨é€æ˜çš„ï¼ˆé™¤éæ‰‹åŠ¨ä¿®æ”¹æˆ–å›¢å—ä¸å­˜åœ¨æ—¶æ˜¯è¿™ç§çŠ¶æ€ï¼‰
             ushort adjacentVoxel = chunk.GetCellID(index.x, index.y);
             if (adjacentVoxel == ushort.MaxValue)
-            { // if the neighbor chunk is missing.Èç¹ûÏàÁÚÍÅ¿éÊÇÈ±Ê§×´Ì¬£¨CellID·µ»ØÁË65535£©
-              //Èç¹ûÉèÖÃĞèÒªÏÔÊ¾±ß½çÃæ»òÕßÕâ¸öÃæµÄ³¯ÏòÊÇÏòÉÏµÄ
+            { // if the neighbor chunk is missing.å¦‚æœç›¸é‚»å›¢å—æ˜¯ç¼ºå¤±çŠ¶æ€ï¼ˆCellIDè¿”å›äº†65535ï¼‰
+              //å¦‚æœè®¾ç½®éœ€è¦æ˜¾ç¤ºè¾¹ç•Œé¢æˆ–è€…è¿™ä¸ªé¢çš„æœå‘æ˜¯å‘ä¸Šçš„
                 if (CPEngine.ShowBorderFaces || direction == Direction.up)
                 {
-                    //ÃæÊÇĞèÒª´´½¨µÄ£¬·µ»ØÕæ
+                    //é¢æ˜¯éœ€è¦åˆ›å»ºçš„ï¼Œè¿”å›çœŸ
                     //Debug.Log("0");
                     return true;
                 }
@@ -398,46 +398,46 @@ namespace CellSpace
                     return false;
                 }
             }
-            //Èç¹ûÁÚÍÅ´æÔÚ
-            Transparency result = CPEngine.GetCellType(adjacentVoxel).VTransparency; // get the transparency of the adjacent cellId.»ñÈ¡ÏàÁÚÌåËØµÄÍ¸Ã÷¶È
+            //å¦‚æœé‚»å›¢å­˜åœ¨
+            Transparency result = CPEngine.GetCellType(adjacentVoxel).VTransparency; // get the transparency of the adjacent cellId.è·å–ç›¸é‚»ä½“ç´ çš„é€æ˜åº¦
             // parse the result (taking into account the transparency of the adjacent block as well as the one doing this check)
-            //½âÎö½á¹û(¿¼ÂÇÏàÁÚÌåËØ¿é¼°Ö´ĞĞ´Ë¼ì²éµÄÌåËØ¿éµÄÍ¸Ã÷¶È)
+            //è§£æç»“æœ(è€ƒè™‘ç›¸é‚»ä½“ç´ å—åŠæ‰§è¡Œæ­¤æ£€æŸ¥çš„ä½“ç´ å—çš„é€æ˜åº¦)
             if (transparency == Transparency.transparent)
-            {//Ö´ĞĞ´Ë¼ì²éµÄÌåËØ¿éÍêÈ«Í¸Ã÷
+            {//æ‰§è¡Œæ­¤æ£€æŸ¥çš„ä½“ç´ å—å®Œå…¨é€æ˜
                 if (result == Transparency.transparent)
-                {//Èç¹ûÁÚ¿éÊÇÍêÈ«Í¸Ã÷
+                {//å¦‚æœé‚»å—æ˜¯å®Œå…¨é€æ˜
                     //Debug.Log("2");
-                    return false; // don'transform draw a transparent block next to another transparent block.½ûÖ¹ÔÚÒ»¸öÍêÈ«Í¸Ã÷ÌåËØ¿éÅÔ±ß»æÖÆÁíÒ»¸öÍ¸Ã÷¿é}
+                    return false; // don'transform draw a transparent block next to another transparent block.ç¦æ­¢åœ¨ä¸€ä¸ªå®Œå…¨é€æ˜ä½“ç´ å—æ—è¾¹ç»˜åˆ¶å¦ä¸€ä¸ªé€æ˜å—}
                 }
                 else
-                {//Èç¹ûÁÚ¿éÊÇ·ÇÍêÈ«Í¸Ã÷£¨°ëÍ¸Ã÷»ò¹ÌÌå£©
+                {//å¦‚æœé‚»å—æ˜¯éå®Œå…¨é€æ˜ï¼ˆåŠé€æ˜æˆ–å›ºä½“ï¼‰
                     //Debug.Log("3");
-                    return true; // draw a transparent block next to a solid or semi-transparent.ÔÊĞíÔÚÊµÌå»ò°ëÍ¸Ã÷ÅÔ±ß»­Ò»¸öÍ¸Ã÷µÄ¿é}
+                    return true; // draw a transparent block next to a solid or semi-transparent.å…è®¸åœ¨å®ä½“æˆ–åŠé€æ˜æ—è¾¹ç”»ä¸€ä¸ªé€æ˜çš„å—}
                 }
             }
             else
-            {//Ö´ĞĞ´Ë¼ì²éµÄÌåËØ¿é·ÇÍêÈ«Í¸Ã÷£¨°ëÍ¸Ã÷»ò¹ÌÌå£©
+            {//æ‰§è¡Œæ­¤æ£€æŸ¥çš„ä½“ç´ å—éå®Œå…¨é€æ˜ï¼ˆåŠé€æ˜æˆ–å›ºä½“ï¼‰
                 if (result == Transparency.solid)
-                {//Èç¹ûÁÚ¿éÊÇ¹ÌÌå
+                {//å¦‚æœé‚»å—æ˜¯å›ºä½“
                     //Debug.Log("4"+ direction.ToString() + adjacentVoxel.ToString()+ "Index:" + index.ToString());
-                    //´Ë´¦¿ÉÒÔÉè¼Æ¸ÃÃæÈôÊÇÊÓÒ°ÄÚ±ß½çÔò·µ»ØÕæ£¬ÈÃ¿´µ½µÄ±ß½ç·â±Õ
-                    return false; // don'transform draw a solid block or a semi-transparent block next to a solid block.½ûÖ¹ÔÚÊµÌåÌåËØ¿éÅÔ±ß»­ÊµÌå»ò°ëÍ¸Ã÷ÌåËØ¿é}
+                    //æ­¤å¤„å¯ä»¥è®¾è®¡è¯¥é¢è‹¥æ˜¯è§†é‡å†…è¾¹ç•Œåˆ™è¿”å›çœŸï¼Œè®©çœ‹åˆ°çš„è¾¹ç•Œå°é—­
+                    return false; // don'transform draw a solid block or a semi-transparent block next to a solid block.ç¦æ­¢åœ¨å®ä½“ä½“ç´ å—æ—è¾¹ç”»å®ä½“æˆ–åŠé€æ˜ä½“ç´ å—}
                 }
                 else
-                {//Èç¹ûÁÚ¿é·Ç¹ÌÌå£¨Í¸Ã÷»ò°ëÍ¸Ã÷£©£¬ÔÊĞí»æÖÆÖ´ĞĞ´Ë¼ì²éµÄÌåËØ¿éµÄ¼ì²éÃæ
+                {//å¦‚æœé‚»å—éå›ºä½“ï¼ˆé€æ˜æˆ–åŠé€æ˜ï¼‰ï¼Œå…è®¸ç»˜åˆ¶æ‰§è¡Œæ­¤æ£€æŸ¥çš„ä½“ç´ å—çš„æ£€æŸ¥é¢
                     //Debug.Log("5" + direction.ToString() + adjacentVoxel.ToString() +"Index:"+ index.ToString());
-                    return true; // draw a solid block or a semi-transparent block next to both transparent and semi-transparent.ÔÊĞíÔÚÍ¸Ã÷ºÍ°ëÍ¸Ã÷ÌåËØ¿éÅÔ»æÖÆÒ»¸öÊµĞÄ»ò°ëÍ¸Ã÷ÌåËØ¿é
+                    return true; // draw a solid block or a semi-transparent block next to both transparent and semi-transparent.å…è®¸åœ¨é€æ˜å’ŒåŠé€æ˜ä½“ç´ å—æ—ç»˜åˆ¶ä¸€ä¸ªå®å¿ƒæˆ–åŠé€æ˜ä½“ç´ å—
                 }
             }
         }
 
         /// <summary>
-        /// ¼ì²éËùÓĞÏàÁÚÌåËØ¿éÊÇ·ñÊµÌå
+        /// æ£€æŸ¥æ‰€æœ‰ç›¸é‚»ä½“ç´ å—æ˜¯å¦å®ä½“
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="z"></param>
-        /// <returns>Èç¹ûËùÓĞÏàÁÚÌåËØ¿é¶¼ÊÇÊµÌå£¬Ôò·µ»Øtrue</returns>
+        /// <returns>å¦‚æœæ‰€æœ‰ç›¸é‚»ä½“ç´ å—éƒ½æ˜¯å®ä½“ï¼Œåˆ™è¿”å›true</returns>
         public bool CheckAllAdjacent(int x, int y, int z)
         { // returns true if all adjacent voxels are solid
             if (CPEngine.HorizontalMode)
@@ -457,11 +457,11 @@ namespace CellSpace
             }
         }
         /// <summary>
-        /// ¼ì²éËùÓĞÏàÁÚÌåËØ¿éÊÇ·ñÊµÌå
+        /// æ£€æŸ¥æ‰€æœ‰ç›¸é‚»ä½“ç´ å—æ˜¯å¦å®ä½“
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        /// <returns>Èç¹ûËùÓĞÏàÁÚÌåËØ¿é¶¼ÊÇÊµÌå£¬Ôò·µ»Øtrue</returns>
+        /// <returns>å¦‚æœæ‰€æœ‰ç›¸é‚»ä½“ç´ å—éƒ½æ˜¯å®ä½“ï¼Œåˆ™è¿”å›true</returns>
         public bool CheckAllAdjacent(int x, int y)
         { // returns true if all adjacent voxels are solid
             for (int direction = 0; direction < 4; direction++)
@@ -477,30 +477,30 @@ namespace CellSpace
         // ==== mesh generation =======================================================================================
 
         /// <summary>
-        /// ´´½¨äÖÈ¾Æ÷ºÍÅö×²Æ÷µÄÍø¸ñËùĞè¶¥µã
+        /// åˆ›å»ºæ¸²æŸ“å™¨å’Œç¢°æ’å™¨çš„ç½‘æ ¼æ‰€éœ€é¡¶ç‚¹
         /// </summary>
         /// <param name="facing"></param>
         /// <param name="colliderType"></param>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        /// <param name="z">²»ÌîÔòÄ¬ÈÏÎª0</param>
+        /// <param name="z">ä¸å¡«åˆ™é»˜è®¤ä¸º0</param>
         private void CreateFaceMesh(Facing facing, ColliderType colliderType, int x, int y, int z = 0)
         {
             // ==== Vertices ====
             // add the positions of the vertices depending on the facing of the face
-            //¡ıÍùÕıÖµ·½Ïò½øĞĞÆ«ÒÆ»Ø²åÈëµã£¨·ñÔòÄ¬ÈÏ²åÈëÔÚÔ­µã¸ºÖµ·½ÏòÆ«ÒÆ1¸öÍø¸ñ°ë¾¶µÄÎ»ÖÃ£©
+            //â†“å¾€æ­£å€¼æ–¹å‘è¿›è¡Œåç§»å›æ’å…¥ç‚¹ï¼ˆå¦åˆ™é»˜è®¤æ’å…¥åœ¨åŸç‚¹è´Ÿå€¼æ–¹å‘åç§»1ä¸ªç½‘æ ¼åŠå¾„çš„ä½ç½®ï¼‰
             float xV = x + meshOffset; float yV = y + meshOffset; float zV = z + meshOffset;
             if (facing == Facing.forward)
             {
-                //´´½¨Íø¸ñäÖÈ¾Æ÷²ÄÖÊmesh.Vertices
-                //µ±Á½¸öÃæ·Ç³£½Ó½üÊ±£¬ÔÚäÖÈ¾Ê±¿ÉÄÜ»á³öÏÖZ-fighting¼´Á½¸öÃæÒòÎªÉî¶ÈÖµ·Ç³£½Ó½ü¶øÔÚÆÁÄ»ÉÏÉÁË¸£¬ÕâÀïÍ¨¹ıÎ¢Ğ¡µÄ¶îÍâÆ«ÒÆÀ´·ÀÖ¹
+                //åˆ›å»ºç½‘æ ¼æ¸²æŸ“å™¨æè´¨mesh.Vertices
+                //å½“ä¸¤ä¸ªé¢éå¸¸æ¥è¿‘æ—¶ï¼Œåœ¨æ¸²æŸ“æ—¶å¯èƒ½ä¼šå‡ºç°Z-fightingå³ä¸¤ä¸ªé¢å› ä¸ºæ·±åº¦å€¼éå¸¸æ¥è¿‘è€Œåœ¨å±å¹•ä¸Šé—ªçƒï¼Œè¿™é‡Œé€šè¿‡å¾®å°çš„é¢å¤–åç§»æ¥é˜²æ­¢
                 Vertices.Add(new Vector3(xV + antiFlickerRadius, yV + antiFlickerRadius, zV + meshRadius));
                 Vertices.Add(new Vector3(xV - antiFlickerRadius, yV + antiFlickerRadius, zV + meshRadius));
                 Vertices.Add(new Vector3(xV - antiFlickerRadius, yV - antiFlickerRadius, zV + meshRadius));
                 Vertices.Add(new Vector3(xV + antiFlickerRadius, yV - antiFlickerRadius, zV + meshRadius));
                 if (colliderType == ColliderType.cube && CPEngine.GenerateColliders)
                 {
-                    //´´½¨Íø¸ñÅö×²Æ÷²ÄÖÊmesh.Vertices
+                    //åˆ›å»ºç½‘æ ¼ç¢°æ’å™¨æè´¨mesh.Vertices
                     SolidColliderVertices.Add(new Vector3(xV + meshRadius, yV + meshRadius, zV + meshRadius));
                     SolidColliderVertices.Add(new Vector3(xV - meshRadius, yV + meshRadius, zV + meshRadius));
                     SolidColliderVertices.Add(new Vector3(xV - meshRadius, yV - meshRadius, zV + meshRadius));
@@ -565,15 +565,15 @@ namespace CellSpace
             }
             else if (facing == Facing.left)
             {
-                //´´½¨Íø¸ñäÖÈ¾Æ÷²ÄÖÊmesh.Vertices
-                //µ±Á½¸öÃæ·Ç³£½Ó½üÊ±£¬ÔÚäÖÈ¾Ê±¿ÉÄÜ»á³öÏÖZ-fighting¼´Á½¸öÃæÒòÎªÉî¶ÈÖµ·Ç³£½Ó½ü¶øÔÚÆÁÄ»ÉÏÉÁË¸£¬ÕâÀïÍ¨¹ıÎ¢Ğ¡µÄ¶îÍâÆ«ÒÆÀ´·ÀÖ¹
+                //åˆ›å»ºç½‘æ ¼æ¸²æŸ“å™¨æè´¨mesh.Vertices
+                //å½“ä¸¤ä¸ªé¢éå¸¸æ¥è¿‘æ—¶ï¼Œåœ¨æ¸²æŸ“æ—¶å¯èƒ½ä¼šå‡ºç°Z-fightingå³ä¸¤ä¸ªé¢å› ä¸ºæ·±åº¦å€¼éå¸¸æ¥è¿‘è€Œåœ¨å±å¹•ä¸Šé—ªçƒï¼Œè¿™é‡Œé€šè¿‡å¾®å°çš„é¢å¤–åç§»æ¥é˜²æ­¢
                 Vertices.Add(new Vector3(xV - meshRadius, yV + antiFlickerRadius, zV + antiFlickerRadius));
                 Vertices.Add(new Vector3(xV - meshRadius, yV + antiFlickerRadius, zV - antiFlickerRadius));
                 Vertices.Add(new Vector3(xV - meshRadius, yV - antiFlickerRadius, zV - antiFlickerRadius));
                 Vertices.Add(new Vector3(xV - meshRadius, yV - antiFlickerRadius, zV + antiFlickerRadius));
                 if (colliderType == ColliderType.cube && CPEngine.GenerateColliders)
                 {
-                    //´´½¨Íø¸ñÅö×²Æ÷²ÄÖÊmesh.Vertices
+                    //åˆ›å»ºç½‘æ ¼ç¢°æ’å™¨æè´¨mesh.Vertices
                     SolidColliderVertices.Add(new Vector3(xV - meshRadius, yV + meshRadius, zV + meshRadius));
                     SolidColliderVertices.Add(new Vector3(xV - meshRadius, yV + meshRadius, zV - meshRadius));
                     SolidColliderVertices.Add(new Vector3(xV - meshRadius, yV - meshRadius, zV - meshRadius));
@@ -597,17 +597,17 @@ namespace CellSpace
                 // ==== UVs =====
                 ushort id = CPEngine.GetSubMeshIndex(cellId);
                 float tUnitX = 1f / CPEngine.TextureUnitX[id]; float tUnitY = 1f / CPEngine.TextureUnitY[id];
-                Vector2 tOffset = CPEngine.GetTextureOffset(cellId, facing); //»ñÈ¡´ËÌåËØÀàĞÍµÄÎÆÀíÆ«ÒÆµã
+                Vector2 tOffset = CPEngine.GetTextureOffset(cellId, facing); //è·å–æ­¤ä½“ç´ ç±»å‹çš„çº¹ç†åç§»ç‚¹
                 float padX = tUnitX * CPEngine.TexturePadX; float padY = tUnitY * CPEngine.TexturePadY;
-                //ÓÃ´óÁ¿¶şÎ¬µã¸ø´óÎÆÀíÍ¼·ÖÇø²¢Ìí¼Óµ½UVÊı×é
-                UVs.Add(new Vector2(tUnitX * tOffset.x + padX, tUnitY * tOffset.y + tUnitY - padY)); //×óÉÏ£¨Ô­µã£©
-                UVs.Add(new Vector2(tUnitX * tOffset.x + tUnitX - padX, tUnitY * tOffset.y + tUnitY - padY)); //ÓÒÉÏ
-                UVs.Add(new Vector2(tUnitX * tOffset.x + tUnitX - padX, tUnitY * tOffset.y + padY)); //ÓÒÏÂ
-                UVs.Add(new Vector2(tUnitX * tOffset.x + padX, tUnitY * tOffset.y + padY)); //×óÏÂ
-                //ËÄ¸ö¶şÎ¬µã»®·ÖÁË1¸ñÎÆÀíÇøÓò£¨Ìùµ½ÏÂ·½µÄÒ»¸öÃæ£©
+                //ç”¨å¤§é‡äºŒç»´ç‚¹ç»™å¤§çº¹ç†å›¾åˆ†åŒºå¹¶æ·»åŠ åˆ°UVæ•°ç»„
+                UVs.Add(new Vector2(tUnitX * tOffset.x + padX, tUnitY * tOffset.y + tUnitY - padY)); //å·¦ä¸Šï¼ˆåŸç‚¹ï¼‰
+                UVs.Add(new Vector2(tUnitX * tOffset.x + tUnitX - padX, tUnitY * tOffset.y + tUnitY - padY)); //å³ä¸Š
+                UVs.Add(new Vector2(tUnitX * tOffset.x + tUnitX - padX, tUnitY * tOffset.y + padY)); //å³ä¸‹
+                UVs.Add(new Vector2(tUnitX * tOffset.x + padX, tUnitY * tOffset.y + padY)); //å·¦ä¸‹
+                //å››ä¸ªäºŒç»´ç‚¹åˆ’åˆ†äº†1æ ¼çº¹ç†åŒºåŸŸï¼ˆè´´åˆ°ä¸‹æ–¹çš„ä¸€ä¸ªé¢ï¼‰
 
                 // ==== Faces ====
-                //Ìí¼ÓÃæ£¨2¸öÈı½ÇĞÎ£¬0-3ÊÇÃæµÄËÄ¸ö¶¥µãĞòºÅ£¬¶ÔÓ¦Ò»¿ªÊ¼Ìí¼ÓµÄ¶¥µãÊı×éµÄË÷ÒıÖµ£©
+                //æ·»åŠ é¢ï¼ˆ2ä¸ªä¸‰è§’å½¢ï¼Œ0-3æ˜¯é¢çš„å››ä¸ªé¡¶ç‚¹åºå·ï¼Œå¯¹åº”ä¸€å¼€å§‹æ·»åŠ çš„é¡¶ç‚¹æ•°ç»„çš„ç´¢å¼•å€¼ï¼‰
                 FacesList.Add(FaceCount + 0);
                 FacesList.Add(FaceCount + 1);
                 FacesList.Add(FaceCount + 3);
@@ -616,7 +616,7 @@ namespace CellSpace
                 FacesList.Add(FaceCount + 3);
                 if (colliderType == ColliderType.cube && CPEngine.GenerateColliders)
                 {
-                    //Ìí¼ÓÅö×²Ãæ
+                    //æ·»åŠ ç¢°æ’é¢
                     SolidColliderFaces.Add(SolidFaceCount + 0);
                     SolidColliderFaces.Add(SolidFaceCount + 1);
                     SolidColliderFaces.Add(SolidFaceCount + 3);
@@ -624,16 +624,16 @@ namespace CellSpace
                     SolidColliderFaces.Add(SolidFaceCount + 2);
                     SolidColliderFaces.Add(SolidFaceCount + 3);
                 }
-                //Ìí¼ÓÃæµÄ¼ÆÊı
-                FaceCount += 4; // we're adding 4 because there are 4 vertices in each face.ÎÒÃÇÉè¼ÆÁËÃ¿ËÄ¸ö¶¥µãĞÎ³ÉÒ»¸öÃæ£¬ËùÒÔÃ¿´Î¼ÆÊıÔö4
+                //æ·»åŠ é¢çš„è®¡æ•°
+                FaceCount += 4; // we're adding 4 because there are 4 vertices in each face.æˆ‘ä»¬è®¾è®¡äº†æ¯å››ä¸ªé¡¶ç‚¹å½¢æˆä¸€ä¸ªé¢ï¼Œæ‰€ä»¥æ¯æ¬¡è®¡æ•°å¢4
                 if (colliderType == ColliderType.cube && CPEngine.GenerateColliders)
                 {
                     SolidFaceCount += 4;
                 }
-                // Check the amount of vertices so far and create a new mesh if necessary.¼ì²é¶¥µãÊıÁ¿ÊÇ·ñÂú×ã´´½¨1¸öĞÂÍø¸ñ
-                //Ğè×¢Òâ¼õĞ¡meshµÄsubMeshCountÖµ»áµ÷ÕûMeshË÷Òı»º³åÇøµÄ´óĞ¡£¬ĞÂµÄË÷Òı»º³åÇø´óĞ¡½«ÉèÖÃÎªµÚÒ»¸ö±»ÒÆ³ı×ÓÍø¸ñµÄSubMeshDescriptor.indexStart
-                //Ä¬ÈÏÇé¿öÏÂ£¬MeshµÄË÷Òı»º³åÇøÎª16Î»£¬Ö§³Ö×î¶à65535¸ö¶¥µã£¬ÈôĞèÒªÖ§³Ö¸ü¶à¶¥µã£¬¿ÉÒÔÉèÖÃÎª32Î»£¬µ«Ğè×¢Òâ²¢·ÇËùÓĞÆ½Ì¨¶¼Ö§³Ö32Î»Ë÷Òı
-                //ÔÚĞŞ¸ÄMeshµÄ×ÓÍø¸ñÊıÁ¿»òË÷Òı¸ñÊ½Ê±£¬Ó¦³ä·Ö¿¼ÂÇÆä¶ÔĞÔÄÜºÍ¼æÈİĞÔµÄÓ°Ïì
+                // Check the amount of vertices so far and create a new mesh if necessary.æ£€æŸ¥é¡¶ç‚¹æ•°é‡æ˜¯å¦æ»¡è¶³åˆ›å»º1ä¸ªæ–°ç½‘æ ¼
+                //éœ€æ³¨æ„å‡å°meshçš„subMeshCountå€¼ä¼šè°ƒæ•´Meshç´¢å¼•ç¼“å†²åŒºçš„å¤§å°ï¼Œæ–°çš„ç´¢å¼•ç¼“å†²åŒºå¤§å°å°†è®¾ç½®ä¸ºç¬¬ä¸€ä¸ªè¢«ç§»é™¤å­ç½‘æ ¼çš„SubMeshDescriptor.indexStart
+                //é»˜è®¤æƒ…å†µä¸‹ï¼ŒMeshçš„ç´¢å¼•ç¼“å†²åŒºä¸º16ä½ï¼Œæ”¯æŒæœ€å¤š65535ä¸ªé¡¶ç‚¹ï¼Œè‹¥éœ€è¦æ”¯æŒæ›´å¤šé¡¶ç‚¹ï¼Œå¯ä»¥è®¾ç½®ä¸º32ä½ï¼Œä½†éœ€æ³¨æ„å¹¶éæ‰€æœ‰å¹³å°éƒ½æ”¯æŒ32ä½ç´¢å¼•
+                //åœ¨ä¿®æ”¹Meshçš„å­ç½‘æ ¼æ•°é‡æˆ–ç´¢å¼•æ ¼å¼æ—¶ï¼Œåº”å……åˆ†è€ƒè™‘å…¶å¯¹æ€§èƒ½å’Œå…¼å®¹æ€§çš„å½±å“
                 if (Vertices.Count > 65530)
                 {
                     CreateNewMeshObject();
@@ -650,17 +650,17 @@ namespace CellSpace
             // ==== UVs =====
             ushort id = CPEngine.GetSubMeshIndex(cellId);
             float tUnitX = 1f / CPEngine.TextureUnitX[id]; float tUnitY = 1f / CPEngine.TextureUnitY[id];
-            Vector2 tOffset = CPEngine.GetTextureOffset(cellId, facing); //»ñÈ¡´ËÌåËØÀàĞÍµÄÎÆÀíÆ«ÒÆµã
+            Vector2 tOffset = CPEngine.GetTextureOffset(cellId, facing); //è·å–æ­¤ä½“ç´ ç±»å‹çš„çº¹ç†åç§»ç‚¹
             float padX = tUnitX * CPEngine.TexturePadX; float padY = tUnitY * CPEngine.TexturePadY;
-            //ÓÃ´óÁ¿¶şÎ¬µã¸ø´óÎÆÀíÍ¼·ÖÇø²¢Ìí¼Óµ½UVÊı×é
-            UVs.Add(new Vector2(tUnitX * tOffset.x + padX, tUnitY * tOffset.y + tUnitY - padY)); //×óÉÏ£¨Ô­µã£©
-            UVs.Add(new Vector2(tUnitX * tOffset.x + tUnitX - padX, tUnitY * tOffset.y + tUnitY - padY)); //ÓÒÉÏ
-            UVs.Add(new Vector2(tUnitX * tOffset.x + tUnitX - padX, tUnitY * tOffset.y + padY)); //ÓÒÏÂ
-            UVs.Add(new Vector2(tUnitX * tOffset.x + padX, tUnitY * tOffset.y + padY)); //×óÏÂ
-                                                                                        //ËÄ¸ö¶şÎ¬µã»®·ÖÁË1¸ñÎÆÀíÇøÓò£¨Ìùµ½ÏÂ·½µÄÒ»¸öÃæ£©
+            //ç”¨å¤§é‡äºŒç»´ç‚¹ç»™å¤§çº¹ç†å›¾åˆ†åŒºå¹¶æ·»åŠ åˆ°UVæ•°ç»„
+            UVs.Add(new Vector2(tUnitX * tOffset.x + padX, tUnitY * tOffset.y + tUnitY - padY)); //å·¦ä¸Šï¼ˆåŸç‚¹ï¼‰
+            UVs.Add(new Vector2(tUnitX * tOffset.x + tUnitX - padX, tUnitY * tOffset.y + tUnitY - padY)); //å³ä¸Š
+            UVs.Add(new Vector2(tUnitX * tOffset.x + tUnitX - padX, tUnitY * tOffset.y + padY)); //å³ä¸‹
+            UVs.Add(new Vector2(tUnitX * tOffset.x + padX, tUnitY * tOffset.y + padY)); //å·¦ä¸‹
+                                                                                        //å››ä¸ªäºŒç»´ç‚¹åˆ’åˆ†äº†1æ ¼çº¹ç†åŒºåŸŸï¼ˆè´´åˆ°ä¸‹æ–¹çš„ä¸€ä¸ªé¢ï¼‰
 
             // ==== Faces ====
-            //Ìí¼ÓÃæ£¨2¸öÈı½ÇĞÎ£¬0-3ÊÇÃæµÄËÄ¸ö¶¥µãĞòºÅ£¬¶ÔÓ¦Ò»¿ªÊ¼Ìí¼ÓµÄ¶¥µãÊı×éµÄË÷ÒıÖµ£©
+            //æ·»åŠ é¢ï¼ˆ2ä¸ªä¸‰è§’å½¢ï¼Œ0-3æ˜¯é¢çš„å››ä¸ªé¡¶ç‚¹åºå·ï¼Œå¯¹åº”ä¸€å¼€å§‹æ·»åŠ çš„é¡¶ç‚¹æ•°ç»„çš„ç´¢å¼•å€¼ï¼‰
             FacesList.Add(FaceCount + 0);
             FacesList.Add(FaceCount + 1);
             FacesList.Add(FaceCount + 3);
@@ -669,7 +669,7 @@ namespace CellSpace
             FacesList.Add(FaceCount + 3);
             if (colliderType == ColliderType.cube && CPEngine.GenerateColliders)
             {
-                //Ìí¼ÓÅö×²Ãæ
+                //æ·»åŠ ç¢°æ’é¢
                 SolidColliderFaces.Add(SolidFaceCount + 0);
                 SolidColliderFaces.Add(SolidFaceCount + 1);
                 SolidColliderFaces.Add(SolidFaceCount + 3);
@@ -677,16 +677,16 @@ namespace CellSpace
                 SolidColliderFaces.Add(SolidFaceCount + 2);
                 SolidColliderFaces.Add(SolidFaceCount + 3);
             }
-            //Ìí¼ÓÃæµÄ¼ÆÊı
-            FaceCount += 4; // we're adding 4 because there are 4 vertices in each face.ÎÒÃÇÉè¼ÆÁËÃ¿ËÄ¸ö¶¥µãĞÎ³ÉÒ»¸öÃæ£¬ËùÒÔÃ¿´Î¼ÆÊıÔö4
+            //æ·»åŠ é¢çš„è®¡æ•°
+            FaceCount += 4; // we're adding 4 because there are 4 vertices in each face.æˆ‘ä»¬è®¾è®¡äº†æ¯å››ä¸ªé¡¶ç‚¹å½¢æˆä¸€ä¸ªé¢ï¼Œæ‰€ä»¥æ¯æ¬¡è®¡æ•°å¢4
             if (colliderType == ColliderType.cube && CPEngine.GenerateColliders)
             {
                 SolidFaceCount += 4;
             }
-            // Check the amount of vertices so far and create a new mesh if necessary.¼ì²é¶¥µãÊıÁ¿ÊÇ·ñÂú×ã´´½¨1¸öĞÂÍø¸ñ
-            //Ğè×¢Òâ¼õĞ¡meshµÄsubMeshCountÖµ»áµ÷ÕûMeshË÷Òı»º³åÇøµÄ´óĞ¡£¬ĞÂµÄË÷Òı»º³åÇø´óĞ¡½«ÉèÖÃÎªµÚÒ»¸ö±»ÒÆ³ı×ÓÍø¸ñµÄSubMeshDescriptor.indexStart
-            //Ä¬ÈÏÇé¿öÏÂ£¬MeshµÄË÷Òı»º³åÇøÎª16Î»£¬Ö§³Ö×î¶à65535¸ö¶¥µã£¬ÈôĞèÒªÖ§³Ö¸ü¶à¶¥µã£¬¿ÉÒÔÉèÖÃÎª32Î»£¬µ«Ğè×¢Òâ²¢·ÇËùÓĞÆ½Ì¨¶¼Ö§³Ö32Î»Ë÷Òı
-            //ÔÚĞŞ¸ÄMeshµÄ×ÓÍø¸ñÊıÁ¿»òË÷Òı¸ñÊ½Ê±£¬Ó¦³ä·Ö¿¼ÂÇÆä¶ÔĞÔÄÜºÍ¼æÈİĞÔµÄÓ°Ïì
+            // Check the amount of vertices so far and create a new mesh if necessary.æ£€æŸ¥é¡¶ç‚¹æ•°é‡æ˜¯å¦æ»¡è¶³åˆ›å»º1ä¸ªæ–°ç½‘æ ¼
+            //éœ€æ³¨æ„å‡å°meshçš„subMeshCountå€¼ä¼šè°ƒæ•´Meshç´¢å¼•ç¼“å†²åŒºçš„å¤§å°ï¼Œæ–°çš„ç´¢å¼•ç¼“å†²åŒºå¤§å°å°†è®¾ç½®ä¸ºç¬¬ä¸€ä¸ªè¢«ç§»é™¤å­ç½‘æ ¼çš„SubMeshDescriptor.indexStart
+            //é»˜è®¤æƒ…å†µä¸‹ï¼ŒMeshçš„ç´¢å¼•ç¼“å†²åŒºä¸º16ä½ï¼Œæ”¯æŒæœ€å¤š65535ä¸ªé¡¶ç‚¹ï¼Œè‹¥éœ€è¦æ”¯æŒæ›´å¤šé¡¶ç‚¹ï¼Œå¯ä»¥è®¾ç½®ä¸º32ä½ï¼Œä½†éœ€æ³¨æ„å¹¶éæ‰€æœ‰å¹³å°éƒ½æ”¯æŒ32ä½ç´¢å¼•
+            //åœ¨ä¿®æ”¹Meshçš„å­ç½‘æ ¼æ•°é‡æˆ–ç´¢å¼•æ ¼å¼æ—¶ï¼Œåº”å……åˆ†è€ƒè™‘å…¶å¯¹æ€§èƒ½å’Œå…¼å®¹æ€§çš„å½±å“
             if (Vertices.Count > 65530)
             {
                 CreateNewMeshObject();
@@ -694,13 +694,13 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ´´½¨×Ô¶¨ÒåÍø¸ñ
+        /// åˆ›å»ºè‡ªå®šä¹‰ç½‘æ ¼
         /// </summary>
         /// <param name="cellId"></param>
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="z"></param>
-        /// <param name="mesh">2DÄ£Ê½ÏÂÇëÌîÈëXYÆ½ÃæµÄmesh</param>
+        /// <param name="mesh">2Dæ¨¡å¼ä¸‹è¯·å¡«å…¥XYå¹³é¢çš„mesh</param>
         private void CreateCustomMesh(ushort cellId, int x, int y, int z, Mesh mesh)
         {
             if (CPEngine.HorizontalMode)
@@ -709,9 +709,9 @@ namespace CellSpace
             }
             else
             {
-                //»ñÈ¡Cell×é¼ş
+                //è·å–Cellç»„ä»¶
                 Cell cellComponent = CPEngine.GetCellType(cellId);
-                //´æ´¢Íø¸ñÃæ£¨¶à¸ö¶¥µã×é£©µÄÊı×é£¬VSubmeshIndex=MaterialIndex£¨Ã»¶îÍâÌí¼ÓµÄ»°¾ÍÒ»¸ö²ÄÖÊ£¬Ä¬ÈÏË÷ÒıÖµ0£©
+                //å­˜å‚¨ç½‘æ ¼é¢ï¼ˆå¤šä¸ªé¡¶ç‚¹ç»„ï¼‰çš„æ•°ç»„ï¼ŒVSubmeshIndex=MaterialIndexï¼ˆæ²¡é¢å¤–æ·»åŠ çš„è¯å°±ä¸€ä¸ªæè´¨ï¼Œé»˜è®¤ç´¢å¼•å€¼0ï¼‰
                 List<int> FacesList = Faces[cellComponent.VSubmeshIndex];
                 // check if mesh exists
                 if (mesh == null)
@@ -720,24 +720,24 @@ namespace CellSpace
                     return;
                 }
                 // === mesh
-                // check if we still have room for more vertices in the mesh.¼ì²é¶¥µãÊıÁ¿ÊÇ·ñÂú×ã´´½¨1¸öĞÂÍø¸ñ
-                //Ğè×¢Òâ¼õĞ¡meshµÄsubMeshCountÖµ»áµ÷ÕûMeshË÷Òı»º³åÇøµÄ´óĞ¡£¬ĞÂµÄË÷Òı»º³åÇø´óĞ¡½«ÉèÖÃÎªµÚÒ»¸ö±»ÒÆ³ı×ÓÍø¸ñµÄSubMeshDescriptor.indexStart
-                //Ä¬ÈÏÇé¿öÏÂ£¬MeshµÄË÷Òı»º³åÇøÎª16Î»£¬Ö§³Ö×î¶à65535¸ö¶¥µã£¬ÈôĞèÒªÖ§³Ö¸ü¶à¶¥µã£¬¿ÉÒÔÉèÖÃÎª32Î»£¬µ«Ğè×¢Òâ²¢·ÇËùÓĞÆ½Ì¨¶¼Ö§³Ö32Î»Ë÷Òı
-                //ÔÚĞŞ¸ÄMeshµÄ×ÓÍø¸ñÊıÁ¿»òË÷Òı¸ñÊ½Ê±£¬Ó¦³ä·Ö¿¼ÂÇÆä¶ÔĞÔÄÜºÍ¼æÈİĞÔµÄÓ°Ïì
+                // check if we still have room for more vertices in the mesh.æ£€æŸ¥é¡¶ç‚¹æ•°é‡æ˜¯å¦æ»¡è¶³åˆ›å»º1ä¸ªæ–°ç½‘æ ¼
+                //éœ€æ³¨æ„å‡å°meshçš„subMeshCountå€¼ä¼šè°ƒæ•´Meshç´¢å¼•ç¼“å†²åŒºçš„å¤§å°ï¼Œæ–°çš„ç´¢å¼•ç¼“å†²åŒºå¤§å°å°†è®¾ç½®ä¸ºç¬¬ä¸€ä¸ªè¢«ç§»é™¤å­ç½‘æ ¼çš„SubMeshDescriptor.indexStart
+                //é»˜è®¤æƒ…å†µä¸‹ï¼ŒMeshçš„ç´¢å¼•ç¼“å†²åŒºä¸º16ä½ï¼Œæ”¯æŒæœ€å¤š65535ä¸ªé¡¶ç‚¹ï¼Œè‹¥éœ€è¦æ”¯æŒæ›´å¤šé¡¶ç‚¹ï¼Œå¯ä»¥è®¾ç½®ä¸º32ä½ï¼Œä½†éœ€æ³¨æ„å¹¶éæ‰€æœ‰å¹³å°éƒ½æ”¯æŒ32ä½ç´¢å¼•
+                //åœ¨ä¿®æ”¹Meshçš„å­ç½‘æ ¼æ•°é‡æˆ–ç´¢å¼•æ ¼å¼æ—¶ï¼Œåº”å……åˆ†è€ƒè™‘å…¶å¯¹æ€§èƒ½å’Œå…¼å®¹æ€§çš„å½±å“
                 if (Vertices.Count + mesh.vertices.Length > 65534)
                 {
                     CreateNewMeshObject();
                 }
                 // rotate vertices depending on the mesh rotation setting
                 List<Vector3> rotatedVertices = new List<Vector3>();
-                //¡ı»ñÈ¡Á¢·½ÌåCell×é¼şµÄĞı×ªÊôĞÔ£¬ËüÄ¬ÈÏÊÇÔÚCell_TypeNum¶ÔÓ¦µÄÔ¤ÖÆÌåÀïÉè¶¨ºÃµÄ£¬µ±È»³ÌĞòÖĞÒ²¿ÉÒÔÊÖ¶¯¸ÉÔ¤Ğı×ª
+                //â†“è·å–ç«‹æ–¹ä½“Cellç»„ä»¶çš„æ—‹è½¬å±æ€§ï¼Œå®ƒé»˜è®¤æ˜¯åœ¨Cell_TypeNumå¯¹åº”çš„é¢„åˆ¶ä½“é‡Œè®¾å®šå¥½çš„ï¼Œå½“ç„¶ç¨‹åºä¸­ä¹Ÿå¯ä»¥æ‰‹åŠ¨å¹²é¢„æ—‹è½¬
                 MeshRotation rotation = cellComponent.VRotation;
                 // 180 horizontal (reverse all pixelX and z)
                 if (rotation == MeshRotation.back)
                 {
                     foreach (Vector3 vertex in mesh.vertices)
                     {
-                        rotatedVertices.Add(new Vector3(-vertex.x, vertex.y, -vertex.z));//ÈÆYÖá×ª180¡ãÊ¹Á¢·½ÌåºóÃæÓëÇ°Ãæ»¥»»
+                        rotatedVertices.Add(new Vector3(-vertex.x, vertex.y, -vertex.z));//ç»•Yè½´è½¬180Â°ä½¿ç«‹æ–¹ä½“åé¢ä¸å‰é¢äº’æ¢
                     }
                 }
                 // 90 right
@@ -745,7 +745,7 @@ namespace CellSpace
                 {
                     foreach (Vector3 vertex in mesh.vertices)
                     {
-                        rotatedVertices.Add(new Vector3(vertex.z, vertex.y, -vertex.x));//ÈÆYÖáÍùÓÒ×ª90¡ã
+                        rotatedVertices.Add(new Vector3(vertex.z, vertex.y, -vertex.x));//ç»•Yè½´å¾€å³è½¬90Â°
                     }
                 }
                 // 90 left
@@ -753,10 +753,10 @@ namespace CellSpace
                 {
                     foreach (Vector3 vertex in mesh.vertices)
                     {
-                        rotatedVertices.Add(new Vector3(-vertex.z, vertex.y, vertex.x));//ÈÆYÖáÍù×ó×ª90¡ã
+                        rotatedVertices.Add(new Vector3(-vertex.z, vertex.y, vertex.x));//ç»•Yè½´å¾€å·¦è½¬90Â°
                     }
                 }
-                // no rotation ÎŞĞı×ª
+                // no rotation æ— æ—‹è½¬
                 else
                 {
                     foreach (Vector3 vertex in mesh.vertices)
@@ -814,12 +814,12 @@ namespace CellSpace
             }
         }
         /// <summary>
-        /// ´´½¨×Ô¶¨ÒåÍø¸ñ
+        /// åˆ›å»ºè‡ªå®šä¹‰ç½‘æ ¼
         /// </summary>
         /// <param name="cellId"></param>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        /// <param name="mesh">ÇëÌîÈëXYÆ½ÃæµÄmesh</param>
+        /// <param name="mesh">è¯·å¡«å…¥XYå¹³é¢çš„mesh</param>
         private void CreateCustomMesh(ushort cellId, int x, int y, Mesh mesh)
         {
 
@@ -835,10 +835,10 @@ namespace CellSpace
 
 
             // === mesh
-            // check if we still have room for more vertices in the mesh.¼ì²é¶¥µãÊıÁ¿ÊÇ·ñÂú×ã´´½¨1¸öĞÂÍø¸ñ
-            //Ğè×¢Òâ¼õĞ¡meshµÄsubMeshCountÖµ»áµ÷ÕûMeshË÷Òı»º³åÇøµÄ´óĞ¡£¬ĞÂµÄË÷Òı»º³åÇø´óĞ¡½«ÉèÖÃÎªµÚÒ»¸ö±»ÒÆ³ı×ÓÍø¸ñµÄSubMeshDescriptor.indexStart
-            //Ä¬ÈÏÇé¿öÏÂ£¬MeshµÄË÷Òı»º³åÇøÎª16Î»£¬Ö§³Ö×î¶à65535¸ö¶¥µã£¬ÈôĞèÒªÖ§³Ö¸ü¶à¶¥µã£¬¿ÉÒÔÉèÖÃÎª32Î»£¬µ«Ğè×¢Òâ²¢·ÇËùÓĞÆ½Ì¨¶¼Ö§³Ö32Î»Ë÷Òı
-            //ÔÚĞŞ¸ÄMeshµÄ×ÓÍø¸ñÊıÁ¿»òË÷Òı¸ñÊ½Ê±£¬Ó¦³ä·Ö¿¼ÂÇÆä¶ÔĞÔÄÜºÍ¼æÈİĞÔµÄÓ°Ïì
+            // check if we still have room for more vertices in the mesh.æ£€æŸ¥é¡¶ç‚¹æ•°é‡æ˜¯å¦æ»¡è¶³åˆ›å»º1ä¸ªæ–°ç½‘æ ¼
+            //éœ€æ³¨æ„å‡å°meshçš„subMeshCountå€¼ä¼šè°ƒæ•´Meshç´¢å¼•ç¼“å†²åŒºçš„å¤§å°ï¼Œæ–°çš„ç´¢å¼•ç¼“å†²åŒºå¤§å°å°†è®¾ç½®ä¸ºç¬¬ä¸€ä¸ªè¢«ç§»é™¤å­ç½‘æ ¼çš„SubMeshDescriptor.indexStart
+            //é»˜è®¤æƒ…å†µä¸‹ï¼ŒMeshçš„ç´¢å¼•ç¼“å†²åŒºä¸º16ä½ï¼Œæ”¯æŒæœ€å¤š65535ä¸ªé¡¶ç‚¹ï¼Œè‹¥éœ€è¦æ”¯æŒæ›´å¤šé¡¶ç‚¹ï¼Œå¯ä»¥è®¾ç½®ä¸º32ä½ï¼Œä½†éœ€æ³¨æ„å¹¶éæ‰€æœ‰å¹³å°éƒ½æ”¯æŒ32ä½ç´¢å¼•
+            //åœ¨ä¿®æ”¹Meshçš„å­ç½‘æ ¼æ•°é‡æˆ–ç´¢å¼•æ ¼å¼æ—¶ï¼Œåº”å……åˆ†è€ƒè™‘å…¶å¯¹æ€§èƒ½å’Œå…¼å®¹æ€§çš„å½±å“
             if (Vertices.Count + mesh.vertices.Length > 65534)
             {
                 CreateNewMeshObject();
@@ -848,7 +848,7 @@ namespace CellSpace
             List<Vector3> rotatedVertices = new List<Vector3>();
             foreach (Vector3 vertex in mesh.vertices)
             {
-                //2DÄ£Ê½ÎŞĞı×ªÖ±½ÓÌí¼Ó
+                //2Dæ¨¡å¼æ— æ—‹è½¬ç›´æ¥æ·»åŠ 
                 rotatedVertices.Add(vertex);
             }
 
@@ -907,12 +907,12 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ½«Á¢·½ÌåµÄ¶¥µãºÍÃæÌí¼Óµ½ËùÑ¡ÁĞ±íÖĞ(¶ÔÓÚSolid»ònocollisionÅö×²Æ÷)
+        /// å°†ç«‹æ–¹ä½“çš„é¡¶ç‚¹å’Œé¢æ·»åŠ åˆ°æ‰€é€‰åˆ—è¡¨ä¸­(å¯¹äºSolidæˆ–nocollisionç¢°æ’å™¨)
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="z"></param>
-        /// <param name="solid">ÊÇ·ñÊµĞÄ</param>
+        /// <param name="solid">æ˜¯å¦å®å¿ƒ</param>
         private void AddCubeMesh(int x, int y, int z, bool solid)
         { // adds cube verts and faces to the chosen lists (for Solid or NoCollide colliders)
             if (CPEngine.HorizontalMode)
@@ -921,27 +921,27 @@ namespace CellSpace
             }
             else
             {
-                //Í¸Ã÷¶ÈÊÇÊµĞÄµÄÇé¿ö
+                //é€æ˜åº¦æ˜¯å®å¿ƒçš„æƒ…å†µ
                 if (solid)
                 {
                     // vertices
                     foreach (Vector3 vertex in Cube.vertices)
                     {
-                        //±éÀúÃ¿¸öÁ¢·½ÌåÍø¸ñ¶¥µã£¬°´ÌåËØË÷ÒıµÄÎ»ÖÃĞŞÕı£¨ÒÆ¶¯£©£¬È»ºó½«ËüÃÇ´æ´¢µ½ÊµĞÄÅö×²Ìå¶¥µãÊı×éÖĞ
-                        SolidColliderVertices.Add(vertex + new Vector3(x, y, z)); // add all vertices from the mesh.´ÓÍø¸ñÌí¼ÓËùÓĞ¶¥µã
+                        //éå†æ¯ä¸ªç«‹æ–¹ä½“ç½‘æ ¼é¡¶ç‚¹ï¼ŒæŒ‰ä½“ç´ ç´¢å¼•çš„ä½ç½®ä¿®æ­£ï¼ˆç§»åŠ¨ï¼‰ï¼Œç„¶åå°†å®ƒä»¬å­˜å‚¨åˆ°å®å¿ƒç¢°æ’ä½“é¡¶ç‚¹æ•°ç»„ä¸­
+                        SolidColliderVertices.Add(vertex + new Vector3(x, y, z)); // add all vertices from the mesh.ä»ç½‘æ ¼æ·»åŠ æ‰€æœ‰é¡¶ç‚¹
                     }
 
                     // faces
                     foreach (int face in Cube.triangles)
                     {
-                        //±éÀúÃ¿¸öÃæ£¨Èı½ÇĞÎ¶¥µãË÷Òı×é012023ÕâÑùµÄÅÅÁĞ£¬µÚ¶ş¸öÁ¢·½Ìå»á½ÓĞø£©
+                        //éå†æ¯ä¸ªé¢ï¼ˆä¸‰è§’å½¢é¡¶ç‚¹ç´¢å¼•ç»„012023è¿™æ ·çš„æ’åˆ—ï¼Œç¬¬äºŒä¸ªç«‹æ–¹ä½“ä¼šæ¥ç»­ï¼‰
                         SolidColliderFaces.Add(SolidFaceCount + face);
                     }
 
-                    // Add to the face count.Ò»¸öÁ¢·½Ìå¶¥µã¼ÆÊıÍê³Éºó½øĞĞµş¼Ó£¬Ö±µ½ĞÎ³ÉÒ»¸ö´ó¿éÕûÌå
+                    // Add to the face count.ä¸€ä¸ªç«‹æ–¹ä½“é¡¶ç‚¹è®¡æ•°å®Œæˆåè¿›è¡Œå åŠ ï¼Œç›´åˆ°å½¢æˆä¸€ä¸ªå¤§å—æ•´ä½“
                     SolidFaceCount += Cube.vertexCount;
                 }
-                //ÆäËûÇé¿ö£¨Í¸Ã÷»ò°ëÍ¸Ã÷£¬¾ÍÊÇÎŞÅö×²ÁË£©
+                //å…¶ä»–æƒ…å†µï¼ˆé€æ˜æˆ–åŠé€æ˜ï¼Œå°±æ˜¯æ— ç¢°æ’äº†ï¼‰
                 else
                 {
                     // vertices
@@ -962,34 +962,34 @@ namespace CellSpace
             }
         }
         /// <summary>
-        /// ½«Á¢·½ÌåµÄ¶¥µãºÍÃæÌí¼Óµ½ËùÑ¡ÁĞ±íÖĞ(¶ÔÓÚSolid»ònocollisionÅö×²Æ÷)
+        /// å°†ç«‹æ–¹ä½“çš„é¡¶ç‚¹å’Œé¢æ·»åŠ åˆ°æ‰€é€‰åˆ—è¡¨ä¸­(å¯¹äºSolidæˆ–nocollisionç¢°æ’å™¨)
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        /// <param name="solid">ÊÇ·ñÊµĞÄ</param>
+        /// <param name="solid">æ˜¯å¦å®å¿ƒ</param>
         private void AddCubeMesh(int x, int y, bool solid)
         { // adds cube verts and faces to the chosen lists (for Solid or NoCollide colliders)
-          //Í¸Ã÷¶ÈÊÇÊµĞÄµÄÇé¿ö
+          //é€æ˜åº¦æ˜¯å®å¿ƒçš„æƒ…å†µ
             if (solid)
             {
                 // vertices
                 foreach (Vector3 vertex in Cube.vertices)
                 {
-                    //±éÀúÃ¿¸öÁ¢·½ÌåÍø¸ñ¶¥µã£¬°´ÌåËØË÷ÒıµÄÎ»ÖÃĞŞÕı£¨ÒÆ¶¯£©£¬È»ºó½«ËüÃÇ´æ´¢µ½ÊµĞÄÅö×²Ìå¶¥µãÊı×éÖĞ
-                    SolidColliderVertices.Add(vertex + new Vector3(x, y)); // add all vertices from the mesh.´ÓÍø¸ñÌí¼ÓËùÓĞ¶¥µã
+                    //éå†æ¯ä¸ªç«‹æ–¹ä½“ç½‘æ ¼é¡¶ç‚¹ï¼ŒæŒ‰ä½“ç´ ç´¢å¼•çš„ä½ç½®ä¿®æ­£ï¼ˆç§»åŠ¨ï¼‰ï¼Œç„¶åå°†å®ƒä»¬å­˜å‚¨åˆ°å®å¿ƒç¢°æ’ä½“é¡¶ç‚¹æ•°ç»„ä¸­
+                    SolidColliderVertices.Add(vertex + new Vector3(x, y)); // add all vertices from the mesh.ä»ç½‘æ ¼æ·»åŠ æ‰€æœ‰é¡¶ç‚¹
                 }
 
                 // faces
                 foreach (int face in Cube.triangles)
                 {
-                    //±éÀúÃ¿¸öÃæ£¨Èı½ÇĞÎ¶¥µãË÷Òı×é012023ÕâÑùµÄÅÅÁĞ£¬µÚ¶ş¸öÁ¢·½Ìå»á½ÓĞø£©
+                    //éå†æ¯ä¸ªé¢ï¼ˆä¸‰è§’å½¢é¡¶ç‚¹ç´¢å¼•ç»„012023è¿™æ ·çš„æ’åˆ—ï¼Œç¬¬äºŒä¸ªç«‹æ–¹ä½“ä¼šæ¥ç»­ï¼‰
                     SolidColliderFaces.Add(SolidFaceCount + face);
                 }
 
-                // Add to the face count.Ò»¸öÁ¢·½Ìå¶¥µã¼ÆÊıÍê³Éºó½øĞĞµş¼Ó£¬Ö±µ½ĞÎ³ÉÒ»¸ö´ó¿éÕûÌå
+                // Add to the face count.ä¸€ä¸ªç«‹æ–¹ä½“é¡¶ç‚¹è®¡æ•°å®Œæˆåè¿›è¡Œå åŠ ï¼Œç›´åˆ°å½¢æˆä¸€ä¸ªå¤§å—æ•´ä½“
                 SolidFaceCount += Cube.vertexCount;
             }
-            //ÆäËûÇé¿ö£¨Í¸Ã÷»ò°ëÍ¸Ã÷£¬¾ÍÊÇÎŞÅö×²ÁË£©
+            //å…¶ä»–æƒ…å†µï¼ˆé€æ˜æˆ–åŠé€æ˜ï¼Œå°±æ˜¯æ— ç¢°æ’äº†ï¼‰
             else
             {
                 // vertices
@@ -1015,17 +1015,17 @@ namespace CellSpace
             // Update the mesh
             mesh.Clear();
             mesh.vertices = Vertices.ToArray();
-            //¸½¼ÓÍø¸ñÅö×²Æ÷Ô¤ÖÆÌåCellChunkAdditionalMeshµÄäÖÈ¾Æ÷¹ÒÔØµÄ²ÄÖÊÊıÁ¿£¨ÒªÓëÍø¸ñäÖÈ¾Æ÷µÄ²ÄÖÊÊıÁ¿±£³ÖÒ»ÖÂ£©
+            //é™„åŠ ç½‘æ ¼ç¢°æ’å™¨é¢„åˆ¶ä½“CellChunkAdditionalMeshçš„æ¸²æŸ“å™¨æŒ‚è½½çš„æè´¨æ•°é‡ï¼ˆè¦ä¸ç½‘æ ¼æ¸²æŸ“å™¨çš„æè´¨æ•°é‡ä¿æŒä¸€è‡´ï¼‰
             mesh.subMeshCount = GetComponent<Renderer>().materials.Length;
 
             for (int i = 0; i < Faces.Count; ++i)
             {
-                //½«ÍÅ¿éÔ¤ÖÆÌåµÄ¼¸¸ö²ÄÖÊµÄÃæ¼ÓÈëµ½Íø¸ñÅö×²Æ÷Ô¤ÖÆÌå£¨Åö×²ÃæÊ¹ÓÃäÖÈ¾Ãæ£©
+                //å°†å›¢å—é¢„åˆ¶ä½“çš„å‡ ä¸ªæè´¨çš„é¢åŠ å…¥åˆ°ç½‘æ ¼ç¢°æ’å™¨é¢„åˆ¶ä½“ï¼ˆç¢°æ’é¢ä½¿ç”¨æ¸²æŸ“é¢ï¼‰
                 mesh.SetTriangles(Faces[i].ToArray(), i);
             }
 
             mesh.uv = UVs.ToArray();//UVs.ToBuiltin(Vector2F) as Vector2F[]	
-            //Ë¢ĞÂ·¨ÏßÊı¾İ
+            //åˆ·æ–°æ³•çº¿æ•°æ®
             mesh.RecalculateNormals();
 
             if (CPEngine.GenerateColliders)
@@ -1089,10 +1089,10 @@ namespace CellSpace
 
         private void CreateNewMeshObject()
         { // in case the amount of vertices exceeds the maximum for one mesh, we need to create a new mesh
-            //¸½¼ÓÍø¸ñÅö×²Æ÷Ô¤ÖÆÌåCellChunkAdditionalMeshÊµÀı»¯²¢Ìí¼Óµ½ÍÅ¿é£¨¶àÉÙ¸öÁÚ¾Ó¾Í¼ÓÈë¶àÉÙ´Î£©
+            //é™„åŠ ç½‘æ ¼ç¢°æ’å™¨é¢„åˆ¶ä½“CellChunkAdditionalMeshå®ä¾‹åŒ–å¹¶æ·»åŠ åˆ°å›¢å—ï¼ˆå¤šå°‘ä¸ªé‚»å±…å°±åŠ å…¥å¤šå°‘æ¬¡ï¼‰
             GameObject meshContainer = Instantiate(chunk.MeshContainer, transform.position, transform.rotation) as GameObject;
             meshContainer.transform.parent = this.transform;
-            //¸üĞÂ¸Ã×é¼şµÄÍø¸ñ
+            //æ›´æ–°è¯¥ç»„ä»¶çš„ç½‘æ ¼
             UpdateMesh(meshContainer.GetComponent<MeshFilter>().mesh);
         }
     }

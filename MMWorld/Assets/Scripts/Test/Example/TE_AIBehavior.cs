@@ -3,7 +3,7 @@
 //using UnityEngine;
 //using Debug = UnityEngine.Debug;
 
-//// Ä£Äâ 1Ö»¹Ö ²»¶ÏÒÆ¶¯£¬Ã¿¸ô ¼¸Ö¡ »á ÔÎ¼¸Ö¡
+//// æ¨¡æ‹Ÿ 1åªæ€ª ä¸æ–­ç§»åŠ¨ï¼Œæ¯éš” å‡ å¸§ ä¼š æ™•å‡ å¸§
 
 //namespace Test.Example
 //{

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace CellSpace.Examples
 {
-    //Èç¹ûÏ£ÍûÊ¹ÓÃÄ¬ÈÏÊÂ¼şºÍ×Ô¶¨ÒåÊÂ¼ş£¬Ôò´ÓCellEventsÀà¼Ì³Ğ
+    //å¦‚æœå¸Œæœ›ä½¿ç”¨é»˜è®¤äº‹ä»¶å’Œè‡ªå®šä¹‰äº‹ä»¶ï¼Œåˆ™ä»CellEventsç±»ç»§æ‰¿
     public class DefaultCellEvents : CellEvents
     {
         public override void OnMouseDown(int mouseButton, CellInfo cellInfo)

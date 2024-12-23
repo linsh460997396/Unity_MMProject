@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 #if UNITY_EDITOR|| UNITY_STANDALONE
 //Unity编辑器、独立应用程序（不包括Web播放器）
 using Vector3F = UnityEngine.Vector3;
@@ -11,7 +11,7 @@ using Vector3F = System.Numerics.Vector3;
 
 namespace MetalMaxSystem
 {
-    #region 公用委托类型
+    #region 公用委托类型（未嵌套的顶级类型）
 
     //委托是引用类型
 

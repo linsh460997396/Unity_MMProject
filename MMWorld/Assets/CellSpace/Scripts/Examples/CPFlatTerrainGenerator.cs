@@ -20,7 +20,7 @@ namespace CellSpace.Examples
                         int currentHeight = y + (SideLength * chunky); // get absolute height for the cell
                         if (currentHeight < 8)
                         {
-                            chunk.SetCellSimple(x, y, 1); //高度8以下设置土块
+                            chunk.SetCellSimple(x, y, 1); //楂樺害8浠ヤ笅璁剧疆鍦熷潡
                         }
                     }
                     else

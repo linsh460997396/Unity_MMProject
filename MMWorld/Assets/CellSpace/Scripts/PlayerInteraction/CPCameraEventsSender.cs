@@ -1,15 +1,15 @@
 using UnityEngine;
 
-//sends CellEvents such as OnLook, OnMouseDown, etc.���������¼���OnLook�� OnMouseDown��
+//sends CellEvents such as OnLook, OnMouseDown, etc.发送体素事件如OnLook、 OnMouseDown等
 namespace CellSpace
 {
     /// <summary>
-    /// �������������ͷע�ӣ������ָ�룩�¼����͹�����ɾ���ؿ飬Ҳ������ѡ����ʵʱλ�ø��¡�
-    /// ����÷���Unity������½�һ���ն���Manager�����ѽű��ϵ����λ�ü����أ�UnityҪ��һ��cs�ļ�ֻ��һ���࣬�����������ļ���һ�£�
+    /// 利用主摄像机镜头注视（含鼠标指针）事件发送功能增删体素块，也管理着选择框的实时位置更新。
+    /// 组件用法：Unity中随便新建一个空对象“Manager”，把脚本拖到组件位置即挂载（Unity要求一个cs文件只能一个类，且类名须与文件名一致）
     /// </summary>
     public class CPCameraEventsSender : MonoBehaviour
     {
-        //Unity�Թ����ֶλ�Ĭ�����л�����ʾ�ڹ�����Ϸ�����GUI���棨���ڸý�����������ɳ�ʼ��ֵ��
+        //Unity对公开字段会默认序列化，显示在挂载游戏物体的GUI界面（可在该界面输入来完成初始赋值）
         public float CameraLookRange;
         private GameObject SelectedBlockGraphics;
 
@@ -18,7 +18,7 @@ namespace CellSpace
             if (CameraLookRange <= 0)
             {
                 Debug.LogWarning("CellSpace: CameraEventSender.CameraLookRange must be greater than 0. Setting CameraLookRange to 5." +
-                    "Range�������0����Ĭ������5");
+                    "Range必须大于0，将默认设置5");
                 CameraLookRange = 5.0f;
             }
 

@@ -21,20 +21,20 @@ namespace CellSpace.Examples
 
             if (Input.GetKeyDown("v"))
             {
-                //²âÊÔ±£´æ
+                //æµ‹è¯•ä¿å­˜
                 CPEngine.SaveWorldInstant();
             }
 
             if (Input.GetKeyDown("f"))
             {
-                //²âÊÔÉÁ¹âµÆ
+                //æµ‹è¯•é—ªå…‰ç¯
                 if (Flashlight.GetComponent<Light>().enabled == true) Flashlight.GetComponent<Light>().enabled = false;
                 else Flashlight.GetComponent<Light>().enabled = true;
             }
 
             if (Input.GetKeyDown("transform"))
             {
-                //²âÊÔ»ğ¾æ
+                //æµ‹è¯•ç«ç‚¬
                 if (Torch.GetComponent<Light>().enabled == true) Torch.GetComponent<Light>().enabled = false;
                 else Torch.GetComponent<Light>().enabled = true;
             }

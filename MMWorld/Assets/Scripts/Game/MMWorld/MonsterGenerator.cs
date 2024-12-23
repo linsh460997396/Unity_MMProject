@@ -1,4 +1,4 @@
-﻿namespace MMWorld
+namespace MMWorld
 {
     /// <summary>
     /// 怪物生成器

@@ -5,19 +5,19 @@ using UnityEngine;
 namespace CellSpace
 {
     /// <summary>
-    /// Ë÷Òý£¨´æ´¢ÌåËØ¿éÔÚÍÅ¿éÖÐµÄÎ»ÖÃÐÅÏ¢»òÍÅ¿éÔÚÊÀ½çÖÐµÄÎ»ÖÃÐÅÏ¢£©£¬¿ÉÀí½âÎª²ÎÊýÎªÕûÊýµÄ×ø±ê½Úµã¡£
-    /// ËüÊÇÒ»ÖÖ½ö°üº¬x¡¢yºÍzÕûÊýÖµµÄÊý¾Ý½á¹¹£¬¾ÍÏñVectorµÄµÈÐ§Îïµ«²»´ú±í¾ø¶ÔÊÀ½ç×ø±ê£¬Ö»ÊÇËüÓÃÕûÐÍ¶ø²»ÊÇ¸¡µãÊý£¨ÒÔ±ÜÃâ¾«È·×ª»»·¢Éú´íÎó£©¡£
-    /// 2Dºá°æÄ£Ê½£¨HorizontalModeÎªÕæ£©Ê±²ÉÓÃXYÆ½Ãæ£¨½ûÓÃZÖá£¬ZÖµÄ¬ÈÏÎª0£©
+    /// ç´¢å¼•ï¼ˆå­˜å‚¨ä½“ç´ å—åœ¨å›¢å—ä¸­çš„ä½ç½®ä¿¡æ¯æˆ–å›¢å—åœ¨ä¸–ç•Œä¸­çš„ä½ç½®ä¿¡æ¯ï¼‰ï¼Œå¯ç†è§£ä¸ºå‚æ•°ä¸ºæ•´æ•°çš„åæ ‡èŠ‚ç‚¹ã€‚
+    /// å®ƒæ˜¯ä¸€ç§ä»…åŒ…å«xã€yå’Œzæ•´æ•°å€¼çš„æ•°æ®ç»“æž„ï¼Œå°±åƒVectorçš„ç­‰æ•ˆç‰©ä½†ä¸ä»£è¡¨ç»å¯¹ä¸–ç•Œåæ ‡ï¼Œåªæ˜¯å®ƒç”¨æ•´åž‹è€Œä¸æ˜¯æµ®ç‚¹æ•°ï¼ˆä»¥é¿å…ç²¾ç¡®è½¬æ¢å‘ç”Ÿé”™è¯¯ï¼‰ã€‚
+    /// 2Dæ¨ªç‰ˆæ¨¡å¼ï¼ˆHorizontalModeä¸ºçœŸï¼‰æ—¶é‡‡ç”¨XYå¹³é¢ï¼ˆç¦ç”¨Zè½´ï¼ŒZå€¼é»˜è®¤ä¸º0ï¼‰
     /// </summary>
     public class CPIndex
     {
         /// <summary>
-        /// Ë÷ÒýµÄ×Ö¶ÎÖµ
+        /// ç´¢å¼•çš„å­—æ®µå€¼
         /// </summary>
         public int x, y, z;
 
         /// <summary>
-        /// ÓÃ¸ø¶¨µÄx,pixelY,zÖµ´´½¨Ò»¸öÐÂµÄË÷Òý
+        /// ç”¨ç»™å®šçš„x,pixelY,zå€¼åˆ›å»ºä¸€ä¸ªæ–°çš„ç´¢å¼•
         /// </summary>
         /// <param name="setX"></param>
         /// <param name="setY"></param>
@@ -32,7 +32,7 @@ namespace CellSpace
             }
         }
         /// <summary>
-        /// ÓÃ¸ø¶¨µÄx,yÖµ´´½¨Ò»¸öÐÂµÄË÷Òý
+        /// ç”¨ç»™å®šçš„x,yå€¼åˆ›å»ºä¸€ä¸ªæ–°çš„ç´¢å¼•
         /// </summary>
         /// <param name="setX"></param>
         /// <param name="setY"></param>
@@ -43,7 +43,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ÓÃ¸ø¶¨µÄÏòÁ¿´´½¨Ò»¸öÐÂµÄË÷Òý
+        /// ç”¨ç»™å®šçš„å‘é‡åˆ›å»ºä¸€ä¸ªæ–°çš„ç´¢å¼•
         /// </summary>
         /// <param name="setIndex"></param>
         public CPIndex(Vector3 setIndex)
@@ -56,7 +56,7 @@ namespace CellSpace
             }
         }
         /// <summary>
-        /// ÓÃ¸ø¶¨µÄÏòÁ¿´´½¨Ò»¸öÐÂµÄË÷Òý
+        /// ç”¨ç»™å®šçš„å‘é‡åˆ›å»ºä¸€ä¸ªæ–°çš„ç´¢å¼•
         /// </summary>
         /// <param name="setIndex"></param>
         public CPIndex(Vector2 setIndex)
@@ -66,7 +66,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// Ê¹ÓÃË÷ÒýµÄx,pixelY,zÖµ·µ»ØÒ»¸öVector3¡£
+        /// ä½¿ç”¨ç´¢å¼•çš„x,pixelY,zå€¼è¿”å›žä¸€ä¸ªVector3ã€‚
         /// </summary>
         /// <returns></returns>
         public Vector3 ToVector3()
@@ -74,7 +74,7 @@ namespace CellSpace
             return new Vector3(x, y, z);
         }
         /// <summary>
-        /// Ê¹ÓÃË÷ÒýµÄx,yÖµ·µ»ØÒ»¸öVector2¡£
+        /// ä½¿ç”¨ç´¢å¼•çš„x,yå€¼è¿”å›žä¸€ä¸ªVector2ã€‚
         /// </summary>
         /// <returns></returns>
         public Vector2 ToVector2()
@@ -83,7 +83,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ÒÔ" pixelX,pixelY,z "µÄÐÎÊ½·µ»ØË÷Òý×Ö·û´®¡£
+        /// ä»¥" pixelX,pixelY,z "çš„å½¢å¼è¿”å›žç´¢å¼•å­—ç¬¦ä¸²ã€‚
         /// </summary>
         /// <returns></returns>
         public override string ToString()
@@ -92,7 +92,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// Ë÷Òý±È¶Ô
+        /// ç´¢å¼•æ¯”å¯¹
         /// </summary>
         /// <param name="to"></param>
         /// <returns></returns>
@@ -121,7 +121,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ·µ»ØÓë¸ø¶¨·½ÏòÉÏµÄindexÏàÁÚµÄÐÂË÷Òý¡£
+        /// è¿”å›žä¸Žç»™å®šæ–¹å‘ä¸Šçš„indexç›¸é‚»çš„æ–°ç´¢å¼•ã€‚
         /// </summary>
         /// <param name="direction"></param>
         /// <returns></returns>
@@ -148,7 +148,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// Ë÷Òý±È¶Ô
+        /// ç´¢å¼•æ¯”å¯¹
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
@@ -178,7 +178,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ·µ»Ø´Ó¡°pixelX,pixelY,z¡±¡¢¡°pixelX,pixelY¡±¸ñÊ½µÄ×Ö·û´®×ª»»¶øÀ´µÄÐÂË÷Òý¡£Èç¡°5,2,0¡±·µ»Ø(5,2,0)¡¢¡°5,2¡±·µ»Ø(5,2)¡£
+        /// è¿”å›žä»Žâ€œpixelX,pixelY,zâ€ã€â€œpixelX,pixelYâ€æ ¼å¼çš„å­—ç¬¦ä¸²è½¬æ¢è€Œæ¥çš„æ–°ç´¢å¼•ã€‚å¦‚â€œ5,2,0â€è¿”å›ž(5,2,0)ã€â€œ5,2â€è¿”å›ž(5,2)ã€‚
         /// </summary>
         /// <param name="indexString"></param>
         /// <returns></returns>
@@ -193,7 +193,7 @@ namespace CellSpace
                 }
                 catch (System.Exception)
                 {
-                    //CellSpace:´Ó×Ö·û´®×ª»»³ÉË÷ÒýÓÃµÄ¸ñÊ½ÎÞÐ§£¬×Ö·û´®±ØÐëÊÇ\"pixelX,pixelY\"¸ñÊ½
+                    //CellSpace:ä»Žå­—ç¬¦ä¸²è½¬æ¢æˆç´¢å¼•ç”¨çš„æ ¼å¼æ— æ•ˆï¼Œå­—ç¬¦ä¸²å¿…é¡»æ˜¯\"pixelX,pixelY\"æ ¼å¼
                     Debug.LogError("CellSpace: CPIndex.FromString: Invalid format. String must be in \"pixelX,pixelY\" format.");
                     return null;
                 }
@@ -206,7 +206,7 @@ namespace CellSpace
                 }
                 catch (System.Exception)
                 {
-                    //CellSpace:´Ó×Ö·û´®×ª»»³ÉË÷ÒýÓÃµÄ¸ñÊ½ÎÞÐ§£¬×Ö·û´®±ØÐëÊÇ\"pixelX,pixelY,z\"¸ñÊ½
+                    //CellSpace:ä»Žå­—ç¬¦ä¸²è½¬æ¢æˆç´¢å¼•ç”¨çš„æ ¼å¼æ— æ•ˆï¼Œå­—ç¬¦ä¸²å¿…é¡»æ˜¯\"pixelX,pixelY,z\"æ ¼å¼
                     Debug.LogError("CellSpace: CPIndex.FromString: Invalid format. String must be in \"pixelX,pixelY,z\" format.");
                     return null;
                 }

@@ -2,22 +2,22 @@ using UnityEngine;
 
 namespace CellSpace.Examples
 {
-    // ½ÇÉ«ÒÆ¶¯Ïà¹ØµÄ½á¹¹Ìå£¬°üº¬¸÷ÖÖÒÆ¶¯ÊôĞÔ 
+    // è§’è‰²ç§»åŠ¨ç›¸å…³çš„ç»“æ„ä½“ï¼ŒåŒ…å«å„ç§ç§»åŠ¨å±æ€§ 
     public struct CPCharacterMotorMovement
     {
-        // ×î´óË®Æ½ËÙ¶È£¨ÏòÇ°¡¢Ïò²à¡¢Ïòºó£© 
+        // æœ€å¤§æ°´å¹³é€Ÿåº¦ï¼ˆå‘å‰ã€å‘ä¾§ã€å‘åï¼‰ 
         public float maxForwardSpeed;
         public float maxSidewaysSpeed;
         public float maxBackwardsSpeed;
-        // »ùÓÚÆÂ¶ÈµÄËÙ¶ÈÇúÏß 
+        // åŸºäºå¡åº¦çš„é€Ÿåº¦æ›²çº¿ 
         public AnimationCurve slopeSpeedMultiplier;
-        // µØÃæºÍ¿ÕÖĞµÄ×î´ó¼ÓËÙ¶È 
+        // åœ°é¢å’Œç©ºä¸­çš„æœ€å¤§åŠ é€Ÿåº¦ 
         public float maxGroundAcceleration;
         public float maxAirAcceleration;
-        // ÖØÁ¦ºÍ×î´óÏÂÂäËÙ¶È 
+        // é‡åŠ›å’Œæœ€å¤§ä¸‹è½é€Ÿåº¦ 
         public float gravity;
         public float maxFallSpeed;
-        // Åö×²±êÖ¾¡¢ËÙ¶ÈÏà¹Ø±äÁ¿¡¢Åö×²µãÏà¹Ø±äÁ¿ 
+        // ç¢°æ’æ ‡å¿—ã€é€Ÿåº¦ç›¸å…³å˜é‡ã€ç¢°æ’ç‚¹ç›¸å…³å˜é‡ 
         public CollisionFlags collisionFlags;
         public Vector3 velocity;
         public Vector3 frameVelocity;
@@ -25,17 +25,17 @@ namespace CellSpace.Examples
         public Vector3 lastHitPoint;
     }
 
-    // ÌøÔ¾Ïà¹ØµÄ½á¹¹Ìå£¬°üº¬ÌøÔ¾ÊôĞÔ 
+    // è·³è·ƒç›¸å…³çš„ç»“æ„ä½“ï¼ŒåŒ…å«è·³è·ƒå±æ€§ 
     public struct CPCharacterMotorJumping
     {
-        // ÄÜ·ñÌøÔ¾¡¢»ù´¡ÌøÔ¾¸ß¶È¡¢¶îÍâÌøÔ¾¸ß¶È 
+        // èƒ½å¦è·³è·ƒã€åŸºç¡€è·³è·ƒé«˜åº¦ã€é¢å¤–è·³è·ƒé«˜åº¦ 
         public bool enabled;
         public float baseHeight;
         public float extraHeight;
-        // ÔÚ¿ÉĞĞ×ß±íÃæºÍ¶¸ÇÍ±íÃæ´¹Ö±ÌøÔ¾µÄ³Ì¶È 
+        // åœ¨å¯è¡Œèµ°è¡¨é¢å’Œé™¡å³­è¡¨é¢å‚ç›´è·³è·ƒçš„ç¨‹åº¦ 
         public float perpAmount;
         public float steepPerpAmount;
-        // ÌøÔ¾Ïà¹ØµÄ×´Ì¬±äÁ¿ 
+        // è·³è·ƒç›¸å…³çš„çŠ¶æ€å˜é‡ 
         public bool jumping;
         public bool holdingJumpButton;
         public float lastStartTime;
@@ -43,7 +43,7 @@ namespace CellSpace.Examples
         public Vector3 jumpDir;
     }
 
-    // ÒÆ¶¯Æ½Ì¨Ïà¹ØµÄ½á¹¹Ìå£¬°üº¬ÒÆ¶¯Æ½Ì¨½»»¥µÄÊôĞÔ 
+    // ç§»åŠ¨å¹³å°ç›¸å…³çš„ç»“æ„ä½“ï¼ŒåŒ…å«ç§»åŠ¨å¹³å°äº¤äº’çš„å±æ€§ 
     public struct CPCharacterMotorMovingPlatform
     {
         public bool enabled;
@@ -59,7 +59,7 @@ namespace CellSpace.Examples
         public bool newPlatform;
     }
 
-    // »¬¶¯Ïà¹ØµÄ½á¹¹Ìå£¬°üº¬»¬¶¯ÊôĞÔ 
+    // æ»‘åŠ¨ç›¸å…³çš„ç»“æ„ä½“ï¼ŒåŒ…å«æ»‘åŠ¨å±æ€§ 
     public struct CPCharacterMotorSliding
     {
         public bool enabled;
@@ -68,7 +68,7 @@ namespace CellSpace.Examples
         public float speedControl;
     }
 
-    // ÌøÔ¾Ê±ËÙ¶È´«µİµÄÃ¶¾ÙÀàĞÍ 
+    // è·³è·ƒæ—¶é€Ÿåº¦ä¼ é€’çš„æšä¸¾ç±»å‹ 
     public enum CPMovementTransferOnJump
     {
         None,
@@ -77,21 +77,21 @@ namespace CellSpace.Examples
         PermaLocked
     }
 
-    //Õâ¸ö½Å±¾ÊµÏÖÁË½ÇÉ«µÄÒÆ¶¯¡¢ÌøÔ¾¡¢ÓëÒÆ¶¯Æ½Ì¨½»»¥ÒÔ¼°Ò»Ğ©ÎïÀíÏà¹ØµÄ²Ù×÷µÈ¹¦ÄÜ¡£ 
+    //è¿™ä¸ªè„šæœ¬å®ç°äº†è§’è‰²çš„ç§»åŠ¨ã€è·³è·ƒã€ä¸ç§»åŠ¨å¹³å°äº¤äº’ä»¥åŠä¸€äº›ç‰©ç†ç›¸å…³çš„æ“ä½œç­‰åŠŸèƒ½ã€‚ 
     public class CPCharacterMotor : MonoBehaviour
     {
-        // ÅĞ¶Ï½Å±¾ÊÇ·ñÏìÓ¦ÊäÈë 
+        // åˆ¤æ–­è„šæœ¬æ˜¯å¦å“åº”è¾“å…¥ 
         public bool canControl = true;
         public bool useFixedUpdate = true;
-        // ÊäÈëÒÆ¶¯·½ÏòºÍÌøÔ¾×´Ì¬ 
+        // è¾“å…¥ç§»åŠ¨æ–¹å‘å’Œè·³è·ƒçŠ¶æ€ 
         public Vector3 inputMoveDirection = Vector3.zero;
         public bool inputJump = false;
-        // ¸÷¸ö¹¦ÄÜÄ£¿éµÄÊµÀı 
+        // å„ä¸ªåŠŸèƒ½æ¨¡å—çš„å®ä¾‹ 
         public CPCharacterMotorMovement movement = new CPCharacterMotorMovement();
         public CPCharacterMotorJumping jumping = new CPCharacterMotorJumping();
         public CPCharacterMotorMovingPlatform movingPlatform = new CPCharacterMotorMovingPlatform();
         public CPCharacterMotorSliding sliding = new CPCharacterMotorSliding();
-        // ÊÇ·ñÔÚµØÃæÉÏºÍµØÃæ·¨ÏßÏòÁ¿ 
+        // æ˜¯å¦åœ¨åœ°é¢ä¸Šå’Œåœ°é¢æ³•çº¿å‘é‡ 
         public bool grounded = true;
         public Vector3 groundNormal = Vector3.zero;
         private Vector3 lastGroundNormal = Vector3.zero;
@@ -100,7 +100,7 @@ namespace CellSpace.Examples
 
         private void Awake()
         {
-            // »ñÈ¡½ÇÉ«¿ØÖÆÆ÷ 
+            // è·å–è§’è‰²æ§åˆ¶å™¨ 
             controller = GetComponent<CharacterController>();
             tr = transform;
         }
@@ -125,14 +125,14 @@ namespace CellSpace.Examples
 
         private void UpdateFunction()
         {
-            // ¸´ÖÆÊµ¼ÊËÙ¶Èµ½ÁÙÊ±±äÁ¿ÒÔ±ã²Ù×÷ 
+            // å¤åˆ¶å®é™…é€Ÿåº¦åˆ°ä¸´æ—¶å˜é‡ä»¥ä¾¿æ“ä½œ 
             Vector3 velocity = movement.velocity;
-            // ¸ù¾İÊäÈë¸üĞÂËÙ¶È 
+            // æ ¹æ®è¾“å…¥æ›´æ–°é€Ÿåº¦ 
             velocity = ApplyInputVelocityChange(velocity);
-            // Ó¦ÓÃÖØÁ¦ºÍÌøÔ¾Á¦ 
+            // åº”ç”¨é‡åŠ›å’Œè·³è·ƒåŠ› 
             velocity = ApplyGravityAndJumping(velocity);
 
-            // ÒÆ¶¯Æ½Ì¨Ö§³Ö 
+            // ç§»åŠ¨å¹³å°æ”¯æŒ 
             Vector3 moveDistance = Vector3.zero;
             if (MoveWithPlatform())
             {
@@ -143,35 +143,35 @@ namespace CellSpace.Examples
                     controller.Move(moveDistance);
                 }
 
-                // Ö§³ÖÒÆ¶¯Æ½Ì¨Ğı×ª 
+                // æ”¯æŒç§»åŠ¨å¹³å°æ—‹è½¬ 
                 Quaternion newGlobalRotation = movingPlatform.activePlatform.rotation * movingPlatform.activeLocalRotation;
                 Quaternion rotationDiff = newGlobalRotation * Quaternion.Inverse(movingPlatform.activeGlobalRotation);
                 float yRotation = rotationDiff.eulerAngles.y;
                 if (yRotation != 0)
                 {
-                    // ·ÀÖ¹¾Ö²¿ÏòÉÏÏòÁ¿Ğı×ª 
+                    // é˜²æ­¢å±€éƒ¨å‘ä¸Šå‘é‡æ—‹è½¬ 
                     tr.Rotate(0, yRotation, 0);
                 }
             }
 
-            // ±£´æÉÏÒ»Î»ÖÃÓÃÓÚËÙ¶È¼ÆËã 
+            // ä¿å­˜ä¸Šä¸€ä½ç½®ç”¨äºé€Ÿåº¦è®¡ç®— 
             Vector3 lastPosition = tr.position;
 
-            // Ê¹ÒÆ¶¯¶ÀÁ¢ÓÚÖ¡ÂÊ 
+            // ä½¿ç§»åŠ¨ç‹¬ç«‹äºå¸§ç‡ 
             Vector3 currentMovementOffset = velocity * Time.deltaTime;
 
-            // ¼ÆËãÏòÏÂÍÆ¶¯µÄÆ«ÒÆÁ¿ÒÔ±ÜÃâÊ§È¥½ÓµØ 
+            // è®¡ç®—å‘ä¸‹æ¨åŠ¨çš„åç§»é‡ä»¥é¿å…å¤±å»æ¥åœ° 
             float pushDownOffset = Mathf.Max(controller.stepOffset, new Vector3(currentMovementOffset.x, 0, currentMovementOffset.z).magnitude);
             if (grounded)
             {
                 currentMovementOffset -= pushDownOffset * Vector3.up;
             }
 
-            // ÖØÖÃ½«ÓÉÅö×²º¯ÊıÉèÖÃµÄ±äÁ¿ 
+            // é‡ç½®å°†ç”±ç¢°æ’å‡½æ•°è®¾ç½®çš„å˜é‡ 
             movingPlatform.hitPlatform = null;
             groundNormal = Vector3.zero;
 
-            // ÒÆ¶¯½ÇÉ« 
+            // ç§»åŠ¨è§’è‰² 
             movement.collisionFlags = controller.Move(currentMovementOffset);
             movement.lastHitPoint = movement.hitPoint;
             lastGroundNormal = groundNormal;
@@ -186,12 +186,12 @@ namespace CellSpace.Examples
                 }
             }
 
-            // ¸ù¾İµ±Ç°ºÍÖ®Ç°µÄÎ»ÖÃ¼ÆËãËÙ¶È 
+            // æ ¹æ®å½“å‰å’Œä¹‹å‰çš„ä½ç½®è®¡ç®—é€Ÿåº¦ 
             Vector3 oldHVelocity = new Vector3(velocity.x, 0, velocity.x);
             movement.velocity = (tr.position - lastPosition) / Time.deltaTime;
             Vector3 newHVelocity = new Vector3(movement.velocity.x, 0, movement.velocity.z);
 
-            // ·ÀÖ¹½ÇÉ«¿ØÖÆÆ÷ÔÚÅö×²Ê±ÊÜµ½²»±ØÒª·½ÏòµÄÓ°Ïì 
+            // é˜²æ­¢è§’è‰²æ§åˆ¶å™¨åœ¨ç¢°æ’æ—¶å—åˆ°ä¸å¿…è¦æ–¹å‘çš„å½±å“ 
             if (oldHVelocity == Vector3.zero)
             {
                 movement.velocity = new Vector3(0, movement.velocity.y, 0);
@@ -206,36 +206,36 @@ namespace CellSpace.Examples
             {
                 if (movement.velocity.y < 0)
                 {
-                    // ËÙ¶È±»Òì³£ÏòÏÂ¸Ä±äÊ±£¬ºöÂÔ¸Ã¸Ä±ä 
+                    // é€Ÿåº¦è¢«å¼‚å¸¸å‘ä¸‹æ”¹å˜æ—¶ï¼Œå¿½ç•¥è¯¥æ”¹å˜ 
                     movement.velocity.y = velocity.y;
                 }
                 else
                 {
-                    // ÏòÉÏÒÆ¶¯±»×èµ²£¬ÊÓÎªÅöµ½Ìì»¨°å£¬Í£Ö¹½øÒ»²½ÌøÔ¾ 
+                    // å‘ä¸Šç§»åŠ¨è¢«é˜»æŒ¡ï¼Œè§†ä¸ºç¢°åˆ°å¤©èŠ±æ¿ï¼Œåœæ­¢è¿›ä¸€æ­¥è·³è·ƒ 
                     jumping.holdingJumpButton = false;
                 }
             }
 
-            // ´Ó½ÓµØ×´Ì¬±äÎª·Ç½ÓµØ×´Ì¬Ê±µÄ´¦Àí 
+            // ä»æ¥åœ°çŠ¶æ€å˜ä¸ºéæ¥åœ°çŠ¶æ€æ—¶çš„å¤„ç† 
             if (grounded && !IsGroundedTest())
             {
                 grounded = false;
-                // Ó¦ÓÃÆ½Ì¨¹ßĞÔ 
+                // åº”ç”¨å¹³å°æƒ¯æ€§ 
                 if (movingPlatform.enabled && (movingPlatform.movementTransfer == CPMovementTransferOnJump.InitTransfer || movingPlatform.movementTransfer == CPMovementTransferOnJump.PermaTransfer))
                 {
                     movement.frameVelocity = movingPlatform.platformVelocity;
                     movement.velocity += movingPlatform.platformVelocity;
                 }
                 SendMessage("OnFall", SendMessageOptions.DontRequireReceiver);
-                // È¡ÏûÏòÏÂµÄÆ«ÒÆÁ¿Ê¹ÏÂÂä¸üÆ½»¬ 
+                // å–æ¶ˆå‘ä¸‹çš„åç§»é‡ä½¿ä¸‹è½æ›´å¹³æ»‘ 
                 tr.position += pushDownOffset * Vector3.up;
             }
         }
 
-        // ¸ù¾İÊäÈë¸Ä±äËÙ¶ÈµÄ·½·¨£¨ÕâÀïĞèÒª¸ù¾İ¾ßÌåÓÎÏ·ÊäÈëÂß¼­ÍêÉÆ£© 
+        // æ ¹æ®è¾“å…¥æ”¹å˜é€Ÿåº¦çš„æ–¹æ³•ï¼ˆè¿™é‡Œéœ€è¦æ ¹æ®å…·ä½“æ¸¸æˆè¾“å…¥é€»è¾‘å®Œå–„ï¼‰ 
         private Vector3 ApplyInputVelocityChange(Vector3 velocity)
         {
-            // ÕâÀïÖ»ÊÇÊ¾Àı£¬Êµ¼ÊĞèÒª¸ù¾İÊäÈëÏµÍ³»ñÈ¡ÕıÈ·µÄÊäÈë·½Ïò 
+            // è¿™é‡Œåªæ˜¯ç¤ºä¾‹ï¼Œå®é™…éœ€è¦æ ¹æ®è¾“å…¥ç³»ç»Ÿè·å–æ­£ç¡®çš„è¾“å…¥æ–¹å‘ 
             if (canControl)
             {
                 velocity.x = inputMoveDirection.x;
@@ -244,7 +244,7 @@ namespace CellSpace.Examples
             return velocity;
         }
 
-        // Ó¦ÓÃÖØÁ¦ºÍÌøÔ¾Á¦µÄ·½·¨£¨ÕâÀïĞèÒª¸ù¾İ¾ßÌåÎïÀíÂß¼­ÍêÉÆÌøÔ¾²¿·Ö£© 
+        // åº”ç”¨é‡åŠ›å’Œè·³è·ƒåŠ›çš„æ–¹æ³•ï¼ˆè¿™é‡Œéœ€è¦æ ¹æ®å…·ä½“ç‰©ç†é€»è¾‘å®Œå–„è·³è·ƒéƒ¨åˆ†ï¼‰ 
         private Vector3 ApplyGravityAndJumping(Vector3 velocity)
         {
             if (!grounded)
@@ -257,7 +257,7 @@ namespace CellSpace.Examples
             }
             else if (inputJump && jumping.enabled)
             {
-                // ÕâÀïÖ»ÊÇ¼òµ¥Ê¾Àı£¬Êµ¼ÊÌøÔ¾Âß¼­¸ü¸´ÔÓ 
+                // è¿™é‡Œåªæ˜¯ç®€å•ç¤ºä¾‹ï¼Œå®é™…è·³è·ƒé€»è¾‘æ›´å¤æ‚ 
                 velocity.y = Mathf.Sqrt(2 * jumping.baseHeight * movement.gravity);
                 jumping.jumping = true;
                 jumping.lastStartTime = Time.time;
@@ -266,13 +266,13 @@ namespace CellSpace.Examples
             return velocity;
         }
 
-        // ÓëÒÆ¶¯Æ½Ì¨½»»¥µÄ·½·¨ 
+        // ä¸ç§»åŠ¨å¹³å°äº¤äº’çš„æ–¹æ³• 
         private bool MoveWithPlatform()
         {
             return movingPlatform.enabled && movingPlatform.activePlatform != null;
         }
 
-        // ¼ì²âÊÇ·ñ½ÓµØµÄ²âÊÔ·½·¨£¨ÕâÀïĞèÒª¸ù¾İ¾ßÌåÅö×²¼ì²âÂß¼­ÍêÉÆ£© 
+        // æ£€æµ‹æ˜¯å¦æ¥åœ°çš„æµ‹è¯•æ–¹æ³•ï¼ˆè¿™é‡Œéœ€è¦æ ¹æ®å…·ä½“ç¢°æ’æ£€æµ‹é€»è¾‘å®Œå–„ï¼‰ 
         private bool IsGroundedTest()
         {
             return false;
@@ -280,21 +280,21 @@ namespace CellSpace.Examples
     }
 }
 
-//1.½á¹¹ÌåºÍÃ¶¾ÙµÄ¶¨Òå
-//   - Ê×ÏÈ¶¨ÒåÁË`CPCharacterMotorMovement`¡¢`CPCharacterMotorJumping`¡¢`CPCharacterMotorMovingPlatform`ºÍ`CPCharacterMotorSliding`½á¹¹Ìå£¬ËüÃÇ·Ö±ğ°üº¬ÁËÓë½ÇÉ«ÒÆ¶¯¡¢ÌøÔ¾¡¢ÓëÒÆ¶¯Æ½Ì¨½»»¥ÒÔ¼°»¬¶¯Ïà¹ØµÄÊôĞÔ¡£ 
-//   - ¶¨ÒåÁË`CPMovementTransferOnJump`Ã¶¾ÙÀàĞÍ£¬ÓÃÓÚ±íÊ¾ÌøÔ¾Ê±ËÙ¶È´«µİµÄ·½Ê½¡£ 
-//2. ÀàµÄ¶¨ÒåºÍ³õÊ¼»¯ 
-//   - ¶¨ÒåÁË`CPCharacterMotor`Àà£¬Ëü¼Ì³Ğ×Ô`MonoBehaviour`¡£ÔÚÀàÖĞ¶¨ÒåÁË¸÷ÖÖ¹«¹²ºÍË½ÓĞ±äÁ¿£¬°üÀ¨±íÊ¾½ÇÉ«×´Ì¬µÄ±äÁ¿£¨Èç`canControl`¡¢`grounded`µÈ£©ÒÔ¼°¸÷¸ö¹¦ÄÜÄ£¿éµÄÊµÀı¡£ 
-//   - ÔÚ`Awake`·½·¨ÖĞ»ñÈ¡`CharacterController`×é¼ş²¢³õÊ¼»¯`tr`£¨½ÇÉ«µÄ`Transform`£©¡£ 
-//3. ¸üĞÂÂß¼­ 
-//   - ÔÚ`Update`ºÍ`FixedUpdate`·½·¨ÖĞ¸ù¾İ`useFixedUpdate`±äÁ¿¾ö¶¨µ÷ÓÃ`UpdateFunction`·½·¨¡£ 
-//   - `UpdateFunction`·½·¨°üº¬ÁË½ÇÉ«ÒÆ¶¯¡¢ÌøÔ¾¡¢ÓëÒÆ¶¯Æ½Ì¨½»»¥µÈÒ»ÏµÁĞÂß¼­µÄÊµÏÖ¡£ 
-//     - Ê×ÏÈ´¦ÀíËÙ¶ÈµÄ¸üĞÂ£¬°üÀ¨¸ù¾İÊäÈë¸üĞÂËÙ¶È¡¢Ó¦ÓÃÖØÁ¦ºÍÌøÔ¾Á¦¡£ 
-//     - ½Ó×Å´¦ÀíÓëÒÆ¶¯Æ½Ì¨µÄ½»»¥£¬°üÀ¨ÒÆ¶¯ºÍĞı×ªÏà¹ØµÄÂß¼­¡£ 
-//     - È»ºó½øĞĞ½ÇÉ«µÄÒÆ¶¯²Ù×÷£¬°üÀ¨´¦ÀíÅö×²Ïà¹ØµÄÂß¼­¡¢¼ÆËãËÙ¶ÈµÈ¡£ 
-//     - ×îºó´¦Àí½ÇÉ«´Ó½ÓµØµ½·Ç½ÓµØ×´Ì¬µÄ×ª»»Âß¼­¡£ 
-//4. ¹¦ÄÜ·½·¨ 
-//   - `ApplyInputVelocityChange`·½·¨¸ù¾İÊäÈë¸Ä±äËÙ¶È£¬µ«ÕâÀïÖ»ÊÇ¼òµ¥Ê¾Àı£¬Êµ¼ÊĞèÒª¸ù¾İÓÎÏ·µÄÊäÈëÏµÍ³½øĞĞÍêÉÆ¡£ 
-//   - `ApplyGravityAndJumping`·½·¨Ó¦ÓÃÖØÁ¦ºÍÌøÔ¾Á¦£¬ÌøÔ¾²¿·ÖµÄÂß¼­Ò²Ö»ÊÇ¼òµ¥Ê¾Àı£¬ĞèÒª½øÒ»²½ÍêÉÆ¡£ 
-//   - `MoveWithPlatform`·½·¨ÓÃÓÚÅĞ¶ÏÊÇ·ñÓëÒÆ¶¯Æ½Ì¨½»»¥¡£ 
-//   - `IsGroundedTest`·½·¨ÓÃÓÚ¼ì²â½ÇÉ«ÊÇ·ñ½ÓµØ£¬ÕâÀïÖ»ÊÇ¼òµ¥·µ»Ø`false`£¬Êµ¼ÊĞèÒª¸ù¾İ¾ßÌåµÄÅö×²¼ì²âÂß¼­À´ÊµÏÖ¡£
+//1.ç»“æ„ä½“å’Œæšä¸¾çš„å®šä¹‰
+//   - é¦–å…ˆå®šä¹‰äº†`CPCharacterMotorMovement`ã€`CPCharacterMotorJumping`ã€`CPCharacterMotorMovingPlatform`å’Œ`CPCharacterMotorSliding`ç»“æ„ä½“ï¼Œå®ƒä»¬åˆ†åˆ«åŒ…å«äº†ä¸è§’è‰²ç§»åŠ¨ã€è·³è·ƒã€ä¸ç§»åŠ¨å¹³å°äº¤äº’ä»¥åŠæ»‘åŠ¨ç›¸å…³çš„å±æ€§ã€‚ 
+//   - å®šä¹‰äº†`CPMovementTransferOnJump`æšä¸¾ç±»å‹ï¼Œç”¨äºè¡¨ç¤ºè·³è·ƒæ—¶é€Ÿåº¦ä¼ é€’çš„æ–¹å¼ã€‚ 
+//2. ç±»çš„å®šä¹‰å’Œåˆå§‹åŒ– 
+//   - å®šä¹‰äº†`CPCharacterMotor`ç±»ï¼Œå®ƒç»§æ‰¿è‡ª`MonoBehaviour`ã€‚åœ¨ç±»ä¸­å®šä¹‰äº†å„ç§å…¬å…±å’Œç§æœ‰å˜é‡ï¼ŒåŒ…æ‹¬è¡¨ç¤ºè§’è‰²çŠ¶æ€çš„å˜é‡ï¼ˆå¦‚`canControl`ã€`grounded`ç­‰ï¼‰ä»¥åŠå„ä¸ªåŠŸèƒ½æ¨¡å—çš„å®ä¾‹ã€‚ 
+//   - åœ¨`Awake`æ–¹æ³•ä¸­è·å–`CharacterController`ç»„ä»¶å¹¶åˆå§‹åŒ–`tr`ï¼ˆè§’è‰²çš„`Transform`ï¼‰ã€‚ 
+//3. æ›´æ–°é€»è¾‘ 
+//   - åœ¨`Update`å’Œ`FixedUpdate`æ–¹æ³•ä¸­æ ¹æ®`useFixedUpdate`å˜é‡å†³å®šè°ƒç”¨`UpdateFunction`æ–¹æ³•ã€‚ 
+//   - `UpdateFunction`æ–¹æ³•åŒ…å«äº†è§’è‰²ç§»åŠ¨ã€è·³è·ƒã€ä¸ç§»åŠ¨å¹³å°äº¤äº’ç­‰ä¸€ç³»åˆ—é€»è¾‘çš„å®ç°ã€‚ 
+//     - é¦–å…ˆå¤„ç†é€Ÿåº¦çš„æ›´æ–°ï¼ŒåŒ…æ‹¬æ ¹æ®è¾“å…¥æ›´æ–°é€Ÿåº¦ã€åº”ç”¨é‡åŠ›å’Œè·³è·ƒåŠ›ã€‚ 
+//     - æ¥ç€å¤„ç†ä¸ç§»åŠ¨å¹³å°çš„äº¤äº’ï¼ŒåŒ…æ‹¬ç§»åŠ¨å’Œæ—‹è½¬ç›¸å…³çš„é€»è¾‘ã€‚ 
+//     - ç„¶åè¿›è¡Œè§’è‰²çš„ç§»åŠ¨æ“ä½œï¼ŒåŒ…æ‹¬å¤„ç†ç¢°æ’ç›¸å…³çš„é€»è¾‘ã€è®¡ç®—é€Ÿåº¦ç­‰ã€‚ 
+//     - æœ€åå¤„ç†è§’è‰²ä»æ¥åœ°åˆ°éæ¥åœ°çŠ¶æ€çš„è½¬æ¢é€»è¾‘ã€‚ 
+//4. åŠŸèƒ½æ–¹æ³• 
+//   - `ApplyInputVelocityChange`æ–¹æ³•æ ¹æ®è¾“å…¥æ”¹å˜é€Ÿåº¦ï¼Œä½†è¿™é‡Œåªæ˜¯ç®€å•ç¤ºä¾‹ï¼Œå®é™…éœ€è¦æ ¹æ®æ¸¸æˆçš„è¾“å…¥ç³»ç»Ÿè¿›è¡Œå®Œå–„ã€‚ 
+//   - `ApplyGravityAndJumping`æ–¹æ³•åº”ç”¨é‡åŠ›å’Œè·³è·ƒåŠ›ï¼Œè·³è·ƒéƒ¨åˆ†çš„é€»è¾‘ä¹Ÿåªæ˜¯ç®€å•ç¤ºä¾‹ï¼Œéœ€è¦è¿›ä¸€æ­¥å®Œå–„ã€‚ 
+//   - `MoveWithPlatform`æ–¹æ³•ç”¨äºåˆ¤æ–­æ˜¯å¦ä¸ç§»åŠ¨å¹³å°äº¤äº’ã€‚ 
+//   - `IsGroundedTest`æ–¹æ³•ç”¨äºæ£€æµ‹è§’è‰²æ˜¯å¦æ¥åœ°ï¼Œè¿™é‡Œåªæ˜¯ç®€å•è¿”å›`false`ï¼Œå®é™…éœ€è¦æ ¹æ®å…·ä½“çš„ç¢°æ’æ£€æµ‹é€»è¾‘æ¥å®ç°ã€‚

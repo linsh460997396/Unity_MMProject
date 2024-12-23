@@ -16,7 +16,7 @@ namespace CellSpace.Examples
                 {
                     if (CPEngine.GetCellType(i) != null)
                     {
-                        //æŸ∆∑ΩøÈ
+                        //‰∏æËµ∑ÊñπÂùó
                         HeldBlock = i;
                         Debug.Log("Held block is now:" + i.ToString());
                     }

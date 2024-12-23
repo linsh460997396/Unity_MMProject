@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using System;
 #if UNITY_EDITOR|| UNITY_STANDALONE
 //WIN上的Unity编辑器、独立应用程序
@@ -21,19 +21,19 @@ namespace MetalMaxSystem
         /// 这是 LOAD_LIBRARY_SEARCH_APPLICATION_DIR、LOAD_LIBRARY_SEARCH_SYSTEM32 和 LOAD_LIBRARY_SEARCH_USER_DIRS 的组合。
         /// 它代表应用程序在其DLL搜索路径中应包含的最大推荐目录数。
         /// </summary>
-        const int LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
+        public const int LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
         /// <summary>
         /// 作为SetDefaultDllDirectories()参数，搜索应用程序的安装目录
         /// </summary>
-        const int LOAD_LIBRARY_SEARCH_APPLICATION_DIR = 0x00000200;
+        public const int LOAD_LIBRARY_SEARCH_APPLICATION_DIR = 0x00000200;
         /// <summary>
         /// 作为SetDefaultDllDirectories()参数，搜索 %windows%\system32 目录
         /// </summary>
-        const int LOAD_LIBRARY_SEARCH_SYSTEM32 = 0x00000800;
+        public const int LOAD_LIBRARY_SEARCH_SYSTEM32 = 0x00000800;
         /// <summary>
         /// 作为SetDefaultDllDirectories()参数，搜索使用 AddDllDirectory 或 SetDllDirectory 函数明确添加的任何路径
         /// </summary>
-        const int LOAD_LIBRARY_SEARCH_USER_DIRS = 0x00000400;
+        public const int LOAD_LIBRARY_SEARCH_USER_DIRS = 0x00000400;
 
         /*************************************************************************/
         // core funcs
@@ -114,7 +114,7 @@ namespace MetalMaxSystem
         /*************************************************************************/
 
         /// <summary>
-        /// 读取Application.dataPath/Plugins/下的dll。注意Application.dataPath打包前是Assets文件夹下的路径，打包后是识别exe程序名称_Data文件夹下的路径
+        /// 读取Application.dataPath/Plugins/下的dll。注意Application.dataPath打包前是Assets目录下的路径，打包后是识别exe程序名称_Data目录下的路径
         /// </summary>
         /// <param name="type">填写typeof(Dll)即可</param>
         /// <param name="fileName">dllName.dll</param>

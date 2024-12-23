@@ -8,26 +8,26 @@ namespace CellSpace
     // CellInfo. adjacentIndex stores the voxel adjacent to the hit face.
 
     /// <summary>
-    /// ÌåËØµ¥ÔªÐÅÏ¢¡£Ïà±Èµ¥ÔªÀàÐÍËüÏàµ±ÓÚÔÚÊµÀý½¨Á¢Ê±¶îÍâ´æ´¢ÁËÍÅ¿éÓÎÏ·ÎïÌåºÍÍÅ¿éÖÐÌØ¶¨µ¥ÔªµÄË÷Òý£¨Î»ÖÃÐÅÏ¢£©¡£
-    /// Õâ¸öÀà»¹¿É´æ´¢ÏàÁÚµ¥ÔªË÷Òý£¬ÕâÔÚCPEngineÀàµÄCellRaycastº¯ÊýÖÐÓÃµ½£ºindex´æ´¢±»¹âÏßÍ¶Éä»÷ÖÐµÄµ¥ÔªË÷Òý£¬adjacentIndexÔò´æ´¢±»»÷ÖÐÃæÏàÁÚµÄµ¥Ôª¡£
+    /// ä½“ç´ å•å…ƒä¿¡æ¯ã€‚ç›¸æ¯”å•å…ƒç±»åž‹å®ƒç›¸å½“äºŽåœ¨å®žä¾‹å»ºç«‹æ—¶é¢å¤–å­˜å‚¨äº†å›¢å—æ¸¸æˆç‰©ä½“å’Œå›¢å—ä¸­ç‰¹å®šå•å…ƒçš„ç´¢å¼•ï¼ˆä½ç½®ä¿¡æ¯ï¼‰ã€‚
+    /// è¿™ä¸ªç±»è¿˜å¯å­˜å‚¨ç›¸é‚»å•å…ƒç´¢å¼•ï¼Œè¿™åœ¨CPEngineç±»çš„CellRaycastå‡½æ•°ä¸­ç”¨åˆ°ï¼šindexå­˜å‚¨è¢«å…‰çº¿æŠ•å°„å‡»ä¸­çš„å•å…ƒç´¢å¼•ï¼ŒadjacentIndexåˆ™å­˜å‚¨è¢«å‡»ä¸­é¢ç›¸é‚»çš„å•å…ƒã€‚
     /// </summary>
     public class CellInfo
     {
         /// <summary>
-        /// µ¥ÔªË÷Òý
+        /// å•å…ƒç´¢å¼•
         /// </summary>
         public CPIndex index;
         /// <summary>
-        /// ÏàÁÚµ¥ÔªË÷Òý
+        /// ç›¸é‚»å•å…ƒç´¢å¼•
         /// </summary>
         public CPIndex adjacentIndex;
         /// <summary>
-        /// ÍÅ¿é
+        /// å›¢å—
         /// </summary>
         public CellChunk chunk;
 
         /// <summary>
-        /// ÓÃµ¥ÔªË÷Òý(pixelX,pixelY,z)ºÍÍÅ¿é¶ÔÏó'chunk'´´½¨Ò»¸öÐÂµÄCellInfo¡£
+        /// ç”¨å•å…ƒç´¢å¼•(pixelX,pixelY,z)å’Œå›¢å—å¯¹è±¡'chunk'åˆ›å»ºä¸€ä¸ªæ–°çš„CellInfoã€‚
         /// </summary>
         /// <param name="setX"></param>
         /// <param name="setY"></param>
@@ -44,7 +44,7 @@ namespace CellSpace
             this.chunk = setChunk;
         }
         /// <summary>
-        /// ÓÃµ¥ÔªË÷Òý(pixelX,pixelY)ºÍÍÅ¿é¶ÔÏó'chunk'´´½¨Ò»¸öÐÂµÄCellInfo¡£
+        /// ç”¨å•å…ƒç´¢å¼•(pixelX,pixelY)å’Œå›¢å—å¯¹è±¡'chunk'åˆ›å»ºä¸€ä¸ªæ–°çš„CellInfoã€‚
         /// </summary>
         /// <param name="setX"></param>
         /// <param name="setY"></param>
@@ -57,7 +57,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ÓÃµ¥ÔªË÷Òý(pixelX,pixelY,z)£¬ÏàÁÚµ¥ÔªË÷Òý(pixelX,pixelY,z)ºÍÍÅ¿é¶ÔÏó'chunk'´´½¨Ò»¸öÐÂµÄCellInfo¡£
+        /// ç”¨å•å…ƒç´¢å¼•(pixelX,pixelY,z)ï¼Œç›¸é‚»å•å…ƒç´¢å¼•(pixelX,pixelY,z)å’Œå›¢å—å¯¹è±¡'chunk'åˆ›å»ºä¸€ä¸ªæ–°çš„CellInfoã€‚
         /// </summary>
         /// <param name="setX"></param>
         /// <param name="setY"></param>
@@ -83,7 +83,7 @@ namespace CellSpace
             this.chunk = setChunk;
         }
         /// <summary>
-        /// ÓÃµ¥ÔªË÷Òý(pixelX,pixelY)£¬ÏàÁÚµ¥ÔªË÷Òý(pixelX,pixelY)ºÍÍÅ¿é¶ÔÏó'chunk'´´½¨Ò»¸öÐÂµÄCellInfo¡£
+        /// ç”¨å•å…ƒç´¢å¼•(pixelX,pixelY)ï¼Œç›¸é‚»å•å…ƒç´¢å¼•(pixelX,pixelY)å’Œå›¢å—å¯¹è±¡'chunk'åˆ›å»ºä¸€ä¸ªæ–°çš„CellInfoã€‚
         /// </summary>
         /// <param name="setX"></param>
         /// <param name="setY"></param>
@@ -100,7 +100,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ÓÃµ¥ÔªË÷ÒýºÍÍÅ¿é¶ÔÏó'chunk'´´½¨Ò»¸öÐÂµÄCellInfo¡£
+        /// ç”¨å•å…ƒç´¢å¼•å’Œå›¢å—å¯¹è±¡'chunk'åˆ›å»ºä¸€ä¸ªæ–°çš„CellInfoã€‚
         /// </summary>
         /// <param name="setIndex"></param>
         /// <param name="setChunk"></param>
@@ -110,7 +110,7 @@ namespace CellSpace
             this.chunk = setChunk;
         }
         /// <summary>
-        /// ÓÃµ¥ÔªË÷Òý£¬ÏàÁÚµ¥ÔªË÷ÒýºÍÍÅ¿é¶ÔÏó'chunk'´´½¨Ò»¸öÐÂµÄCellInfo¡£
+        /// ç”¨å•å…ƒç´¢å¼•ï¼Œç›¸é‚»å•å…ƒç´¢å¼•å’Œå›¢å—å¯¹è±¡'chunk'åˆ›å»ºä¸€ä¸ªæ–°çš„CellInfoã€‚
         /// </summary>
         /// <param name="setIndex"></param>
         /// <param name="setAdjacentIndex"></param>
@@ -123,7 +123,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ·µ»ØÌåËØID£¨ÌåËØ¿éÔ¤ÖÆÌåÖÖÀà£©
+        /// è¿”å›žä½“ç´ IDï¼ˆä½“ç´ å—é¢„åˆ¶ä½“ç§ç±»ï¼‰
         /// </summary>
         /// <returns></returns>
         public ushort GetCellID()
@@ -131,7 +131,7 @@ namespace CellSpace
             return chunk.GetCellID(index);
         }
         /// <summary>
-        /// ·µ»ØÓëÌåËØID¶ÔÓ¦µÄµ¥Ôª£¨×é¼þ£©¡£
+        /// è¿”å›žä¸Žä½“ç´ IDå¯¹åº”çš„å•å…ƒï¼ˆç»„ä»¶ï¼‰ã€‚
         /// </summary>
         /// <returns></returns>
         public Cell GetCellType()
@@ -139,7 +139,7 @@ namespace CellSpace
             return CPEngine.GetCellType(chunk.GetCellID(index));
         }
         /// <summary>
-        /// ·µ»ØÏàÁÚµ¥ÔªµÄÌåËØID£¨ÌåËØ¿éÔ¤ÖÆÌåÖÖÀà£©
+        /// è¿”å›žç›¸é‚»å•å…ƒçš„ä½“ç´ IDï¼ˆä½“ç´ å—é¢„åˆ¶ä½“ç§ç±»ï¼‰
         /// </summary>
         /// <returns></returns>
         public ushort GetAdjacentCell()
@@ -147,7 +147,7 @@ namespace CellSpace
             return chunk.GetCellID(adjacentIndex);
         }
         /// <summary>
-        /// ·µ»ØÓëÏàÁÚÌåËØID¶ÔÓ¦µÄµ¥Ôª£¨×é¼þ£©¡£
+        /// è¿”å›žä¸Žç›¸é‚»ä½“ç´ IDå¯¹åº”çš„å•å…ƒï¼ˆç»„ä»¶ï¼‰ã€‚
         /// </summary>
         /// <returns></returns>
         public Cell GetAdjacentCellType()
@@ -156,9 +156,9 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ¸ü¸Ä´æ´¢ÔÚCellInfoÖÐµÄµ¥ÔªÊý¾Ý£¬Èç¹ûupdateMeshÎªtrue£¬Ôò¶Ô±ê¼ÇÍÅ¿éµÄÍø¸ñ½øÐÐ¸üÐÂ¡£µ±ÍÅ¿éË÷Òý³¬¹ýÍÅ¿é±ß½çÊ±½«¸Ä±äÏàÓ¦ÍÅ¿éÖÐµÄµ¥ÔªÊý¾Ý£¨Èçµ±Ç°ÒÑÊµÀý»¯£©¡£
+        /// æ›´æ”¹å­˜å‚¨åœ¨CellInfoä¸­çš„å•å…ƒæ•°æ®ï¼Œå¦‚æžœupdateMeshä¸ºtrueï¼Œåˆ™å¯¹æ ‡è®°å›¢å—çš„ç½‘æ ¼è¿›è¡Œæ›´æ–°ã€‚å½“å›¢å—ç´¢å¼•è¶…è¿‡å›¢å—è¾¹ç•Œæ—¶å°†æ”¹å˜ç›¸åº”å›¢å—ä¸­çš„å•å…ƒæ•°æ®ï¼ˆå¦‚å½“å‰å·²å®žä¾‹åŒ–ï¼‰ã€‚
         /// </summary>
-        /// <param name="data">ÌåËØID£¬½«±ä¸ü³ÉÕâ¸öÌåËØ¿éÖÖÀà</param>
+        /// <param name="data">ä½“ç´ IDï¼Œå°†å˜æ›´æˆè¿™ä¸ªä½“ç´ å—ç§ç±»</param>
         /// <param name="updateMesh"></param>
         public void SetCell(ushort data, bool updateMesh)
         {

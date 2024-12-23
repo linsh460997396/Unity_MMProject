@@ -7,30 +7,30 @@
 //    /// </summary>
 //    public class TE_DrawLine3D : MonoBehaviour
 //    {
-//        public Transform handle;//¼ÓÈëÕâ¸öÊÇÊÖ±ú
+//        public Transform handle;//åŠ å…¥è¿™ä¸ªæ˜¯æ‰‹æŸ„
 //        public Material mat;
-//        private bool isDraw;//±ê¼Çµ±Ç°ÊÇ·ñÕı»­Ïß
+//        private bool isDraw;//æ ‡è®°å½“å‰æ˜¯å¦æ­£ç”»çº¿
 //        private LineRenderer line;
-//        private Vector3 lastPos;//¼ÇÂ¼Ò»ÏÂÉÏÒ»¶ÙÊÖ±úµÄÎ»ÖÃ:
+//        private Vector3 lastPos;//è®°å½•ä¸€ä¸‹ä¸Šä¸€é¡¿æ‰‹æŸ„çš„ä½ç½®:
 
 //        void Update()
 //        {
-//            //°´ÏÂÊÖ±ú°â»ú¼ü£¬Ã¿´Î°´ÏÂµÄÊ±ºò¶¼»á´´½¨Ò»¸öĞÂµÄÏß¶Î
+//            //æŒ‰ä¸‹æ‰‹æŸ„æ‰³æœºé”®ï¼Œæ¯æ¬¡æŒ‰ä¸‹çš„æ—¶å€™éƒ½ä¼šåˆ›å»ºä¸€ä¸ªæ–°çš„çº¿æ®µ
 //            if (Input.GetKeyDown(KeyCode.A) && !isDraw)
 //            {
 //                isDraw = true;
-//                //´´½¨Ò»¸ö¿ÕÎïÌå£¬²¢ÇÒÌí¼ÓLineRenderer×é¼ş
+//                //åˆ›å»ºä¸€ä¸ªç©ºç‰©ä½“ï¼Œå¹¶ä¸”æ·»åŠ LineRendererç»„ä»¶
 //                line = new GameObject().AddComponent<LineRenderer>();
-//                line.positionCount = 0;//ÉèÖÃµãµÄÊıÁ¿Îª0£¬ÒòÎª¸Õ¿ªÊ¼µÄÊ±ºòÄ¬ÈÏÀïÃæ»áÓĞÁ½¸öµã
-//                line.startWidth = 0.05f;//ÉèÖÃÏßÌõµÄ¿í¸ß
+//                line.positionCount = 0;//è®¾ç½®ç‚¹çš„æ•°é‡ä¸º0ï¼Œå› ä¸ºåˆšå¼€å§‹çš„æ—¶å€™é»˜è®¤é‡Œé¢ä¼šæœ‰ä¸¤ä¸ªç‚¹
+//                line.startWidth = 0.05f;//è®¾ç½®çº¿æ¡çš„å®½é«˜
 //                line.endWidth = 0.05f;
-//                line.material = mat;//ÉèÖÃÏßÌõµÄ²ÄÖÊ
-//                lastPos = handle.position;//¼ÇÂ¼µ±Ç°Ö¡ÊÖ±úµÄÎ»ÖÃ
+//                line.material = mat;//è®¾ç½®çº¿æ¡çš„æè´¨
+//                lastPos = handle.position;//è®°å½•å½“å‰å¸§æ‰‹æŸ„çš„ä½ç½®
 //            }
 
 //            if (isDraw)
 //            {
-//                //ÅĞ¶ÏÁ½Ö¡ÊÖ±úµÄ¾àÀë£¬³¬¹ıÈıÀåÃ×ÔÙÌí¼Ó£¬²»È»»áµ¼ÖÂµãµÄÊıÁ¿¾çÔö
+//                //åˆ¤æ–­ä¸¤å¸§æ‰‹æŸ„çš„è·ç¦»ï¼Œè¶…è¿‡ä¸‰å˜ç±³å†æ·»åŠ ï¼Œä¸ç„¶ä¼šå¯¼è‡´ç‚¹çš„æ•°é‡å‰§å¢
 //                if (Vector3.Distance(lastPos, handle.position) > 0.03f)
 //                {
 //                    RealTimeDrawLine(line, handle.position);
@@ -43,7 +43,7 @@
 //        }
 
 //        /// <summary>
-//        /// ÊµÊ±µÄ×·¼Ó»®Ïß
+//        /// å®æ—¶çš„è¿½åŠ åˆ’çº¿
 //        /// </summary>
 //        /// <param name="lineRenderer"></param>
 //        /// <param name="newPoint"></param>

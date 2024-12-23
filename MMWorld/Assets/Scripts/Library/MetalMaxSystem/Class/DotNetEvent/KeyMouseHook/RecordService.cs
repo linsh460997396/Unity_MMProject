@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 #if UNITY_EDITOR|| UNITY_STANDALONE
 //Unity编辑器、独立应用程序（不包括Web播放器）
 using Vector3F = UnityEngine.Vector3;
@@ -38,11 +38,16 @@ namespace MetalMaxSystem
             }
         }
 
+        /// <summary>
+        /// 鼠标钩子实例
+        /// </summary>
         private readonly MouseHook MyMouseHook;
+        /// <summary>
+        /// 键盘钩子实例
+        /// </summary>
         private readonly KeyboardHook MyKeyboardHook;
 
-        //用户可自定义委托函数，在监听到事件发生时去执行
-
+        //↓用户可自定义函数引用（委托），在监听到事件发生时去执行
         public KeyDownEventFuncref KeyDownEvent;
         public KeyDoubleClickEventFuncref KeyDoubleClickEvent;
         public KeyUpEventFuncref KeyUpEvent;
@@ -57,9 +62,9 @@ namespace MetalMaxSystem
         #region 钩子开关
 
         /// <summary>
-        /// 创建监听服务并默认用户玩家编号=MMCore.LocalID
+        /// [构造函数]创建监听服务并默认用户玩家编号=MMCore.LocalID
         /// </summary>
-        public RecordService()//构造函数
+        public RecordService()
         {
             PlayerID = MMCore.LocalID;
             MyMouseHook = MouseHook.GetMouseHook();
@@ -67,9 +72,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 创建监听服务，可自定用户玩家编号（范围是1-15）
+        /// [构造函数]创建监听服务，可自定用户玩家编号（范围是1-15）
         /// </summary>
-        public RecordService(int player)//构造函数
+        public RecordService(int player)
         {
             PlayerID = player;
             MyMouseHook = MouseHook.GetMouseHook();
@@ -100,7 +105,7 @@ namespace MetalMaxSystem
         /// <param name="handler"></param>
         public void StartKeyboardHook()
         {
-            MyKeyboardHook.AddKeyboardHandler(KeyboardHandler);
+            MyKeyboardHook.AddKeyboardHandler(KeyboardEventHandler);
             MyKeyboardHook.Start();
         }
 
@@ -312,7 +317,7 @@ namespace MetalMaxSystem
         #endregion
 
         #region 键盘事件处理
-        // 虚拟键码
+        //虚拟键码
         private const int CTRL = 162;
         private const int ALT = 164;
         private const int ZERO = 48;
@@ -329,7 +334,7 @@ namespace MetalMaxSystem
         /// </summary>
         /// <param name="wParam">键盘事件状态</param>
         /// <param name="keyboardHookStruct">存储着虚拟键码</param>
-        private void KeyboardHandler(Int32 wParam, KeyboardHook.KeyboardHookStruct keyboardHookStruct)
+        private void KeyboardEventHandler(Int32 wParam, KeyboardHook.KeyboardHookStruct keyboardHookStruct)
         {
             KeyStatus = wParam;
             KeyValue = keyboardHookStruct.vkCode;

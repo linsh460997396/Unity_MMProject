@@ -1,13 +1,13 @@
 using UnityEngine;
 using System.Collections;
 
-// Triggers chunk spawning around the player.ÔÚÍæ¼Ò½ÇÉ«ÖÜÎ§´¥·¢×Ô¶¯»¯µÄÍÅ¿éÉú³É
+// Triggers chunk spawning around the player.åœ¨ç©å®¶è§’è‰²å‘¨å›´è§¦å‘è‡ªåŠ¨åŒ–çš„å›¢å—ç”Ÿæˆ
 
 namespace CellSpace
 {
     /// <summary>
-    /// ÍÅ¿é¼ÓÔØÆ÷£¬ÔÚÍæ¼Ò½ÇÉ«ÖÜÎ§´¥·¢×Ô¶¯»¯µÄÍÅ¿éÉú³É¡£
-    /// ×é¼şÓÃ·¨£º°Ñ½Å±¾ÍÏµ½¿ØÖÆ¶ÔÏó£¨Íæ¼Ò½ÇÉ«£©µÄ×é¼şÎ»ÖÃ¼´¹ÒÔØ£¨UnityÒªÇóÒ»¸öcsÎÄ¼şÖ»ÄÜÒ»¸öÀà£¬ÇÒÀàÃûĞëÓëÎÄ¼şÃûÒ»ÖÂ£©£¬µØĞÎ»áÔÚÆäÖÜÎ§²úÉúÇÒËæ½ÇÉ«ÒÆ¶¯ÊµÊ±Ë¢ĞÂ¡£
+    /// å›¢å—åŠ è½½å™¨ï¼Œåœ¨ç©å®¶è§’è‰²å‘¨å›´è§¦å‘è‡ªåŠ¨åŒ–çš„å›¢å—ç”Ÿæˆã€‚
+    /// ç»„ä»¶ç”¨æ³•ï¼šæŠŠè„šæœ¬æ‹–åˆ°æ§åˆ¶å¯¹è±¡ï¼ˆç©å®¶è§’è‰²ï¼‰çš„ç»„ä»¶ä½ç½®å³æŒ‚è½½ï¼ˆUnityè¦æ±‚ä¸€ä¸ªcsæ–‡ä»¶åªèƒ½ä¸€ä¸ªç±»ï¼Œä¸”ç±»åé¡»ä¸æ–‡ä»¶åä¸€è‡´ï¼‰ï¼Œåœ°å½¢ä¼šåœ¨å…¶å‘¨å›´äº§ç”Ÿä¸”éšè§’è‰²ç§»åŠ¨å®æ—¶åˆ·æ–°ã€‚
     /// </summary>
     public class CellChunkLoader : MonoBehaviour
     {
@@ -36,7 +36,7 @@ namespace CellSpace
                 }
             }
             // track which chunk we're currently in. If it's different from previous frame, spawn chunks at current position.
-            // ¸ú×ÙÎÒÃÇµ±Ç°ËùÔÚµÄÍÅ¿é£¬Èç¹ûËüÓëÇ°Ò»Ö¡²»Í¬£¬ÔòÔÚµ±Ç°Î»ÖÃÉú³ÉÍÅ¿é
+            // è·Ÿè¸ªæˆ‘ä»¬å½“å‰æ‰€åœ¨çš„å›¢å—ï¼Œå¦‚æœå®ƒä¸å‰ä¸€å¸§ä¸åŒï¼Œåˆ™åœ¨å½“å‰ä½ç½®ç”Ÿæˆå›¢å—
             currentPos = CPEngine.PositionToChunkIndex(transform.position);
             if (currentPos.IsEqual(LastPos) == false)
             {

@@ -3,18 +3,18 @@ using UnityEngine;
 namespace CellSpace.Examples
 {
     /// <summary>
-    /// µØĞÎÉú³ÉÆ÷¾ÙÀı
+    /// åœ°å½¢ç”Ÿæˆå™¨ä¸¾ä¾‹
     /// </summary>
     public class CPExampleTerrainGenerator : CPTerrainGenerator
     {
         /// <summary>
-        /// Éú³Éµ¥ÔªÊı¾İ£¨ÌåËØ¿éµÄÖÖÀà£©
+        /// ç”Ÿæˆå•å…ƒæ•°æ®ï¼ˆä½“ç´ å—çš„ç§ç±»ï¼‰
         /// </summary>
         public override void GenerateCellData()
         {
-            //»ñÈ¡ÍÅ¿éË÷ÒıµÄYÖµ
+            //è·å–å›¢å—ç´¢å¼•çš„Yå€¼
             int chunky = chunk.ChunkIndex.y;
-            //»ñÈ¡ÍÅ¿éµÄ³¤¶È
+            //è·å–å›¢å—çš„é•¿åº¦
             int SideLength = CPEngine.ChunkSideLength;
             CPEngine.KeepTerrainHeight = true;
             CPEngine.TerrainHeight = 8;
@@ -22,7 +22,7 @@ namespace CellSpace.Examples
             // debug
             int random = Random.Range(0, 10);
 
-            //±éÀúÍÅ¿é³¤¶ÈÄÚËùÓĞÌåËØ¿éµÄË÷Òı£¨½øÈë²¼ÖÃÇ°ÍÅ¿éÀïµÄµ¥Ôª¶¼ÊÇ¿Õ¿é£©
+            //éå†å›¢å—é•¿åº¦å†…æ‰€æœ‰ä½“ç´ å—çš„ç´¢å¼•ï¼ˆè¿›å…¥å¸ƒç½®å‰å›¢å—é‡Œçš„å•å…ƒéƒ½æ˜¯ç©ºå—ï¼‰
             for (int x = 0; x < SideLength; x++)
             {
                 for (int y = 0; y < SideLength; y++)
@@ -30,28 +30,28 @@ namespace CellSpace.Examples
                     if (CPEngine.HorizontalMode)
                     {
                      // for all voxels in the chunk
-                        Vector3 voxelPos = chunk.CellIndexToPosition(x, y); //»ñÈ¡µ¥ÔªË÷ÒıµÄÊÀ½ç¾ø¶ÔÎ»ÖÃ
-                        int currentHeight = y + (SideLength * chunky); //»ñµÃµ¥ÔªµÄ£¨¾ø¶Ô×ø±ê£©ÊÀ½ç¸ß¶È
-                        //Î´Íê´ıĞø
+                        Vector3 voxelPos = chunk.CellIndexToPosition(x, y); //è·å–å•å…ƒç´¢å¼•çš„ä¸–ç•Œç»å¯¹ä½ç½®
+                        int currentHeight = y + (SideLength * chunky); //è·å¾—å•å…ƒçš„ï¼ˆç»å¯¹åæ ‡ï¼‰ä¸–ç•Œé«˜åº¦
+                        //æœªå®Œå¾…ç»­
                     }
                     else
                     {
                         for (int z = 0; z < SideLength; z++)
                         { // for all Items in the chunk
 
-                            Vector3 cellPos = chunk.CellIndexToPosition(x, y, z); // get absolute position for the cell.»ñÈ¡µ¥ÔªË÷ÒıµÄÊÀ½ç¾ø¶ÔÎ»ÖÃ
-                            cellPos = new Vector3(cellPos.x + seed, cellPos.y, cellPos.z + seed); // offset by seed.ÓÃÊÀ½çÖÖ×Ó½øĞĞÔëÉùĞŞÕı£¬ÖÖ×ÓÊÇ30625ÕâÖÖÊı×Ö
+                            Vector3 cellPos = chunk.CellIndexToPosition(x, y, z); // get absolute position for the cell.è·å–å•å…ƒç´¢å¼•çš„ä¸–ç•Œç»å¯¹ä½ç½®
+                            cellPos = new Vector3(cellPos.x + seed, cellPos.y, cellPos.z + seed); // offset by seed.ç”¨ä¸–ç•Œç§å­è¿›è¡Œå™ªå£°ä¿®æ­£ï¼Œç§å­æ˜¯30625è¿™ç§æ•°å­—
 
-                            //Mathf.PerlinNoise()²ÎÊı¹Ì¶¨»áĞÎ³É¹Ì¶¨µÄÔëÉù£¬Ö»Ğèµ÷ÕûÔëÉùº¯Êı·µ»Ø½á¹û½Ó½üÄ³ÖÖ¸ß¶È£¬ÔÙ±éÀúÍÅ¿éÄÚÌåËØ¿é¸ß¶ÈÀ´±È¶Ô£¬¾Í¿É²¼ÖÃ¸Ã¸ß¶ÈĞÎ×´ÉÏµÄÌåËØ¿éÖÖÀàĞÎ³É¹Ì¶¨µØÃ²
+                            //Mathf.PerlinNoise()å‚æ•°å›ºå®šä¼šå½¢æˆå›ºå®šçš„å™ªå£°ï¼Œåªéœ€è°ƒæ•´å™ªå£°å‡½æ•°è¿”å›ç»“æœæ¥è¿‘æŸç§é«˜åº¦ï¼Œå†éå†å›¢å—å†…ä½“ç´ å—é«˜åº¦æ¥æ¯”å¯¹ï¼Œå°±å¯å¸ƒç½®è¯¥é«˜åº¦å½¢çŠ¶ä¸Šçš„ä½“ç´ å—ç§ç±»å½¢æˆå›ºå®šåœ°è²Œ
 
-                            //ÖÆÔìÖ÷ÒªµØĞÎ£¨´óÉ½ºÍĞ¡É½£©
-                            float perlin1 = Mathf.PerlinNoise(cellPos.x * 0.010f, cellPos.z * 0.010f) * 70.1f; // major (mountains & big hills)£¬22×óÓÒ²¨¶¯£¨ÊıÖµ±ä»¯Æ½ÎÈ£¬ÔëÉùÏµÊı0.010f£©
-                                                                                                               //ÖÆÔì´ÎÒªµØĞÎ£¨¾«ÖÂµÄÏ¸½Ú£©
-                            float perlin2 = Mathf.PerlinNoise(cellPos.x * 0.085f, cellPos.z * 0.085f) * 9.1f; // minor (fine detail)£¬3-8×óÓÒ²¨¶¯£¨ÊıÖµ±ä»¯¾çÁÒ£¬ÔëÉùÏµÊı0.085f£©
+                            //åˆ¶é€ ä¸»è¦åœ°å½¢ï¼ˆå¤§å±±å’Œå°å±±ï¼‰
+                            float perlin1 = Mathf.PerlinNoise(cellPos.x * 0.010f, cellPos.z * 0.010f) * 70.1f; // major (mountains & big hills)ï¼Œ22å·¦å³æ³¢åŠ¨ï¼ˆæ•°å€¼å˜åŒ–å¹³ç¨³ï¼Œå™ªå£°ç³»æ•°0.010fï¼‰
+                                                                                                               //åˆ¶é€ æ¬¡è¦åœ°å½¢ï¼ˆç²¾è‡´çš„ç»†èŠ‚ï¼‰
+                            float perlin2 = Mathf.PerlinNoise(cellPos.x * 0.085f, cellPos.z * 0.085f) * 9.1f; // minor (fine detail)ï¼Œ3-8å·¦å³æ³¢åŠ¨ï¼ˆæ•°å€¼å˜åŒ–å‰§çƒˆï¼Œå™ªå£°ç³»æ•°0.085fï¼‰
 
-                            int currentHeight = y + (SideLength * chunky); // get absolute height for the cell.»ñµÃµ¥ÔªµÄ£¨¾ø¶Ô×ø±ê£©ÊÀ½ç¸ß¶È
+                            int currentHeight = y + (SideLength * chunky); // get absolute height for the cell.è·å¾—å•å…ƒçš„ï¼ˆç»å¯¹åæ ‡ï¼‰ä¸–ç•Œé«˜åº¦
 
-                            //ÔëÉù½á¹ûÈç22ÊÇÒ»¸ö²¨¶¯µÄ¸ß¶ÈÖµ£¬±éÀúx pixelY z ÊÇÔÚ±éÀúÍÅ¿éÄÚÃ¿¸öÌåËØ¿éµÄË÷Òı£¨È»ºó×ª»»ÎªÊÀ½ç¸ß¶È£©£¬¸úÌåËØ¿é¸ß¶È¶Ô±Èºó·ûºÏ¸ß¶ÈÔò½øĞĞ¾ßÌå²¼ÖÃ
+                            //å™ªå£°ç»“æœå¦‚22æ˜¯ä¸€ä¸ªæ³¢åŠ¨çš„é«˜åº¦å€¼ï¼Œéå†x pixelY z æ˜¯åœ¨éå†å›¢å—å†…æ¯ä¸ªä½“ç´ å—çš„ç´¢å¼•ï¼ˆç„¶åè½¬æ¢ä¸ºä¸–ç•Œé«˜åº¦ï¼‰ï¼Œè·Ÿä½“ç´ å—é«˜åº¦å¯¹æ¯”åç¬¦åˆé«˜åº¦åˆ™è¿›è¡Œå…·ä½“å¸ƒç½®
 
                             if (CPEngine.KeepTerrainHeight)
                             {
@@ -59,34 +59,34 @@ namespace CellSpace.Examples
                             }
                             else
                             {
-                                // grass pass.²¼ÖÃ²İµØ£¨ÔëÉù1´óÓÚµ±Ç°¸ß¶ÈÊ±£©
+                                // grass pass.å¸ƒç½®è‰åœ°ï¼ˆå™ªå£°1å¤§äºå½“å‰é«˜åº¦æ—¶ï¼‰
                                 if (perlin1 > currentHeight)
                                 {
-                                    //Èç¹ûÔëÉù1´óÓÚÔëÉù2+µ±Ç°¸ß¶È
+                                    //å¦‚æœå™ªå£°1å¤§äºå™ªå£°2+å½“å‰é«˜åº¦
                                     if (perlin1 > perlin2 + currentHeight)
                                     {
-                                        //¸ü¸ÄÖ¸¶¨Ë÷Òı´¦µÄµ¥ÔªÊı¾İ£¨¼´ĞŞ¸ÄÌåËØ¿éµÄÖÖÀà£©
-                                        chunk.SetCellSimple(x, y, z, 2);   // set grass.ÉèÖÃÎª²İµØ£¬2ÊÇ²İµØµÄÖÖÀàID
+                                        //æ›´æ”¹æŒ‡å®šç´¢å¼•å¤„çš„å•å…ƒæ•°æ®ï¼ˆå³ä¿®æ”¹ä½“ç´ å—çš„ç§ç±»ï¼‰
+                                        chunk.SetCellSimple(x, y, z, 2);   // set grass.è®¾ç½®ä¸ºè‰åœ°ï¼Œ2æ˜¯è‰åœ°çš„ç§ç±»ID
 
                                     }
                                 }
 
-                                // dirt pass.²¼ÖÃÍÁ¿é£¨ÔëÉù1´óÓÚµ±Ç°¸ß¶ÈÊ±£©
-                                currentHeight = currentHeight + 1; // offset dirt by 1 (since we want grass 1 block higher).²¼ÖÃÄàÍÁÊ±Æ«ÒÆ1(ÒòÎªÎÒÃÇÏëÒª²İ¸ü¸ß1¿é)
+                                // dirt pass.å¸ƒç½®åœŸå—ï¼ˆå™ªå£°1å¤§äºå½“å‰é«˜åº¦æ—¶ï¼‰
+                                currentHeight = currentHeight + 1; // offset dirt by 1 (since we want grass 1 block higher).å¸ƒç½®æ³¥åœŸæ—¶åç§»1(å› ä¸ºæˆ‘ä»¬æƒ³è¦è‰æ›´é«˜1å—)
                                 if (perlin1 > currentHeight)
                                 {
-                                    //Èç¹ûÔëÉù1´óÓÚÔëÉù2+µ±Ç°¸ß¶È
+                                    //å¦‚æœå™ªå£°1å¤§äºå™ªå£°2+å½“å‰é«˜åº¦
                                     if (perlin1 > perlin2 + currentHeight)
                                     {
-                                        //¸ü¸ÄÖ¸¶¨Ë÷Òı´¦µÄµ¥ÔªÊı¾İ£¨¼´ĞŞ¸ÄÌåËØ¿éµÄÖÖÀà£©
-                                        chunk.SetCellSimple(x, y, z, 1); // set dirt.ÉèÖÃÎªÍÁ¿é£¬1ÊÇÍÁ¿éµÄÖÖÀàID
+                                        //æ›´æ”¹æŒ‡å®šç´¢å¼•å¤„çš„å•å…ƒæ•°æ®ï¼ˆå³ä¿®æ”¹ä½“ç´ å—çš„ç§ç±»ï¼‰
+                                        chunk.SetCellSimple(x, y, z, 1); // set dirt.è®¾ç½®ä¸ºåœŸå—ï¼Œ1æ˜¯åœŸå—çš„ç§ç±»ID
                                     }
                                 }
 
-                                // debug.Ëæ»úµ½1Ê±
+                                // debug.éšæœºåˆ°1æ—¶
                                 if (random == 1)
                                 {
-                                    //chunk.SetCellSimple(pixelX,pixelY,z, 3); // set stone or whatever.ÉèÖÃÊ¯Í·»òÆäËûÀà±ğÌåËØ¿é
+                                    //chunk.SetCellSimple(pixelX,pixelY,z, 3); // set stone or whatever.è®¾ç½®çŸ³å¤´æˆ–å…¶ä»–ç±»åˆ«ä½“ç´ å—
                                 }
                             }
                         }

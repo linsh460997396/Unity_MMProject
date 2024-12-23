@@ -1,4 +1,4 @@
-﻿namespace CellSpace
+namespace CellSpace
 {
     /// <summary>
     /// 存储XY坐标的结构体

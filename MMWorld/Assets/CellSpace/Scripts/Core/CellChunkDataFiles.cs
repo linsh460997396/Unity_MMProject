@@ -6,41 +6,41 @@ using System.IO;
 namespace CellSpace
 {
     /// <summary>
-    /// ÍÅ¿éÊı¾İÎÄ¼ş×é¼ş£º´¦ÀíÍÅ¿éµÄµ¥ÔªÊı¾İµÄ¼ÓÔØºÍ±£´æ¡£
+    /// å›¢å—æ•°æ®æ–‡ä»¶ç»„ä»¶ï¼šå¤„ç†å›¢å—çš„å•å…ƒæ•°æ®çš„åŠ è½½å’Œä¿å­˜ã€‚
     /// </summary>
     public class CellChunkDataFiles : MonoBehaviour
     {
         /// <summary>
-        /// ÕıÔÚ´æ´¢ÍÅ¿éµÄµ¥ÔªÊı¾İ
+        /// æ­£åœ¨å­˜å‚¨å›¢å—çš„å•å…ƒæ•°æ®
         /// </summary>
         public static bool SavingChunks;
 
         /// <summary>
-        /// ¸ÃÊı×éÁÙÊ±´æ´¢×ÅËùÓĞÍÅ¿éÊı¾İ£¬ÒÔ±ãÉÔºóĞ´ÈëÇøÓòÎÄ¼ş
+        /// è¯¥æ•°ç»„ä¸´æ—¶å­˜å‚¨ç€æ‰€æœ‰å›¢å—æ•°æ®ï¼Œä»¥ä¾¿ç¨åå†™å…¥åŒºåŸŸæ–‡ä»¶
         /// </summary>
         public static Dictionary<string, string> TempChunkData; // stores chunk's data to write into a region file later
 
         /// <summary>
-        /// µ±Ç°ÒÑ¼ÓÔØÇøÓò×é
+        /// å½“å‰å·²åŠ è½½åŒºåŸŸç»„
         /// </summary>
         public static Dictionary<string, string[]> LoadedRegions; // data of currently loaded regions
 
         /// <summary>
-        /// ³¢ÊÔ´ÓÎÄ¼ş¼ÓÔØÍÅ¿éµÄµ¥ÔªÊı¾İ£¬Èç¹ûÎ´ÕÒµ½Êı¾İÔò·µ»Øfalse¡£
+        /// å°è¯•ä»æ–‡ä»¶åŠ è½½å›¢å—çš„å•å…ƒæ•°æ®ï¼Œå¦‚æœæœªæ‰¾åˆ°æ•°æ®åˆ™è¿”å›falseã€‚
         /// </summary>
-        /// <returns>Èç¹ûÍÅ¿éµÄµ¥ÔªÊı¾İÎª¿ÕÔò·µ»Øfalse£¬·´Ö®¼ÓÔØÓĞĞ§·µ»Øtrue</returns>
+        /// <returns>å¦‚æœå›¢å—çš„å•å…ƒæ•°æ®ä¸ºç©ºåˆ™è¿”å›falseï¼Œåä¹‹åŠ è½½æœ‰æ•ˆè¿”å›true</returns>
         public bool LoadData()
         { // attempts to load data from file, returns false if data is not found
 
-            CellChunk chunk = GetComponent<CellChunk>();//»ñÈ¡ÍÅ¿é×é¼şÊµÀı¶ÔÏó
-            //¸ù¾İÍÅ¿éË÷Òı»ñÈ¡ÍÅ¿éµÄµ¥ÔªÊı¾İ
+            CellChunk chunk = GetComponent<CellChunk>();//è·å–å›¢å—ç»„ä»¶å®ä¾‹å¯¹è±¡
+            //æ ¹æ®å›¢å—ç´¢å¼•è·å–å›¢å—çš„å•å…ƒæ•°æ®
             string chunkData = GetChunkData(chunk.ChunkIndex);
-            //Èç¹ûÍÅ¿éµÄµ¥ÔªÊı¾İ²»Îª¿Õ
+            //å¦‚æœå›¢å—çš„å•å…ƒæ•°æ®ä¸ä¸ºç©º
             if (chunkData != "")
             {
-                //´ÓÏÈÇ°Ñ¹ËõµÄ×Ö·û´®ÖĞ½âÑ¹Ëõ³öÍÅ¿éÊı¾İ£¬²¢½«Ëü±£´æµ½ÍÅ¿éµÄCellDataÊı×éÖĞ¡£
+                //ä»å…ˆå‰å‹ç¼©çš„å­—ç¬¦ä¸²ä¸­è§£å‹ç¼©å‡ºå›¢å—æ•°æ®ï¼Œå¹¶å°†å®ƒä¿å­˜åˆ°å›¢å—çš„CellDataæ•°ç»„ä¸­ã€‚
                 DecompressData(chunk, GetChunkData(chunk.ChunkIndex));
-                //µ±´ËÍÅ¿éÍê³ÉÉú³É»ò¼ÓÔØµ¥ÔªÊı¾İºóCellsDoneÖÃÎªTrue
+                //å½“æ­¤å›¢å—å®Œæˆç”Ÿæˆæˆ–åŠ è½½å•å…ƒæ•°æ®åCellsDoneç½®ä¸ºTrue
                 chunk.CellsDone = true;
                 return true;
             }
@@ -52,64 +52,64 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ±£´æÍÅ¿éµÄµ¥ÔªÊı¾İµ½ÄÚ´æ£¨TempChunkData£©
+        /// ä¿å­˜å›¢å—çš„å•å…ƒæ•°æ®åˆ°å†…å­˜ï¼ˆTempChunkDataï¼‰
         /// </summary>
         public void SaveData()
         {
-            //»ñÈ¡ÍÅ¿é×é¼şÊµÀı¶ÔÏó
+            //è·å–å›¢å—ç»„ä»¶å®ä¾‹å¯¹è±¡
             CellChunk chunk = GetComponent<CellChunk>();
-            //Ñ¹ËõÌØ¶¨ÍÅ¿éµÄµ¥ÔªÊı¾İ²¢½«Æä×÷Îª×Ö·û´®·µ»Ø¡£
+            //å‹ç¼©ç‰¹å®šå›¢å—çš„å•å…ƒæ•°æ®å¹¶å°†å…¶ä½œä¸ºå­—ç¬¦ä¸²è¿”å›ã€‚
             string compressedData = CompressData(chunk);
-            //½«Ñ¹ËõºóµÄÊı¾İ×Ö·û´®Ğ´ÈëTempChunkData×Öµä
+            //å°†å‹ç¼©åçš„æ•°æ®å­—ç¬¦ä¸²å†™å…¥TempChunkDataå­—å…¸
             WriteChunkData(chunk.ChunkIndex, compressedData);
         }
 
         /// <summary>
-        /// ´ÓÏÈÇ°Ñ¹ËõµÄÌØ¶¨ÍÅ¿éµÄµ¥ÔªÊı¾İ×Ö·û´®ÖĞ½âÑ¹Ëõ³öÍÅ¿éÊı¾İ£¬²¢½«Ëü±£´æµ½ÍÅ¿éµÄCellDataÊı×éÖĞ¡£
+        /// ä»å…ˆå‰å‹ç¼©çš„ç‰¹å®šå›¢å—çš„å•å…ƒæ•°æ®å­—ç¬¦ä¸²ä¸­è§£å‹ç¼©å‡ºå›¢å—æ•°æ®ï¼Œå¹¶å°†å®ƒä¿å­˜åˆ°å›¢å—çš„CellDataæ•°ç»„ä¸­ã€‚
         /// </summary>
-        /// <param name="chunk">ÍÅ¿é</param>
-        /// <param name="data">ÏÈÇ°Ñ¹ËõµÄÌØ¶¨ÍÅ¿éµÄµ¥ÔªÊı¾İ×Ö·û´®</param>
+        /// <param name="chunk">å›¢å—</param>
+        /// <param name="data">å…ˆå‰å‹ç¼©çš„ç‰¹å®šå›¢å—çš„å•å…ƒæ•°æ®å­—ç¬¦ä¸²</param>
         public static void DecompressData(CellChunk chunk, string data)
         { // decompresses cell data and loads it into the CellData array
 
-            // check if chunk is empty.¼ì²éÏÈÇ°Ñ¹ËõµÄÌØ¶¨ÍÅ¿éµÄµ¥ÔªÊı¾İ×Ö·û´®ÊÇ·ñÎª¿Õ
+            // check if chunk is empty.æ£€æŸ¥å…ˆå‰å‹ç¼©çš„ç‰¹å®šå›¢å—çš„å•å…ƒæ•°æ®å­—ç¬¦ä¸²æ˜¯å¦ä¸ºç©º
             if (data.Length == 2 && data[1] == (char)0)
             {
-                //ÉèÖÃÍÅ¿éÊÇ¿ÕµÄ×´Ì¬
+                //è®¾ç½®å›¢å—æ˜¯ç©ºçš„çŠ¶æ€
                 chunk.Empty = true;
             }
-            //´´½¨ÁËÒ»¸ö StringReader ¶ÔÏó£¬½«Æä³õÊ¼»¯Îª×Ö·û´® data
+            //åˆ›å»ºäº†ä¸€ä¸ª StringReader å¯¹è±¡ï¼Œå°†å…¶åˆå§‹åŒ–ä¸ºå­—ç¬¦ä¸² data
             StringReader reader = new StringReader(data);
 
             int i = 0;
-            int length = chunk.GetDataLength(); // length of CellData array.µ¥ÔªÊı¾İÊı×éµÄ³¤¶È
+            int length = chunk.GetDataLength(); // length of CellData array.å•å…ƒæ•°æ®æ•°ç»„çš„é•¿åº¦
 
             try
             {
                 while (i < length)
                 { // this loop will stop once the CellData array has been populated completely. Iterates once per count-data block.
-                  // Õâ¸öÑ­»·½«ÔÚCellDataÊı×é±»ÍêÈ«Ìî³äºóÍ£Ö¹£¬Ã¿¸öcount-dataµ¥Ôª½öµü´úÒ»´Î¡£
+                  // è¿™ä¸ªå¾ªç¯å°†åœ¨CellDataæ•°ç»„è¢«å®Œå…¨å¡«å……ååœæ­¢ï¼Œæ¯ä¸ªcount-dataå•å…ƒä»…è¿­ä»£ä¸€æ¬¡ã€‚
 
-                    //µ÷ÓÃreader.Read()·½·¨¶ÁÈ¡×Ö·û´®ÖĞµÄÏÂÒ»¸ö×Ö·û¡£ÓÉÓÚreader.Read()·½·¨·µ»Ø¶ÁÈ¡µÄ×Ö·ûµÄUnicode±àÂë£¬¿ÉÊ¹ÓÃÀàĞÍ×ª»»½«·µ»ØµÄÖµ×ª»»Îªushort¡£
-                    //ÕâÊÇÒòÎªUnicode±àÂëÊ¹ÓÃÁ½¸ö×Ö½Ú±íÊ¾Ã¿¸ö×Ö·û£¬ÓëushortÊı¾İÀàĞÍÏàÍ¬¡£Òò´Ë´úÂëÆ¬¶Î½«²»¶Ï¶ÁÈ¡×Ö·û´®dataÖĞµÄÃ¿¸ö×Ö·û£¬²¢½«Æä×÷ÎªushortÖµ·µ»Ø¡£
+                    //è°ƒç”¨reader.Read()æ–¹æ³•è¯»å–å­—ç¬¦ä¸²ä¸­çš„ä¸‹ä¸€ä¸ªå­—ç¬¦ã€‚ç”±äºreader.Read()æ–¹æ³•è¿”å›è¯»å–çš„å­—ç¬¦çš„Unicodeç¼–ç ï¼Œå¯ä½¿ç”¨ç±»å‹è½¬æ¢å°†è¿”å›çš„å€¼è½¬æ¢ä¸ºushortã€‚
+                    //è¿™æ˜¯å› ä¸ºUnicodeç¼–ç ä½¿ç”¨ä¸¤ä¸ªå­—èŠ‚è¡¨ç¤ºæ¯ä¸ªå­—ç¬¦ï¼Œä¸ushortæ•°æ®ç±»å‹ç›¸åŒã€‚å› æ­¤ä»£ç ç‰‡æ®µå°†ä¸æ–­è¯»å–å­—ç¬¦ä¸²dataä¸­çš„æ¯ä¸ªå­—ç¬¦ï¼Œå¹¶å°†å…¶ä½œä¸ºushortå€¼è¿”å›ã€‚
 
-                    ushort currentCount = (ushort)reader.Read(); // read the count.¶ÁÈ¡ÏÂ¸ö×Ö·û×ªÎªÕûÊı£¨Ê×´Î¶ÁÈ¡ÔòÎªµÚÒ»¸ö×Ö·û£©£¬Õâ¸öÕûÊı´ú±íµ¥ÔªµÄÊı×éË÷Òı
-                    ushort currentData = (ushort)reader.Read(); // read the data.¶ÁÈ¡ÏÂ¸ö×Ö·û×ªÎªÕûÊı£¬Õâ¸öÕûÊı´ú±íµ¥ÔªÊı¾İ£¨µ¥ÔªµÄÖÖÀà£©
+                    ushort currentCount = (ushort)reader.Read(); // read the count.è¯»å–ä¸‹ä¸ªå­—ç¬¦è½¬ä¸ºæ•´æ•°ï¼ˆé¦–æ¬¡è¯»å–åˆ™ä¸ºç¬¬ä¸€ä¸ªå­—ç¬¦ï¼‰ï¼Œè¿™ä¸ªæ•´æ•°ä»£è¡¨å•å…ƒçš„æ•°ç»„ç´¢å¼•
+                    ushort currentData = (ushort)reader.Read(); // read the data.è¯»å–ä¸‹ä¸ªå­—ç¬¦è½¬ä¸ºæ•´æ•°ï¼Œè¿™ä¸ªæ•´æ•°ä»£è¡¨å•å…ƒæ•°æ®ï¼ˆå•å…ƒçš„ç§ç±»ï¼‰
 
                     int ii = 0;
 
                     while (ii < currentCount)
                     {
-                        //Èç´Ë²»¶ÏÑ­»·¸ü¸ÄÖ¸¶¨Êı×éË÷Òı´¦µÄµ¥ÔªÊı¾İ£¨¼´ĞŞ¸Äµ¥ÔªµÄÖÖÀà£©£¬º¯Êı²ÉÓÃÆ½Ãæ1DÊı×éË÷Òı×÷Îª²ÎÊı£¨Ö¸i£©¡£
-                        chunk.SetCellSimple(i, currentData);// write a single voxel for every currentCount.Èç¹ûÍÅ¿éÄÚ´óÁ¿Á¬ĞøË÷ÒıµÄµ¥ÔªÊÇÍ¬Ò»ÖÖ£¬Ñ¹ËõÊ±currentCount¼ÆÊı»á½Ï´ó£¬ÔÚ´Ë´¦²úÉúÑ­»·´¦Àí
-                        ii++; //´¦ÀíÖ±µ½Á¬ĞøË÷ÒıµÄµ¥Ôª¶¼ÉèÖÃºÃÖÖÀà
-                        i++; //×îÖÕµÄi¿Ï¶¨²»»á³¬¹ıÒ»¸öÍÅ¿éÓµÓĞµÄµ¥ÔªÊı¾İÊı×éµÄ³¤¶ÈµÄ£¬Ã¿´Î´¦ÀíºóiÒ²Òª+1
+                        //å¦‚æ­¤ä¸æ–­å¾ªç¯æ›´æ”¹æŒ‡å®šæ•°ç»„ç´¢å¼•å¤„çš„å•å…ƒæ•°æ®ï¼ˆå³ä¿®æ”¹å•å…ƒçš„ç§ç±»ï¼‰ï¼Œå‡½æ•°é‡‡ç”¨å¹³é¢1Dæ•°ç»„ç´¢å¼•ä½œä¸ºå‚æ•°ï¼ˆæŒ‡iï¼‰ã€‚
+                        chunk.SetCellSimple(i, currentData);// write a single voxel for every currentCount.å¦‚æœå›¢å—å†…å¤§é‡è¿ç»­ç´¢å¼•çš„å•å…ƒæ˜¯åŒä¸€ç§ï¼Œå‹ç¼©æ—¶currentCountè®¡æ•°ä¼šè¾ƒå¤§ï¼Œåœ¨æ­¤å¤„äº§ç”Ÿå¾ªç¯å¤„ç†
+                        ii++; //å¤„ç†ç›´åˆ°è¿ç»­ç´¢å¼•çš„å•å…ƒéƒ½è®¾ç½®å¥½ç§ç±»
+                        i++; //æœ€ç»ˆçš„iè‚¯å®šä¸ä¼šè¶…è¿‡ä¸€ä¸ªå›¢å—æ‹¥æœ‰çš„å•å…ƒæ•°æ®æ•°ç»„çš„é•¿åº¦çš„ï¼Œæ¯æ¬¡å¤„ç†åiä¹Ÿè¦+1
                     }
                 }
             }
             catch (System.Exception)
             {
-                //Ö»ÓĞÒ»ÖÖÇé¿ö¾ÍÊÇ´æ´¢ÍÅ¿éµÄÊı¾İËğ»µ£¨¿ÉÄÜ±»µÚÈı·½¸Äµµ»òÊ¹ÓÃ²»Í¬µÄÍÅ¿é´óĞ¡½øĞĞÁË±£´æÊı¾İ£©
+                //åªæœ‰ä¸€ç§æƒ…å†µå°±æ˜¯å­˜å‚¨å›¢å—çš„æ•°æ®æŸåï¼ˆå¯èƒ½è¢«ç¬¬ä¸‰æ–¹æ”¹æ¡£æˆ–ä½¿ç”¨ä¸åŒçš„å›¢å—å¤§å°è¿›è¡Œäº†ä¿å­˜æ•°æ®ï¼‰
                 Debug.LogError("CellSpace: Corrupt chunk data for chunk: " + chunk.ChunkIndex.ToString() + ". Has the data been saved using a different chunk size?");
                 reader.Close();
                 return;
@@ -120,7 +120,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// Ñ¹ËõÌØ¶¨ÍÅ¿éµÄµ¥ÔªÊı¾İ²¢½«Æä×÷Îª×Ö·û´®·µ»Ø¡£
+        /// å‹ç¼©ç‰¹å®šå›¢å—çš„å•å…ƒæ•°æ®å¹¶å°†å…¶ä½œä¸ºå­—ç¬¦ä¸²è¿”å›ã€‚
         /// </summary>
         /// <param name="chunk"></param>
         /// <returns></returns>
@@ -130,38 +130,38 @@ namespace CellSpace
             StringWriter writer = new StringWriter();
 
             int i = 0;
-            int length = chunk.GetDataLength(); // length of CellData array.ÍÅ¿éµÄµ¥ÔªÊı¾İÊı×é³¤¶È
+            int length = chunk.GetDataLength(); // length of CellData array.å›¢å—çš„å•å…ƒæ•°æ®æ•°ç»„é•¿åº¦
 
-            ushort currentCount = 0; // count of consecutive voxels of the same type.´ı´¦ÀíµÄÁ¬ĞøË÷ÒıµÄÍ¬ÖÖÀàµÄµ¥ÔªÊıÁ¿
-            ushort currentData = 0; // data of the current voxel.µ±Ç°´¦ÀíµÄµ¥ÔªÓ¦¸³ÓèµÄÖÖÀà
+            ushort currentCount = 0; // count of consecutive voxels of the same type.å¾…å¤„ç†çš„è¿ç»­ç´¢å¼•çš„åŒç§ç±»çš„å•å…ƒæ•°é‡
+            ushort currentData = 0; // data of the current voxel.å½“å‰å¤„ç†çš„å•å…ƒåº”èµ‹äºˆçš„ç§ç±»
 
             for (i = 0; i < length; i++)
             { // for each voxel
 
-                ushort thisData = chunk.GetCellSimple(i); // read raw data at i.¶ÁÈ¡ÍÅ¿éµÄ1Î¬Ë÷ÒıÏÂµÄµ¥ÔªÖÖÀà
+                ushort thisData = chunk.GetCellSimple(i); // read raw data at i.è¯»å–å›¢å—çš„1ç»´ç´¢å¼•ä¸‹çš„å•å…ƒç§ç±»
 
-                if (thisData != currentData) //Èç¹ûÍÅ¿éµÄµ¥ÔªÖÖÀà¸úµ±Ç°Ó¦¸³ÓèµÄÖÖÀà²»Í¬
+                if (thisData != currentData) //å¦‚æœå›¢å—çš„å•å…ƒç§ç±»è·Ÿå½“å‰åº”èµ‹äºˆçš„ç§ç±»ä¸åŒ
                 { // if the data is different from the previous data, write the last block and start a new one
 
                     // write previous block 
                     if (i != 0)
                     { // (don'transform write in the first loop iteration, because count would be 0 (no previous blocks))
-                        //²»ÒªÔÚµÚÒ»´ÎÑ­»·µü´úÖĞĞ´Èë£¬ÒòÎªcountÎª0(Ã»ÓĞÖ®Ç°µÄµ¥Ôª¼ÇÂ¼)
+                        //ä¸è¦åœ¨ç¬¬ä¸€æ¬¡å¾ªç¯è¿­ä»£ä¸­å†™å…¥ï¼Œå› ä¸ºcountä¸º0(æ²¡æœ‰ä¹‹å‰çš„å•å…ƒè®°å½•)
                         writer.Write((char)currentCount);
                         writer.Write((char)currentData);
                     }
-                    // start new block.½øĞĞÊµ¼Êµ¥ÔªµÄ¼ÇÂ¼
+                    // start new block.è¿›è¡Œå®é™…å•å…ƒçš„è®°å½•
                     currentCount = 1;
                     currentData = thisData;
                 }
 
                 else
-                { // if the data is the same as the last data, simply add to the count.Èç¹ûÊı¾İÓë×îºóÒ»¸öÊı¾İÏàÍ¬£¬Ö»ĞèÌí¼Ó¼ÆÊı
+                { // if the data is the same as the last data, simply add to the count.å¦‚æœæ•°æ®ä¸æœ€åä¸€ä¸ªæ•°æ®ç›¸åŒï¼Œåªéœ€æ·»åŠ è®¡æ•°
                     currentCount++;
                 }
 
                 if (i == length - 1)
-                { // if this is the last iteration of the loop, close and write the current block.Èç¹ûÕâÊÇÑ­»·µÄ×îºóÒ»´Îµü´ú£¬¹Ø±Õ²¢Ğ´Èëµ±Ç°µ¥Ôª
+                { // if this is the last iteration of the loop, close and write the current block.å¦‚æœè¿™æ˜¯å¾ªç¯çš„æœ€åä¸€æ¬¡è¿­ä»£ï¼Œå…³é—­å¹¶å†™å…¥å½“å‰å•å…ƒ
                     writer.Write((char)currentCount);
                     writer.Write((char)currentData);
                 }
@@ -169,31 +169,31 @@ namespace CellSpace
             }
 
             string compressedData = writer.ToString();
-            writer.Flush(); //Ê¹ÓÃFlushÀ´±£Ö¤Ğ´Èë£¨·ÀÖ¹³ÌĞòÒì³£±ÀÀ£µÈÇé¿öµ¼ÖÂĞ´Èë´íÎó£©
+            writer.Flush(); //ä½¿ç”¨Flushæ¥ä¿è¯å†™å…¥ï¼ˆé˜²æ­¢ç¨‹åºå¼‚å¸¸å´©æºƒç­‰æƒ…å†µå¯¼è‡´å†™å…¥é”™è¯¯ï¼‰
             writer.Close();
             return compressedData;
 
         }
 
         /// <summary>
-        /// ·µ»ØÍÅ¿éÊı¾İ(À´×ÔÄÚ´æ»òÎÄ¼ş)£¬Èç¹ûÕÒ²»µ½Êı¾İÔò·µ»Ø¿Õ×Ö·û´®
+        /// è¿”å›å›¢å—æ•°æ®(æ¥è‡ªå†…å­˜æˆ–æ–‡ä»¶)ï¼Œå¦‚æœæ‰¾ä¸åˆ°æ•°æ®åˆ™è¿”å›ç©ºå­—ç¬¦ä¸²
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
         private string GetChunkData(CPIndex index)
         { // returns the chunk data (from memory or from file), or an empty string if data can'transform be found
 
-            // try to load from TempChunkData.³¢ÊÔ´ÓTempChunkData¼ÓÔØ
+            // try to load from TempChunkData.å°è¯•ä»TempChunkDataåŠ è½½
             string indexString = index.ToString();
             if (TempChunkData.ContainsKey(indexString))
             {
-                //Èç¹ûTempChunkData×Öµä´æÔÚindex¼ü£¬·µ»ØÆä¶ÔÓ¦µÄÖµ£¨ÍÅ¿éµÄµ¥ÔªÊı¾İ£©
+                //å¦‚æœTempChunkDataå­—å…¸å­˜åœ¨indexé”®ï¼Œè¿”å›å…¶å¯¹åº”çš„å€¼ï¼ˆå›¢å—çš„å•å…ƒæ•°æ®ï¼‰
                 return TempChunkData[indexString];
             }
 
-            // try to load from region, return empty if not found.³¢ÊÔ´ÓÇøÓò¼ÓÔØ£¬Èç¹ûÎ´ÕÒµ½Ôò·µ»Ø¿Õ
-            int regionIndex = GetChunkRegionIndex(index); //»ñÈ¡ÍÅ¿éË÷Òı¶ÔÓ¦ÇøÓòÎÄ¼şÖĞ´æ´¢µÄÍÅ¿éÊı¾İÊı×éµÄÒ»Î¬Ë÷Òı£¨¼´ÍÅ¿éÔÚÇøÓòÖĞÊôÓÚµÚ¼¸¸öÔªËØ£©
-            //»ñÈ¡ÇøÓòµÄÍÅ¿éÊı¾İÖÖÀàµÄÊı×é¼¯ºÏ
+            // try to load from region, return empty if not found.å°è¯•ä»åŒºåŸŸåŠ è½½ï¼Œå¦‚æœæœªæ‰¾åˆ°åˆ™è¿”å›ç©º
+            int regionIndex = GetChunkRegionIndex(index); //è·å–å›¢å—ç´¢å¼•å¯¹åº”åŒºåŸŸæ–‡ä»¶ä¸­å­˜å‚¨çš„å›¢å—æ•°æ®æ•°ç»„çš„ä¸€ç»´ç´¢å¼•ï¼ˆå³å›¢å—åœ¨åŒºåŸŸä¸­å±äºç¬¬å‡ ä¸ªå…ƒç´ ï¼‰
+            //è·å–åŒºåŸŸçš„å›¢å—æ•°æ®ç§ç±»çš„æ•°ç»„é›†åˆ
             string[] regionData = GetRegionData(GetParentRegion(index));
             if (regionData == null)
             {
@@ -204,32 +204,32 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ½«Ñ¹ËõºóµÄÊı¾İ×Ö·û´®Ğ´ÈëTempChunkData×Öµä£¨´æ´¢×ÅÍÅ¿éµÄµ¥ÔªÊı¾İ£©
+        /// å°†å‹ç¼©åçš„æ•°æ®å­—ç¬¦ä¸²å†™å…¥TempChunkDataå­—å…¸ï¼ˆå­˜å‚¨ç€å›¢å—çš„å•å…ƒæ•°æ®ï¼‰
         /// </summary>
-        /// <param name="index">ÍÅ¿éË÷Òı</param>
-        /// <param name="data">Ñ¹ËõºóÍÅ¿éµÄµ¥ÔªÊı¾İ</param>
+        /// <param name="index">å›¢å—ç´¢å¼•</param>
+        /// <param name="data">å‹ç¼©åå›¢å—çš„å•å…ƒæ•°æ®</param>
         private void WriteChunkData(CPIndex index, string data)
         { // writes the chunk data to the TempChunkData dictionary
             TempChunkData[index.ToString()] = data;
         }
 
         /// <summary>
-        /// ·µ»ØÍÅ¿éË÷Òı¶ÔÓ¦ÇøÓòÎÄ¼şÖĞ´æ´¢µÄÍÅ¿éÊı¾İÊı×éµÄÒ»Î¬Ë÷Òı£¨¼´ÍÅ¿éÔÚÇøÓòÖĞÊôÓÚµÚ¼¸¸öÔªËØ£©¡£´æ´¢Ê±£¬ÇøÓò±ß³¤Éè¶¨Îª10£¬Ò»¸öÇøÓò´æ´¢1K¸öÍÅ¿é£¨2DÄ£Ê½ÏÂÎª100¸ö£©¡£
+        /// è¿”å›å›¢å—ç´¢å¼•å¯¹åº”åŒºåŸŸæ–‡ä»¶ä¸­å­˜å‚¨çš„å›¢å—æ•°æ®æ•°ç»„çš„ä¸€ç»´ç´¢å¼•ï¼ˆå³å›¢å—åœ¨åŒºåŸŸä¸­å±äºç¬¬å‡ ä¸ªå…ƒç´ ï¼‰ã€‚å­˜å‚¨æ—¶ï¼ŒåŒºåŸŸè¾¹é•¿è®¾å®šä¸º10ï¼Œä¸€ä¸ªåŒºåŸŸå­˜å‚¨1Kä¸ªå›¢å—ï¼ˆ2Dæ¨¡å¼ä¸‹ä¸º100ä¸ªï¼‰ã€‚
         /// </summary>
-        /// <param name="index">ÍÅ¿éË÷Òı</param>
+        /// <param name="index">å›¢å—ç´¢å¼•</param>
         /// <returns></returns>
         private static int GetChunkRegionIndex(CPIndex index)
         { // returns the 1d index of a chunk's data in the region file
             int flatIndex;
             CPIndex newIndex = new CPIndex(index.x, index.y, index.z);
-            //Èç¹ûÍÅ¿éË÷ÒıÊÇ¸ºµÄ£¬ÒÔÊı¾İÔ­µã½øĞĞ¾ÀÕı£¬·½±ãºóÃæ¼ÆËãÊı×éµÄÒ»Î¬Ë÷Òı
+            //å¦‚æœå›¢å—ç´¢å¼•æ˜¯è´Ÿçš„ï¼Œä»¥æ•°æ®åŸç‚¹è¿›è¡Œçº æ­£ï¼Œæ–¹ä¾¿åé¢è®¡ç®—æ•°ç»„çš„ä¸€ç»´ç´¢å¼•
             if (newIndex.x < 0) newIndex.x = -newIndex.x - 1;
             if (newIndex.y < 0) newIndex.y = -newIndex.y - 1;
             if (CPEngine.HorizontalMode)
-            {//2Dºá°æÄ£Ê½
-                //´æ´¢Ê±£¬ÇøÓò±ß³¤Éè¶¨Îª10£¨´æ´¢100¸öÍÅ¿é£©£¬ÓÃÉÏÃæ¾ÀÕıºÃµÄĞÂË÷Òı¼ÆËãÇøÓòµÄÍÅ¿éÊı¾İÊı×é1DË÷Òı
+            {//2Dæ¨ªç‰ˆæ¨¡å¼
+                //å­˜å‚¨æ—¶ï¼ŒåŒºåŸŸè¾¹é•¿è®¾å®šä¸º10ï¼ˆå­˜å‚¨100ä¸ªå›¢å—ï¼‰ï¼Œç”¨ä¸Šé¢çº æ­£å¥½çš„æ–°ç´¢å¼•è®¡ç®—åŒºåŸŸçš„å›¢å—æ•°æ®æ•°ç»„1Dç´¢å¼•
                 flatIndex = (newIndex.y * 10) + newIndex.x;
-                //±£Ö¤Ë÷Òı´Ó0~99
+                //ä¿è¯ç´¢å¼•ä»0~99
                 while (flatIndex > 99)
                 {
                     flatIndex -= 100;
@@ -238,9 +238,9 @@ namespace CellSpace
             else
             {
                 if (newIndex.z < 0) newIndex.z = -newIndex.z - 1;
-                //´æ´¢Ê±£¬ÇøÓò±ß³¤Éè¶¨Îª10£¨´æ´¢1K¸öÍÅ¿é£©£¬ÓÃÉÏÃæ¾ÀÕıºÃµÄĞÂË÷Òı¼ÆËãÇøÓòµÄÍÅ¿éÊı¾İÊı×é1DË÷Òı
+                //å­˜å‚¨æ—¶ï¼ŒåŒºåŸŸè¾¹é•¿è®¾å®šä¸º10ï¼ˆå­˜å‚¨1Kä¸ªå›¢å—ï¼‰ï¼Œç”¨ä¸Šé¢çº æ­£å¥½çš„æ–°ç´¢å¼•è®¡ç®—åŒºåŸŸçš„å›¢å—æ•°æ®æ•°ç»„1Dç´¢å¼•
                 flatIndex = (newIndex.z * 100) + (newIndex.y * 10) + newIndex.x;
-                //±£Ö¤Ë÷Òı´Ó0~999
+                //ä¿è¯ç´¢å¼•ä»0~999
                 while (flatIndex > 999)
                 {
                     flatIndex -= 1000;
@@ -250,16 +250,16 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ¶ÁÈ¡ÇøÓòË÷Òı¶ÔÓ¦µÄÇøÓòÊı¾İ³É¹¦Ê±£¬·µ»ØÇøÓòË÷Òı¶ÔÓ¦µÄÇøÓò£¨ÎÄ¼şÃû£©¡£
+        /// è¯»å–åŒºåŸŸç´¢å¼•å¯¹åº”çš„åŒºåŸŸæ•°æ®æˆåŠŸæ—¶ï¼Œè¿”å›åŒºåŸŸç´¢å¼•å¯¹åº”çš„åŒºåŸŸï¼ˆæ–‡ä»¶åï¼‰ã€‚
         /// </summary>
-        /// <param name="regionIndex">ÇøÓòË÷Òı</param>
-        /// <returns>¼ÓÔØÇøÓòÊı¾İ²¢´ÓÎÄ¼ş·µ»Ø¸ÃÊı¾İ£¬Èç¹ûÎ´ÕÒµ½ÇøÓòÎÄ¼şÔò·µ»Ønull</returns>
+        /// <param name="regionIndex">åŒºåŸŸç´¢å¼•</param>
+        /// <returns>åŠ è½½åŒºåŸŸæ•°æ®å¹¶ä»æ–‡ä»¶è¿”å›è¯¥æ•°æ®ï¼Œå¦‚æœæœªæ‰¾åˆ°åŒºåŸŸæ–‡ä»¶åˆ™è¿”å›null</returns>
         private static string[] GetRegionData(CPIndex regionIndex)
         { // loads region data and from file returns it, or returns null if region file is not found
-            //¶ÁÈ¡ÇøÓòË÷Òı¶ÔÓ¦µÄÇøÓòÊı¾İ³É¹¦Ê±
+            //è¯»å–åŒºåŸŸç´¢å¼•å¯¹åº”çš„åŒºåŸŸæ•°æ®æˆåŠŸæ—¶
             if (LoadRegionData(regionIndex) == true)
             {
-                //·µ»ØÇøÓòË÷Òı¶ÔÓ¦µÄÇøÓò£¨ÎÄ¼şÃû£©
+                //è¿”å›åŒºåŸŸç´¢å¼•å¯¹åº”çš„åŒºåŸŸï¼ˆæ–‡ä»¶åï¼‰
                 return LoadedRegions[regionIndex.ToString()];
             }
             else
@@ -269,20 +269,20 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ´ò¿ªÇøÓòË÷Òı¶ÔÓ¦µÄÂ·¾¶ÏÂµÄÎÄ¼ş£¬¶ÁÈ¡È«²¿ÄÚÈİ²¢·Ö¸î½øÇøÓòÊı¾İÊı×é£¬×îºó½«Õâ¸öÊı×é×÷Îªµ¥¸ö¼üµÄÖµ£¬´æ´¢µ½µ±Ç°ÒÑ¼ÓÔØÇøÓò×é
+        /// æ‰“å¼€åŒºåŸŸç´¢å¼•å¯¹åº”çš„è·¯å¾„ä¸‹çš„æ–‡ä»¶ï¼Œè¯»å–å…¨éƒ¨å†…å®¹å¹¶åˆ†å‰²è¿›åŒºåŸŸæ•°æ®æ•°ç»„ï¼Œæœ€åå°†è¿™ä¸ªæ•°ç»„ä½œä¸ºå•ä¸ªé”®çš„å€¼ï¼Œå­˜å‚¨åˆ°å½“å‰å·²åŠ è½½åŒºåŸŸç»„
         /// </summary>
-        /// <param name="regionIndex">ÇøÓòË÷Òı</param>
-        /// <returns>Èç¹ûÇøÓòÎÄ¼ş´æÔÚÇÒÉĞÎ´¼ÓÔØ£¬Ôò½«ÇøÓòÊı¾İ¼ÓÔØµ½ÄÚ´æÖĞ£¬ÈçÊı¾İ´æÔÚ(ÇÒÒÑ¼ÓÔØ)Ôò·µ»Øtrue£¬·ñÔò·µ»Øfalse</returns>
+        /// <param name="regionIndex">åŒºåŸŸç´¢å¼•</param>
+        /// <returns>å¦‚æœåŒºåŸŸæ–‡ä»¶å­˜åœ¨ä¸”å°šæœªåŠ è½½ï¼Œåˆ™å°†åŒºåŸŸæ•°æ®åŠ è½½åˆ°å†…å­˜ä¸­ï¼Œå¦‚æ•°æ®å­˜åœ¨(ä¸”å·²åŠ è½½)åˆ™è¿”å›trueï¼Œå¦åˆ™è¿”å›false</returns>
         private static bool LoadRegionData(CPIndex regionIndex)
         { // loads the region data into memory if file exists and it's not already loaded, returns true if data exists (and is loaded), else false
-            //»ñÈ¡ÇøÓòË÷Òı¶ÔÓ¦µÄ×Ö·û´®
+            //è·å–åŒºåŸŸç´¢å¼•å¯¹åº”çš„å­—ç¬¦ä¸²
             string indexString = regionIndex.ToString();
-            //Èç¹ûµ±Ç°ÒÑ¼ÓÔØÇøÓò×é²»°üº¬²ÎÊıÖ¸¶¨µÄÇøÓò
+            //å¦‚æœå½“å‰å·²åŠ è½½åŒºåŸŸç»„ä¸åŒ…å«å‚æ•°æŒ‡å®šçš„åŒºåŸŸ
             if (LoadedRegions.ContainsKey(indexString) == false)
-            { // if not loaded.Ö¸¶¨ÇøÓò»¹Ã»±»¼ÓÔØ
+            { // if not loaded.æŒ‡å®šåŒºåŸŸè¿˜æ²¡è¢«åŠ è½½
 
-                // load data if region file exists.ÈçÖ¸¶¨ÇøÓòµÄÎÄ¼ş´æÔÚ£¬Ôò¼ÓÔØÊı¾İ
-                string regionPath = GetRegionPath(regionIndex); //»ñÈ¡Ö¸¶¨ÇøÓòË÷Òı¶ÔÓ¦µÄÇøÓòÎÄ¼şÂ·¾¶
+                // load data if region file exists.å¦‚æŒ‡å®šåŒºåŸŸçš„æ–‡ä»¶å­˜åœ¨ï¼Œåˆ™åŠ è½½æ•°æ®
+                string regionPath = GetRegionPath(regionIndex); //è·å–æŒ‡å®šåŒºåŸŸç´¢å¼•å¯¹åº”çš„åŒºåŸŸæ–‡ä»¶è·¯å¾„
                 if (File.Exists(regionPath))
                 {
                     StreamReader reader = new StreamReader(regionPath);
@@ -290,7 +290,7 @@ namespace CellSpace
                     char splitChar = (char)ushort.MaxValue;
                     string[] regionData = temp.Split(splitChar);
                     reader.Close();
-                    LoadedRegions[indexString] = regionData; //½«ÇøÓòÊı¾İÊı×é×÷Îªµ¥¸ö¼üµÄÖµ£¬´æ´¢µ½µ±Ç°ÒÑ¼ÓÔØÇøÓò×é
+                    LoadedRegions[indexString] = regionData; //å°†åŒºåŸŸæ•°æ®æ•°ç»„ä½œä¸ºå•ä¸ªé”®çš„å€¼ï¼Œå­˜å‚¨åˆ°å½“å‰å·²åŠ è½½åŒºåŸŸç»„
 
                     return true;
 
@@ -306,7 +306,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// »ñÈ¡ÇøÓòË÷Òı¶ÔÓ¦µÄÇøÓòÎÄ¼şÂ·¾¶
+        /// è·å–åŒºåŸŸç´¢å¼•å¯¹åº”çš„åŒºåŸŸæ–‡ä»¶è·¯å¾„
         /// </summary>
         /// <param name="regionIndex"></param>
         /// <returns></returns>
@@ -317,10 +317,10 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// »ñÈ¡ÍÅ¿éË÷Òı¶ÔÓ¦µÄÇøÓòË÷Òı
+        /// è·å–å›¢å—ç´¢å¼•å¯¹åº”çš„åŒºåŸŸç´¢å¼•
         /// </summary>
-        /// <param name="index">ÍÅ¿éË÷Òı</param>
-        /// <returns>·µ»Ø°üº¬ÌØ¶¨ÍÅ¿éµÄÇøÓòË÷Òı</returns>
+        /// <param name="index">å›¢å—ç´¢å¼•</param>
+        /// <returns>è¿”å›åŒ…å«ç‰¹å®šå›¢å—çš„åŒºåŸŸç´¢å¼•</returns>
         private static CPIndex GetParentRegion(CPIndex index)
         { // returns the index of the region containing a specific chunk
             if (CPEngine.HorizontalMode)
@@ -346,14 +346,14 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ´´½¨Ò»¸ö¿ÕµÄÇøÓòÎÄ¼ş
+        /// åˆ›å»ºä¸€ä¸ªç©ºçš„åŒºåŸŸæ–‡ä»¶
         /// </summary>
-        /// <param name="index">ÇøÓòË÷Òı</param>
+        /// <param name="index">åŒºåŸŸç´¢å¼•</param>
         private static void CreateRegionFile(CPIndex index)
         { // creates an empty region file
             int iMax;
-            Directory.CreateDirectory(CPEngine.WorldPath); //´´½¨ÊÀ½çÃû³ÆÎÄ¼ş¼Ğ£¨Èç¹û²»´æÔÚÊ±£©
-            StreamWriter writer = new StreamWriter(GetRegionPath(index)); //¸ù¾İÇøÓòË÷Òı»ñÈ¡ÇøÓòÎÄ¼şÓ¦´æÔÚµÄÂ·¾¶£¬½¨Á¢Ğ´ÈëÁ÷
+            Directory.CreateDirectory(CPEngine.WorldPath); //åˆ›å»ºä¸–ç•Œåç§°æ–‡ä»¶å¤¹ï¼ˆå¦‚æœä¸å­˜åœ¨æ—¶ï¼‰
+            StreamWriter writer = new StreamWriter(GetRegionPath(index)); //æ ¹æ®åŒºåŸŸç´¢å¼•è·å–åŒºåŸŸæ–‡ä»¶åº”å­˜åœ¨çš„è·¯å¾„ï¼Œå»ºç«‹å†™å…¥æµ
             if (CPEngine.HorizontalMode)
             {
                 iMax = 99;
@@ -364,31 +364,31 @@ namespace CellSpace
             }
             for (int i = 0; i < iMax; i++)
             {
-                //ushortºÍcharÀàĞÍÊı¾İ³¤¶È¶¼ÊÇ16Î»
-                //Ğ´ÈëÒ»¸ö65535¶ÔÓ¦µÄChar£¨UnicodeÖĞµÄÒ»¸ö±£Áô×Ö·û£¬Ëü²»±íÊ¾ÈÎºÎÌØ¶¨·ûºÅ£¬µ±³¢ÊÔÏÔÊ¾»ò¶ÁÈ¡Ê±Ó¦ÊÇÂÒÂë£¬ÒòÎª´ó¶àÊı±àÂëÎŞ·¨ÕıÈ·´¦Àí³¬³öÆä×Ö·û·¶Î§µÄÖµ£©
-                writer.Write((char)ushort.MaxValue); //ÔÚÃ»ÓĞÊı¾İÇé¿öÏÂÕâÀïÔ¤ÏÈĞ´ÈëÁËiMax+1¸öChar
+                //ushortå’Œcharç±»å‹æ•°æ®é•¿åº¦éƒ½æ˜¯16ä½
+                //å†™å…¥ä¸€ä¸ª65535å¯¹åº”çš„Charï¼ˆUnicodeä¸­çš„ä¸€ä¸ªä¿ç•™å­—ç¬¦ï¼Œå®ƒä¸è¡¨ç¤ºä»»ä½•ç‰¹å®šç¬¦å·ï¼Œå½“å°è¯•æ˜¾ç¤ºæˆ–è¯»å–æ—¶åº”æ˜¯ä¹±ç ï¼Œå› ä¸ºå¤§å¤šæ•°ç¼–ç æ— æ³•æ­£ç¡®å¤„ç†è¶…å‡ºå…¶å­—ç¬¦èŒƒå›´çš„å€¼ï¼‰
+                writer.Write((char)ushort.MaxValue); //åœ¨æ²¡æœ‰æ•°æ®æƒ…å†µä¸‹è¿™é‡Œé¢„å…ˆå†™å…¥äº†iMax+1ä¸ªChar
             }
             writer.Flush();
             writer.Close();
         }
 
         /// <summary>
-        /// Ê¹ÓÃUnity×Ô´øĞ­³Ì£¨Òì²½£©½øĞĞ´æµµ£¬½«ÍÅ¿éµÄµ¥ÔªÊı¾İ±£´æµ½ÄÚ´æºÍÓ²ÅÌ
+        /// ä½¿ç”¨Unityè‡ªå¸¦åç¨‹ï¼ˆå¼‚æ­¥ï¼‰è¿›è¡Œå­˜æ¡£ï¼Œå°†å›¢å—çš„å•å…ƒæ•°æ®ä¿å­˜åˆ°å†…å­˜å’Œç¡¬ç›˜
         /// </summary>
         /// <returns></returns>
         public static IEnumerator SaveAllChunks()
         {
             if (!CPEngine.SaveCellData)
             {
-                //ÉèÖÃÀï±»½ûÖ¹´æµµµ¥ÔªÊı¾İÊ±£¬Ğ­³ÌÖÕÖ¹
+                //è®¾ç½®é‡Œè¢«ç¦æ­¢å­˜æ¡£å•å…ƒæ•°æ®æ—¶ï¼Œåç¨‹ç»ˆæ­¢
                 Debug.LogWarning("CellSpace: Saving is disabled. You can enable it in the CPEngine Settings.");
                 yield break;
             }
 
-            //WaitForEndOfFrameÖ±µ½SavingChunks=false
+            //WaitForEndOfFrameç›´åˆ°SavingChunks=false
             while (SavingChunks)
             {
-                //ÔÚÃ¿Ö¡ÆÁÄ»ËùÓĞÏà»úºÍGUI±»äÖÈ¾Íê³ÉÇ°µÈ´ı£¨È·±£µ±Ç°Ö¡Íø¸ñ¶ÔÏóÈ«±»´´Ôì³öÀ´ºó²ÅÄÜ½øĞĞ±£´æ£©
+                //åœ¨æ¯å¸§å±å¹•æ‰€æœ‰ç›¸æœºå’ŒGUIè¢«æ¸²æŸ“å®Œæˆå‰ç­‰å¾…ï¼ˆç¡®ä¿å½“å‰å¸§ç½‘æ ¼å¯¹è±¡å…¨è¢«åˆ›é€ å‡ºæ¥åæ‰èƒ½è¿›è¡Œä¿å­˜ï¼‰
                 yield return new WaitForEndOfFrame();
             }
             SavingChunks = true;
@@ -396,50 +396,50 @@ namespace CellSpace
             // for each chunk object, save data to memory
 
             int count = 0;
-            List<CellChunk> chunksToSave = new List<CellChunk>(CellChunkManager.Chunks.Values);  //´æ´¢×ÖµäÖĞµÄÃ¿¸öÍÅ¿é
+            List<CellChunk> chunksToSave = new List<CellChunk>(CellChunkManager.Chunks.Values);  //å­˜å‚¨å­—å…¸ä¸­çš„æ¯ä¸ªå›¢å—
 
-            //±éÀú×ÖµäÖĞµÄÃ¿¸öÍÅ¿é
+            //éå†å­—å…¸ä¸­çš„æ¯ä¸ªå›¢å—
             foreach (CellChunk chunk in chunksToSave)
             {
-                //»ñÈ¡ÍÅ¿éÊµÀı¶ÔÏóµÄChunkDataFiles×é¼şÊµÀı£¬µ÷ÓÃÆä½Å±¾ÄÚµÄSave·½·¨½«ÍÅ¿éµÄµ¥ÔªÊı¾İ±£´æµ½ÄÚ´æ
+                //è·å–å›¢å—å®ä¾‹å¯¹è±¡çš„ChunkDataFilesç»„ä»¶å®ä¾‹ï¼Œè°ƒç”¨å…¶è„šæœ¬å†…çš„Saveæ–¹æ³•å°†å›¢å—çš„å•å…ƒæ•°æ®ä¿å­˜åˆ°å†…å­˜
                 chunk.gameObject.GetComponent<CellChunkDataFiles>().SaveData();
                 count++;
                 if (count > CPEngine.MaxChunkSaves)
                 {
-                    //³¬¹ıÃ¿Ö¡ÍÅ¿éÊı¾İ´æ´¢µÄ´¦ÀíÉÏÏŞÔòÔÚÆÁÄ»ËùÓĞÏà»úºÍGUI±»äÖÈ¾Íê³ÉÇ°µÈ´ı£¬ÏÂÒ»Ö¡ÔÙ¼ÌĞø´¦Àí
+                    //è¶…è¿‡æ¯å¸§å›¢å—æ•°æ®å­˜å‚¨çš„å¤„ç†ä¸Šé™åˆ™åœ¨å±å¹•æ‰€æœ‰ç›¸æœºå’ŒGUIè¢«æ¸²æŸ“å®Œæˆå‰ç­‰å¾…ï¼Œä¸‹ä¸€å¸§å†ç»§ç»­å¤„ç†
                     yield return new WaitForEndOfFrame();
                     count = 0;
                 }
             }
 
-            //´ÓÄÚ´æĞ´Èë±¾µØ´æµµ
+            //ä»å†…å­˜å†™å…¥æœ¬åœ°å­˜æ¡£
             WriteLoadedChunks();
-            SavingChunks = false; //±£´æ¶¯×÷³¹µ×Íê³É
+            SavingChunks = false; //ä¿å­˜åŠ¨ä½œå½»åº•å®Œæˆ
 
             Debug.Log("CellSpace: World saved successfully.");
         }
 
         /// <summary>
-        /// ´æ´¢ËùÓĞÍÅ¿éÊµÀı£º½«TempChunkDataÖĞµÄÊı¾İĞ´ÈëÇøÓòÎÄ¼ş
+        /// å­˜å‚¨æ‰€æœ‰å›¢å—å®ä¾‹ï¼šå°†TempChunkDataä¸­çš„æ•°æ®å†™å…¥åŒºåŸŸæ–‡ä»¶
         /// </summary>
         public static void SaveAllChunksInstant()
         {
-            //½ûÓÃ´æ´¢µ¥ÔªÊı¾İÊ±
+            //ç¦ç”¨å­˜å‚¨å•å…ƒæ•°æ®æ—¶
             if (!CPEngine.SaveCellData)
             {
-                //¾¯¸æ£ºÉèÖÃÀïµÄ±£´æµ¥ÔªÊı¾İÃ»ÓĞÔÊĞí
+                //è­¦å‘Šï¼šè®¾ç½®é‡Œçš„ä¿å­˜å•å…ƒæ•°æ®æ²¡æœ‰å…è®¸
                 Debug.LogWarning("CellSpace: Saving is disabled. You can enable it in the CPEngine Settings.");
                 return;
             }
 
-            // for each chunk object, save data to memory.±éÀúÃ¿¸öÍÅ¿é¶ÔÏó£¬½«ÆäÊı¾İ±£´æµ½ÄÚ´æ£¨TempChunkData£©ÖĞ£¨Í¬Ê±·½±ã¿ìËÙ¼ÓÔØ£©
+            // for each chunk object, save data to memory.éå†æ¯ä¸ªå›¢å—å¯¹è±¡ï¼Œå°†å…¶æ•°æ®ä¿å­˜åˆ°å†…å­˜ï¼ˆTempChunkDataï¼‰ä¸­ï¼ˆåŒæ—¶æ–¹ä¾¿å¿«é€ŸåŠ è½½ï¼‰
             foreach (CellChunk chunk in CellChunkManager.Chunks.Values)
             {
-                //Í¨¹ıChunkDataFilesÖĞµÄ·½·¨À´´æ´¢ÍÅ¿éµÄµ¥ÔªÊı¾İ
+                //é€šè¿‡ChunkDataFilesä¸­çš„æ–¹æ³•æ¥å­˜å‚¨å›¢å—çš„å•å…ƒæ•°æ®
                 chunk.gameObject.GetComponent<CellChunkDataFiles>().SaveData();
             }
 
-            //½«ËùÓĞÍÅ¿éµÄµ¥ÔªÊı¾İ´ÓÄÚ´æĞ´Èë´ÅÅÌ£¬²¢Çå³ıÄÚ´æ
+            //å°†æ‰€æœ‰å›¢å—çš„å•å…ƒæ•°æ®ä»å†…å­˜å†™å…¥ç£ç›˜ï¼Œå¹¶æ¸…é™¤å†…å­˜
             WriteLoadedChunks();
 
             Debug.Log("CellSpace: World saved successfully. (Instant)");
@@ -447,65 +447,65 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// ½«ËùÓĞÍÅ¿éµÄµ¥ÔªÊı¾İ´ÓÄÚ´æĞ´Èë´ÅÅÌ£¬²¢Çå³ıÄÚ´æ
+        /// å°†æ‰€æœ‰å›¢å—çš„å•å…ƒæ•°æ®ä»å†…å­˜å†™å…¥ç£ç›˜ï¼Œå¹¶æ¸…é™¤å†…å­˜
         /// </summary>
         public static void WriteLoadedChunks()
         { //writes all chunk data from memory to disk, and clears memory
 
-            // for every chunk loaded in dictionary.±éÀú´æ´¢ÍÅ¿éÊı¾İµÄÁÙÊ±ÄÚ´æ
+            // for every chunk loaded in dictionary.éå†å­˜å‚¨å›¢å—æ•°æ®çš„ä¸´æ—¶å†…å­˜
             foreach (string chunkIndex in TempChunkData.Keys)
             {
-                //»ñÈ¡Ã¿¸öÍÅ¿éË÷Òı
+                //è·å–æ¯ä¸ªå›¢å—ç´¢å¼•
                 CPIndex index = CPIndex.FromString(chunkIndex);
-                //»ñÈ¡ÍÅ¿éË÷Òı¶ÔÓ¦µÄÇøÓòË÷Òı
+                //è·å–å›¢å—ç´¢å¼•å¯¹åº”çš„åŒºåŸŸç´¢å¼•
                 string region = GetParentRegion(index).ToString();
 
-                // check if region is loaded, and load it if it's not.¼ì²éÇøÓòÊÇ·ñÒÑ¼ÓÔØ£¬Èç¹ûÎ´¼ÓÔØÔò¼ÓÔØ
+                // check if region is loaded, and load it if it's not.æ£€æŸ¥åŒºåŸŸæ˜¯å¦å·²åŠ è½½ï¼Œå¦‚æœæœªåŠ è½½åˆ™åŠ è½½
                 if (LoadRegionData(GetParentRegion(index)) == false)
                 {
-                    //ÀûÓÃÍÅ¿éË÷Òı¶ÔÓ¦µÄÇøÓòË÷ÒıÀ´´´½¨1¸ö¿ÕµÄÇøÓòÎÄ¼ş
+                    //åˆ©ç”¨å›¢å—ç´¢å¼•å¯¹åº”çš„åŒºåŸŸç´¢å¼•æ¥åˆ›å»º1ä¸ªç©ºçš„åŒºåŸŸæ–‡ä»¶
                     CreateRegionFile(GetParentRegion(index));
-                    //ÀûÓÃÍÅ¿éË÷Òı¶ÔÓ¦µÄÇøÓòË÷ÒıÀ´Ğ´ÈëÇøÓòÊı¾İ
+                    //åˆ©ç”¨å›¢å—ç´¢å¼•å¯¹åº”çš„åŒºåŸŸç´¢å¼•æ¥å†™å…¥åŒºåŸŸæ•°æ®
                     LoadRegionData(GetParentRegion(index));
                 }
 
-                // write chunk data into region dictionary.½«ÍÅ¿éÊı¾İĞ´ÈëÇøÓò×Öµä
-                int chunkRegionIndex = GetChunkRegionIndex(index); //·µ»ØÍÅ¿éË÷Òı¶ÔÓ¦ÇøÓòÎÄ¼şÖĞ´æ´¢µÄÍÅ¿éÊı¾İÊı×éµÄÒ»Î¬Ë÷Òı£¨¼´ÍÅ¿éÔÚÇøÓòÖĞÊôÓÚµÚ¼¸¸öÔªËØ£©
-                LoadedRegions[region][chunkRegionIndex] = TempChunkData[chunkIndex]; //½«ÄÚ´æÖĞµÄµ±Ç°ÍÅ¿éÊı¾İÊı×é×÷Îª1¸öÖµĞ´Èëµ½ÒÑ¼ÓÔØÇøÓò×é¶ÔÓ¦¼üÖµÉÏ£¬±éÀúÒÔÍê³ÉÇøÓòÄÚÈ«²¿ÍÅ¿éÊı¾İµÄĞ´Èë
+                // write chunk data into region dictionary.å°†å›¢å—æ•°æ®å†™å…¥åŒºåŸŸå­—å…¸
+                int chunkRegionIndex = GetChunkRegionIndex(index); //è¿”å›å›¢å—ç´¢å¼•å¯¹åº”åŒºåŸŸæ–‡ä»¶ä¸­å­˜å‚¨çš„å›¢å—æ•°æ®æ•°ç»„çš„ä¸€ç»´ç´¢å¼•ï¼ˆå³å›¢å—åœ¨åŒºåŸŸä¸­å±äºç¬¬å‡ ä¸ªå…ƒç´ ï¼‰
+                LoadedRegions[region][chunkRegionIndex] = TempChunkData[chunkIndex]; //å°†å†…å­˜ä¸­çš„å½“å‰å›¢å—æ•°æ®æ•°ç»„ä½œä¸º1ä¸ªå€¼å†™å…¥åˆ°å·²åŠ è½½åŒºåŸŸç»„å¯¹åº”é”®å€¼ä¸Šï¼Œéå†ä»¥å®ŒæˆåŒºåŸŸå†…å…¨éƒ¨å›¢å—æ•°æ®çš„å†™å…¥
             }
-            TempChunkData.Clear();//Çå¿ÕÍÅ¿éÊı¾İÊı×é
+            TempChunkData.Clear();//æ¸…ç©ºå›¢å—æ•°æ®æ•°ç»„
 
 
-            // for every region loaded in dictionary.±éÀú×ÖµäÖĞ´æ´¢µÄÃ¿¸öÒÑ¼ÓÔØÇøÓòµÄ¼ü£¨ÇøÓòË÷ÒıÀàĞÍ£©
+            // for every region loaded in dictionary.éå†å­—å…¸ä¸­å­˜å‚¨çš„æ¯ä¸ªå·²åŠ è½½åŒºåŸŸçš„é”®ï¼ˆåŒºåŸŸç´¢å¼•ç±»å‹ï¼‰
             foreach (string regionIndex in LoadedRegions.Keys)
             {
-                //Ğ´ÈëÇøÓòÎÄ¼ş
+                //å†™å…¥åŒºåŸŸæ–‡ä»¶
                 WriteRegionFile(regionIndex);
             }
-            LoadedRegions.Clear();//Çå¿ÕÍÅ¿éÊı¾İÊı×é
+            LoadedRegions.Clear();//æ¸…ç©ºå›¢å—æ•°æ®æ•°ç»„
 
         }
 
         private static void WriteRegionFile(string regionIndex)
         {
-            //ÇøÓòÊı¾İÊı×é=ÒÑ¼ÓÔØÇøÓò[ÇøÓòË÷Òı]
+            //åŒºåŸŸæ•°æ®æ•°ç»„=å·²åŠ è½½åŒºåŸŸ[åŒºåŸŸç´¢å¼•]
             string[] regionData = LoadedRegions[regionIndex];
-            //¸ù¾İÇøÓòÎÄ¼şÂ·¾¶£¬´´½¨Ğ´ÈëÁ÷
+            //æ ¹æ®åŒºåŸŸæ–‡ä»¶è·¯å¾„ï¼Œåˆ›å»ºå†™å…¥æµ
             StreamWriter writer = new StreamWriter(GetRegionPath(CPIndex.FromString(regionIndex)));
             int count = 0;
-            //±éÀúÃ¿¸öÇøÓòÊı¾İÖĞµÄÍÅ¿éÊı¾İ£¨×Ö·û´®ĞÎÊ½£©
+            //éå†æ¯ä¸ªåŒºåŸŸæ•°æ®ä¸­çš„å›¢å—æ•°æ®ï¼ˆå­—ç¬¦ä¸²å½¢å¼ï¼‰
             foreach (string chunk in regionData)
             {
-                //½«Ã¿¸öÍÅ¿éÊı¾İĞ´ÈëÇøÓòÎÄ¼ş
+                //å°†æ¯ä¸ªå›¢å—æ•°æ®å†™å…¥åŒºåŸŸæ–‡ä»¶
                 writer.Write(chunk);
                 if (count != regionData.Length - 1)
                 {
-                    //Èç¹û¼ÆÊıÃ»ÓĞ´ïµ½ÇøÓòÊı¾İ³¤¶ÈÉÏÏŞ£¬ÔÚÃ¿¸öÍÅ¿éÊı¾İºóÃæ½øĞĞ×Ö·û²åÖµ£¨ÓÃÓÚ¶ÁÈ¡Ê±·Ö¸î×Ó×Ö·û´®£©
+                    //å¦‚æœè®¡æ•°æ²¡æœ‰è¾¾åˆ°åŒºåŸŸæ•°æ®é•¿åº¦ä¸Šé™ï¼Œåœ¨æ¯ä¸ªå›¢å—æ•°æ®åé¢è¿›è¡Œå­—ç¬¦æ’å€¼ï¼ˆç”¨äºè¯»å–æ—¶åˆ†å‰²å­å­—ç¬¦ä¸²ï¼‰
                     writer.Write((char)ushort.MaxValue);
                 }
                 count++;
             }
-            writer.Flush(); //Ê¹ÓÃFlushÀ´±£Ö¤Ğ´Èë£¨·ÀÖ¹³ÌĞòÒì³£±ÀÀ£µÈÇé¿öµ¼ÖÂĞ´Èë´íÎó£©
+            writer.Flush(); //ä½¿ç”¨Flushæ¥ä¿è¯å†™å…¥ï¼ˆé˜²æ­¢ç¨‹åºå¼‚å¸¸å´©æºƒç­‰æƒ…å†µå¯¼è‡´å†™å…¥é”™è¯¯ï¼‰
             writer.Close();
         }
     }

@@ -4,51 +4,51 @@ using UnityEngine;
 namespace CellSpace
 {
     /// <summary>
-    /// ÌåËØµ¥Ôª£¨Cell/Voxel£©£¬´æ´¢3DÁ¢·½ÌåËØµÄ×Ö¶ÎÊôĞÔ²¢Ìá¹©·ÃÎÊÌØ¶¨ÌåËØ¶ÔÏóµÈ·½·¨£¬ÓëCellInfoÇø±ğÔÚÓÚÉÙÁËÌåËØË÷Òı£¨Î»ÖÃĞÅÏ¢£©
+    /// ä½“ç´ å•å…ƒï¼ˆCell/Voxelï¼‰ï¼Œå­˜å‚¨3Dç«‹æ–¹ä½“ç´ çš„å­—æ®µå±æ€§å¹¶æä¾›è®¿é—®ç‰¹å®šä½“ç´ å¯¹è±¡ç­‰æ–¹æ³•ï¼Œä¸CellInfoåŒºåˆ«åœ¨äºå°‘äº†ä½“ç´ ç´¢å¼•ï¼ˆä½ç½®ä¿¡æ¯ï¼‰
     /// </summary>
     public class Cell : MonoBehaviour
     {
         /// <summary>
-        /// ÌåËØÃû³Æ
+        /// ä½“ç´ åç§°
         /// </summary>
         public string VName;
         /// <summary>
-        /// ÌåËØÍø¸ñ
+        /// ä½“ç´ ç½‘æ ¼
         /// </summary>
         public Mesh VMesh;
         /// <summary>
-        /// ÌåËØÊ¹ÓÃ×Ô¶¨ÒåÍø¸ñ
+        /// ä½“ç´ ä½¿ç”¨è‡ªå®šä¹‰ç½‘æ ¼
         /// </summary>
         public bool VCustomMesh;
         /// <summary>
-        /// ÌåËØ6Ãæ²ÉÓÃ×Ô¶¨ÒåÎÆÀí£¨¶ø·ÇÍ¨ÌåÊ¹ÓÃÏàÍ¬ÎÆÀí£©
+        /// ä½“ç´ 6é¢é‡‡ç”¨è‡ªå®šä¹‰çº¹ç†ï¼ˆè€Œéé€šä½“ä½¿ç”¨ç›¸åŒçº¹ç†ï¼‰
         /// </summary>
         public bool VCustomSides;
         /// <summary>
-        /// ÌåËØÎÆÀí[Ë÷Òı]£¬Êı×éË÷ÒıÖ¸¶¨ÁËÎÆÀíÃæ (ÈçVTexture[0]ÊÇÁ¢·½Ìå¶¥ÃæÎÆÀí£¬Ë÷Òı0~5·Ö±ğ±íÊ¾ÉÏÏÂÓÒ×óÇ°ºó)
+        /// ä½“ç´ çº¹ç†[ç´¢å¼•]ï¼Œæ•°ç»„ç´¢å¼•æŒ‡å®šäº†çº¹ç†é¢ (å¦‚VTexture[0]æ˜¯ç«‹æ–¹ä½“é¡¶é¢çº¹ç†ï¼Œç´¢å¼•0~5åˆ†åˆ«è¡¨ç¤ºä¸Šä¸‹å³å·¦å‰å)
         /// </summary>
         public Vector2[] VTexture;
         /// <summary>
-        /// ÌåËØÍ¸Ã÷¶È
+        /// ä½“ç´ é€æ˜åº¦
         /// </summary>
         public Transparency VTransparency;
         /// <summary>
-        /// ÌåËØÅö×²Æ÷ÀàĞÍ£¬·ÖÎª£ºÎŞ¡¢Íø¸ñ¡¢Á¢·½Ìå¡£
-        /// Íø¸ñÅö×²Æ÷¿ÉÊ¶±ğ×Ô¶¨ÒåÄ£ĞÍÖĞµÄÍø¸ñ£¨¸ß¸´ÔÓ¶ÈÇé¿öÏÂ½Ï³ÔĞÔÄÜ£©£¬¶øÔ¤ÖÆµÄÁ¢·½ÌåÅö×²Æ÷ÔòÍø¸ñÃæÊı±»¼ò»¯Îª×îÓÅ
-        /// ÎŞÂÛÉÏÊöÄÄÖÖ£¬ÔÚUnity¼È¿ÉÆ¾¿Õ´Ó¶¥µãÈı½ÇĞÎ´´½¨£¬Ò²¿ÉĞŞ¸Ä±à¼­ÒÑÓĞÍø¸ñ
+        /// ä½“ç´ ç¢°æ’å™¨ç±»å‹ï¼Œåˆ†ä¸ºï¼šæ— ã€ç½‘æ ¼ã€ç«‹æ–¹ä½“ã€‚
+        /// ç½‘æ ¼ç¢°æ’å™¨å¯è¯†åˆ«è‡ªå®šä¹‰æ¨¡å‹ä¸­çš„ç½‘æ ¼ï¼ˆé«˜å¤æ‚åº¦æƒ…å†µä¸‹è¾ƒåƒæ€§èƒ½ï¼‰ï¼Œè€Œé¢„åˆ¶çš„ç«‹æ–¹ä½“ç¢°æ’å™¨åˆ™ç½‘æ ¼é¢æ•°è¢«ç®€åŒ–ä¸ºæœ€ä¼˜
+        /// æ— è®ºä¸Šè¿°å“ªç§ï¼Œåœ¨Unityæ—¢å¯å‡­ç©ºä»é¡¶ç‚¹ä¸‰è§’å½¢åˆ›å»ºï¼Œä¹Ÿå¯ä¿®æ”¹ç¼–è¾‘å·²æœ‰ç½‘æ ¼
         /// </summary>
         public ColliderType VColliderType;
         /// <summary>
-        /// ÌåËØ×ÓÍø¸ñË÷Òı£¬ËüÊÇGUI½çÃæÊäÈëµÄ×Ô¶¨Òå²ÄÖÊË÷Òı£¨Material Index£©¡£µ±ÍÅ¿éÔ¤ÖÆÌåÖ»ÓĞ¶îÍâ²ÄÖÊ¼ÆÊı+1¸ö²ÄÖÊ¸½×ÅÊ±£¬ĞèÉèÖÃÒ»¸ö¸üµÍµÄ²ÄÖÊË÷Òı»ò¸½×Å¸ü¶à²ÄÖÊµ½ÍÅ¿éÔ¤ÖÆÌå·ñÔò±¨´í£¡
+        /// ä½“ç´ å­ç½‘æ ¼ç´¢å¼•ï¼Œå®ƒæ˜¯GUIç•Œé¢è¾“å…¥çš„è‡ªå®šä¹‰æè´¨ç´¢å¼•ï¼ˆMaterial Indexï¼‰ã€‚å½“å›¢å—é¢„åˆ¶ä½“åªæœ‰é¢å¤–æè´¨è®¡æ•°+1ä¸ªæè´¨é™„ç€æ—¶ï¼Œéœ€è®¾ç½®ä¸€ä¸ªæ›´ä½çš„æè´¨ç´¢å¼•æˆ–é™„ç€æ›´å¤šæè´¨åˆ°å›¢å—é¢„åˆ¶ä½“å¦åˆ™æŠ¥é”™ï¼
         /// </summary>
         public int VSubmeshIndex;
         /// <summary>
-        /// ÌåËØĞı×ª
+        /// ä½“ç´ æ—‹è½¬
         /// </summary>
         public MeshRotation VRotation;
 
         /// <summary>
-        /// ´İ»ÙÌåËØ¿é£¬Êµ¼ÊÊÇ½«µ¥ÔªÉèÖÃÎª¿Õ(id 0)£¬¸üĞÂµ¥ÔªµÄÍø¸ñ²¢´¥·¢OnBlockDestroyÊÂ¼ş¡£
+        /// æ‘§æ¯ä½“ç´ å—ï¼Œå®é™…æ˜¯å°†å•å…ƒè®¾ç½®ä¸ºç©º(id 0)ï¼Œæ›´æ–°å•å…ƒçš„ç½‘æ ¼å¹¶è§¦å‘OnBlockDestroyäº‹ä»¶ã€‚
         /// </summary>
         /// <param name="cellInfo"></param>
         public static void DestroyBlock(CellInfo cellInfo)
@@ -56,32 +56,32 @@ namespace CellSpace
             // multiplayer - send change to server
             if (CPEngine.EnableMultiplayer)
             {
-                //´ÓÍøÂç´¦Àí¶ÔÏó£¨CPEngine£©¹Ò×ÅµÄClient×é¼şÖĞµ÷ÓÃSendPlaceBlock·½·¨
+                //ä»ç½‘ç»œå¤„ç†å¯¹è±¡ï¼ˆCPEngineï¼‰æŒ‚ç€çš„Clientç»„ä»¶ä¸­è°ƒç”¨SendPlaceBlockæ–¹æ³•
                 CPEngine.Network.GetComponent<Client>().SendPlaceBlock(cellInfo, 0);
             }
             // single player - apply change locally
             else
             {
-                //´ÓCellInfoÈ¡µÃÌåËØID£¬È»ºó´ÓBlock[ÌåËØID]È¡µÃÔ¤ÖÆÌå²¢½øĞĞÒ»´ÎÊµÀı»¯
-                //¡ıÖ»ÊÇÎªÁËÌáÈ¡×é¼şÑéÖ¤²¢·¢ËÍÊÂ¼ş£¬×îºóÓÃÍê¾Í´İ»Ù·Ç³£²»Ğ§ÂÊ£¬ÕâÀïµÄGameObjectÊÇÒ»¸öĞèÒªÓÅ»¯µÄµØ·½
+                //ä»CellInfoå–å¾—ä½“ç´ IDï¼Œç„¶åä»Block[ä½“ç´ ID]å–å¾—é¢„åˆ¶ä½“å¹¶è¿›è¡Œä¸€æ¬¡å®ä¾‹åŒ–
+                //â†“åªæ˜¯ä¸ºäº†æå–ç»„ä»¶éªŒè¯å¹¶å‘é€äº‹ä»¶ï¼Œæœ€åç”¨å®Œå°±æ‘§æ¯éå¸¸ä¸æ•ˆç‡ï¼Œè¿™é‡Œçš„GameObjectæ˜¯ä¸€ä¸ªéœ€è¦ä¼˜åŒ–çš„åœ°æ–¹
                 //GameObject cellObject = Instantiate(CPEngine.GetCellGameObject(cellInfo.GetCellID()));
-                OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //´ÓÕ»È¡³öOP¶ÔÏó
-                CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //½«È¡³öµÄOP¶ÔÏó¼¤»î£¨ÀïÃæÓÎÏ·ÎïÌåÒ²»á¼¤»î£©
-                GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //ÓÎÏ·ÎïÌå¸³Öµ
+                OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ä»æ ˆå–å‡ºOPå¯¹è±¡
+                CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //å°†å–å‡ºçš„OPå¯¹è±¡æ¿€æ´»ï¼ˆé‡Œé¢æ¸¸æˆç‰©ä½“ä¹Ÿä¼šæ¿€æ´»ï¼‰
+                GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //æ¸¸æˆç‰©ä½“èµ‹å€¼
                 if (cellObject.GetComponent<CellEvents>() != null)
                 {
-                    //Èç¹û¸ÃID¶ÔÏó¾ßÓĞCellEvents×é¼ş£¬Ê¹ÓÃ¸Ã×é¼ş·½·¨¶Ôµ¥ÔªÖ´ĞĞÒ»´Î´İ»ÙÊÂ¼ş
+                    //å¦‚æœè¯¥IDå¯¹è±¡å…·æœ‰CellEventsç»„ä»¶ï¼Œä½¿ç”¨è¯¥ç»„ä»¶æ–¹æ³•å¯¹å•å…ƒæ‰§è¡Œä¸€æ¬¡æ‘§æ¯äº‹ä»¶
                     cellObject.GetComponent<CellEvents>().OnBlockDestroy(cellInfo);
                 }
-                //ÉèÖÃ¸Ãµ¥ÔªË÷Òı´¦µÄµ¥Î»ÖÖÀàÎª0
+                //è®¾ç½®è¯¥å•å…ƒç´¢å¼•å¤„çš„å•ä½ç§ç±»ä¸º0
                 cellInfo.chunk.SetCell(cellInfo.index, 0, true);
-                //´İ»ÙÊµÀı£¨Ò²Ã»ÓĞ»ØÊÕµ½¶ÔÏó³Ø£¬ÕâÑùĞ´ºÜ²»Ğ§ÂÊ£©
+                //æ‘§æ¯å®ä¾‹ï¼ˆä¹Ÿæ²¡æœ‰å›æ”¶åˆ°å¯¹è±¡æ± ï¼Œè¿™æ ·å†™å¾ˆä¸æ•ˆç‡ï¼‰
                 //Destroy(cellObject);
-                OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ÓÃÍêÍË»Ø¶ÔÏó³Ø
+                OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ç”¨å®Œé€€å›å¯¹è±¡æ± 
             }
         }
         /// <summary>
-        /// ·ÅÖÃÌåËØ¿é£¬Êµ¼ÊÊÇ½«µ¥ÔªÉèÖÃÎªÖ¸¶¨µÄid£¬¸üĞÂµ¥ÔªµÄÍø¸ñ²¢´¥·¢OnBlockPlaceÊÂ¼ş¡£
+        /// æ”¾ç½®ä½“ç´ å—ï¼Œå®é™…æ˜¯å°†å•å…ƒè®¾ç½®ä¸ºæŒ‡å®šçš„idï¼Œæ›´æ–°å•å…ƒçš„ç½‘æ ¼å¹¶è§¦å‘OnBlockPlaceäº‹ä»¶ã€‚
         /// </summary>
         /// <param name="cellInfo"></param>
         /// <param name="data"></param>
@@ -90,28 +90,28 @@ namespace CellSpace
             // multiplayer - send change to server
             if (CPEngine.EnableMultiplayer)
             {
-                //´ÓÍøÂç´¦Àí¶ÔÏó£¨CPEngine£©¹Ò×ÅµÄClient×é¼şÖĞµ÷ÓÃSendPlaceBlock·½·¨
+                //ä»ç½‘ç»œå¤„ç†å¯¹è±¡ï¼ˆCPEngineï¼‰æŒ‚ç€çš„Clientç»„ä»¶ä¸­è°ƒç”¨SendPlaceBlockæ–¹æ³•
                 CPEngine.Network.GetComponent<Client>().SendPlaceBlock(cellInfo, data);
             }
             // single player - apply change locally
             else
             {
                 cellInfo.chunk.SetCell(cellInfo.index, data, true);
-                //¡ıÖ»ÊÇÎªÁËÌáÈ¡×é¼şÑéÖ¤²¢·¢ËÍÊÂ¼ş£¬×îºóÓÃÍê¾Í´İ»Ù·Ç³£²»Ğ§ÂÊ£¬ÕâÀïµÄGameObjectÊÇÒ»¸öĞèÒªÓÅ»¯µÄµØ·½
+                //â†“åªæ˜¯ä¸ºäº†æå–ç»„ä»¶éªŒè¯å¹¶å‘é€äº‹ä»¶ï¼Œæœ€åç”¨å®Œå°±æ‘§æ¯éå¸¸ä¸æ•ˆç‡ï¼Œè¿™é‡Œçš„GameObjectæ˜¯ä¸€ä¸ªéœ€è¦ä¼˜åŒ–çš„åœ°æ–¹
                 //GameObject cellObject = Instantiate(CPEngine.GetCellGameObject(data));
-                OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //´ÓÕ»È¡³öOP¶ÔÏó
-                CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //½«È¡³öµÄOP¶ÔÏó¼¤»î£¨ÀïÃæÓÎÏ·ÎïÌåÒ²»á¼¤»î£©
-                GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //ÓÎÏ·ÎïÌå¸³Öµ
+                OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ä»æ ˆå–å‡ºOPå¯¹è±¡
+                CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //å°†å–å‡ºçš„OPå¯¹è±¡æ¿€æ´»ï¼ˆé‡Œé¢æ¸¸æˆç‰©ä½“ä¹Ÿä¼šæ¿€æ´»ï¼‰
+                GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //æ¸¸æˆç‰©ä½“èµ‹å€¼
                 if (cellObject.GetComponent<CellEvents>() != null)
                 {
                     cellObject.GetComponent<CellEvents>().OnBlockPlace(cellInfo);
                 }
                 //Destroy(cellObject);
-                OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ÓÃÍêÍË»Ø¶ÔÏó³Ø
+                OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ç”¨å®Œé€€å›å¯¹è±¡æ± 
             }
         }
         /// <summary>
-        /// ¸ü»»ÌåËØ¿é£¬Êµ¼ÊÊÇ½«µ¥ÔªÉèÖÃÎªÖ¸¶¨µÄid£¬¸üĞÂµ¥ÔªµÄÍø¸ñ²¢´¥·¢OnBlockChangeÊÂ¼ş¡£
+        /// æ›´æ¢ä½“ç´ å—ï¼Œå®é™…æ˜¯å°†å•å…ƒè®¾ç½®ä¸ºæŒ‡å®šçš„idï¼Œæ›´æ–°å•å…ƒçš„ç½‘æ ¼å¹¶è§¦å‘OnBlockChangeäº‹ä»¶ã€‚
         /// </summary>
         /// <param name="cellInfo"></param>
         /// <param name="data"></param>
@@ -120,31 +120,31 @@ namespace CellSpace
             // multiplayer - send change to server
             if (CPEngine.EnableMultiplayer)
             {
-                //´ÓÍøÂç´¦Àí¶ÔÏó£¨CPEngine£©¹Ò×ÅµÄClient×é¼şÖĞµ÷ÓÃSendChangeBlock·½·¨
+                //ä»ç½‘ç»œå¤„ç†å¯¹è±¡ï¼ˆCPEngineï¼‰æŒ‚ç€çš„Clientç»„ä»¶ä¸­è°ƒç”¨SendChangeBlockæ–¹æ³•
                 CPEngine.Network.GetComponent<Client>().SendChangeBlock(cellInfo, data);
             }
             // single player - apply change locally
             else
             {
                 cellInfo.chunk.SetCell(cellInfo.index, data, true);
-                //¡ıÖ»ÊÇÎªÁËÌáÈ¡×é¼şÑéÖ¤²¢·¢ËÍÊÂ¼ş£¬×îºóÓÃÍê¾Í´İ»Ù·Ç³£²»Ğ§ÂÊ£¬ÕâÀïµÄGameObjectÊÇÒ»¸öĞèÒªÓÅ»¯µÄµØ·½
+                //â†“åªæ˜¯ä¸ºäº†æå–ç»„ä»¶éªŒè¯å¹¶å‘é€äº‹ä»¶ï¼Œæœ€åç”¨å®Œå°±æ‘§æ¯éå¸¸ä¸æ•ˆç‡ï¼Œè¿™é‡Œçš„GameObjectæ˜¯ä¸€ä¸ªéœ€è¦ä¼˜åŒ–çš„åœ°æ–¹
                 //GameObject cellObject = Instantiate(CPEngine.GetCellGameObject(data));
-                OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //´ÓÕ»È¡³öOP¶ÔÏó
-                CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //½«È¡³öµÄOP¶ÔÏó¼¤»î£¨ÀïÃæÓÎÏ·ÎïÌåÒ²»á¼¤»î£©
-                GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //ÓÎÏ·ÎïÌå¸³Öµ
+                OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ä»æ ˆå–å‡ºOPå¯¹è±¡
+                CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //å°†å–å‡ºçš„OPå¯¹è±¡æ¿€æ´»ï¼ˆé‡Œé¢æ¸¸æˆç‰©ä½“ä¹Ÿä¼šæ¿€æ´»ï¼‰
+                GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //æ¸¸æˆç‰©ä½“èµ‹å€¼
                 if (cellObject.GetComponent<CellEvents>() != null)
                 {
                     cellObject.GetComponent<CellEvents>().OnBlockChange(cellInfo);
                 }
                 //Destroy(cellObject);
-                OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ÓÃÍêÍË»Ø¶ÔÏó³Ø
+                OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ç”¨å®Œé€€å›å¯¹è±¡æ± 
             }
         }
 
         // multiplayer
 
         /// <summary>
-        /// ´İ»ÙÌåËØ¿é£¬½«µ¥ÔªÉèÖÃÎª¿Õµ¥Ôª(id 0)£¬¸üĞÂµ¥ÔªµÄÍø¸ñ²¢´¥·¢OnBlockDestroyÊÂ¼ş¡£Èç¹ûÆôÓÃ¶àÈËÄ£Ê½£¬½«µ¥Ôª¸ü¸Ä·¢ËÍ¸øÆäËûÁ¬½ÓµÄÍæ¼Ò¡£
+        /// æ‘§æ¯ä½“ç´ å—ï¼Œå°†å•å…ƒè®¾ç½®ä¸ºç©ºå•å…ƒ(id 0)ï¼Œæ›´æ–°å•å…ƒçš„ç½‘æ ¼å¹¶è§¦å‘OnBlockDestroyäº‹ä»¶ã€‚å¦‚æœå¯ç”¨å¤šäººæ¨¡å¼ï¼Œå°†å•å…ƒæ›´æ”¹å‘é€ç»™å…¶ä»–è¿æ¥çš„ç©å®¶ã€‚
         /// </summary>
         /// <param name="cellInfo"></param>
         /// <param name="sender"></param>
@@ -152,9 +152,9 @@ namespace CellSpace
         { // received from server, don'transform use directly
 
             //GameObject cellObject = Instantiate(CPEngine.GetCellGameObject(cellInfo.GetCellID()));
-            OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //´ÓÕ»È¡³öOP¶ÔÏó
-            CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //½«È¡³öµÄOP¶ÔÏó¼¤»î£¨ÀïÃæÓÎÏ·ÎïÌåÒ²»á¼¤»î£©
-            GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //ÓÎÏ·ÎïÌå¸³Öµ
+            OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ä»æ ˆå–å‡ºOPå¯¹è±¡
+            CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //å°†å–å‡ºçš„OPå¯¹è±¡æ¿€æ´»ï¼ˆé‡Œé¢æ¸¸æˆç‰©ä½“ä¹Ÿä¼šæ¿€æ´»ï¼‰
+            GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //æ¸¸æˆç‰©ä½“èµ‹å€¼
             CellEvents events = cellObject.GetComponent<CellEvents>();
             if (events != null)
             {
@@ -163,10 +163,10 @@ namespace CellSpace
             }
             cellInfo.chunk.SetCell(cellInfo.index, 0, true);
             //Destroy(cellObject);
-            OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ÓÃÍêÍË»Ø¶ÔÏó³Ø
+            OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ç”¨å®Œé€€å›å¯¹è±¡æ± 
         }
         /// <summary>
-        /// ·ÅÖÃÌåËØ¿é£¬½«µ¥ÔªÉèÖÃÎªÖ¸¶¨µÄid£¬¸üĞÂµ¥ÔªµÄÍø¸ñ²¢´¥·¢OnBlockPlaceÊÂ¼ş¡£Èç¹ûÆôÓÃ¶àÈËÄ£Ê½£¬½«µ¥Ôª¸ü¸Ä·¢ËÍ¸øÆäËûÁ¬½ÓµÄÍæ¼Ò¡£
+        /// æ”¾ç½®ä½“ç´ å—ï¼Œå°†å•å…ƒè®¾ç½®ä¸ºæŒ‡å®šçš„idï¼Œæ›´æ–°å•å…ƒçš„ç½‘æ ¼å¹¶è§¦å‘OnBlockPlaceäº‹ä»¶ã€‚å¦‚æœå¯ç”¨å¤šäººæ¨¡å¼ï¼Œå°†å•å…ƒæ›´æ”¹å‘é€ç»™å…¶ä»–è¿æ¥çš„ç©å®¶ã€‚
         /// </summary>
         /// <param name="cellInfo"></param>
         /// <param name="data"></param>
@@ -176,9 +176,9 @@ namespace CellSpace
 
             cellInfo.chunk.SetCell(cellInfo.index, data, true);
             //GameObject cellObject = Instantiate(CPEngine.GetCellGameObject(data));
-            OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //´ÓÕ»È¡³öOP¶ÔÏó
-            CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //½«È¡³öµÄOP¶ÔÏó¼¤»î£¨ÀïÃæÓÎÏ·ÎïÌåÒ²»á¼¤»î£©
-            GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //ÓÎÏ·ÎïÌå¸³Öµ
+            OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ä»æ ˆå–å‡ºOPå¯¹è±¡
+            CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //å°†å–å‡ºçš„OPå¯¹è±¡æ¿€æ´»ï¼ˆé‡Œé¢æ¸¸æˆç‰©ä½“ä¹Ÿä¼šæ¿€æ´»ï¼‰
+            GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //æ¸¸æˆç‰©ä½“èµ‹å€¼
             CellEvents events = cellObject.GetComponent<CellEvents>();
             if (events != null)
             {
@@ -186,10 +186,10 @@ namespace CellSpace
                 events.OnBlockPlaceMultiplayer(cellInfo, sender);
             }
             //Destroy(cellObject);
-            OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ÓÃÍêÍË»Ø¶ÔÏó³Ø
+            OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ç”¨å®Œé€€å›å¯¹è±¡æ± 
         }
         /// <summary>
-        /// ¸ü»»ÌåËØ¿é£¬½«µ¥ÔªÉèÖÃÎªÖ¸¶¨µÄid£¬¸üĞÂµ¥ÔªµÄÍø¸ñ²¢´¥·¢OnBlockChangeÊÂ¼ş¡£Èç¹ûÆôÓÃ¶àÈËÄ£Ê½£¬½«µ¥Ôª¸ü¸Ä·¢ËÍ¸øÆäËûÁ¬½ÓµÄÍæ¼Ò¡£
+        /// æ›´æ¢ä½“ç´ å—ï¼Œå°†å•å…ƒè®¾ç½®ä¸ºæŒ‡å®šçš„idï¼Œæ›´æ–°å•å…ƒçš„ç½‘æ ¼å¹¶è§¦å‘OnBlockChangeäº‹ä»¶ã€‚å¦‚æœå¯ç”¨å¤šäººæ¨¡å¼ï¼Œå°†å•å…ƒæ›´æ”¹å‘é€ç»™å…¶ä»–è¿æ¥çš„ç©å®¶ã€‚
         /// </summary>
         /// <param name="cellInfo"></param>
         /// <param name="data"></param>
@@ -199,9 +199,9 @@ namespace CellSpace
 
             cellInfo.chunk.SetCell(cellInfo.index, data, true);
             //GameObject cellObject = Instantiate(CPEngine.GetCellGameObject(data));
-            OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //´ÓÕ»È¡³öOP¶ÔÏó
-            CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //½«È¡³öµÄOP¶ÔÏó¼¤»î£¨ÀïÃæÓÎÏ·ÎïÌåÒ²»á¼¤»î£©
-            GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //ÓÎÏ·ÎïÌå¸³Öµ
+            OP.Pop(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ä»æ ˆå–å‡ºOPå¯¹è±¡
+            CPEngine.PrefabOPs[cellInfo.GetCellID()].Enable(); //å°†å–å‡ºçš„OPå¯¹è±¡æ¿€æ´»ï¼ˆé‡Œé¢æ¸¸æˆç‰©ä½“ä¹Ÿä¼šæ¿€æ´»ï¼‰
+            GameObject cellObject = CPEngine.PrefabOPs[cellInfo.GetCellID()].gameObject; //æ¸¸æˆç‰©ä½“èµ‹å€¼
             CellEvents events = cellObject.GetComponent<CellEvents>();
             if (events != null)
             {
@@ -209,13 +209,13 @@ namespace CellSpace
                 events.OnBlockChangeMultiplayer(cellInfo, sender);
             }
             //Destroy(cellObject);
-            OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ÓÃÍêÍË»Ø¶ÔÏó³Ø
+            OP.Push(ref CPEngine.PrefabOPs[cellInfo.GetCellID()]); //ç”¨å®Œé€€å›å¯¹è±¡æ± 
         }
 
         // block editor functions
 
         /// <summary>
-        /// »ñÈ¡ÌåËØID£¨µ¥ÔªÖÖÀà£©
+        /// è·å–ä½“ç´ IDï¼ˆå•å…ƒç§ç±»ï¼‰
         /// </summary>
         /// <returns></returns>
         public ushort GetID()
@@ -223,7 +223,7 @@ namespace CellSpace
             return ushort.Parse(this.gameObject.name.Split('_')[1]);
         }
         /// <summary>
-        /// Éè¶¨ÌåËØID£¨µ¥ÔªÖÖÀà£©
+        /// è®¾å®šä½“ç´ IDï¼ˆå•å…ƒç§ç±»ï¼‰
         /// </summary>
         /// <param name="id"></param>
         public void SetID(ushort id)

@@ -6,7 +6,7 @@ using UnityEditor.PackageManager.UI;
 namespace CellSpace
 {
     /// <summary>
-    /// µ¥Ôª±à¼­Æ÷¹¦ÄÜÀà
+    /// å•å…ƒç¼–è¾‘å™¨åŠŸèƒ½ç±»
     /// </summary>
     public class CPBlockEditor : EditorWindow
     {
@@ -36,7 +36,7 @@ namespace CellSpace
 
         // ==== Editor window ====
 
-        [MenuItem("CellSpace/µ¥Ôª±à¼­Æ÷")]
+        [MenuItem("CellSpace/å•å…ƒç¼–è¾‘å™¨")]
         static void Init()
         {
             CPBlockEditor window = (CPBlockEditor)GetWindow(typeof(CPBlockEditor));
@@ -51,7 +51,7 @@ namespace CellSpace
                 if (FindEngine() == false)
                 {
                     EditorGUILayout.LabelField("Cannot find an CPEngine game object in the scene!");
-                    //EditorUtility.DisplayDialog("ÌáÊ¾", "Î´ÕÒµ½CPEngine×é¼ş£¬ÇëÈ·±£³¡¾°ÖĞÖÁÉÙ´æÔÚÒ»¸öCPEngine×é¼ş¡£", "È·¶¨");
+                    //EditorUtility.DisplayDialog("æç¤º", "æœªæ‰¾åˆ°CPEngineç»„ä»¶ï¼Œè¯·ç¡®ä¿åœºæ™¯ä¸­è‡³å°‘å­˜åœ¨ä¸€ä¸ªCPEngineç»„ä»¶ã€‚", "ç¡®å®š");
                     return;
                 }
             }
@@ -61,7 +61,7 @@ namespace CellSpace
             }
             GUILayout.Space(10);
             CPEngine engine = EngineInstance.GetComponent<CPEngine>();
-            engine.lBlocksPath = EditorGUILayout.TextField("Cell Ô¤ÖÆÌåÂ·¾¶", engine.lBlocksPath);
+            engine.lBlocksPath = EditorGUILayout.TextField("Cell é¢„åˆ¶ä½“è·¯å¾„", engine.lBlocksPath);
             //engine.lBlocksPath = @"Assets\CellSpace\Res\Cells\";
             if (GUI.changed)
             {
@@ -182,7 +182,7 @@ namespace CellSpace
 
                 // material index
                 selectedCell.VSubmeshIndex = EditorGUILayout.IntField("Material Index", selectedCell.VSubmeshIndex);
-                //Èç¹ûÒ»¸öÍÅ¿éÔ¤ÖÆÍø¸ñäÖÈ¾Æ÷×é¼şÓĞ>1¸ö²ÄÖÊ£¬ÄÇÃ´CellÔ¤ÖÆÌå¿ÉÒÔÊ¹ÓÃË÷Òı1»ò2µÄ²ÄÖÊÉÏÃæµÄÎÆÀí£¬Èç¹û<0ÔòË÷ÒıÎª0
+                //å¦‚æœä¸€ä¸ªå›¢å—é¢„åˆ¶ç½‘æ ¼æ¸²æŸ“å™¨ç»„ä»¶æœ‰>1ä¸ªæè´¨ï¼Œé‚£ä¹ˆCellé¢„åˆ¶ä½“å¯ä»¥ä½¿ç”¨ç´¢å¼•1æˆ–2çš„æè´¨ä¸Šé¢çš„çº¹ç†ï¼Œå¦‚æœ<0åˆ™ç´¢å¼•ä¸º0
                 if (selectedCell.VSubmeshIndex < 0) selectedCell.VSubmeshIndex = 0;
 
                 // transparency
@@ -345,7 +345,7 @@ namespace CellSpace
         private GameObject GetBlock(ushort data)
         { // returns the prefab of the block with a given index
 
-            Object blockObject = AssetDatabase.LoadAssetAtPath(GetBlockPath(data), typeof(Object)); //typeof(Object)±íÊ¾¼ÓÔØµÄ×ÊÔ´¿ÉÒÔÊÇÈÎºÎÀàĞÍ£¨ÒòÎªObjectÊÇUnityÖĞËùÓĞ¶ÔÏóµÄ»ùÀà£©
+            Object blockObject = AssetDatabase.LoadAssetAtPath(GetBlockPath(data), typeof(Object)); //typeof(Object)è¡¨ç¤ºåŠ è½½çš„èµ„æºå¯ä»¥æ˜¯ä»»ä½•ç±»å‹ï¼ˆå› ä¸ºObjectæ˜¯Unityä¸­æ‰€æœ‰å¯¹è±¡çš„åŸºç±»ï¼‰
             GameObject block = null;
 
             if (blockObject != null)

@@ -3,16 +3,16 @@ using UnityEngine;
 namespace CellSpace
 {
     /// <summary>
-    /// �ſ���չ������ſ��������Ⱦ��Ϊ��ʱ�����ſ���Ϸ������Ϊ26�㣨����ײ�㣩��
+    /// 团块扩展组件：团块的网格渲染器为空时，将团块游戏物体设为26层（不碰撞层）。
     /// </summary>
     public class CellChunkExtension : MonoBehaviour
     {
         void Awake()
         {
-            //�ſ��������Ⱦ��Ϊ��ʱ
+            //团块的网格渲染器为空时
             if (GetComponent<MeshRenderer>() == null)
             {
-                //���ſ���Ϸ������Ϊ26�㣨����ײ�㣩
+                //将团块游戏物体设为26层（不碰撞层）
                 gameObject.layer = 26;
 
             }

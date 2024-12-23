@@ -2,19 +2,19 @@
 namespace CellSpace.Examples
 {
     /// <summary>
-    /// ×Ô¶¨ÒåµØĞÎ²¼ÖÃ£¨½øÈë²¼ÖÃÇ°ÍÅ¿éÀïµÄµ¥Ôª¶¼ÊÇ¿Õ¿é£©
+    /// è‡ªå®šä¹‰åœ°å½¢å¸ƒç½®ï¼ˆè¿›å…¥å¸ƒç½®å‰å›¢å—é‡Œçš„å•å…ƒéƒ½æ˜¯ç©ºå—ï¼‰
     /// </summary>
     public class CPCustomTerrainGenerator : CPTerrainGenerator
     {
         /// <summary>
-        /// mapID=0Îª´óµØÍ¼£¬Ğ¡µØÍ¼´Ó1~239¿ªÊ¼£¨1ÊÇÀ­¶àÕò£©,240ÊÇÁúÖé´óµØÍ¼²âÊÔ
+        /// mapID=0ä¸ºå¤§åœ°å›¾ï¼Œå°åœ°å›¾ä»1~239å¼€å§‹ï¼ˆ1æ˜¯æ‹‰å¤šé•‡ï¼‰,240æ˜¯é¾™ç å¤§åœ°å›¾æµ‹è¯•
         /// </summary>
         /// <param name="mapID"></param>
         void LoadMap(int mapID)
         {
             int i = -1;
             if (mapID == 0)
-            {//Ë¢´óµØÍ¼
+            {//åˆ·å¤§åœ°å›¾
                 for (int y = 0; y < 256; y++)
                 {
                     for (int x = 0; x < 256; x++)
@@ -22,37 +22,37 @@ namespace CellSpace.Examples
                         i++;
                         if (CPEngine.HorizontalMode)
                         {
-                            chunk.SetCellSimple(x, y, (ushort)(CPEngine.mapIDs[0][i] + 10));//ÖØ×°»ú±ø´óµØÍ¼µÚÒ»¸öÎÆÀí±àºÅ´Ó11¿ªÊ¼
+                            chunk.SetCellSimple(x, y, (ushort)(CPEngine.mapIDs[0][i] + 10));//é‡è£…æœºå…µå¤§åœ°å›¾ç¬¬ä¸€ä¸ªçº¹ç†ç¼–å·ä»11å¼€å§‹
                         }
                     }
                 }
             }
             else if (mapID > 0 && mapID<240)
-            {//Ë¢Ğ¡µØÍ¼
-                int width = CPEngine.mapWidths[mapID - 1];//À­¶àÊÇmapId=1£¬¸ñ×Ó¿í¶È=mapWidths[0]
-                int currentX = 0; // µ±Ç°ÁĞµÄË÷Òı
-                int currentY = 0; // µ±Ç°ĞĞµÄË÷Òı
+            {//åˆ·å°åœ°å›¾
+                int width = CPEngine.mapWidths[mapID - 1];//æ‹‰å¤šæ˜¯mapId=1ï¼Œæ ¼å­å®½åº¦=mapWidths[0]
+                int currentX = 0; // å½“å‰åˆ—çš„ç´¢å¼•
+                int currentY = 0; // å½“å‰è¡Œçš„ç´¢å¼•
 
-                // ÓÉÓÚÎÒÃÇ²»ÖªµÀ×Ü¸ñ×ÓÊı£¬ÎÒÃÇ½«Ê¹ÓÃÒ»¸öÌõ¼şÀ´¼ì²éÊÇ·ñÓ¦¸ÃÍ£Ö¹
+                // ç”±äºæˆ‘ä»¬ä¸çŸ¥é“æ€»æ ¼å­æ•°ï¼Œæˆ‘ä»¬å°†ä½¿ç”¨ä¸€ä¸ªæ¡ä»¶æ¥æ£€æŸ¥æ˜¯å¦åº”è¯¥åœæ­¢
                 bool shouldStop = false;
 
                 while (!shouldStop)
                 {
-                    i++; // Ôö¼Ó¼ÆÊı
+                    i++; // å¢åŠ è®¡æ•°
                     if (CPEngine.HorizontalMode)
                     {
-                        chunk.SetCellSimple(currentX, currentY, (ushort)(CPEngine.mapIDs[mapID][i] + 162));//ÖØ×°»ú±øĞ¡µØÍ¼µÚÒ»¸öÎÆÀí±àºÅ´Ó163¿ªÊ¼
+                        chunk.SetCellSimple(currentX, currentY, (ushort)(CPEngine.mapIDs[mapID][i] + 162));//é‡è£…æœºå…µå°åœ°å›¾ç¬¬ä¸€ä¸ªçº¹ç†ç¼–å·ä»163å¼€å§‹
                     }
                     currentX++;
 
-                    // Èç¹û´ïµ½ĞĞ¿í£¬Ôò»»ĞĞ
+                    // å¦‚æœè¾¾åˆ°è¡Œå®½ï¼Œåˆ™æ¢è¡Œ
                     if (currentX >= width)
                     {
-                        currentX = 0; // ÖØÖÃÁĞË÷Òı
-                        currentY++;   // Ôö¼ÓĞĞË÷Òı
+                        currentX = 0; // é‡ç½®åˆ—ç´¢å¼•
+                        currentY++;   // å¢åŠ è¡Œç´¢å¼•
 
-                        // ¼ì²éÊÇ·ñÓ¦¸ÃÍ£Ö¹
-                        if (i + 1 >= CPEngine.mapIDs[mapID].Count) //ÈçÀ­¶àµÄ¸ñ×ÓÊıÊÇ384£¬´ïµ½¾ÍÍ£Ö¹
+                        // æ£€æŸ¥æ˜¯å¦åº”è¯¥åœæ­¢
+                        if (i + 1 >= CPEngine.mapIDs[mapID].Count) //å¦‚æ‹‰å¤šçš„æ ¼å­æ•°æ˜¯384ï¼Œè¾¾åˆ°å°±åœæ­¢
                         {
                             shouldStop = true;
                         }
@@ -60,7 +60,7 @@ namespace CellSpace.Examples
                 }
             }
             else if (mapID == 240)
-            {//Ë¢ÁúÖé´óµØÍ¼
+            {//åˆ·é¾™ç å¤§åœ°å›¾
                 for (int y = 0; y < 349; y++)
                 {
                     for (int x = 0; x < 512; x++)
@@ -68,7 +68,7 @@ namespace CellSpace.Examples
                         i++;
                         if (CPEngine.HorizontalMode)
                         {
-                            chunk.SetCellSimple(x, y, (ushort)(CPEngine.mapIDs[240][i] + 1522));//ÁúÖé´óµØÍ¼µÚÒ»¸öÎÆÀí±àºÅ´Ó1523¿ªÊ¼
+                            chunk.SetCellSimple(x, y, (ushort)(CPEngine.mapIDs[240][i] + 1522));//é¾™ç å¤§åœ°å›¾ç¬¬ä¸€ä¸ªçº¹ç†ç¼–å·ä»1523å¼€å§‹
                         }
                     }
                 }
@@ -78,18 +78,18 @@ namespace CellSpace.Examples
         public override void GenerateCellData()
         {
             
-            ////»ñÈ¡ÍÅ¿éË÷ÒıµÄYÖµ
+            ////è·å–å›¢å—ç´¢å¼•çš„Yå€¼
             //int chunky = chunk.ChunkIndex.y;
-            ////»ñÈ¡ÍÅ¿éµÄ³¤¶È
+            ////è·å–å›¢å—çš„é•¿åº¦
             //int SideLength = CPEngine.ChunkSideLength;
-            ////ÒıÇæÉèÖÃ£ºÊÇ·ñÆ½µØÃæ
+            ////å¼•æ“è®¾ç½®ï¼šæ˜¯å¦å¹³åœ°é¢
             //CPEngine.KeepTerrainHeight = false;
-            ////ÉèÖÃºã¶¨µØĞÎ¸ß¶È£¨ÊÀ½ç×ø±ê£©
+            ////è®¾ç½®æ’å®šåœ°å½¢é«˜åº¦ï¼ˆä¸–ç•Œåæ ‡ï¼‰
             //CPEngine.TerrainHeight = 8;
 
             LoadMap(0);
 
-            //±éÀúÍÅ¿é³¤¶ÈÄÚËùÓĞµ¥ÔªµÄË÷Òı£¨ÅäºÏÎÆÀíÎÄ±¾ËùÒÔ´Ó×óÉÏÔ­µã¿ªÊ¼£©
+            //éå†å›¢å—é•¿åº¦å†…æ‰€æœ‰å•å…ƒçš„ç´¢å¼•ï¼ˆé…åˆçº¹ç†æ–‡æœ¬æ‰€ä»¥ä»å·¦ä¸ŠåŸç‚¹å¼€å§‹ï¼‰
             //int i = -1;
             //for (int pixelY = 0; pixelY < SideLength; pixelY++)
             //{
@@ -124,28 +124,28 @@ namespace CellSpace.Examples
             //    {
             //        if (CPEngine.HorizontalMode)
             //        {
-            //            Vector3 voxelPos = chunk.CellIndexToPosition(pixelX, pixelY); //»ñÈ¡µ¥ÔªË÷ÒıµÄÊÀ½ç¾ø¶ÔÎ»ÖÃ
-            //            int currentHeight = pixelY + (SideLength * chunky); //»ñµÃµ¥ÔªµÄ£¨¾ø¶Ô×ø±ê£©ÊÀ½ç¸ß¶È
+            //            Vector3 voxelPos = chunk.CellIndexToPosition(pixelX, pixelY); //è·å–å•å…ƒç´¢å¼•çš„ä¸–ç•Œç»å¯¹ä½ç½®
+            //            int currentHeight = pixelY + (SideLength * chunky); //è·å¾—å•å…ƒçš„ï¼ˆç»å¯¹åæ ‡ï¼‰ä¸–ç•Œé«˜åº¦
             //            if (CPEngine.KeepTerrainHeight)
             //            {
             //                if (CPEngine.TerrainHeight > currentHeight)
             //                {
-            //                    //¸ü¸ÄÖ¸¶¨Ë÷Òı´¦µÄµ¥ÔªÊı¾İ£¨¼´ĞŞ¸Äµ¥ÔªµÄÖÖÀà£©
-            //                    chunk.SetCellSimple(pixelX, pixelY, 2);   // set grass.ÉèÖÃÎª²İµØ£¬2ÊÇ²İµØµÄÖÖÀàID
+            //                    //æ›´æ”¹æŒ‡å®šç´¢å¼•å¤„çš„å•å…ƒæ•°æ®ï¼ˆå³ä¿®æ”¹å•å…ƒçš„ç§ç±»ï¼‰
+            //                    chunk.SetCellSimple(pixelX, pixelY, 2);   // set grass.è®¾ç½®ä¸ºè‰åœ°ï¼Œ2æ˜¯è‰åœ°çš„ç§ç±»ID
 
             //                }
-            //                currentHeight = currentHeight + 1; //²¼ÖÃÄàÍÁÊ±Æ«ÒÆ1(ÒòÎªÎÒÃÇÏëÒª²İ¸ü¸ß1¿é)
+            //                currentHeight = currentHeight + 1; //å¸ƒç½®æ³¥åœŸæ—¶åç§»1(å› ä¸ºæˆ‘ä»¬æƒ³è¦è‰æ›´é«˜1å—)
             //                if (CPEngine.TerrainHeight > currentHeight)
             //                {
-            //                    //¸ü¸ÄÖ¸¶¨Ë÷Òı´¦µÄµ¥ÔªÊı¾İ£¨¼´ĞŞ¸Äµ¥ÔªµÄÖÖÀà£©
-            //                    chunk.SetCellSimple(pixelX, pixelY, 1); // set dirt.ÉèÖÃÎªÍÁ¿é£¬1ÊÇÍÁ¿éµÄÖÖÀàID
+            //                    //æ›´æ”¹æŒ‡å®šç´¢å¼•å¤„çš„å•å…ƒæ•°æ®ï¼ˆå³ä¿®æ”¹å•å…ƒçš„ç§ç±»ï¼‰
+            //                    chunk.SetCellSimple(pixelX, pixelY, 1); // set dirt.è®¾ç½®ä¸ºåœŸå—ï¼Œ1æ˜¯åœŸå—çš„ç§ç±»ID
 
             //                }
             //            }
             //            else
             //            {
-            //                //index = ConvertLeftBottomToTopLeft(pixelY*256+pixelX+1,256,256);//»ñÈ¡ÒÔ×óÉÏ½ÇÉ¨ÃèÊ±µÄ¸Ãµ¥ÔªÎ»ÖÃ±àºÅ
-            //                //id = int.Parse(Main_MMWorld.mapContents[0][index])+10;//ÓÃ±àºÅµÃµ½´óµØÍ¼ÎÆÀíID£¬Èç¹ûÊÇ1¶ÔÓ¦cell_11
+            //                //index = ConvertLeftBottomToTopLeft(pixelY*256+pixelX+1,256,256);//è·å–ä»¥å·¦ä¸Šè§’æ‰«ææ—¶çš„è¯¥å•å…ƒä½ç½®ç¼–å·
+            //                //id = int.Parse(Main_MMWorld.mapContents[0][index])+10;//ç”¨ç¼–å·å¾—åˆ°å¤§åœ°å›¾çº¹ç†IDï¼Œå¦‚æœæ˜¯1å¯¹åº”cell_11
             //                //Debug.Log(index+" "+id);
             //                chunk.SetCellSimple(pixelX, pixelY, 1);
             //            }
@@ -154,35 +154,35 @@ namespace CellSpace.Examples
             //        {
             //            for (int z = 0; z < SideLength; z++)
             //            { // for all voxels in the chunk
-            //                Vector3 voxelPos = chunk.CellIndexToPosition(pixelX, pixelY, z); // get absolute position for the voxel.»ñÈ¡µ¥ÔªË÷ÒıµÄÊÀ½ç¾ø¶ÔÎ»ÖÃ
-            //                voxelPos = new Vector3(voxelPos.pixelX + seed, voxelPos.pixelY, voxelPos.z + seed); // offset by seed.ÓÃÊÀ½çÖÖ×Ó½øĞĞÔëÉùĞŞÕı£¬ÖÖ×ÓÊÇ30625ÕâÖÖÊı×Ö
-            //                                                                                          //Mathf.PerlinNoise()²ÎÊı¹Ì¶¨»áĞÎ³É¹Ì¶¨µÄÔëÉù£¬Ö»Ğèµ÷ÕûÔëÉùº¯Êı·µ»Ø½á¹û½Ó½üÄ³ÖÖ¸ß¶È£¬ÔÙ±éÀúÍÅ¿éÄÚµ¥Ôª¸ß¶ÈÀ´±È¶Ô£¬¾Í¿É²¼ÖÃ¸Ã¸ß¶ÈĞÎ×´ÉÏµÄµ¥ÔªÖÖÀàĞÎ³É¹Ì¶¨µØÃ²
-            //                                                                                          //ÖÆÔìÖ÷ÒªµØĞÎ£¨´óÉ½ºÍĞ¡É½£©
-            //                float perlin1 = Mathf.PerlinNoise(voxelPos.pixelX * 0.010f, voxelPos.z * 0.010f) * 70.1f; // major (mountains & big hills)£¬22×óÓÒ²¨¶¯£¨ÊıÖµ±ä»¯Æ½ÎÈ£¬ÔëÉùÏµÊı0.010f£©
-            //                                                                                                     //ÖÆÔì´ÎÒªµØĞÎ£¨¾«ÖÂµÄÏ¸½Ú£©
-            //                float perlin2 = Mathf.PerlinNoise(voxelPos.pixelX * 0.085f, voxelPos.z * 0.085f) * 9.1f; // minor (fine detail)£¬3-8×óÓÒ²¨¶¯£¨ÊıÖµ±ä»¯¾çÁÒ£¬ÔëÉùÏµÊı0.085f£©
-            //                int currentHeight = pixelY + (SideLength * chunky); // get absolute height for the voxel.»ñµÃµ¥ÔªµÄ£¨¾ø¶Ô×ø±ê£©ÊÀ½ç¸ß¶È
+            //                Vector3 voxelPos = chunk.CellIndexToPosition(pixelX, pixelY, z); // get absolute position for the voxel.è·å–å•å…ƒç´¢å¼•çš„ä¸–ç•Œç»å¯¹ä½ç½®
+            //                voxelPos = new Vector3(voxelPos.pixelX + seed, voxelPos.pixelY, voxelPos.z + seed); // offset by seed.ç”¨ä¸–ç•Œç§å­è¿›è¡Œå™ªå£°ä¿®æ­£ï¼Œç§å­æ˜¯30625è¿™ç§æ•°å­—
+            //                                                                                          //Mathf.PerlinNoise()å‚æ•°å›ºå®šä¼šå½¢æˆå›ºå®šçš„å™ªå£°ï¼Œåªéœ€è°ƒæ•´å™ªå£°å‡½æ•°è¿”å›ç»“æœæ¥è¿‘æŸç§é«˜åº¦ï¼Œå†éå†å›¢å—å†…å•å…ƒé«˜åº¦æ¥æ¯”å¯¹ï¼Œå°±å¯å¸ƒç½®è¯¥é«˜åº¦å½¢çŠ¶ä¸Šçš„å•å…ƒç§ç±»å½¢æˆå›ºå®šåœ°è²Œ
+            //                                                                                          //åˆ¶é€ ä¸»è¦åœ°å½¢ï¼ˆå¤§å±±å’Œå°å±±ï¼‰
+            //                float perlin1 = Mathf.PerlinNoise(voxelPos.pixelX * 0.010f, voxelPos.z * 0.010f) * 70.1f; // major (mountains & big hills)ï¼Œ22å·¦å³æ³¢åŠ¨ï¼ˆæ•°å€¼å˜åŒ–å¹³ç¨³ï¼Œå™ªå£°ç³»æ•°0.010fï¼‰
+            //                                                                                                     //åˆ¶é€ æ¬¡è¦åœ°å½¢ï¼ˆç²¾è‡´çš„ç»†èŠ‚ï¼‰
+            //                float perlin2 = Mathf.PerlinNoise(voxelPos.pixelX * 0.085f, voxelPos.z * 0.085f) * 9.1f; // minor (fine detail)ï¼Œ3-8å·¦å³æ³¢åŠ¨ï¼ˆæ•°å€¼å˜åŒ–å‰§çƒˆï¼Œå™ªå£°ç³»æ•°0.085fï¼‰
+            //                int currentHeight = pixelY + (SideLength * chunky); // get absolute height for the voxel.è·å¾—å•å…ƒçš„ï¼ˆç»å¯¹åæ ‡ï¼‰ä¸–ç•Œé«˜åº¦
             //                bool setToGrass = false;
-            //                //ÔëÉù½á¹ûÈç22ÊÇÒ»¸ö²¨¶¯µÄ¸ß¶ÈÖµ£¬±éÀúx pixelY z ÊÇÔÚ±éÀúÍÅ¿éÄÚÃ¿¸öµ¥ÔªµÄË÷Òı£¨È»ºó×ª»»ÎªÊÀ½ç¸ß¶È£©£¬¸úµ¥Ôª¸ß¶È¶Ô±Èºó·ûºÏ¸ß¶ÈÔò½øĞĞ¾ßÌå²¼ÖÃ
+            //                //å™ªå£°ç»“æœå¦‚22æ˜¯ä¸€ä¸ªæ³¢åŠ¨çš„é«˜åº¦å€¼ï¼Œéå†x pixelY z æ˜¯åœ¨éå†å›¢å—å†…æ¯ä¸ªå•å…ƒçš„ç´¢å¼•ï¼ˆç„¶åè½¬æ¢ä¸ºä¸–ç•Œé«˜åº¦ï¼‰ï¼Œè·Ÿå•å…ƒé«˜åº¦å¯¹æ¯”åç¬¦åˆé«˜åº¦åˆ™è¿›è¡Œå…·ä½“å¸ƒç½®
             //                if (CPEngine.KeepTerrainHeight)
             //                {
             //                    if (CPEngine.TerrainHeight > currentHeight)
             //                    {
-            //                        //¸ü¸ÄÖ¸¶¨Ë÷Òı´¦µÄµ¥ÔªÊı¾İ£¨¼´ĞŞ¸Äµ¥ÔªµÄÖÖÀà£©
-            //                        chunk.SetCellSimple(pixelX, pixelY, z, 2);   // set grass.ÉèÖÃÎª²İµØ£¬2ÊÇ²İµØµÄÖÖÀàID
+            //                        //æ›´æ”¹æŒ‡å®šç´¢å¼•å¤„çš„å•å…ƒæ•°æ®ï¼ˆå³ä¿®æ”¹å•å…ƒçš„ç§ç±»ï¼‰
+            //                        chunk.SetCellSimple(pixelX, pixelY, z, 2);   // set grass.è®¾ç½®ä¸ºè‰åœ°ï¼Œ2æ˜¯è‰åœ°çš„ç§ç±»ID
             //                        setToGrass = true;
             //                    }
-            //                    currentHeight = currentHeight + 1; //²¼ÖÃÄàÍÁÊ±Æ«ÒÆ1(ÒòÎªÎÒÃÇÏëÒª²İ¸ü¸ß1¿é)
+            //                    currentHeight = currentHeight + 1; //å¸ƒç½®æ³¥åœŸæ—¶åç§»1(å› ä¸ºæˆ‘ä»¬æƒ³è¦è‰æ›´é«˜1å—)
             //                    if (CPEngine.TerrainHeight > currentHeight)
             //                    {
-            //                        //¸ü¸ÄÖ¸¶¨Ë÷Òı´¦µÄµ¥ÔªÊı¾İ£¨¼´ĞŞ¸Äµ¥ÔªµÄÖÖÀà£©
-            //                        chunk.SetCellSimple(pixelX, pixelY, z, 1); // set dirt.ÉèÖÃÎªÍÁ¿é£¬1ÊÇÍÁ¿éµÄÖÖÀàID
+            //                        //æ›´æ”¹æŒ‡å®šç´¢å¼•å¤„çš„å•å…ƒæ•°æ®ï¼ˆå³ä¿®æ”¹å•å…ƒçš„ç§ç±»ï¼‰
+            //                        chunk.SetCellSimple(pixelX, pixelY, z, 1); // set dirt.è®¾ç½®ä¸ºåœŸå—ï¼Œ1æ˜¯åœŸå—çš„ç§ç±»ID
             //                        setToGrass = false;
             //                    }
-            //                    //½ÓÏÂÀ´ÔÚ³ÉĞÍµÄµØÃæÉÏ²¼ÖÃÊ÷
+            //                    //æ¥ä¸‹æ¥åœ¨æˆå‹çš„åœ°é¢ä¸Šå¸ƒç½®æ ‘
             //                    //if (setToGrass && TreeCanFit(pixelX, pixelY, z))
             //                    //{
-            //                    //    //1%¸ÅÂÊ²¼ÖÃÊ÷
+            //                    //    //1%æ¦‚ç‡å¸ƒç½®æ ‘
             //                    //    if (Random.Range(0.0f, 1.0f) < 0.01f)
             //                    //    {
             //                    //        AddTree(pixelX, pixelY + 1, z);
@@ -191,30 +191,30 @@ namespace CellSpace.Examples
             //                }
             //                else
             //                {
-            //                    // grass pass.²¼ÖÃ²İµØ£¨ÔëÉù1´óÓÚµ±Ç°¸ß¶ÈÊ±£©
+            //                    // grass pass.å¸ƒç½®è‰åœ°ï¼ˆå™ªå£°1å¤§äºå½“å‰é«˜åº¦æ—¶ï¼‰
             //                    if (perlin1 > currentHeight)
             //                    {
-            //                        //Èç¹ûÔëÉù1´óÓÚÔëÉù2+µ±Ç°¸ß¶È
+            //                        //å¦‚æœå™ªå£°1å¤§äºå™ªå£°2+å½“å‰é«˜åº¦
             //                        if (perlin1 > perlin2 + currentHeight)
             //                        {
-            //                            //¸ü¸ÄÖ¸¶¨Ë÷Òı´¦µÄµ¥ÔªÊı¾İ£¨¼´ĞŞ¸Äµ¥ÔªµÄÖÖÀà£©
-            //                            chunk.SetCellSimple(pixelX, pixelY, z, 2);   // set grass.ÉèÖÃÎª²İµØ£¬2ÊÇ²İµØµÄÖÖÀàID
+            //                            //æ›´æ”¹æŒ‡å®šç´¢å¼•å¤„çš„å•å…ƒæ•°æ®ï¼ˆå³ä¿®æ”¹å•å…ƒçš„ç§ç±»ï¼‰
+            //                            chunk.SetCellSimple(pixelX, pixelY, z, 2);   // set grass.è®¾ç½®ä¸ºè‰åœ°ï¼Œ2æ˜¯è‰åœ°çš„ç§ç±»ID
             //                            setToGrass = true;
             //                        }
             //                    }
             //                    // dirt pass
-            //                    currentHeight = currentHeight + 1; // offset dirt by 1 (since we want grass 1 block higher).²¼ÖÃÄàÍÁÊ±Æ«ÒÆ1(ÒòÎªÎÒÃÇÏëÒª²İ¸ü¸ß1¿é)
+            //                    currentHeight = currentHeight + 1; // offset dirt by 1 (since we want grass 1 block higher).å¸ƒç½®æ³¥åœŸæ—¶åç§»1(å› ä¸ºæˆ‘ä»¬æƒ³è¦è‰æ›´é«˜1å—)
             //                    if (perlin1 > currentHeight)
             //                    {
-            //                        //Èç¹ûÔëÉù1´óÓÚ£¨ÔëÉù2+µ±Ç°¸ß¶È£©
+            //                        //å¦‚æœå™ªå£°1å¤§äºï¼ˆå™ªå£°2+å½“å‰é«˜åº¦ï¼‰
             //                        if (perlin1 > perlin2 + currentHeight)
             //                        {
-            //                            //¸ü¸ÄÖ¸¶¨Ë÷Òı´¦µÄµ¥ÔªÊı¾İ£¨¼´ĞŞ¸Äµ¥ÔªµÄÖÖÀà£©
-            //                            chunk.SetCellSimple(pixelX, pixelY, z, 1); // set dirt.ÉèÖÃÎªÍÁ¿é£¬1ÊÇÍÁ¿éµÄÖÖÀàID
+            //                            //æ›´æ”¹æŒ‡å®šç´¢å¼•å¤„çš„å•å…ƒæ•°æ®ï¼ˆå³ä¿®æ”¹å•å…ƒçš„ç§ç±»ï¼‰
+            //                            chunk.SetCellSimple(pixelX, pixelY, z, 1); // set dirt.è®¾ç½®ä¸ºåœŸå—ï¼Œ1æ˜¯åœŸå—çš„ç§ç±»ID
             //                            setToGrass = false;
             //                        }
             //                    }
-            //                    // tree pass.½ÓÏÂÀ´ÔÚ³ÉĞÍµÄµØÃæÉÏ²¼ÖÃÊ÷
+            //                    // tree pass.æ¥ä¸‹æ¥åœ¨æˆå‹çš„åœ°é¢ä¸Šå¸ƒç½®æ ‘
             //                    //if (setToGrass && TreeCanFit(pixelX, pixelY, z))
             //                    //{ // only add a tree if the current block has been set to grass and if there is room for the tree in the chunk
             //                    //    if (Random.Range(0.0f, 1.0f) < 0.01f)
@@ -231,7 +231,7 @@ namespace CellSpace.Examples
         }
 
         /// <summary>
-        /// ¸Ãµ¥Ôª¾­¼ÆËã¿ÉÒÔÖÖÊ÷
+        /// è¯¥å•å…ƒç»è®¡ç®—å¯ä»¥ç§æ ‘
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -256,7 +256,7 @@ namespace CellSpace.Examples
             }
         }
         /// <summary>
-        /// ¸Ãµ¥Ôª¾­¼ÆËã¿ÉÒÔÖÖÊ÷
+        /// è¯¥å•å…ƒç»è®¡ç®—å¯ä»¥ç§æ ‘
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -267,7 +267,7 @@ namespace CellSpace.Examples
         }
 
         /// <summary>
-        /// Ìí¼ÓÊ÷£¨¿É¾­TreeCanFitÑéÖ¤ºóÔÙÖ´ĞĞ£©
+        /// æ·»åŠ æ ‘ï¼ˆå¯ç»TreeCanFitéªŒè¯åå†æ‰§è¡Œï¼‰
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -305,7 +305,7 @@ namespace CellSpace.Examples
             }
         }
         /// <summary>
-        /// Ìí¼ÓÊ÷£¨¿É¾­TreeCanFitÑéÖ¤ºóÔÙÖ´ĞĞ£©
+        /// æ·»åŠ æ ‘ï¼ˆå¯ç»TreeCanFitéªŒè¯åå†æ‰§è¡Œï¼‰
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>

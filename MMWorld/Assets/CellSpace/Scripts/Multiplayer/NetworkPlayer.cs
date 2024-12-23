@@ -15,7 +15,7 @@ public struct NetworkPlayer
     internal int index;
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The IP address of this player.
     public string ipAddress
     {
@@ -31,7 +31,7 @@ public struct NetworkPlayer
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The port of this player.
     public int port
     {
@@ -47,7 +47,7 @@ public struct NetworkPlayer
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The GUID for this player, used when connecting with NAT punchthrough.
     public string guid
     {
@@ -63,12 +63,12 @@ public struct NetworkPlayer
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Returns the external IP address of the network interface.
     public string externalIP => Internal_GetExternalIP();
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Returns the external port of the network interface.
     public int externalPort => Internal_GetExternalPort();
 
@@ -150,7 +150,7 @@ public struct NetworkPlayer
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Returns the index number for this network player.
     public override string ToString()
     {
@@ -169,7 +169,7 @@ internal class GeneratedByOldBindingsGeneratorAttribute : Attribute
 public sealed class Network
 {
     //
-    // 摘要:
+    // 鎽樿:
     //     Set the password for the server (for incoming connections).
     public static extern string incomingPassword
     {
@@ -182,7 +182,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Set the log level for network messages (default is Off).
     public static extern NetworkLogLevel logLevel
     {
@@ -195,7 +195,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     All connected players.
     public static extern NetworkPlayer[] connections
     {
@@ -205,7 +205,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Get the local NetworkPlayer instance.
     public static NetworkPlayer player
     {
@@ -218,7 +218,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Returns true if your peer type is client.
     public static extern bool isClient
     {
@@ -228,7 +228,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Returns true if your peer type is server.
     public static extern bool isServer
     {
@@ -238,7 +238,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The status of the peer type, i.e. if it is disconnected, connecting, server or
     //     client.
     public static extern NetworkPeerType peerType
@@ -249,7 +249,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The default send rate of network updates for all Network Views.
     public static extern float sendRate
     {
@@ -262,7 +262,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Enable or disable the processing of network messages.
     public static extern bool isMessageQueueRunning
     {
@@ -275,7 +275,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Get the current network time (seconds).
     public static double time
     {
@@ -287,7 +287,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Get or set the minimum number of ViewID numbers in the ViewID pool given to clients
     //     by the server.
     public static extern int minimumAllocatableViewIDs
@@ -312,7 +312,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The IP address of the NAT punchthrough facilitator.
     public static extern string natFacilitatorIP
     {
@@ -325,7 +325,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The port of the NAT punchthrough facilitator.
     public static extern int natFacilitatorPort
     {
@@ -338,7 +338,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The IP address of the connection tester used in Network.TestConnection.
     public static extern string connectionTesterIP
     {
@@ -351,7 +351,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The port of the connection tester used in Network.TestConnection.
     public static extern int connectionTesterPort
     {
@@ -364,7 +364,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Set the maximum amount of connections/players allowed.
     public static extern int maxConnections
     {
@@ -377,7 +377,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The IP address of the proxy server.
     public static extern string proxyIP
     {
@@ -390,7 +390,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The port of the proxy server.
     public static extern int proxyPort
     {
@@ -403,7 +403,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Indicate if proxy support is needed, in which case traffic is relayed through
     //     the proxy server.
     public static extern bool useProxy
@@ -417,7 +417,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Set the proxy server password.
     public static extern string proxyPassword
     {
@@ -430,10 +430,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Initialize the server.
     //
-    // 参数:
+    // 鍙傛暟:
     //   connections:
     //
     //   listenPort:
@@ -448,10 +448,10 @@ public sealed class Network
     private static extern NetworkConnectionError Internal_InitializeServerDeprecated(int connections, int listenPort);
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Initialize the server.
     //
-    // 参数:
+    // 鍙傛暟:
     //   connections:
     //
     //   listenPort:
@@ -464,7 +464,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Initializes security layer.
     [MethodImpl(MethodImplOptions.InternalCall)]
     [GeneratedByOldBindingsGenerator]
@@ -497,10 +497,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Connect to the specified host (ip or domain name) and server port.
     //
-    // 参数:
+    // 鍙傛暟:
     //   IP:
     //
     //   remotePort:
@@ -514,10 +514,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Connect to the specified host (ip or domain name) and server port.
     //
-    // 参数:
+    // 鍙傛暟:
     //   IP:
     //
     //   remotePort:
@@ -529,11 +529,11 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     This function is exactly like Network.Connect but can accept an array of IP addresses.
     //
     //
-    // 参数:
+    // 鍙傛暟:
     //   IPs:
     //
     //   remotePort:
@@ -547,11 +547,11 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     This function is exactly like Network.Connect but can accept an array of IP addresses.
     //
     //
-    // 参数:
+    // 鍙傛暟:
     //   IPs:
     //
     //   remotePort:
@@ -563,10 +563,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Connect to a server GUID. NAT punchthrough can only be performed this way.
     //
-    // 参数:
+    // 鍙傛暟:
     //   GUID:
     //
     //   password:
@@ -578,10 +578,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Connect to a server GUID. NAT punchthrough can only be performed this way.
     //
-    // 参数:
+    // 鍙傛暟:
     //   GUID:
     //
     //   password:
@@ -591,11 +591,11 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Connect to the host represented by a HostData structure returned by the Master
     //     Server.
     //
-    // 参数:
+    // 鍙傛暟:
     //   hostData:
     //
     //   password:
@@ -607,11 +607,11 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Connect to the host represented by a HostData structure returned by the Master
     //     Server.
     //
-    // 参数:
+    // 鍙傛暟:
     //   hostData:
     //
     //   password:
@@ -631,10 +631,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Close all open connections and shuts down the network interface.
     //
-    // 参数:
+    // 鍙傛暟:
     //   timeout:
     [MethodImpl(MethodImplOptions.InternalCall)]
     [GeneratedByOldBindingsGenerator]
@@ -648,10 +648,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Close the connection to another system.
     //
-    // 参数:
+    // 鍙傛暟:
     //   target:
     //
     //   sendDisconnectionNotification:
@@ -673,7 +673,7 @@ public sealed class Network
     private static extern void Internal_AllocateViewID(out NetworkViewID viewID);
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Query for the next available network view ID number and allocate it (reserve).
     public static NetworkViewID AllocateViewID()
     {
@@ -682,10 +682,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Network instantiate a prefab.
     //
-    // 参数:
+    // 鍙傛暟:
     //   prefab:
     //
     //   position:
@@ -704,10 +704,10 @@ public sealed class Network
     private static extern Object INTERNAL_CALL_Instantiate(Object prefab, ref Vector3 position, ref Quaternion rotation, int group);
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Destroy the object associated with this view ID across the network.
     //
-    // 参数:
+    // 鍙傛暟:
     //   viewID:
     public static void Destroy(NetworkViewID viewID)
     {
@@ -719,10 +719,10 @@ public sealed class Network
     private static extern void INTERNAL_CALL_Destroy(ref NetworkViewID viewID);
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Destroy the object across the network.
     //
-    // 参数:
+    // 鍙傛暟:
     //   gameObject:
     public static void Destroy(GameObject gameObject)
     {
@@ -741,10 +741,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Destroy all the objects based on view IDs belonging to this player.
     //
-    // 参数:
+    // 鍙傛暟:
     //   playerID:
     public static void DestroyPlayerObjects(NetworkPlayer playerID)
     {
@@ -765,10 +765,10 @@ public sealed class Network
     private static extern void INTERNAL_CALL_Internal_RemoveRPCs(ref NetworkPlayer playerID, ref NetworkViewID viewID, uint channelMask);
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Remove all RPC functions which belong to this player ID.
     //
-    // 参数:
+    // 鍙傛暟:
     //   playerID:
     public static void RemoveRPCs(NetworkPlayer playerID)
     {
@@ -776,11 +776,11 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Remove all RPC functions which belong to this player ID and were sent based on
     //     the given group.
     //
-    // 参数:
+    // 鍙傛暟:
     //   playerID:
     //
     //   group:
@@ -790,10 +790,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Remove the RPC function calls accociated with this view ID number.
     //
-    // 参数:
+    // 鍙傛暟:
     //   viewID:
     public static void RemoveRPCs(NetworkViewID viewID)
     {
@@ -801,10 +801,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Remove all RPC functions which belong to given group number.
     //
-    // 参数:
+    // 鍙傛暟:
     //   group:
     public static void RemoveRPCsInGroup(int group)
     {
@@ -812,21 +812,21 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Set the level prefix which will then be prefixed to all network ViewID numbers.
     //
     //
-    // 参数:
+    // 鍙傛暟:
     //   prefix:
     [MethodImpl(MethodImplOptions.InternalCall)]
     [GeneratedByOldBindingsGenerator]
     public static extern void SetLevelPrefix(int prefix);
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The last ping time to the given player in milliseconds.
     //
-    // 参数:
+    // 鍙傛暟:
     //   player:
     public static int GetLastPing(NetworkPlayer player)
     {
@@ -838,10 +838,10 @@ public sealed class Network
     private static extern int INTERNAL_CALL_GetLastPing(ref NetworkPlayer player);
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The last average ping time to the given player in milliseconds.
     //
-    // 参数:
+    // 鍙傛暟:
     //   player:
     public static int GetAveragePing(NetworkPlayer player)
     {
@@ -853,11 +853,11 @@ public sealed class Network
     private static extern int INTERNAL_CALL_GetAveragePing(ref NetworkPlayer player);
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Enable or disables the reception of messages in a specific group number from
     //     a specific player.
     //
-    // 参数:
+    // 鍙傛暟:
     //   player:
     //
     //   group:
@@ -886,11 +886,11 @@ public sealed class Network
     private static extern void INTERNAL_CALL_Internal_SetSendingSpecific(ref NetworkPlayer player, int group, bool enabled);
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Enables or disables transmission of messages and RPC calls on a specific network
     //     group number.
     //
-    // 参数:
+    // 鍙傛暟:
     //   group:
     //
     //   enabled:
@@ -900,11 +900,11 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Enable or disable transmission of messages and RPC calls based on target network
     //     player as well as the network group.
     //
-    // 参数:
+    // 鍙傛暟:
     //   player:
     //
     //   group:
@@ -920,10 +920,10 @@ public sealed class Network
     private static extern void Internal_GetTime(out double t);
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Test this machines network connection.
     //
-    // 参数:
+    // 鍙傛暟:
     //   forceTest:
     [MethodImpl(MethodImplOptions.InternalCall)]
     [GeneratedByOldBindingsGenerator]
@@ -937,10 +937,10 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Test the connection specifically for NAT punch-through connectivity.
     //
-    // 参数:
+    // 鍙傛暟:
     //   forceTest:
     [MethodImpl(MethodImplOptions.InternalCall)]
     [GeneratedByOldBindingsGenerator]
@@ -954,7 +954,7 @@ public sealed class Network
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Check if this machine has a public IP address.
     [MethodImpl(MethodImplOptions.InternalCall)]
     [GeneratedByOldBindingsGenerator]
@@ -967,11 +967,11 @@ public sealed class Network
 public enum ConnectionTesterStatus
 {
     //
-    // 摘要:
+    // 鎽樿:
     //     Some unknown error occurred.
     Error = -2,
     //
-    // 摘要:
+    // 鎽樿:
     //     Test result undetermined, still in progress.
     Undetermined,
     [Obsolete("No longer returned, use newer connection tester enums instead.")]
@@ -979,32 +979,32 @@ public enum ConnectionTesterStatus
     [Obsolete("No longer returned, use newer connection tester enums instead.")]
     PrivateIPHasNATPunchThrough,
     //
-    // 摘要:
+    // 鎽樿:
     //     Public IP address detected and game listen port is accessible to the internet.
     PublicIPIsConnectable,
     //
-    // 摘要:
+    // 鎽樿:
     //     Public IP address detected but the port is not connectable from the internet.
     PublicIPPortBlocked,
     //
-    // 摘要:
+    // 鎽樿:
     //     Public IP address detected but server is not initialized and no port is listening.
     PublicIPNoServerStarted,
     //
-    // 摘要:
+    // 鎽樿:
     //     Port-restricted NAT type, can do NAT punchthrough to everyone except symmetric.
     LimitedNATPunchthroughPortRestricted,
     //
-    // 摘要:
+    // 鎽樿:
     //     Symmetric NAT type, cannot do NAT punchthrough to other symmetric types nor port
     //     restricted type.
     LimitedNATPunchthroughSymmetric,
     //
-    // 摘要:
+    // 鎽樿:
     //     Full cone type, NAT punchthrough fully supported.
     NATpunchthroughFullCone,
     //
-    // 摘要:
+    // 鎽樿:
     //     Address-restricted cone type, NAT punchthrough fully supported.
     NATpunchthroughAddressRestrictedCone
 }
@@ -1037,7 +1037,7 @@ public sealed class HostData
     private string m_GUID;
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Does this server require NAT punchthrough?
     public bool useNat
     {
@@ -1052,7 +1052,7 @@ public sealed class HostData
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The type of the game (like "MyUniqueGameType").
     public string gameType
     {
@@ -1067,7 +1067,7 @@ public sealed class HostData
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The name of the game (like John Doe's Game).
     public string gameName
     {
@@ -1082,7 +1082,7 @@ public sealed class HostData
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Currently connected players.
     public int connectedPlayers
     {
@@ -1097,7 +1097,7 @@ public sealed class HostData
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Maximum players limit.
     public int playerLimit
     {
@@ -1112,7 +1112,7 @@ public sealed class HostData
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Server IP address.
     public string[] ip
     {
@@ -1127,7 +1127,7 @@ public sealed class HostData
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Server port.
     public int port
     {
@@ -1142,7 +1142,7 @@ public sealed class HostData
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Does the server require a password?
     public bool passwordProtected
     {
@@ -1157,7 +1157,7 @@ public sealed class HostData
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     A miscellaneous comment (can hold data).
     public string comment
     {
@@ -1172,7 +1172,7 @@ public sealed class HostData
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The GUID of the host, needed when connecting with NAT punchthrough.
     public string guid
     {
@@ -1193,68 +1193,68 @@ public sealed class HostData
 public enum NetworkConnectionError
 {
     //
-    // 摘要:
+    // 鎽樿:
     //     No error occurred.
     NoError = 0,
     //
-    // 摘要:
+    // 鎽樿:
     //     We presented an RSA public key which does not match what the system we connected
     //     to is using.
     RSAPublicKeyMismatch = 21,
     //
-    // 摘要:
+    // 鎽樿:
     //     The server is using a password and has refused our connection because we did
     //     not set the correct password.
     InvalidPassword = 23,
     //
-    // 摘要:
+    // 鎽樿:
     //     Connection attempt failed, possibly because of internal connectivity problems.
     ConnectionFailed = 15,
     //
-    // 摘要:
+    // 鎽樿:
     //     The server is at full capacity, failed to connect.
     TooManyConnectedPlayers = 18,
     //
-    // 摘要:
+    // 鎽樿:
     //     We are banned from the system we attempted to connect to (likely temporarily).
     ConnectionBanned = 22,
     //
-    // 摘要:
+    // 鎽樿:
     //     We are already connected to this particular server (can happen after fast disconnect/reconnect).
     AlreadyConnectedToServer = 16,
     //
-    // 摘要:
+    // 鎽樿:
     //     Cannot connect to two servers at once. Close the connection before connecting
     //     again.
     AlreadyConnectedToAnotherServer = -1,
     //
-    // 摘要:
+    // 鎽樿:
     //     Internal error while attempting to initialize network interface. Socket possibly
     //     already in use.
     CreateSocketOrThreadFailure = -2,
     //
-    // 摘要:
+    // 鎽樿:
     //     Incorrect parameters given to Connect function.
     IncorrectParameters = -3,
     //
-    // 摘要:
+    // 鎽樿:
     //     No host target given in Connect.
     EmptyConnectTarget = -4,
     //
-    // 摘要:
+    // 鎽樿:
     //     Client could not connect internally to same network NAT enabled server.
     InternalDirectConnectFailed = -5,
     //
-    // 摘要:
+    // 鎽樿:
     //     The NAT target we are trying to connect to is not connected to the facilitator
     //     server.
     NATTargetNotConnected = 69,
     //
-    // 摘要:
+    // 鎽樿:
     //     Connection lost while attempting to connect to NAT target.
     NATTargetConnectionLost = 71,
     //
-    // 摘要:
+    // 鎽樿:
     //     NAT punchthrough attempt has failed. The cause could be a too restrictive NAT
     //     implementation on either endpoints.
     NATPunchthroughFailed = 73
@@ -1266,15 +1266,15 @@ public enum NetworkConnectionError
 public enum NetworkLogLevel
 {
     //
-    // 摘要:
+    // 鎽樿:
     //     Only report errors, otherwise silent.
     Off = 0,
     //
-    // 摘要:
+    // 鎽樿:
     //     Report informational messages like connectivity events.
     Informational = 1,
     //
-    // 摘要:
+    // 鎽樿:
     //     Full debug level logging down to each individual message being reported.
     Full = 3
 }
@@ -1285,19 +1285,19 @@ public enum NetworkLogLevel
 public enum NetworkPeerType
 {
     //
-    // 摘要:
+    // 鎽樿:
     //     No client connection running. Server not initialized.
     Disconnected,
     //
-    // 摘要:
+    // 鎽樿:
     //     Running as server.
     Server,
     //
-    // 摘要:
+    // 鎽樿:
     //     Running as client.
     Client,
     //
-    // 摘要:
+    // 鎽樿:
     //     Attempting to connect to a server.
     Connecting
 }
@@ -1359,23 +1359,23 @@ internal class VisibleToOtherModulesAttribute : Attribute
 public enum RPCMode
 {
     //
-    // 摘要:
+    // 鎽樿:
     //     Sends to the server only.
     Server = 0,
     //
-    // 摘要:
+    // 鎽樿:
     //     Sends to everyone except the sender.
     Others = 1,
     //
-    // 摘要:
+    // 鎽樿:
     //     Sends to everyone except the sender and adds to the buffer.
     OthersBuffered = 5,
     //
-    // 摘要:
+    // 鎽樿:
     //     Sends to everyone.
     All = 2,
     //
-    // 摘要:
+    // 鎽樿:
     //     Sends to everyone and adds to the buffer.
     AllBuffered = 6
 }
@@ -1393,7 +1393,7 @@ public struct NetworkViewID
     private int c;
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Represents an invalid network view ID.
     public static NetworkViewID unassigned
     {
@@ -1405,12 +1405,12 @@ public struct NetworkViewID
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     True if instantiated by me.
     public bool isMine => Internal_IsMine(this);
 
     //
-    // 摘要:
+    // 鎽樿:
     //     The NetworkPlayer who owns the NetworkView. Could be the server.
     public NetworkPlayer owner
     {
@@ -1487,7 +1487,7 @@ public struct NetworkViewID
     }
 
     //
-    // 摘要:
+    // 鎽樿:
     //     Returns a formatted string with details on this NetworkViewID.
     public override string ToString()
     {
@@ -1501,15 +1501,15 @@ public struct NetworkViewID
 public enum NetworkStateSynchronization
 {
     //
-    // 摘要:
+    // 鎽樿:
     //     No state data will be synchronized.
     Off,
     //
-    // 摘要:
+    // 鎽樿:
     //     All packets are sent reliable and ordered.
     ReliableDeltaCompressed,
     //
-    // 摘要:
+    // 鎽樿:
     //     Brute force unreliable state sending.
     Unreliable
 }

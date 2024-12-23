@@ -9,7 +9,7 @@
 //    /// </summary>
 //    public class TE_DrawLine2D : MaskableGraphic
 //    {
-//        private List<List<UIVertex>> vertexQuadList = new List<List<UIVertex>>(); //存储整条线的所有四边形
+//        private List<List<UIVertex>> vertexQuadList = new List<List<UIVertex>>(); //瀛樺偍鏁存潯绾跨殑鎵�鏈夊洓杈瑰舰
 //        private Vector3 lastPoint;
 //        private Vector3 lastLeftPoint;
 //        private Vector3 lastRightPoint;
@@ -39,9 +39,9 @@
 //                {
 //                    Vector3 currentPoint = ScreenPointToLacalPointInRectangle(Input.mousePosition);
 //                    Vector3 vec = currentPoint - lastPoint;
-//                    //向量大小<10像素不画网格
+//                    //鍚戦噺澶у皬<10鍍忕礌涓嶇敾缃戞牸
 //                    if (vec.magnitude < 10) { return; }
-//                    Vector3 normal = Vector3.Cross(vec.normalized, Vector3.forward).normalized; //单位法向量（画布平面内）
+//                    Vector3 normal = Vector3.Cross(vec.normalized, Vector3.forward).normalized; //鍗曚綅娉曞悜閲忥紙鐢诲竷骞抽潰鍐咃級
 
 //                    if (isNewLine)
 //                    {
@@ -78,10 +78,10 @@
 
 //                    lastLeftPoint = currentLeftPoint;
 //                    lastRightPoint = currentRightPoint;
-//                    //防止断节
+//                    //闃叉鏂妭
 //                    lastPoint = currentPoint;
 
-//                    //通知渲染引擎顶点数据已更改，以便引擎可以重新计算或更新相应的图形数据
+//                    //閫氱煡娓叉煋寮曟搸椤剁偣鏁版嵁宸叉洿鏀癸紝浠ヤ究寮曟搸鍙互閲嶆柊璁＄畻鎴栨洿鏂扮浉搴旂殑鍥惧舰鏁版嵁
 //                    SetVerticesDirty();
 //                }
 //            }

@@ -1,4 +1,4 @@
-﻿namespace CellSpace
+namespace CellSpace
 {
     /// <summary>
     /// 单元体，是单元（2D单元格或3D体素块）内的活动物体，建立角色或怪物类来继承，实例化后的对象可在单元团块类下调用检索等方法进行管理

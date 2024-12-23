@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR|| UNITY_STANDALONE
+#if UNITY_EDITOR|| UNITY_STANDALONE
 //Unity编辑器、独立应用程序（不包括Web播放器）
 using Vector2F = UnityEngine.Vector2;
 using Vector3F = UnityEngine.Vector3;

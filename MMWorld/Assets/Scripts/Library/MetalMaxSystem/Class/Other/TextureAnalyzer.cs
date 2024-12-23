@@ -1,4 +1,4 @@
-#if UNITY_EDITOR|| UNITY_STANDALONE
+#if UNITY_EDITOR || UNITY_STANDALONE
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -25,7 +25,7 @@ namespace MetalMaxSystem.Unity
         const int MAX_TEXTURE_SIZE = 8192;
 
         /// <summary>
-        /// 协程处理量计数上限
+        /// 合并精灵时的协程处理量计数上限，达到后在控制台通知
         /// </summary>
         static int iCountMax = 10000;
 
@@ -38,17 +38,17 @@ namespace MetalMaxSystem.Unity
         //void Start()
         //{
         //    //应用示范
-        //    string folderPath = "C:/Users/name/Desktop/地图"; //填写要扫描的文件夹
+        //    string folderPath = "C:/Users/name/Desktop/地图"; //填写要扫描的目录
         //    string savePathFrontStr01 = "C:/Users/name/Desktop/MapSP/"; //输出纹理集图片的目录前缀字符
         //    string savePathFrontStr02 = "C:/Users/name/Desktop/MapIndex/"; //输出纹理文本的目录前缀字符
-        //    StartSliceTextureAndSetSpriteIDMultiMergerAsync(folderPath, "*.png", 0.9f, savePathFrontStr01, savePathFrontStr02, 10, 16, 16, 8); //仅支持png和jpg，文件夹下多个图片合批特征图
-        //    StartSliceTextureAndSetSpriteIDAsync(folderPath, "*.png", 0.9f, savePathFrontStr01, savePathFrontStr02, 10, 16, 16, 8); //仅支持png和jpg，文件夹下每个图片独立特征图
+        //    StartSliceTextureAndSetSpriteIDMultiMergerAsync(folderPath, "*.png", 0.9f, savePathFrontStr01, savePathFrontStr02, 10, 16, 16, 8); //仅支持png和jpg，目录下多个图片合批特征图
+        //    StartSliceTextureAndSetSpriteIDAsync(folderPath, "*.png", 0.9f, savePathFrontStr01, savePathFrontStr02, 10, 16, 16, 8); //仅支持png和jpg，目录下每个图片独立特征图
         //}
 
         #region 功能函数
 
         /// <summary>
-        /// 启动一个协程处理目标文件夹下指定后缀图片并分割成精灵，然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面
+        /// 启动一个协程处理目标目录下指定后缀图片并分割成精灵，然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面
         /// </summary>
         /// <param name="folderPath"></param>
         /// <param name="searchPattern">仅支持这两种图片后缀"*.png"、"*.jpg"</param>
@@ -65,7 +65,7 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 协程处理目标文件夹下指定后缀图片并分割成精灵，然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面
+        /// 协程处理目标目录下指定后缀图片并分割成精灵，然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面
         /// </summary>
         /// <param name="folderPath"></param>
         /// <param name="searchPattern">仅支持这两种图片后缀"*.png"、"*.jpg"</param>
@@ -86,10 +86,10 @@ namespace MetalMaxSystem.Unity
             List<Sprite> spritesList = new List<Sprite>();
             Dictionary<int, string> DataTableISCP = new Dictionary<int, string>();
 
-            // 获取文件夹下所有指定类型文件的路径 
+            // 获取目录下所有指定类型文件的路径 
             string[] filePaths = Directory.GetFiles(folderPath, searchPattern);
 
-            //遍历文件夹内所有图片
+            //遍历目录内所有图片
             foreach (string filePath in filePaths)
             {
                 fileCount++;
@@ -286,7 +286,7 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 启动一个协程处理目标文件夹下指定后缀图片并分割成精灵，然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面
+        /// 启动一个协程处理目标目录下指定后缀图片并分割成精灵，然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面
         /// </summary>
         /// <param name="folderPath"></param>
         /// <param name="searchPattern">仅支持这两种图片后缀"*.png"、"*.jpg"</param>
@@ -303,7 +303,7 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 协程处理目标文件夹下指定后缀图片并分割成精灵，然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面
+        /// 协程处理目标目录下指定后缀图片并分割成精灵，然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面
         /// </summary>
         /// <param name="folderPath"></param>
         /// <param name="searchPattern">仅支持这两种图片后缀"*.png"、"*.jpg"</param>
@@ -324,10 +324,10 @@ namespace MetalMaxSystem.Unity
             List<Sprite> spritesList = new List<Sprite>();
             Dictionary<int, string> DataTableISCP = new Dictionary<int, string>();
 
-            // 获取文件夹下所有BMP文件的路径 
+            // 获取目录下所有BMP文件的路径 
             string[] filePaths = Directory.GetFiles(folderPath, searchPattern);
 
-            //遍历文件夹内所有图片
+            //遍历目录内所有图片
             foreach (string filePath in filePaths)
             {
                 fileCount++;
@@ -811,7 +811,7 @@ namespace MetalMaxSystem.Unity
         //协程和游戏物体都是主线程的，Unity中使用协程（Coroutine）或者事件委托方式如创建1个游戏对象进行挂组件后由主线程执行，来实现主线程回调
 
         /// <summary>
-        /// Task同步处理目标文件夹下指定后缀图片并分割成精灵，然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面。仅支持png和jpg，文件夹下每个图片独立特征图
+        /// Task同步处理目标目录下指定后缀图片并分割成精灵，然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面。仅支持png和jpg，目录下每个图片独立特征图
         /// </summary>
         /// <param name="folderPath"></param>
         /// <param name="searchPattern">仅支持这两种图片后缀"*.png"、"*.jpg"</param>
@@ -843,10 +843,10 @@ namespace MetalMaxSystem.Unity
             ConcurrentDictionary<int, string> DataTableISCP = new ConcurrentDictionary<int, string>();
             List<Task> tasks = new List<Task>();
 
-            //获取文件夹下所有BMP文件的路径
+            //获取目录下所有BMP文件的路径
             string[] filePaths = Directory.GetFiles(folderPath, searchPattern);
 
-            //遍历文件夹内所有图片
+            //遍历目录内所有图片
             foreach (string filePath in filePaths)
             {
                 fileCount++;

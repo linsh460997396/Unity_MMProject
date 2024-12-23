@@ -1,4 +1,4 @@
-﻿namespace MetalMaxSystem
+namespace MetalMaxSystem
 {
     //枚举是值类型
 
