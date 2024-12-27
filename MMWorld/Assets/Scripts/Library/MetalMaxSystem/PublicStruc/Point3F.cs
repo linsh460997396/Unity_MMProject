@@ -1,6 +1,6 @@
-#define NETFRAMEWORK
+﻿#define NETFRAMEWORK
 
-#if UNITY_EDITOR|| UNITY_STANDALONE
+#if UNITY_EDITOR || UNITY_STANDALONE
 using Mathf = UnityEngine.Mathf;
 #else
 #if NETFRAMEWORK

@@ -1,6 +1,6 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System;
-#if UNITY_EDITOR|| UNITY_STANDALONE
+#if UNITY_EDITOR || UNITY_STANDALONE
 //WIN上的Unity编辑器、独立应用程序
 using UnityEngine;
 #else
@@ -36,7 +36,7 @@ namespace MetalMaxSystem
         public const int LOAD_LIBRARY_SEARCH_USER_DIRS = 0x00000400;
 
         /*************************************************************************/
-        // core funcs
+        //core funcs
 
         /// <summary>
         /// 在调用任何使用[DllImport]的方法之前用SetDllDirectory函数来设置搜索DLL的目录（多次调用会覆盖搜索目录），应用后对整个exe进程生效。
@@ -156,7 +156,7 @@ System.AppDomain.CurrentDomain.BaseDirectory +
             Debug.Assert(dllHandle != System.IntPtr.Zero);
             FreeLibrary(dllHandle);
             dllHandle = System.IntPtr.Zero;
-            // ...
+            //...
         }
     }
 
@@ -169,7 +169,7 @@ System.AppDomain.CurrentDomain.BaseDirectory +
         public delegate int __int_();
         public delegate int __int_ptr_int(System.IntPtr buf, int len);
         public delegate int __int_float(float v);
-        // ...
+        //...
 
         /// <summary>
         /// 必须声明自制Dll的内部函数才可以用
@@ -185,26 +185,26 @@ System.AppDomain.CurrentDomain.BaseDirectory +
         public static __int_ End;
 
         public static __int_ Delete;
-        // ...
+        //...
     }
 
     /*
      * reference:
     https://github.com/forrestthewoods/fts_unity_native_plugin_reloader
 
-    // put following code into ENTRY class
+    //put following code into ENTRY class
 
     void Awake()
     {
         DllLoader.Load(typeof(Dll), "dll.dll");
         Dll.New();
-        Debug.Log("dll loaded");
+        MMCore.Tell("dll loaded");
     }
 
     void OnDestroy() {
         Dll.Delete();
         DllLoader.Unload();
-        Debug.Log("dll unloaded");
+        MMCore.Tell("dll unloaded");
     }
 
     */
@@ -255,31 +255,31 @@ System.AppDomain.CurrentDomain.BaseDirectory +
 // SetLastError=true：这个参数告诉.NET如果FreeLibrary函数执行失败，它应通过调用Marshal.GetLastWin32Error()方法来获取错误代码，对错误处理和调试非常有用。
 // extern：表示该方法是在外部实现的
 
-// // 定义与DLL中函数签名匹配的委托
+// //定义与DLL中函数签名匹配的委托
 // [UnmanagedFunctionPointer(CallingConvention.StdCall)]
 // public delegate int MyFunctionDelegate(int param);
 // class Program
 // {
-//     // 导入GetProcAddress函数
+//     //导入GetProcAddress函数
 //     [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
 //     public static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
-//     // 导入LoadLibrary函数
+//     //导入LoadLibrary函数
 //     [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
 //     public static extern IntPtr LoadLibrary(string lpFileName);
-//     // 导入FreeLibrary函数
+//     //导入FreeLibrary函数
 //     [DllImport("kernel32.dll", SetLastError = true)]
 //     [return: MarshalAs(UnmanagedType.Bool)]
 //     public static extern bool FreeLibrary(IntPtr hModule);
 //     static void Main(string[] args)
 //     {
-//         // 加载DLL
+//         //加载DLL
 //         IntPtr hDll = LoadLibrary("example.dll");
 //         if (hDll == IntPtr.Zero)
 //         {
 //             Console.WriteLine("Failed to load DLL");
 //             return;
 //         }
-//         // 获取函数地址
+//         //获取函数地址
 //         IntPtr funcAddress = GetProcAddress(hDll, "MyFunction");
 //         if (funcAddress == IntPtr.Zero)
 //         {
@@ -287,12 +287,12 @@ System.AppDomain.CurrentDomain.BaseDirectory +
 //             FreeLibrary(hDll);
 //             return;
 //         }
-//         // 将地址转换为委托
+//         //将地址转换为委托
 //         MyFunctionDelegate myFunction = (MyFunctionDelegate)Marshal.GetDelegateForFunctionPointer(funcAddress, typeof(MyFunctionDelegate));
-//         // 调用函数
+//         //调用函数
 //         int result = myFunction(42);
 //         Console.WriteLine("Function result: " + result);
-//         // 释放DLL
+//         //释放DLL
 //         FreeLibrary(hDll);
 //     }
 // }

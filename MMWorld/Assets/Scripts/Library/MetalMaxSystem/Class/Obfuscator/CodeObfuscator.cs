@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -40,7 +40,7 @@ namespace MetalMaxSystem
         {
             if (!File.Exists(exclusionFilePath))
             {
-                //Debug.WriteLine("排除规则文件不存在！");
+                //MMCore.Tell("排除规则文件不存在！");
                 return;
             }
 
@@ -61,11 +61,11 @@ namespace MetalMaxSystem
         {
             if (originalName != "")
             {
-                // 检查是否已经存在相同的键
+                //检查是否已经存在相同的键
                 if (Replacements2.ContainsKey(originalName))
                 {
-                    // 可以选择跳过重复的函数名或者生成一个不同的唯一替换名称
-                    //Debug.WriteLine($"函数名 {originalName} 已经存在相同的替换名称，将跳过该函数名。");
+                    //可以选择跳过重复的函数名或者生成一个不同的唯一替换名称
+                    //MMCore.Tell($"函数名 {originalName} 已经存在相同的替换名称，将跳过该函数名。");
                     return;
                 }
                 Replacements2.Add(originalName, obfuscatedName);
@@ -82,21 +82,21 @@ namespace MetalMaxSystem
             {
                 if (exclusionSet.Contains(originalName))
                 {
-                    //Debug.WriteLine($"函数名 {originalName} 在排除规则中，将跳过该函数名。");
+                    //MMCore.Tell($"函数名 {originalName} 在排除规则中，将跳过该函数名。");
                     return;
                 }
 
-                // 检查是否已经存在相同的键
+                //检查是否已经存在相同的键
                 if (Replacements.ContainsKey(originalName))
                 {
                     //可以选择跳过重复的函数名或者生成一个不同的唯一替换名称
-                    //Debug.WriteLine($"函数名 {originalName} 已经存在相同的替换名称，将跳过该函数名。");
+                    //MMCore.Tell($"函数名 {originalName} 已经存在相同的替换名称，将跳过该函数名。");
                     return;
                 }
-                string obfuscatedName = GenerateRandomString(8); // 生成8个字符的随机字符串作为替换名称
+                string obfuscatedName = GenerateRandomString(8); //生成8个字符的随机字符串作为替换名称
 
                 System.Random random = new System.Random(Guid.NewGuid().GetHashCode());
-                int randomIndex = random.Next(65, 91); // 65-90 为大写字母 A-Z 的 ASCII 码
+                int randomIndex = random.Next(65, 91); //65-90 为大写字母 A-Z 的 ASCII 码
                 char randomLetter = Convert.ToChar(randomIndex);
                 obfuscatedName = randomLetter.ToString() + obfuscatedName;//防止函数名开头是数字，这里加一个随机大写字母
 
@@ -146,7 +146,7 @@ namespace MetalMaxSystem
                 else
                 {
                     //否则返回原字符（届时替换相同字符）
-                    //Debug.WriteLine("Key not found: " + match);
+                    //MMCore.Tell("Key not found: " + match);
                     return match;
                 }
             };
@@ -185,7 +185,7 @@ namespace MetalMaxSystem
                 else
                 {
                     //否则返回原字符（届时替换相同字符）
-                    //Debug.WriteLine("Key not found: " + match);
+                    //MMCore.Tell("Key not found: " + match);
                     return match;
                 }
             };

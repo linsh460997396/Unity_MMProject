@@ -1,4 +1,4 @@
-#if UNITY_EDITOR|| UNITY_STANDALONE
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
 using System.Collections;
 using System.IO;
 using System.Net;
@@ -48,18 +48,18 @@ namespace MetalMaxSystem.Unity
 
         public IEnumerator DownloadCoroutine(string url, string targetFilePath, string objectRegex = "\"(http[s]?://.*?jpg)\"")
         {
-            // 使用WebClient下载网页内容
+            //使用WebClient下载网页内容
             using (WebClient client = new WebClient())
             {
                 string htmlContent = client.DownloadString(url);
 
-                // 使用正则表达式提取图片URL
+                //使用正则表达式提取图片URL
                 Match match = Regex.Match(htmlContent, objectRegex);
                 if (match.Success)
                 {
                     string objectUrl = match.Groups[1].Value;
 
-                    // 下载图片并保存到本地
+                    //下载图片并保存到本地
                     byte[] objectBytes = client.DownloadData(objectUrl);
                     File.WriteAllBytes(targetFilePath, objectBytes);
 

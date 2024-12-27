@@ -1,4 +1,4 @@
-#if UNITY_EDITOR|| UNITY_STANDALONE
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
 using UnityEngine;
 
 namespace MetalMaxSystem.Unity
@@ -20,7 +20,7 @@ namespace MetalMaxSystem.Unity
 
         void Update()
         {
-            // 计算每帧之间的时间差，并进行平滑处理，避免帧率波动带来的突变
+            //计算每帧之间的时间差，并进行平滑处理，避免帧率波动带来的突变
             deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
         }
 
@@ -33,7 +33,7 @@ namespace MetalMaxSystem.Unity
             //创建一个新的GUIStyle对象，用于定义文本的样式，包括对齐方式、字体大小和颜色
             GUIStyle style = new GUIStyle();
             //定义一个矩形区域rect，用于指定帧率显示的位置和大小
-            Rect rect = new Rect(0, 0, w, h * 2 / size); // 设置帧率显示区域的位置和大小  
+            Rect rect = new Rect(0, 0, w, h * 2 / size); //设置帧率显示区域的位置和大小  
                                                          //Rect rect = new Rect(0, 0, 200, 100); 
                                                          //设置文本控件锚点的对齐方式为左上角(UI屏幕一般都以左上角为原点)
             style.alignment = TextAnchor.UpperLeft;

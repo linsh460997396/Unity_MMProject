@@ -1,5 +1,5 @@
-using System;
-#if UNITY_EDITOR|| UNITY_STANDALONE
+﻿using System;
+#if UNITY_EDITOR || UNITY_STANDALONE
 //Unity编辑器、独立应用程序（不包括Web播放器）
 using Vector3F = UnityEngine.Vector3;
 #elif MonoGame

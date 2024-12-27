@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 
 namespace MetalMaxSystem
@@ -12,7 +12,7 @@ namespace MetalMaxSystem
     public class MouseHook
     {
         #region 常量（用于匹配鼠标输入通知）
-        public const int WM_MOUSEMOVE = 0x200; // 鼠标移动
+        public const int WM_MOUSEMOVE = 0x200; //鼠标移动
         public const int WM_LBUTTONDOWN = 0x201;// 鼠标左键按下
         public const int WM_RBUTTONDOWN = 0x204;// 鼠标右键按下
         public const int WM_MBUTTONDOWN = 0x207;// 鼠标中键按下
@@ -193,10 +193,10 @@ namespace MetalMaxSystem
                 {
                     throw new Exception("Please set handler first!Then run Start");
                 }
-                // 安装鼠标钩子
+                //安装鼠标钩子
                 if (hMouseHook == 0)
                 {
-                    // 生成一个HookProc的实例.
+                    //生成一个HookProc的实例.
                     mouseHookProcedure = new HookProc(MouseHookProc);
                     hMouseHook = SetWindowsHookEx(WH_MOUSE_LL, mouseHookProcedure, Marshal.GetHINSTANCE(System.Reflection.Assembly.GetExecutingAssembly().GetModules()[0]), 0);
                     //假设装置失败停止钩子
@@ -231,12 +231,12 @@ namespace MetalMaxSystem
                     retMouse = UnhookWindowsHookEx(hMouseHook);
                     hMouseHook = 0;
                 }
-                // 假设卸下钩子失败
+                //假设卸下钩子失败
                 if (!(retMouse))
                     throw new Exception("UnhookWindowsHookEx failed.");
-                // 删除所有事件
+                //删除所有事件
                 OnMouseActivity = null;
-                // 标志位改变
+                //标志位改变
                 isStart = false;
             }
         }
@@ -246,13 +246,13 @@ namespace MetalMaxSystem
         /// </summary>
         private static int MouseHookProc(int nCode, Int32 wParam, IntPtr lParam)
         {
-            // 假设正常执行而且用户要监听鼠标的消息
+            //假设正常执行而且用户要监听鼠标的消息
             if ((nCode >= 0) && (OnMouseActivity != null))
             {
                 MouseHookStruct MyMouseHookStruct = (MouseHookStruct)Marshal.PtrToStructure(lParam, typeof(MouseHookStruct));
                 OnMouseActivity(wParam, MyMouseHookStruct);
             }
-            // 启动下一次钩子
+            //启动下一次钩子
             return CallNextHookEx(hMouseHook, nCode, wParam, lParam);
         }
 

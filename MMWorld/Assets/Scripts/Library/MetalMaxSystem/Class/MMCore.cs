@@ -1,4 +1,6 @@
-//#define NETFRAMEWORK
+﻿#if !(UNITY_EDITOR || UNITY_STANDALONE || NET5_0_OR_GREATER)
+#define NETFRAMEWORK
+#endif
 //#define MonoGame
 
 using System;
@@ -11,25 +13,33 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Net;
 using System.Collections.Concurrent;
-#if UNITY_EDITOR|| UNITY_STANDALONE
+//↓防止与System.Windows.Forms.Timer混淆
+using Timer = System.Threading.Timer;
+#if UNITY_EDITOR || UNITY_STANDALONE
 //Unity编辑器、独立应用程序（不包括Web播放器）
 using Mathf = UnityEngine.Mathf;
 using Debug = UnityEngine.Debug;
 using Vector2F = UnityEngine.Vector2;
 using Vector3F = UnityEngine.Vector3;
 #else
+//其他.Net环境（Framwork4.8、Net8+）
+using System.Diagnostics;
+//↓可使用.Net中的Debug.WriteLine
+using Debug = System.Diagnostics.Debug;
+#if WINDOWS || NET8_0_OR_GREATER || NETFRAMEWORK
+//↓支持WINDOWS框架下识别硬件标识等（如果依然是灰色，请手动添加或安装程序集）
+using System.Management;
+using Microsoft.Win32;
+using System.Windows;
+#endif
 #if NETFRAMEWORK
+//使用VS2022的NETFRAMEWORK4.8框架时，校准Mathf
 using Mathf = System.Math;
 #else
 using Mathf = System.MathF;
 #endif
-//↓可使用.Net中的Debug.WriteLine
-using Debug = System.Diagnostics.Debug;
-#if WINDOWS 
-using System.Management;
-#endif
 #if MonoGame
-//使用VS2022的MonoGame插件框架
+//使用VS2022的MonoGame插件框架时，校准2F3F向量
 using Vector2F = Microsoft.Xna.Framework.Vector2;
 using Vector3F = Microsoft.Xna.Framework.Vector3;
 #else
@@ -978,6 +988,35 @@ namespace MetalMaxSystem
         #region Functions 通用功能
 
         /// <summary>
+        /// 如果是Unity引擎则使用Debug.Log(contents)，其他情况切换至.NET下的Debug.WriteLine(contents)
+        /// </summary>
+        /// <param name="contents">内容</param>
+        /// <returns></returns>
+        public static void Tell(string contents)
+        {
+#if UNITY_EDITOR || UNITY_STANDALONE
+            Debug.Log(contents);
+#else
+            Debug.WriteLine(contents);
+#endif
+        }
+
+        /// <summary>
+        /// 如果是Unity引擎则使用Debug.Log(contents)，其他情况切换至.NET下的Debug.WriteLine(contents)
+        /// </summary>
+        /// <param name="contents">内容</param>
+        /// <param name="args">要组合的其他任意参数</param>
+        /// <returns></returns>
+        public static void Tell(string contents, params object[] args)
+        {
+#if UNITY_EDITOR || UNITY_STANDALONE
+            Debug.LogFormat(contents, args);
+#else
+            Debug.WriteLine(string.Format(contents, args));
+#endif
+        }
+
+        /// <summary>
         /// 将字符串转换为字节数组，再转成2位16进制字符串格式或转成10进制数字再转为3位8进制字符串格式，以供在Galaxy代码中混肴使用
         /// Galaxy代码会自动转转义8和16位格式字符串（\0及\pixelX）为ASCII值（数字）,再转为控制字符使用
         /// </summary>
@@ -987,11 +1026,11 @@ namespace MetalMaxSystem
         public static string ConvertStringToHOMixed(string input, double r)
         {
             string result = "";
-            // 创建一个System.Random对象
+            //创建一个System.Random对象
             System.Random random = new System.Random(Guid.NewGuid().GetHashCode());
             foreach (byte b in Encoding.UTF8.GetBytes(input))
             {
-                // 根据随机数和触发概率决定是否执行动作
+                //根据随机数和触发概率决定是否执行动作
                 if (random.NextDouble() < r)
                 {
                     //result += $"\\pixelX{b:X2}";
@@ -1457,7 +1496,7 @@ namespace MetalMaxSystem
             return len;
         }
 
-#if WINDOWS 
+#if WINDOWS || NET8_0_OR_GREATER || NETFRAMEWORK
         /// <summary>
         /// 取得设备硬盘的卷序列号（在Unity、MonoGame不适用）
         /// </summary>
@@ -1542,9 +1581,9 @@ namespace MetalMaxSystem
                 //如果设置了ReadOnly和Directory，则FileAttributes等于16+1=17，二进制为00001001
                 //如果没有设置目录位，则会得到零：
                 //File.GetAttributes(source) = 00000001
-                //  FileAttributes.Directory = 00001000 &
+                // FileAttributes.Directory = 00001000 &
                 //-------------------------------------
-                //                             00000000
+                //                            00000000
                 return true;
             }
             else
@@ -1920,7 +1959,7 @@ namespace MetalMaxSystem
         /// HtmlNode img = doc.DocumentNode.SelectSingleNode("/html/body/div[3]/div[3]/div[1]/div[1]/div[1]/a/img");
         /// string imgUal = img.Attributes["src"].Value;
         /// MMCore.Download(imgUal, "123.jpg", @"C:\Users\Admin\Desktop\Download\", true);
-        /////Debug.WriteLine("下载完成！");
+        /// //MMCore.Tell("下载完成！");
         /// </summary>
         /// <param name="url">浏览器网址</param>
         /// <param name="filename">自定义文件名</param>
@@ -1940,7 +1979,7 @@ namespace MetalMaxSystem
             FileStream fs = new FileStream(tempFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
             try
             {
-                // 设置参数
+                //设置参数
                 HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
                 //发送请求并获取相应回应数据
                 HttpWebResponse response = request.GetResponse() as HttpWebResponse;
@@ -1958,11 +1997,7 @@ namespace MetalMaxSystem
             }
             catch (Exception ex)
             {
-#if UNITY_EDITOR || UNITY_STANDALONE
-                Debug.Log(string.Format("错误: {0}", ex.Message));
-#else
-                Debug.WriteLine(string.Format("错误: {0}", ex.Message));
-#endif
+                Tell(string.Format("错误: {0}", ex.Message));
                 return false;
             }
             finally
@@ -2052,41 +2087,27 @@ namespace MetalMaxSystem
             {
                 string directoryPath = Path.GetDirectoryName(fileSavePath);
 
-                // 如果目录不存在，则创建它
+                //如果目录不存在，则创建它
                 if (!Directory.Exists(directoryPath))
                 {
                     Directory.CreateDirectory(directoryPath);
                 }
 
-                // 写入文件内容
+                //写入文件内容
                 File.WriteAllText(fileSavePath, content);
-                //Debug.Log("保存成功: " + fileSavePath);
+                //Tell("保存成功: " + fileSavePath);
             }
             catch (DirectoryNotFoundException e)
             {
-#if UNITY_EDITOR || UNITY_STANDALONE
-                Debug.LogError("保存失败: 目录不存在 - " + e.Message);
-#else
-                Debug.WriteLine("保存失败: 目录不存在 - " + e.Message);
-#endif
+                Tell("保存失败: 目录不存在 - " + e.Message);
             }
             catch (IOException e)
             {
-#if UNITY_EDITOR || UNITY_STANDALONE
-                // 捕获I/O异常，如权限问题、磁盘空间不足等
-                Debug.LogError("保存失败: I/O错误 - " + e.Message);
-#else
-                Debug.WriteLine("保存失败: I/O错误 - " + e.Message);
-#endif
+                Tell("保存失败: I/O错误 - " + e.Message);
             }
             catch (Exception e)
             {
-#if UNITY_EDITOR || UNITY_STANDALONE
-                // 捕获其他所有异常
-                Debug.LogError("保存失败: " + e.Message);
-#else
-                Debug.WriteLine("保存失败: " + e.Message);
-#endif
+                Tell("保存失败: " + e.Message);
             }
         }
 
@@ -2101,44 +2122,30 @@ namespace MetalMaxSystem
             {
                 string directoryPath = Path.GetDirectoryName(fileSavePath);
 
-                // 如果目录不存在，则创建它
+                //如果目录不存在，则创建它
                 if (!Directory.Exists(directoryPath))
                 {
                     Directory.CreateDirectory(directoryPath);
                 }
 
-                // 写入文件内容
+                //写入文件内容
                 File.WriteAllBytes(fileSavePath, content);
-                //Debug.Log("保存成功: " + fileSavePath);
+                //Tell("保存成功: " + fileSavePath);
             }
             catch (DirectoryNotFoundException e)
             {
-#if UNITY_EDITOR || UNITY_STANDALONE
-                Debug.LogError("保存失败: 目录不存在 - " + e.Message);
-#else
-                Debug.WriteLine("保存失败: 目录不存在 - " + e.Message);
-#endif
+                Tell("保存失败: 目录不存在 - " + e.Message);
             }
             catch (IOException e)
             {
-#if UNITY_EDITOR || UNITY_STANDALONE
-                // 捕获I/O异常，如权限问题、磁盘空间不足等
-                Debug.LogError("保存失败: I/O错误 - " + e.Message);
-#else
-                Debug.WriteLine("保存失败: I/O错误 - " + e.Message);
-#endif
+                Tell("保存失败: I/O错误 - " + e.Message);
             }
             catch (Exception e)
             {
-#if UNITY_EDITOR || UNITY_STANDALONE
-                // 捕获其他所有异常
-                Debug.LogError("保存失败: " + e.Message);
-#else
-                Debug.WriteLine("保存失败: " + e.Message);
-#endif
+                Tell("保存失败: " + e.Message);
             }
         }
-
+#if WINDOWS || NET8_0_OR_GREATER || NETFRAMEWORK
         /// <summary>
         /// 用WinRAR解压带密码的压缩包
         /// </summary>
@@ -2146,43 +2153,47 @@ namespace MetalMaxSystem
         /// <param name="unZipPath">解压后目录的路径</param>
         /// <param name="password">压缩包密码</param>
         /// <returns></returns>
-        //public static bool UnZip(string zipFilePath, string unZipPath, string password)
-        //{
-        //    if (!IsOwnWinRAR())
-        //    {
-        //        MessageBox.Show("本机并未安装WinRAR,请安装该压缩软件!", "温馨提示");
-        //        return false;
-        //    }
+        public static bool UnZip(string zipFilePath, string unZipPath, string password)
+        {
+            if (!IsOwnWinRAR())
+            {
+#if !NETFRAMEWORK
+                MessageBox.Show("本机并未安装WinRAR,请安装该压缩软件!", "温馨提示");
+#else
+                MMCore.Tell("本机并未安装WinRAR,请安装该压缩软件!", "温馨提示");
+#endif
+                return false;
+            }
 
-        //    Process Process1 = new Process();
-        //    Process1.StartInfo.FileName = "WinRAR.exe";
-        //    Process1.StartInfo.CreateNoWindow = true;
-        //    Process1.StartInfo.Arguments = " pixelX -p" + password + " " + zipFilePath + " " + unZipPath;
-        //    Process1.Start();
-        //    if (Process1.HasExited)
-        //    {
-        //        return true;
-        //    }
-        //    else
-        //    {
-        //        return false;
-        //    }
-        //}
+            Process Process1 = new Process();
+            Process1.StartInfo.FileName = "WinRAR.exe";
+            Process1.StartInfo.CreateNoWindow = true;
+            Process1.StartInfo.Arguments = " pixelX -p" + password + " " + zipFilePath + " " + unZipPath;
+            Process1.Start();
+            if (Process1.HasExited)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         /// <summary>
         /// 判断系统上是否安装WinRAR
         /// </summary>
         /// <returns></returns>
-        //public static bool IsOwnWinRAR()
-        //{
-        //    RegistryKey the_Reg =
-        //        Registry.LocalMachine.OpenSubKey(
-        //            @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe");
-        //    return !string.IsNullOrEmpty(the_Reg.GetValue("").ToString());
+        public static bool IsOwnWinRAR()
+        {
+            RegistryKey the_Reg =
+                Registry.LocalMachine.OpenSubKey(
+                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe");
+            return !string.IsNullOrEmpty(the_Reg.GetValue("").ToString());
 
-        //}
-
-        #region 弹幕爬取
+        }
+#endif
+#region 弹幕爬取
 
         //功能出处：https://blog.csdn.net/qq_15505341/article/details/79212070/
 
@@ -6761,7 +6772,7 @@ namespace MetalMaxSystem
 
                 //if (globalHashTable.Contains(key)) 
                 //{
-                //    globalHashTable.Remove(key);
+                //   globalHashTable.Remove(key);
                 //}
                 //globalHashTable.Add(key, val);
             }
@@ -7057,7 +7068,7 @@ namespace MetalMaxSystem
 
                 //if (globalDictionaryInt.Contains(key)) 
                 //{
-                //    globalDictionaryInt.Remove(key);
+                //   globalDictionaryInt.Remove(key);
                 //}
                 //globalDictionaryInt.Add(key, val);
 
@@ -7433,7 +7444,7 @@ namespace MetalMaxSystem
 
                 //if (globalDictionaryLong.Contains(key)) 
                 //{
-                //    globalDictionaryLong.Remove(key);
+                //   globalDictionaryLong.Remove(key);
                 //}
                 //globalDictionaryLong.Add(key, val);
 
@@ -7809,7 +7820,7 @@ namespace MetalMaxSystem
 
                 //if (globalDictionaryChar.Contains(key)) 
                 //{
-                //    globalDictionaryChar.Remove(key);
+                //   globalDictionaryChar.Remove(key);
                 //}
                 //globalDictionaryChar.Add(key, val);
 
@@ -8185,7 +8196,7 @@ namespace MetalMaxSystem
 
                 //if (globalDictionaryFloat.Contains(key)) 
                 //{
-                //    globalDictionaryFloat.Remove(key);
+                //   globalDictionaryFloat.Remove(key);
                 //}
                 //globalDictionaryFloat.Add(key, val);
 
@@ -8561,7 +8572,7 @@ namespace MetalMaxSystem
 
                 //if (globalDictionaryDouble.Contains(key)) 
                 //{
-                //    globalDictionaryDouble.Remove(key);
+                //   globalDictionaryDouble.Remove(key);
                 //}
                 //globalDictionaryDouble.Add(key, val);
 
@@ -8937,7 +8948,7 @@ namespace MetalMaxSystem
 
                 //if (globalDictionaryBool.Contains(key)) 
                 //{
-                //    globalDictionaryBool.Remove(key);
+                //   globalDictionaryBool.Remove(key);
                 //}
                 //globalDictionaryBool.Add(key, val);
 
@@ -9316,7 +9327,7 @@ namespace MetalMaxSystem
 
                 //if (globalDictionaryByte.Contains(key)) 
                 //{
-                //    globalDictionaryByte.Remove(key);
+                //   globalDictionaryByte.Remove(key);
                 //}
                 //globalDictionaryByte.Add(key, val);
 
@@ -9694,7 +9705,7 @@ namespace MetalMaxSystem
 
                 //if (globalDictionaryVector.Contains(key)) 
                 //{
-                //    globalDictionaryVector.Remove(key);
+                //   globalDictionaryVector.Remove(key);
                 //}
                 //globalDictionaryVector.Add(key, val);
 
@@ -10074,7 +10085,7 @@ namespace MetalMaxSystem
 
                 //if (globalDictionaryObject.Contains(key)) 
                 //{
-                //    globalDictionaryObject.Remove(key);
+                //   globalDictionaryObject.Remove(key);
                 //}
                 //globalDictionaryObject.Add(key, val);
 
@@ -10367,7 +10378,7 @@ namespace MetalMaxSystem
 
                 //if (globalDictionaryString.Contains(key)) 
                 //{
-                //    globalDictionaryString.Remove(key);
+                //   globalDictionaryString.Remove(key);
                 //}
                 //globalDictionaryString.Add(key, val);
 
@@ -14297,7 +14308,7 @@ namespace MetalMaxSystem
         //提示：尽可能使用对口类型，以防值类型与引用类型发生转换时拆装箱降低性能
 
         //--------------------------------------------------------------------------------------------------
-        // 任意类型组Start
+        //任意类型组Start
         //--------------------------------------------------------------------------------------------------
 
         #region 给对象注册句柄，对象和句柄形成双向映射关系
@@ -14381,20 +14392,20 @@ namespace MetalMaxSystem
         /// <param name="lp_inherentCustomValue">固有自定义值</param>
         public static void HD_RegObject(object lp_object, string lp_key, string lp_inherentStats = "true", string lp_inherentCustomValue = "")
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             string lv_tagStr;
             int lv_tag;
             int lv_i;
 
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             int auto_var;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             lv_tag = HD_RegObjectTagAndReturn(lp_object);
             lv_tagStr = lv_tag.ToString();
@@ -14453,20 +14464,20 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认值"_Object"</param>
         public static void HD_RegObject_Simple(object lp_object, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             string lv_tagStr;
             int lv_tag;
             int lv_i;
 
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             int auto_var;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             lv_tag = HD_RegObjectTagAndReturn(lp_object);
             lv_tagStr = lv_tag.ToString();
@@ -14520,7 +14531,7 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认值"_Object"</param>
         public static void HD_DestroyObject(object lp_object, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             string lv_tagStr;
@@ -14528,13 +14539,13 @@ namespace MetalMaxSystem
             int lv_a;
             int lv_b;
             int lv_c;
-            // Variable Initialization
+            //Variable Initialization
             lv_tag = HD_ReturnObjectTag(lp_object);
             if (lv_tag == 0) { return; } //如果对象没有注册过直接返回
             lv_str = (lp_key + "HD_Object");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tagStr = lv_tag.ToString();
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
@@ -14573,7 +14584,7 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认值"_Object"</param>
         public static void HD_RemoveObject(object lp_object, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             string lv_tagStr;
@@ -14581,13 +14592,13 @@ namespace MetalMaxSystem
             int lv_a;
             int lv_b;
             int lv_c;
-            // Variable Initialization
+            //Variable Initialization
             lv_tag = HD_ReturnObjectTag(lp_object);
             if (lv_tag == 0) { return; } //如果对象没有注册过直接返回
             lv_str = (lp_key + "HD_Object");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tagStr = lv_tag.ToString();
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
@@ -14621,13 +14632,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnObjectNumMax(string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
-            // Implementation
+            //Implementation
             return lv_num;
         }
 
@@ -14639,24 +14650,24 @@ namespace MetalMaxSystem
         /// <returns>如果对象没有注册过直接返回0</returns>
         public static int HD_ReturnObjectNum(object lp_object, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             int lv_i;
             int lv_tag;
             int lv_torf;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             const int auto_n = 1;
             int auto_i;
             int auto_ae;
             int auto_var;
-            // Variable Initialization
+            //Variable Initialization
             lv_tag = HD_ReturnObjectTag(lp_object);
             if (lv_tag == 0) { return 0; } //如果对象没有注册过直接返回0
             lv_str = (lp_key + "HD_Object");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_torf = -1;
-            // Implementation
+            //Implementation
             for (auto_i = 1; auto_i <= auto_n; auto_i += 1)
             {
                 if ((lv_num == 0))
@@ -14692,13 +14703,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object HD_ReturnObjectFromRegNum(int lp_regNum, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_tag;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_tag = DataTableIntLoad1(true, (lv_str + "Tag"), lp_regNum);
-            // Implementation
+            //Implementation
             return HD_ReturnObjectFromTag(lv_tag);
         }
 
@@ -14712,7 +14723,7 @@ namespace MetalMaxSystem
 
             if (tagObject.ContainsKey(lp_tag))
             {
-                // 键存在，可以安全地访问
+                //键存在，可以安全地访问
                 return tagObject[lp_tag];
             }
             else
@@ -14729,13 +14740,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnObjectTagFromRegNumStr(int lp_regNum, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             string lv_tagStr;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_tagStr = DataTableIntLoad1(true, (lv_str + "Tag"), lp_regNum).ToString();
-            // Implementation
+            //Implementation
             return lv_tagStr;
         }
 
@@ -14747,13 +14758,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnObjectTagFromRegNum(int lp_regNum, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_tag;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_tag = DataTableIntLoad1(true, (lv_str + "Tag"), lp_regNum);
-            // Implementation
+            //Implementation
             return lv_tag;
         }
 
@@ -14765,13 +14776,13 @@ namespace MetalMaxSystem
         /// <param name="lp_stats">状态</param>
         public static void HD_SetObjectState(object lp_object, string lp_key, string lp_stats)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             string lv_tagStr;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
-            // Implementation
+            //Implementation
             DataTableStringSave0(true, ("State" + lv_str + "_" + lv_tagStr), lp_stats);
         }
 
@@ -14783,15 +14794,15 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnObjectState(object lp_object, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             string lv_tagStr;
             string lv_stats;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
             lv_stats = DataTableStringLoad0(true, ("State" + lv_str + "_" + lv_tagStr));
-            // Implementation
+            //Implementation
             return lv_stats;
         }
 
@@ -14803,13 +14814,13 @@ namespace MetalMaxSystem
         /// <param name="lp_customValue">自定义值</param>
         public static void HD_SetObjectCV(object lp_object, string lp_key, string lp_customValue)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             string lv_tagStr;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
-            // Implementation
+            //Implementation
             DataTableStringSave0(true, ("CV" + lv_str + "_" + lv_tagStr), lp_customValue);
         }
 
@@ -14821,15 +14832,15 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnObjectCV(object lp_object, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             string lv_tagStr;
             string lv_customValue;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
             lv_customValue = DataTableStringLoad0(true, ("CV" + lv_str + "_" + lv_tagStr));
-            // Implementation
+            //Implementation
             return lv_customValue;
         }
 
@@ -14840,13 +14851,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnObjectState_Only(object lp_object)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_tagStr;
             string lv_stats;
-            // Variable Initialization
+            //Variable Initialization
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
             lv_stats = DataTableStringLoad0(true, ("HD_ObjectState" + "_" + lv_tagStr));
-            // Implementation
+            //Implementation
             return lv_stats;
         }
 
@@ -14857,13 +14868,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnObjectCV_Only(object lp_object)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_tagStr;
             string lv_customValue;
-            // Variable Initialization
+            //Variable Initialization
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
             lv_customValue = DataTableStringLoad0(true, ("HD_ObjectCV" + "_" + lv_tagStr));
-            // Implementation
+            //Implementation
             return lv_customValue;
         }
 
@@ -14874,11 +14885,11 @@ namespace MetalMaxSystem
         /// <param name="lp_realNumTag">实数标记</param>
         public static void HD_SetObjectDouble(object lp_object, double lp_realNumTag)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_tagStr;
-            // Variable Initialization
+            //Variable Initialization
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
-            // Implementation
+            //Implementation
             DataTableDoubleSave0(true, ("HD_CDDouble_Object_" + lv_tagStr), lp_realNumTag);
         }
 
@@ -14889,11 +14900,11 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double HD_ReturnObjectDouble(object lp_object)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_tagStr;
-            // Variable Initialization
+            //Variable Initialization
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
-            // Implementation
+            //Implementation
             return DataTableDoubleLoad0(true, ("HD_CDDouble_Object_" + lv_tagStr));
         }
 
@@ -14904,11 +14915,11 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool HD_ReturnIfObjectTag(object lp_object)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_tagStr;
-            // Variable Initialization
+            //Variable Initialization
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
-            // Implementation
+            //Implementation
             return DataTableBoolLoad0(true, ("HD_IfObjectTag" + "_" + lv_tagStr));
         }
 
@@ -14920,13 +14931,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool HD_ReturnIfObjectTagKey(object lp_object, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             string lv_tagStr;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
-            // Implementation
+            //Implementation
             return DataTableBoolLoad0(true, ("IfObjectGTag" + lv_str + "_" + lv_tagStr));
         }
 
@@ -14938,7 +14949,7 @@ namespace MetalMaxSystem
         /// <param name="lp_big">是否大值靠前</param>
         public static void HD_ObjectGSortCV(string lp_key, string lp_cVStr, bool lp_big)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             int lv_b;
             int lv_c;
@@ -14949,7 +14960,7 @@ namespace MetalMaxSystem
             int lv_num;
             int lv_intStackOutSize;
             string lv_tagValuestr;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int autoB_ae;
             const int autoB_ai = 1;
             int autoC_ae;
@@ -14958,13 +14969,13 @@ namespace MetalMaxSystem
             const int autoHD_ai = -1;
             int autoE_ae;
             const int autoE_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_intStackOutSize = 0;
-            // Implementation
+            //Implementation
             autoB_ae = lv_num;
             lv_a = 1;
             for (; ((autoB_ai >= 0 && lv_a <= autoB_ae) || (autoB_ai < 0 && lv_a >= autoB_ae)); lv_a += autoB_ai)
@@ -15086,9 +15097,9 @@ namespace MetalMaxSystem
         /// <param name="lp_big">是否大值靠前</param>
         public static void HD_ObjectGSort(string lp_key, bool lp_big)
         {
-            // Automatic Variable Declarations
-            // Implementation
-            // Variable Declarations
+            //Automatic Variable Declarations
+            //Implementation
+            //Variable Declarations
             int lv_a;
             int lv_b;
             int lv_c;
@@ -15098,7 +15109,7 @@ namespace MetalMaxSystem
             string lv_str;
             int lv_num;
             int lv_intStackOutSize;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int autoB_ae;
             const int autoB_ai = 1;
             int autoC_ae;
@@ -15107,13 +15118,13 @@ namespace MetalMaxSystem
             const int autoHD_ai = -1;
             int autoE_ae;
             const int autoE_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_intStackOutSize = 0;
-            // Implementation
+            //Implementation
             autoB_ae = lv_num;
             lv_a = 1;
             for (; ((autoB_ai >= 0 && lv_a <= autoB_ae) || (autoB_ai < 0 && lv_a >= autoB_ae)); lv_a += autoB_ai)
@@ -15275,17 +15286,17 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnObjectGNumMax_StateTrueFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             object lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_b = "";
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnObjectNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -15307,17 +15318,17 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnObjectGNumMax_StateFalseFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             object lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_b = "";
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnObjectNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -15339,17 +15350,17 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnObjectGNumMax_StateUselessFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             object lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_b = "";
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnObjectNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -15372,17 +15383,17 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnObjectGNumMax_StateFunc_Specify(string lp_gs, string lp_State)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             object lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_b = "";
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnObjectNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -15437,13 +15448,13 @@ namespace MetalMaxSystem
 
         //互动OG_为Object组中的每个序号
         //GE（星际2的Galaxy Editor）的宏让编辑器保存时自动生成脚本并整合进脚本进行格式调整，C#仅参考需自行编写
-        // #AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称，宏去声明string类型名为“Auto随机编号_vs”的自动变量，然后=右侧字符
-        // #AUTOVAR(ae) = HD_ReturnObjectNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量，然后=右侧字符
-        // #INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量，用于下面for循环增量（increment是传入参数）
-        // #PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数，用作“当前被挑选到的元素”（任意变量-整数 lp_var）， #PARAM(s)是传进来的参数用作"开始"（int lp_s）
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #PARAM(var) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #PARAM(var) >= #AUTOVAR(ae)) ) ; #PARAM(var) += #AUTOVAR(ai) ) {
-        //     #SUBFUNCS(actions)//代表用户GUI填写的所有动作
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称，宏去声明string类型名为“Auto随机编号_vs”的自动变量，然后=右侧字符
+        //#AUTOVAR(ae) = HD_ReturnObjectNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量，然后=右侧字符
+        //#INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量，用于下面for循环增量（increment是传入参数）
+        //#PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数，用作“当前被挑选到的元素”（任意变量-整数 lp_var）， #PARAM(s)是传进来的参数用作"开始"（int lp_s）
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #PARAM(var) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #PARAM(var) >= #AUTOVAR(ae)) ) ; #PARAM(var) += #AUTOVAR(ai) ) {
+        //    #SUBFUNCS(actions)//代表用户GUI填写的所有动作
+        //}
 
         /// <summary>
         /// 互动OG_为Object组中的每个序号。每次挑选的元素序号会自行在动作组（委托函数）中使用，委托函数特征：void SubActionTest(int lp_var)，参数lp_var即每次遍历到的元素序号，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
@@ -15464,18 +15475,18 @@ namespace MetalMaxSystem
         }
 
         //互动OG_为Object组中的每个元素
-        // #AUTOVAR(vs, string) = "#PARAM(group)";
-        // #AUTOVAR(ae) = HD_ReturnObjectNumMax(#AUTOVAR(vs));
-        // #AUTOVAR(va)= #PARAM(s);
-        // #INITAUTOVAR(ai,increment)
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     DataTableSave(false, "ObjectGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)), HD_ReturnObjectFromRegNum(#AUTOVAR(va),#AUTOVAR(vs)));
-        // }
-        // #AUTOVAR(va)= #PARAM(s);
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     #PARAM(var) = DataTableLoad(false, "ObjectGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)));
-        //     #SUBFUNCS(actions)
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(group)";
+        //#AUTOVAR(ae) = HD_ReturnObjectNumMax(#AUTOVAR(vs));
+        //#AUTOVAR(va)= #PARAM(s);
+        //#INITAUTOVAR(ai,increment)
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    DataTableSave(false, "ObjectGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)), HD_ReturnObjectFromRegNum(#AUTOVAR(va),#AUTOVAR(vs)));
+        //}
+        //#AUTOVAR(va)= #PARAM(s);
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    #PARAM(var) = DataTableLoad(false, "ObjectGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)));
+        //    #SUBFUNCS(actions)
+        //}
 
         /// <summary>
         /// 互动OG_为Object组中的每个元素。每次挑选的元素会自行在动作组（委托函数）中使用，委托函数特征：void SubOActionEventFuncref(object lv_object)，参数lv_object即每次遍历到的元素，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
@@ -15510,13 +15521,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object HD_ReturnRandomObjectFromObjectGFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_num;
             int lv_a;
             object lv_c = null;
-            // Variable Initialization
+            //Variable Initialization
             lv_num = HD_ReturnObjectNumMax(lp_gs);
-            // Implementation
+            //Implementation
             if ((lv_num >= 1))
             {
                 lv_a = RandomInt(1, lv_num);
@@ -15526,16 +15537,16 @@ namespace MetalMaxSystem
         }
 
         //互动OG_添加Object组到Object组
-        // #AUTOVAR(vs, string) = "#PARAM(groupA)";
-        // #AUTOVAR(vsb, string) = "#PARAM(groupB)";
-        // #AUTOVAR(ae) = HD_ReturnObjectNumMax(#AUTOVAR(vs));
-        // #AUTOVAR(va)= 1;
-        // #AUTOVAR(ai)= 1;
-        // #AUTOVAR(var);
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     #AUTOVAR(var) = HD_ReturnObjectFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
-        //     HD_AddObjectToGroup(#AUTOVAR(var), #AUTOVAR(vsb));
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(groupA)";
+        //#AUTOVAR(vsb, string) = "#PARAM(groupB)";
+        //#AUTOVAR(ae) = HD_ReturnObjectNumMax(#AUTOVAR(vs));
+        //#AUTOVAR(va)= 1;
+        //#AUTOVAR(ai)= 1;
+        //#AUTOVAR(var);
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    #AUTOVAR(var) = HD_ReturnObjectFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
+        //    HD_AddObjectToGroup(#AUTOVAR(var), #AUTOVAR(vsb));
+        //}
 
         /// <summary>
         /// 互动OG_添加Object组到Object组。添加一个Object组A的元素到另一个Object组B，相同Object被认为是同一个。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
@@ -15558,16 +15569,16 @@ namespace MetalMaxSystem
         }
 
         //互动OG_从Object组移除Object组
-        // #AUTOVAR(vs, string) = "#PARAM(groupA)";
-        // #AUTOVAR(vsb, string) = "#PARAM(groupB)";
-        // #AUTOVAR(ae) = HD_ReturnObjectNumMax(#AUTOVAR(vs));
-        // #AUTOVAR(va)= 1;
-        // #AUTOVAR(ai)= 1;
-        // #AUTOVAR(var);
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     #AUTOVAR(var) = HD_ReturnObjectFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
-        //     HD_RemoveObject(#AUTOVAR(var), #AUTOVAR(vsb));
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(groupA)";
+        //#AUTOVAR(vsb, string) = "#PARAM(groupB)";
+        //#AUTOVAR(ae) = HD_ReturnObjectNumMax(#AUTOVAR(vs));
+        //#AUTOVAR(va)= 1;
+        //#AUTOVAR(ai)= 1;
+        //#AUTOVAR(var);
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    #AUTOVAR(var) = HD_ReturnObjectFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
+        //    HD_RemoveObject(#AUTOVAR(var), #AUTOVAR(vsb));
+        //}
 
         /// <summary>
         /// 互动OG_从Object组移除Object组。将Object组A的元素从Object组B中移除，相同Object被认为是同一个。移除使用了"互动O_移除Object"，同一个存储区（Object组ID）序号重排，移除时该存储区如有其他操作会排队等待。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
@@ -15595,15 +15606,15 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认填Object组名称</param>
         public static void HD_RemoveObjectGAll(string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             string lv_tagStr;
             int lv_a;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
@@ -15619,7 +15630,7 @@ namespace MetalMaxSystem
         }
 
         //--------------------------------------------------------------------------------------------------
-        // 任意类型组End
+        //任意类型组End
         //--------------------------------------------------------------------------------------------------
 
         #endregion
@@ -15629,7 +15640,7 @@ namespace MetalMaxSystem
         //提示：尽可能使用对口类型，以防值类型与引用类型发生转换时拆装箱降低性能
 
         //--------------------------------------------------------------------------------------------------
-        // 字符串组Start
+        //字符串组Start
         //--------------------------------------------------------------------------------------------------
         //设计方案：字符串的句柄就是它自己
 
@@ -15642,22 +15653,22 @@ namespace MetalMaxSystem
         /// <param name="lp_inherentCustomValue">固有自定义值</param>
         public static void HD_RegString(string lp_string, string lp_key, string lp_inherentStats = "true", string lp_inherentCustomValue = "")
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             int lv_i;
             string lv_tag;
 
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             int auto_var;
 
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_String");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tag = lp_string;
 
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             if ((lv_num == 0))
             {
@@ -15707,22 +15718,22 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认值"_String"</param>
         public static void HD_RegString_Simple(string lp_string, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             int lv_i;
             string lv_tag;
 
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             int auto_var;
 
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_String");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tag = lp_string;
 
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             if ((lv_num == 0))
             {
@@ -15774,18 +15785,18 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认值"_String"</param>
         public static void HD_DestroyString(string lp_string, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             string lv_tag;
             int lv_a;
             int lv_b;
             string lv_c;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_String");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tag = lp_string;
-            // Implementation
+            //Implementation
             if ((lv_tag != null))
             {
                 ThreadWait(lv_str);
@@ -15822,7 +15833,7 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认值"_String"</param>
         public static void HD_RemoveString(string lp_string, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             string lv_tag;
@@ -15830,12 +15841,12 @@ namespace MetalMaxSystem
             int lv_b;
             string lv_c;
 
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_String");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tag = lp_string;
 
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
@@ -15877,23 +15888,23 @@ namespace MetalMaxSystem
         /// <returns>若返回成功将得到≥1的数，返回失败则为0</returns>
         public static int HD_ReturnStringNum(string lp_string, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             int lv_i;
             string lv_tag;
 
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             int auto_var;
 
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_String");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tag = lp_string;
             lv_i = 0;
 
-            // Implementation
+            //Implementation
             if ((lv_num == 0))
             {
                 lv_i = lv_num;
@@ -15930,9 +15941,9 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnStringFromRegNum(int lp_regNum, string lp_key)
         {
-            // Variable Declarations And Initialization
+            //Variable Declarations And Initialization
             string lv_str = (lp_key + "HD_String");
-            // Implementation
+            //Implementation
             return DataTableStringLoad1(true, (lv_str + "Tag"), lp_regNum);
         }
 
@@ -16095,15 +16106,15 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnStringGNumMax_StateTrueFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             string lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnStringNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -16125,15 +16136,15 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnStringGNumMax_StateFalseFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             string lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnStringNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -16155,15 +16166,15 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnStringGNumMax_StateUselessFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             string lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnStringNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -16186,15 +16197,15 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnStringGNumMax_StateFunc_Specify(string lp_gs, string lp_State)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             string lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnStringNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -16247,13 +16258,13 @@ namespace MetalMaxSystem
 
         //互动SG_为String组中的每个序号
         //GE（星际2的Galaxy Editor）的宏让编辑器保存时自动生成脚本并整合进脚本进行格式调整，C#仅参考需自行编写
-        // #AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称，宏去声明string类型名为“Auto随机编号_vs”的自动变量，然后=右侧字符
-        // #AUTOVAR(ae) = HD_ReturnStringNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量，然后=右侧字符
-        // #INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量，用于下面for循环增量（increment是传入参数）
-        // #PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数，用作“当前被挑选到的元素”（任意变量-整数 lp_var）， #PARAM(s)是传进来的参数用作"开始"（int lp_s）
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #PARAM(var) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #PARAM(var) >= #AUTOVAR(ae)) ) ; #PARAM(var) += #AUTOVAR(ai) ) {
-        //     #SUBFUNCS(actions)//代表用户GUI填写的所有动作
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称，宏去声明string类型名为“Auto随机编号_vs”的自动变量，然后=右侧字符
+        //#AUTOVAR(ae) = HD_ReturnStringNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量，然后=右侧字符
+        //#INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量，用于下面for循环增量（increment是传入参数）
+        //#PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数，用作“当前被挑选到的元素”（任意变量-整数 lp_var）， #PARAM(s)是传进来的参数用作"开始"（int lp_s）
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #PARAM(var) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #PARAM(var) >= #AUTOVAR(ae)) ) ; #PARAM(var) += #AUTOVAR(ai) ) {
+        //    #SUBFUNCS(actions)//代表用户GUI填写的所有动作
+        //}
 
         /// <summary>
         /// 互动SG_为String组中的每个序号。每次挑选的元素序号会自行在动作组（委托函数）中使用，委托函数特征：void SubActionTest(int lp_var)，参数lp_var即每次遍历到的元素序号，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
@@ -16274,18 +16285,18 @@ namespace MetalMaxSystem
         }
 
         //互动SG_为String组中的每个元素
-        // #AUTOVAR(vs, string) = "#PARAM(group)";
-        // #AUTOVAR(ae) = HD_ReturnStringNumMax(#AUTOVAR(vs));
-        // #AUTOVAR(va)= #PARAM(s);
-        // #INITAUTOVAR(ai,increment)
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     DataTableSave(false, "StringGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)), HD_ReturnStringFromRegNum(#AUTOVAR(va),#AUTOVAR(vs)));
-        // }
-        // #AUTOVAR(va)= #PARAM(s);
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     #PARAM(var) = DataTableLoad(false, "StringGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)));
-        //     #SUBFUNCS(actions)
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(group)";
+        //#AUTOVAR(ae) = HD_ReturnStringNumMax(#AUTOVAR(vs));
+        //#AUTOVAR(va)= #PARAM(s);
+        //#INITAUTOVAR(ai,increment)
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    DataTableSave(false, "StringGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)), HD_ReturnStringFromRegNum(#AUTOVAR(va),#AUTOVAR(vs)));
+        //}
+        //#AUTOVAR(va)= #PARAM(s);
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    #PARAM(var) = DataTableLoad(false, "StringGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)));
+        //    #SUBFUNCS(actions)
+        //}
 
         /// <summary>
         /// 互动SG_为String组中的每个元素。每次挑选的元素会自行在动作组（委托函数）中使用，委托函数特征：void SubSActionEventFuncref(string lp_str)，参数lv_str即每次遍历到的元素，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
@@ -16320,13 +16331,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnRandomStringFromStringGFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_num;
             int lv_a;
             string lv_c = null;
-            // Variable Initialization
+            //Variable Initialization
             lv_num = HD_ReturnStringNumMax(lp_gs);
-            // Implementation
+            //Implementation
             if ((lv_num >= 1))
             {
                 lv_a = RandomInt(1, lv_num);
@@ -16336,16 +16347,16 @@ namespace MetalMaxSystem
         }
 
         //互动SG_添加String组到String组
-        // #AUTOVAR(vs, string) = "#PARAM(groupA)";
-        // #AUTOVAR(vsb, string) = "#PARAM(groupB)";
-        // #AUTOVAR(ae) = HD_ReturnStringNumMax(#AUTOVAR(vs));
-        // #AUTOVAR(va)= 1;
-        // #AUTOVAR(ai)= 1;
-        // #AUTOVAR(var);
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     #AUTOVAR(var) = HD_ReturnStringFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
-        //     HD_AddStringToGroup(#AUTOVAR(var), #AUTOVAR(vsb));
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(groupA)";
+        //#AUTOVAR(vsb, string) = "#PARAM(groupB)";
+        //#AUTOVAR(ae) = HD_ReturnStringNumMax(#AUTOVAR(vs));
+        //#AUTOVAR(va)= 1;
+        //#AUTOVAR(ai)= 1;
+        //#AUTOVAR(var);
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    #AUTOVAR(var) = HD_ReturnStringFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
+        //    HD_AddStringToGroup(#AUTOVAR(var), #AUTOVAR(vsb));
+        //}
 
 
         /// <summary>
@@ -16369,16 +16380,16 @@ namespace MetalMaxSystem
         }
 
         //互动SG_从String组移除String组
-        // #AUTOVAR(vs, string) = "#PARAM(groupA)";
-        // #AUTOVAR(vsb, string) = "#PARAM(groupB)";
-        // #AUTOVAR(ae) = HD_ReturnStringNumMax(#AUTOVAR(vs));
-        // #AUTOVAR(va)= 1;
-        // #AUTOVAR(ai)= 1;
-        // #AUTOVAR(var);
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     #AUTOVAR(var) = HD_ReturnStringFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
-        //     HD_RemoveString(#AUTOVAR(var), #AUTOVAR(vsb));
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(groupA)";
+        //#AUTOVAR(vsb, string) = "#PARAM(groupB)";
+        //#AUTOVAR(ae) = HD_ReturnStringNumMax(#AUTOVAR(vs));
+        //#AUTOVAR(va)= 1;
+        //#AUTOVAR(ai)= 1;
+        //#AUTOVAR(var);
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    #AUTOVAR(var) = HD_ReturnStringFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
+        //    HD_RemoveString(#AUTOVAR(var), #AUTOVAR(vsb));
+        //}
 
         /// <summary>
         /// 互动SG_从String组移除String组。将String组A的元素从String组B中移除，相同String被认为是同一个。移除使用了"互动S_移除String"，同一个存储区（String组ID）序号重排，移除时该存储区如有其他操作会排队等待。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
@@ -16406,15 +16417,15 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认填String组名称</param>
         public static void HD_RemoveStringGAll(string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             string lv_tag;
             int lv_a;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_String");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
@@ -16430,7 +16441,7 @@ namespace MetalMaxSystem
         }
 
         //--------------------------------------------------------------------------------------------------
-        // 字符串组End
+        //字符串组End
         //--------------------------------------------------------------------------------------------------
 
         #endregion
@@ -16440,7 +16451,7 @@ namespace MetalMaxSystem
         //提示：尽可能使用对口类型，以防值类型与引用类型发生转换时拆装箱降低性能
 
         //--------------------------------------------------------------------------------------------------
-        // 数字组Start
+        //数字组Start
         //--------------------------------------------------------------------------------------------------
 
         /// <summary>
@@ -16452,22 +16463,22 @@ namespace MetalMaxSystem
         /// <param name="lp_inherentCustomValue">固有自定义值</param>
         public static void HD_RegInt(int lp_integer, string lp_key, string lp_inherentStats = "true", string lp_inherentCustomValue = "")
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             int lv_i;
             int lv_tag;
 
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             int auto_var;
 
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tag = lp_integer;
 
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             if ((lv_num == 0))
             {
@@ -16517,22 +16528,22 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认值"_Int"</param>
         public static void HD_RegInt_Simple(int lp_integer, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             int lv_i;
             int lv_tag;
 
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             int auto_var;
 
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tag = lp_integer;
 
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             if ((lv_num == 0))
             {
@@ -16585,7 +16596,7 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认值"_Int"</param>
         public static void HD_DestroyInt(int lp_integer, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             int lv_tag;
@@ -16593,13 +16604,13 @@ namespace MetalMaxSystem
             int lv_b;
             int lv_c;
 
-            // Automatic Variable Declarations
-            // Variable Initialization
+            //Automatic Variable Declarations
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tag = lp_integer;
 
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
@@ -16633,7 +16644,7 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认值"_Int"</param>
         public static void HD_RemoveInt(int lp_integer, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             int lv_tag;
@@ -16641,13 +16652,13 @@ namespace MetalMaxSystem
             int lv_b;
             int lv_c;
 
-            // Automatic Variable Declarations
-            // Variable Initialization
+            //Automatic Variable Declarations
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tag = lp_integer;
 
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
@@ -16690,22 +16701,22 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnIntNum(int lp_integer, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             int lv_i = -1;
             int lv_tag;
 
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             int auto_var;
 
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_tag = lp_integer;
 
-            // Implementation
+            //Implementation
             if ((lv_num == 0))
             {
                 lv_i = lv_num;
@@ -16742,13 +16753,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnIntFromRegNum(int lp_regNum, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_tag;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_tag = DataTableIntLoad1(true, (lv_str + "Tag"), lp_regNum);
-            // Implementation
+            //Implementation
             return lv_tag;
         }
 
@@ -16760,13 +16771,13 @@ namespace MetalMaxSystem
         /// <param name="lp_stats">状态</param>
         public static void HD_SetIntState(int lp_integer, string lp_key, string lp_stats)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_tag;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_tag = lp_integer;
-            // Implementation
+            //Implementation
             DataTableStringSave1(true, ("State" + lv_str), lv_tag, lp_stats);
         }
 
@@ -16778,17 +16789,17 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnIntState(int lp_integer, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_tag;
             string lv_stats;
 
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_tag = lp_integer;
             lv_stats = DataTableStringLoad1(true, ("State" + lv_str), lv_tag);
 
-            // Implementation
+            //Implementation
             return lv_stats;
         }
 
@@ -16800,13 +16811,13 @@ namespace MetalMaxSystem
         /// <param name="lp_customValue">自定义值</param>
         public static void HD_SetIntCV(int lp_integer, string lp_key, string lp_customValue)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_tag;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_tag = lp_integer;
-            // Implementation
+            //Implementation
             DataTableStringSave1(true, (("CV" + lv_str)), lv_tag, lp_customValue);
         }
 
@@ -16818,15 +16829,15 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnIntCV(int lp_integer, string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_tag;
             string lv_customValue;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_tag = lp_integer;
             lv_customValue = DataTableStringLoad1(true, (("CV" + lv_str)), lv_tag);
-            // Implementation
+            //Implementation
             return lv_customValue;
         }
 
@@ -16837,13 +16848,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnIntState_Only(int lp_integer)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_tag;
             string lv_stats;
-            // Variable Initialization
+            //Variable Initialization
             lv_tag = lp_integer;
             lv_stats = DataTableStringLoad1(true, ("HD_IntState"), lv_tag);
-            // Implementation
+            //Implementation
             return lv_stats;
         }
 
@@ -16854,13 +16865,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnIntCV_Only(int lp_integer)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_tag;
             string lv_customValue;
-            // Variable Initialization
+            //Variable Initialization
             lv_tag = lp_integer;
             lv_customValue = DataTableStringLoad1(true, (("HD_IntCV")), lv_tag);
-            // Implementation
+            //Implementation
             return lv_customValue;
         }
 
@@ -16913,7 +16924,7 @@ namespace MetalMaxSystem
         /// <param name="lp_big">是否大值靠前</param>
         public static void HD_IntGSortCV(string lp_key, string lp_cVStr, bool lp_big)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             int lv_b;
             int lv_c;
@@ -16924,7 +16935,7 @@ namespace MetalMaxSystem
             int lv_num;
             int lv_intStackOutSize;
             string lv_tagValuestr;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int autoB_ae;
             const int autoB_ai = 1;
             int autoC_ae;
@@ -16933,13 +16944,13 @@ namespace MetalMaxSystem
             const int autoHD_ai = -1;
             int autoE_ae;
             const int autoE_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_intStackOutSize = 0;
-            // Implementation
+            //Implementation
             autoB_ae = lv_num;
             lv_a = 1;
             for (; ((autoB_ai >= 0 && lv_a <= autoB_ae) || (autoB_ai < 0 && lv_a >= autoB_ae)); lv_a += autoB_ai)
@@ -17061,9 +17072,9 @@ namespace MetalMaxSystem
         /// <param name="lp_big">是否大值靠前</param>
         public static void HD_IntGSort(string lp_key, bool lp_big)
         {
-            // Automatic Variable Declarations
-            // Implementation
-            // Variable Declarations
+            //Automatic Variable Declarations
+            //Implementation
+            //Variable Declarations
             int lv_a;
             int lv_b;
             int lv_c;
@@ -17073,7 +17084,7 @@ namespace MetalMaxSystem
             string lv_str;
             int lv_num;
             int lv_intStackOutSize;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int autoB_ae;
             const int autoB_ai = 1;
             int autoC_ae;
@@ -17082,13 +17093,13 @@ namespace MetalMaxSystem
             const int autoHD_ai = -1;
             int autoE_ae;
             const int autoE_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
             lv_intStackOutSize = 0;
-            // Implementation
+            //Implementation
             autoB_ae = lv_num;
             lv_a = 1;
             for (; ((autoB_ai >= 0 && lv_a <= autoB_ae) || (autoB_ai < 0 && lv_a >= autoB_ae)); lv_a += autoB_ai)
@@ -17250,17 +17261,17 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnIntGNumMax_StateTrueFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             int lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_b = "";
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnIntNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -17282,17 +17293,17 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnIntGNumMax_StateFalseFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             int lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_b = "";
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnIntNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -17314,17 +17325,17 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnIntGNumMax_StateUselessFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             int lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_b = "";
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnIntNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -17347,17 +17358,17 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnIntGNumMax_StateFunc_Specify(string lp_gs, string lp_State)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_a;
             string lv_b;
             int lv_c;
             int lv_i = 0;
-            // Automatic Variable Declarations
+            //Automatic Variable Declarations
             int auto_ae;
             const int auto_ai = 1;
-            // Variable Initialization
+            //Variable Initialization
             lv_b = "";
-            // Implementation
+            //Implementation
             auto_ae = HD_ReturnIntNumMax(lp_gs);
             lv_a = 1;
             for (; ((auto_ai >= 0 && lv_a <= auto_ae) || (auto_ai < 0 && lv_a >= auto_ae)); lv_a += auto_ai)
@@ -17410,13 +17421,13 @@ namespace MetalMaxSystem
 
         //互动IG_为Int组中的每个序号
         //GE（星际2的Galaxy Editor）的宏让编辑器保存时自动生成脚本并整合进脚本进行格式调整，C#仅参考需自行编写
-        // #AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称，宏去声明string类型名为“Auto随机编号_vs”的自动变量，然后=右侧字符
-        // #AUTOVAR(ae) = HD_ReturnIntNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量，然后=右侧字符
-        // #INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量，用于下面for循环增量（increment是传入参数）
-        // #PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数，用作“当前被挑选到的元素”（任意变量-整数 lp_var）， #PARAM(s)是传进来的参数用作"开始"（int lp_s）
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #PARAM(var) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #PARAM(var) >= #AUTOVAR(ae)) ) ; #PARAM(var) += #AUTOVAR(ai) ) {
-        //     #SUBFUNCS(actions)//代表用户GUI填写的所有动作
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称，宏去声明string类型名为“Auto随机编号_vs”的自动变量，然后=右侧字符
+        //#AUTOVAR(ae) = HD_ReturnIntNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量，然后=右侧字符
+        //#INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量，用于下面for循环增量（increment是传入参数）
+        //#PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数，用作“当前被挑选到的元素”（任意变量-整数 lp_var）， #PARAM(s)是传进来的参数用作"开始"（int lp_s）
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #PARAM(var) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #PARAM(var) >= #AUTOVAR(ae)) ) ; #PARAM(var) += #AUTOVAR(ai) ) {
+        //    #SUBFUNCS(actions)//代表用户GUI填写的所有动作
+        //}
 
         /// <summary>
         /// 互动IG_为Int组中的每个序号。每次挑选的元素序号会自行在动作组（委托函数）中使用，委托函数特征：void SubActionTest(int lp_var)，参数lp_var即每次遍历到的元素序号，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
@@ -17437,18 +17448,18 @@ namespace MetalMaxSystem
         }
 
         //互动IG_为Int组中的每个元素
-        // #AUTOVAR(vs, string) = "#PARAM(group)";
-        // #AUTOVAR(ae) = HD_ReturnIntNumMax(#AUTOVAR(vs));
-        // #AUTOVAR(va)= #PARAM(s);
-        // #INITAUTOVAR(ai,increment)
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     DataTableSave(false, "IntGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)), HD_ReturnIntFromRegNum(#AUTOVAR(va),#AUTOVAR(vs)));
-        // }
-        // #AUTOVAR(va)= #PARAM(s);
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     #PARAM(var) = DataTableLoad(false, "IntGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)));
-        //     #SUBFUNCS(actions)
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(group)";
+        //#AUTOVAR(ae) = HD_ReturnIntNumMax(#AUTOVAR(vs));
+        //#AUTOVAR(va)= #PARAM(s);
+        //#INITAUTOVAR(ai,increment)
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    DataTableSave(false, "IntGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)), HD_ReturnIntFromRegNum(#AUTOVAR(va),#AUTOVAR(vs)));
+        //}
+        //#AUTOVAR(va)= #PARAM(s);
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    #PARAM(var) = DataTableLoad(false, "IntGFor"+ #AUTOVAR(vs) + IntToString(#AUTOVAR(va)));
+        //    #SUBFUNCS(actions)
+        //}
 
         /// <summary>
         /// 互动IG_为Int组中的每个元素。每次挑选的元素会自行在动作组（委托函数）中使用，委托函数特征：void SubActionTest(int lp_var)，参数lp_var即每次遍历到的元素，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
@@ -17483,13 +17494,13 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnRandomIntFromIntGFunc(string lp_gs)
         {
-            // Variable Declarations
+            //Variable Declarations
             int lv_num;
             int lv_a;
             int lv_c = 0;
-            // Variable Initialization
+            //Variable Initialization
             lv_num = HD_ReturnIntNumMax(lp_gs);
-            // Implementation
+            //Implementation
             if ((lv_num >= 1))
             {
                 lv_a = RandomInt(1, lv_num);
@@ -17499,16 +17510,16 @@ namespace MetalMaxSystem
         }
 
         //互动IG_添加Int组到Int组
-        // #AUTOVAR(vs, string) = "#PARAM(groupA)";
-        // #AUTOVAR(vsb, string) = "#PARAM(groupB)";
-        // #AUTOVAR(ae) = HD_ReturnIntNumMax(#AUTOVAR(vs));
-        // #AUTOVAR(va)= 1;
-        // #AUTOVAR(ai)= 1;
-        // #AUTOVAR(var);
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     #AUTOVAR(var) = HD_ReturnIntFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
-        //     HD_AddIntToGroup(#AUTOVAR(var), #AUTOVAR(vsb));
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(groupA)";
+        //#AUTOVAR(vsb, string) = "#PARAM(groupB)";
+        //#AUTOVAR(ae) = HD_ReturnIntNumMax(#AUTOVAR(vs));
+        //#AUTOVAR(va)= 1;
+        //#AUTOVAR(ai)= 1;
+        //#AUTOVAR(var);
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    #AUTOVAR(var) = HD_ReturnIntFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
+        //    HD_AddIntToGroup(#AUTOVAR(var), #AUTOVAR(vsb));
+        //}
 
 
         /// <summary>
@@ -17532,16 +17543,16 @@ namespace MetalMaxSystem
         }
 
         //互动IG_从Int组移除Int组
-        // #AUTOVAR(vs, string) = "#PARAM(groupA)";
-        // #AUTOVAR(vsb, string) = "#PARAM(groupB)";
-        // #AUTOVAR(ae) = HD_ReturnIntNumMax(#AUTOVAR(vs));
-        // #AUTOVAR(va)= 1;
-        // #AUTOVAR(ai)= 1;
-        // #AUTOVAR(var);
-        // for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
-        //     #AUTOVAR(var) = HD_ReturnIntFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
-        //     HD_RemoveInt(#AUTOVAR(var), #AUTOVAR(vsb));
-        // }
+        //#AUTOVAR(vs, string) = "#PARAM(groupA)";
+        //#AUTOVAR(vsb, string) = "#PARAM(groupB)";
+        //#AUTOVAR(ae) = HD_ReturnIntNumMax(#AUTOVAR(vs));
+        //#AUTOVAR(va)= 1;
+        //#AUTOVAR(ai)= 1;
+        //#AUTOVAR(var);
+        //for ( ; ( (#AUTOVAR(ai) >= 0 && #AUTOVAR(va) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #AUTOVAR(va) >= #AUTOVAR(ae)) ) ; #AUTOVAR(va) += #AUTOVAR(ai) ) {
+        //    #AUTOVAR(var) = HD_ReturnIntFromRegNum(#AUTOVAR(va), #AUTOVAR(vs));
+        //    HD_RemoveInt(#AUTOVAR(var), #AUTOVAR(vsb));
+        //}
 
         /// <summary>
         /// 互动IG_从Int组移除Int组。将Int组A的元素从Int组B中移除，相同Int被认为是同一个。移除使用了"互动I_移除Int"，同一个存储区（Int组ID）序号重排，移除时该存储区如有其他操作会排队等待。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
@@ -17569,15 +17580,15 @@ namespace MetalMaxSystem
         /// <param name="lp_key">存储键区，默认填Int组名称</param>
         public static void HD_RemoveIntGAll(string lp_key)
         {
-            // Variable Declarations
+            //Variable Declarations
             string lv_str;
             int lv_num;
             string lv_tagStr;
             int lv_a;
-            // Variable Initialization
+            //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
-            // Implementation
+            //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
@@ -17593,7 +17604,7 @@ namespace MetalMaxSystem
         }
 
         //--------------------------------------------------------------------------------------------------
-        // 数字组End
+        //数字组End
         //--------------------------------------------------------------------------------------------------
 
         #endregion
@@ -17678,22 +17689,22 @@ namespace MetalMaxSystem
                 //↑存储玩家注册序号对应按键队列键位
                 HashTableSave2(true, "KeyDownLoopOneBitKey", player, key, true); //玩家按键队列键位状态
                 //---------------------------------------------------------------------蓄力管理
-                // if (XuLiGuanLi == true){
-                // libBC0D3AAD_gf_HD_RegKXL(key, "IntGroup_XuLi" + IntToString(player)); //HD_注册蓄力按键
-                // libBC0D3AAD_gf_HD_SetKeyFixedXL(player, key, 1.0);
-                // }
+                //if (XuLiGuanLi == true){
+                //libBC0D3AAD_gf_HD_RegKXL(key, "IntGroup_XuLi" + IntToString(player)); //HD_注册蓄力按键
+                //libBC0D3AAD_gf_HD_SetKeyFixedXL(player, key, 1.0);
+                //}
                 //---------------------------------------------------------------------双击管理
-                // if (ShuangJiGuanLi == true){
-                //     lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(player, key);
-                //     if ((0.0 < lv_a) && (lv_a <= ShuangJiShiXian)){
-                //         //符合双击标准，发送事件
-                //         libBC0D3AAD_gf_Send_KeyDoubleClicked(player, key, ShuangJiShiXian - lv_a);
-                //     } 
-                //     else {   
-                //         libBC0D3AAD_gf_HD_RegKSJ(key, "IntGroup_DoubleClicked" + IntToString(player)); //HD_注册按键
-                //         libBC0D3AAD_gf_HD_SetKeyFixedSJ(player, key, ShuangJiShiXian);
-                //     }
-                // }
+                //if (ShuangJiGuanLi == true){
+                //    lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(player, key);
+                //    if ((0.0 < lv_a) && (lv_a <= ShuangJiShiXian)){
+                //        //符合双击标准，发送事件
+                //        libBC0D3AAD_gf_Send_KeyDoubleClicked(player, key, ShuangJiShiXian - lv_a);
+                //    } 
+                //    else {   
+                //        libBC0D3AAD_gf_HD_RegKSJ(key, "IntGroup_DoubleClicked" + IntToString(player)); //HD_注册按键
+                //        libBC0D3AAD_gf_HD_SetKeyFixedSJ(player, key, ShuangJiShiXian);
+                //    }
+                //}
                 //---------------------------------------------------------------------
                 KeyDownGlobalEvent(key, true, player);
             }
@@ -17896,24 +17907,24 @@ namespace MetalMaxSystem
                 //---------------------------------------------------------------------
                 //if (libBC0D3AAD_gv_XuLiGuanLi == true)
                 //{
-                //    libBC0D3AAD_gf_HD_RegKXL(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_XuLi" + IntToString(lv_player)); //HD_注册按键
-                //    libBC0D3AAD_gf_HD_SetKeyFixedXL(lv_player, lv_mouseButton, 1.0);
+                //   libBC0D3AAD_gf_HD_RegKXL(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_XuLi" + IntToString(lv_player)); //HD_注册按键
+                //   libBC0D3AAD_gf_HD_SetKeyFixedXL(lv_player, lv_mouseButton, 1.0);
                 //}
                 ////---------------------------------------------------------------------
                 //if (libBC0D3AAD_gv_ShuangJiGuanLi == true)
                 //{
-                //    libBC0D3AAD_gf_HD_RegPTwo(lv_point1, "DoubleClicked_PTwo_" + IntToString(lv_player));
-                //    lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(lv_player, lv_mouseButton);
-                //    if ((0.0 < lv_a) && (lv_a <= libBC0D3AAD_gv_ShuangJiShiXian) && libBC0D3AAD_gf_HD_PTwoRangeTrue("DoubleClicked_PTwo_" + IntToString(lv_player)))
-                //    {
-                //        //符合双击标准（鼠标双击多个2点验证），发送事件
-                //        libBC0D3AAD_gf_Send_MouseDoubleClicked(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian - lv_a, lv_point0, lv_uiX, lv_uiY);
-                //    }
-                //    else
-                //    {
-                //        libBC0D3AAD_gf_HD_RegKSJ(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_DoubleClicked" + IntToString(lv_player)); //HD_注册按键
-                //        libBC0D3AAD_gf_HD_SetKeyFixedSJ(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian);
-                //    }
+                //   libBC0D3AAD_gf_HD_RegPTwo(lv_point1, "DoubleClicked_PTwo_" + IntToString(lv_player));
+                //   lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(lv_player, lv_mouseButton);
+                //   if ((0.0 < lv_a) && (lv_a <= libBC0D3AAD_gv_ShuangJiShiXian) && libBC0D3AAD_gf_HD_PTwoRangeTrue("DoubleClicked_PTwo_" + IntToString(lv_player)))
+                //   {
+                //       //符合双击标准（鼠标双击多个2点验证），发送事件
+                //       libBC0D3AAD_gf_Send_MouseDoubleClicked(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian - lv_a, lv_point0, lv_uiX, lv_uiY);
+                //   }
+                //   else
+                //   {
+                //       libBC0D3AAD_gf_HD_RegKSJ(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_DoubleClicked" + IntToString(lv_player)); //HD_注册按键
+                //       libBC0D3AAD_gf_HD_SetKeyFixedSJ(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian);
+                //   }
                 //}
                 ////---------------------------------------------------------------------
                 MouseDownFunc(player, key, lp_mouseVector3F, uiX, uiY);
@@ -17959,24 +17970,24 @@ namespace MetalMaxSystem
                 //---------------------------------------------------------------------
                 //if (libBC0D3AAD_gv_XuLiGuanLi == true)
                 //{
-                //    libBC0D3AAD_gf_HD_RegKXL(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_XuLi" + IntToString(lv_player)); //HD_注册按键
-                //    libBC0D3AAD_gf_HD_SetKeyFixedXL(lv_player, lv_mouseButton, 1.0);
+                //   libBC0D3AAD_gf_HD_RegKXL(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_XuLi" + IntToString(lv_player)); //HD_注册按键
+                //   libBC0D3AAD_gf_HD_SetKeyFixedXL(lv_player, lv_mouseButton, 1.0);
                 //}
                 ////---------------------------------------------------------------------
                 //if (libBC0D3AAD_gv_ShuangJiGuanLi == true)
                 //{
-                //    libBC0D3AAD_gf_HD_RegPTwo(lv_point1, "DoubleClicked_PTwo_" + IntToString(lv_player));
-                //    lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(lv_player, lv_mouseButton);
-                //    if ((0.0 < lv_a) && (lv_a <= libBC0D3AAD_gv_ShuangJiShiXian) && libBC0D3AAD_gf_HD_PTwoRangeTrue("DoubleClicked_PTwo_" + IntToString(lv_player)))
-                //    {
-                //        //符合双击标准（鼠标双击多个2点验证），发送事件
-                //        libBC0D3AAD_gf_Send_MouseDoubleClicked(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian - lv_a, lv_point0, lv_uiX, lv_uiY);
-                //    }
-                //    else
-                //    {
-                //        libBC0D3AAD_gf_HD_RegKSJ(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_DoubleClicked" + IntToString(lv_player)); //HD_注册按键
-                //        libBC0D3AAD_gf_HD_SetKeyFixedSJ(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian);
-                //    }
+                //   libBC0D3AAD_gf_HD_RegPTwo(lv_point1, "DoubleClicked_PTwo_" + IntToString(lv_player));
+                //   lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(lv_player, lv_mouseButton);
+                //   if ((0.0 < lv_a) && (lv_a <= libBC0D3AAD_gv_ShuangJiShiXian) && libBC0D3AAD_gf_HD_PTwoRangeTrue("DoubleClicked_PTwo_" + IntToString(lv_player)))
+                //   {
+                //       //符合双击标准（鼠标双击多个2点验证），发送事件
+                //       libBC0D3AAD_gf_Send_MouseDoubleClicked(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian - lv_a, lv_point0, lv_uiX, lv_uiY);
+                //   }
+                //   else
+                //   {
+                //       libBC0D3AAD_gf_HD_RegKSJ(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_DoubleClicked" + IntToString(lv_player)); //HD_注册按键
+                //       libBC0D3AAD_gf_HD_SetKeyFixedSJ(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian);
+                //   }
                 //}
                 ////---------------------------------------------------------------------
                 MouseDownFunc(player, key, lp_mouseVector3F, uiX, uiY);
@@ -17996,10 +18007,10 @@ namespace MetalMaxSystem
         /// <returns></returns>
         internal static bool MouseDownFunc(int player, int key, Vector3F lp_mouseVector3F, int uiX, int uiY)
         {
-            // Variable Declarations
+            //Variable Declarations
             bool torf = true;
 
-            // Implementation
+            //Implementation
             if (StopKeyMouseEvent[player] == true)
             {
                 //阻止按键事件时强制取消按键状态
@@ -18088,15 +18099,16 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 键鼠弹起事件延迟执行函数，会按序执行键鼠事件动作队列，需加入到每帧执行
+        /// 键鼠弹起事件延迟执行函数，会按序执行键鼠事件动作队列，需加入到每帧执行（并遍历全部玩家）
         /// </summary>
         /// <param name="player"></param>
         /// <param name="key"></param>
         /// <param name="lp_mouseVector3F"></param>
         /// <param name="uiX"></param>
         /// <param name="uiY"></param>
-        internal static void MouseKeyUpWait(int player, int key)
+        internal static void MouseKeyUpWait(int player)
         {
+            int key;
             int ae, be, a, ai = 1, bi = 1;
             //玩家有鼠标按键事件动作队列时
             if (Player.MouseDownLoopOneBitNum[player] > 0)
@@ -18594,6 +18606,8 @@ namespace MetalMaxSystem
 }
 
 #region 小记
+//本库由PC加载时推荐UTF-8（带BOM）编码以及CRLF尾行格式
+
 //C#中实例方法与静态方法在内存都只存储一份，实例方法可使用this等指向实例，若明确不依赖实例则写静态方法为宜（减少以下性能开销）
 //1.每次调用实例方法时都需要在调用栈上分配一定的空间来保存方法的局部变量和参数
 //2.调用实例方法时会隐式地传递一个this引用指向调用该方法的对象实例（该引用在方法内部可用来访问对象的字段和方法）
@@ -18631,4 +18645,9 @@ namespace MetalMaxSystem
 
 //静态类的成员（如字段、方法）必须是静态的，但静态字段可被赋值为实例对象的引用，静态方法内部也可创建类的实例
 //静态字段在默认情况下会被初始化为它们的默认值（没赋值直接获取则返回该默认值），对于引用类型默认值是null
+
+//DllImportAttribute常用于从非托管代码中导入函数，这是平台调用（P/Invoke）的一种常见方式
+//LibraryImportAttribute是较新特性，在.NET 5及更高版本中引入，用于在编译时生成P/Invoke封送代码而不是在运行时（这可提高性能并减少启动延迟，因为不再需要在运行时解析DLL和函数）
+
+//await关键字只能在async声明的异步函数内用，作用是等待一个异步操作的完成，并且不会阻塞调用线程
 #endregion

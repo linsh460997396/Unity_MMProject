@@ -16,10 +16,10 @@ namespace MetalMaxSystem
 
         #region wParam键盘输入通知
 
-        public const int WM_KEYDOWN = 0x100;    // 键盘被按下
-        public const int WM_KEYUP = 0x101;      // 键盘被松开
-        public const int WM_SYSKEYDOWN = 0x104; // 系统键被按下，例如Alt、Ctrl等键
-        public const int WM_SYSKEYUP = 0x105;   // 系统键被松开，例如Alt、Ctrl等键
+        public const int WM_KEYDOWN = 0x100;    //键盘被按下
+        public const int WM_KEYUP = 0x101;      //键盘被松开
+        public const int WM_SYSKEYDOWN = 0x104; //系统键被按下，例如Alt、Ctrl等键
+        public const int WM_SYSKEYUP = 0x105;   //系统键被松开，例如Alt、Ctrl等键
         public const int WH_KEYBOARD_LL = 13;
 
         #endregion
@@ -187,7 +187,7 @@ namespace MetalMaxSystem
                     return;
                 }
                 UnhookWindowsHookEx(hHook);
-                // 清除所有事件
+                //清除所有事件
                 Handlers = null;
                 isStart = false;
             }

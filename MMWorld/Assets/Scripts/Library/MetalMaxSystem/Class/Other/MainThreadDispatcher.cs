@@ -1,4 +1,4 @@
-#if UNITY_EDITOR|| UNITY_STANDALONE
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -47,7 +47,7 @@ namespace MetalMaxSystem.Unity
 #endif
 
 //示范操作由主线程获取当前游戏对象上的MainThreadDispatcher组件，并进行所需动作
-//private void TodoOnMainThread(Sprite sprite)
+//private void TodoOnMainThread(Bitmap sprite)
 //{
 //    //可在另一个线程或者异步操作中调用
 //    MainThreadDispatcher.Instance.Enqueue(() =>

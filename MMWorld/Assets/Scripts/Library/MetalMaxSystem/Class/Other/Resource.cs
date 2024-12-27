@@ -1,4 +1,4 @@
-#if UNITY_EDITOR|| UNITY_STANDALONE
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
 using System.IO;
 using System.Collections;
 using UnityEngine;
@@ -32,12 +32,12 @@ namespace MetalMaxSystem.Unity
 
         //public Resource()
         //{
-        //    Debug.Log("Prinny: Resource 对象已建立！");
+        //   Debug.Log("Prinny: Resource 对象已建立！");
         //}
 
         //~Resource()
         //{
-        //    Debug.Log("Prinny: Resource 对象已摧毁！");
+        //   Debug.Log("Prinny: Resource 对象已摧毁！");
         //}
 
         //ABTest_CustomFuncTemplates
@@ -225,11 +225,11 @@ namespace MetalMaxSystem.Unity
         /// <returns></returns>
         private IEnumerator ABLoadFromStreamAsync(string path, string resName)
         {
-            // AssetBundleCreateRequest 类是 AssetBundle 的一个实例，它表示一个异步加载请求。AssetBundle.LoadFromStreamAsync 方法使用指定路径的文件流来创建一个新的 AssetBundleCreateRequest 实例。
+            //AssetBundleCreateRequest 类是 AssetBundle 的一个实例，它表示一个异步加载请求。AssetBundle.LoadFromStreamAsync 方法使用指定路径的文件流来创建一个新的 AssetBundleCreateRequest 实例。
             AssetBundleCreateRequest request = AssetBundle.LoadFromStreamAsync(File.OpenRead(path));
-            // yield return 语句用于将控制权交还调用上下文，直到异步加载请求完成。一旦请求完成，该方法将使用 LoadAsset 方法从 AssetBundle 中加载指定名称的游戏对象。
-            // 加载游戏对象后，该方法将通过 yield return 语句返回对 obj 变量的引用，这使得调用代码可以使用该对象。
-            // 总的来说，此方法可用于在游戏或应用程序中异步加载 AssetBundle，并检索其中的游戏对象。这可以在需要时帮助优化内存使用和加载时间。
+            //yield return 语句用于将控制权交还调用上下文，直到异步加载请求完成。一旦请求完成，该方法将使用 LoadAsset 方法从 AssetBundle 中加载指定名称的游戏对象。
+            //加载游戏对象后，该方法将通过 yield return 语句返回对 obj 变量的引用，这使得调用代码可以使用该对象。
+            //总的来说，此方法可用于在游戏或应用程序中异步加载 AssetBundle，并检索其中的游戏对象。这可以在需要时帮助优化内存使用和加载时间。
             yield return request;
             assetBundle = request.assetBundle;
             gameObjectGroup[0] = request.assetBundle.LoadAsset<GameObject>(resName);
@@ -259,7 +259,7 @@ namespace MetalMaxSystem.Unity
             if (!isCoroutineRunning)
             {
                 isCoroutineRunning = true;
-                // 启动协程并保存其引用
+                //启动协程并保存其引用
                 currentIEnumerator = ABLoadFromFileAsync(path, resName);
                 currentCoroutine = StartCoroutine(currentIEnumerator);
                 //if (multiCoroutine) { activeCoroutines += currentCoroutine; } //取消多协程
@@ -288,7 +288,7 @@ namespace MetalMaxSystem.Unity
             if (!isCoroutineRunning)
             {
                 isCoroutineRunning = true;
-                // 启动协程并保存其引用
+                //启动协程并保存其引用
                 currentIEnumerator = ABLoadFromMemoryAsync(path, resName);
                 currentCoroutine = StartCoroutine(currentIEnumerator);
                 //if (multiCoroutine) { activeCoroutines += currentCoroutine; } //取消多协程
@@ -320,7 +320,7 @@ namespace MetalMaxSystem.Unity
             if (!isCoroutineRunning)
             {
                 isCoroutineRunning = true;
-                // 启动协程并保存其引用
+                //启动协程并保存其引用
                 Debug.Log("Prinny: LoadAllFromMemoryAsync => " + path);
                 currentIEnumerator = ABLoadAllFromMemoryAsync(path);
                 currentCoroutine = StartCoroutine(currentIEnumerator);
@@ -350,7 +350,7 @@ namespace MetalMaxSystem.Unity
             if (!isCoroutineRunning)
             {
                 isCoroutineRunning = true;
-                // 启动协程并保存其引用
+                //启动协程并保存其引用
                 currentIEnumerator = ABLoadFromStreamAsync(path, resName);
                 currentCoroutine = StartCoroutine(currentIEnumerator);
                 //if (multiCoroutine) { activeCoroutines += currentCoroutine; } //取消多协程
@@ -385,7 +385,7 @@ namespace MetalMaxSystem.Unity
             {
                 //这里只能找代表协程方法的实例（同一协程方法的该实例仅有1个）去完成下一步
                 currentIEnumerator.MoveNext(); //内部检索所有绑定的Coroutine并执行，如绑多个Coroutine的话无法精准操作每个个体只能批量操作（就算取消了本类的多协程方式也无法解决，慎用）
-                // 再次检查协程是否完成
+                //再次检查协程是否完成
                 if (currentCoroutine == null)
                 {
                     //完成则变量重置
@@ -416,8 +416,8 @@ namespace MetalMaxSystem.Unity
 // 例如：
 // private IEnumerator MyCoroutine()
 // {
-//     // 协程逻辑
-//     yield return null; // 暂停协程
+//     //协程逻辑
+//     yield return null; //暂停协程
 // }
 
 // Coroutine
@@ -427,17 +427,17 @@ namespace MetalMaxSystem.Unity
 // 例如：
 // private void Start()
 // {
-//     // 启动协程，并获取返回的Coroutine对象
+//     //启动协程，并获取返回的Coroutine对象
 //     Coroutine myCoroutine = StartCoroutine(MyCoroutine());
 
-//     // 在某个时刻，你可能想要停止这个协程
+//     //在某个时刻，你可能想要停止这个协程
 //     StopCoroutine(myCoroutine);
 // }
 
 // private IEnumerator MyCoroutine()
 // {
-//     // 协程逻辑
-//     yield return null; // 暂停协程
+//     //协程逻辑
+//     yield return null; //暂停协程
 // }
 
 // 为什么需要Coroutine类
@@ -464,33 +464,33 @@ namespace MetalMaxSystem.Unity
 // 例如：
 // public class MyMonoBehaviour : MonoBehaviour
 // {
-//     private List<Coroutine> activeCoroutines = new List<Coroutine>(); // 保存所有活动协程的列表
+//     private List<Coroutine> activeCoroutines = new List<Coroutine>(); //保存所有活动协程的列表
 
-//     // 启动协程的方法
+//     //启动协程的方法
 //     public void StartLoadingAssetBundle(string path, string resName)
 //     {
 //         Coroutine newCoroutine = StartCoroutine(ABLoadFromStreamAsync(path, resName));
-//         activeCoroutines.Add(newCoroutine); // 将新协程添加到活动列表
+//         activeCoroutines.Add(newCoroutine); //将新协程添加到活动列表
 //     }
 
-//     // 停止所有协程的方法
+//     //停止所有协程的方法
 //     public void StopAllLoadingAssetBundles()
 //     {
 //         foreach (Coroutine coroutine in activeCoroutines.ToArray())
 //         {
-//             StopCoroutine(coroutine); // 停止每个活动协程
+//             StopCoroutine(coroutine); //停止每个活动协程
 //         }
-//         activeCoroutines.Clear(); // 清空活动列表
+//         activeCoroutines.Clear(); //清空活动列表
 //     }
 
-//     // 协程方法
+//     //协程方法
 //     private IEnumerator ABLoadFromStreamAsync(string path, string resName)
 //     {
-//         // 异步加载逻辑
-//         yield return new WaitForSeconds(1.0f); // 示例：等待1秒
+//         //异步加载逻辑
+//         yield return new WaitForSeconds(1.0f); //示例：等待1秒
 
-//         // 处理加载完成后的逻辑
-//         // ...
+//         //处理加载完成后的逻辑
+//         //...
 //     }
 // }
 // 在这个例子中，activeCoroutines列表保存了所有通过StartCoroutine启动的协程实例。你可以通过遍历这个列表并使用StopCoroutine方法来停止特定的协程。注意，一旦协程完成，它会自动从活动列表中移除，因为Coroutine实例会在协程结束时被Unity销毁。
@@ -503,7 +503,7 @@ namespace MetalMaxSystem.Unity
 // 例如：
 // IEnumerator MyCoroutineMethod()
 // {
-//     // 协程逻辑
+//     //协程逻辑
 //     yield return null;
 // }
 
@@ -512,14 +512,14 @@ namespace MetalMaxSystem.Unity
 //     IEnumerator currentIEnumerator01 = MyCoroutineMethod();
 //     IEnumerator currentIEnumerator02 = MyCoroutineMethod();
 
-//     // currentIEnumerator01 和 currentIEnumerator02 实际上引用的是同一个协程实例
-//     // 因为它们都是对 MyCoroutineMethod() 的调用，而 MyCoroutineMethod() 只返回一个 IEnumerator 实例
+//     //currentIEnumerator01 和 currentIEnumerator02 实际上引用的是同一个协程实例
+//     //因为它们都是对 MyCoroutineMethod() 的调用，而 MyCoroutineMethod() 只返回一个 IEnumerator 实例
 
 //     Coroutine coroutine01 = StartCoroutine(currentIEnumerator01);
 //     Coroutine coroutine02 = StartCoroutine(currentIEnumerator02);
 
-//     // 此时，coroutine01 和 coroutine02 是两个不同的 Coroutine 实例
-//     // 因为 StartCoroutine 每次调用都会返回一个新的 Coroutine 实例，即使它们基于相同的 IEnumerator
+//     //此时，coroutine01 和 coroutine02 是两个不同的 Coroutine 实例
+//     //因为 StartCoroutine 每次调用都会返回一个新的 Coroutine 实例，即使它们基于相同的 IEnumerator
 // }
 
 //在Unity中，StopCoroutine 方法用于停止一个正在运行的协程，该方法参数可用Coroutine或IEnumerator实例。

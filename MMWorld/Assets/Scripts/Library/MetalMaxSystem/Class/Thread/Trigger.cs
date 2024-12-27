@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Threading;
 
@@ -100,12 +100,12 @@ namespace MetalMaxSystem
         /// </summary>
         public event TriggerEventHandler Awake
         {
-            // Add the input delegate to the collection.
+            //Add the input delegate to the collection.
             add
             {
                 _listEventDelegates.AddHandler(awakeEventKey, value);
             }
-            // Remove the input delegate from the collection.
+            //Remove the input delegate from the collection.
             remove
             {
                 _listEventDelegates.RemoveHandler(awakeEventKey, value);

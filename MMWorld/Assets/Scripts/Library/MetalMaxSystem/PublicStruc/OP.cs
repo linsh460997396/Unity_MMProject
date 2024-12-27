@@ -1,4 +1,4 @@
-#if UNITY_EDITOR|| UNITY_STANDALONE
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
 using System.Collections.Generic;
 using UnityEngine;
 

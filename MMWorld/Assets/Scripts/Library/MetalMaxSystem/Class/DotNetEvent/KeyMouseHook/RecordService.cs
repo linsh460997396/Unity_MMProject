@@ -1,5 +1,5 @@
-using System;
-#if UNITY_EDITOR|| UNITY_STANDALONE
+﻿using System;
+#if UNITY_EDITOR || UNITY_STANDALONE
 //Unity编辑器、独立应用程序（不包括Web播放器）
 using Vector3F = UnityEngine.Vector3;
 #elif MonoGame
@@ -225,7 +225,7 @@ namespace MetalMaxSystem
             switch (wParam)
             {
                 case MouseHook.WM_MOUSEMOVE:
-                    // 记录鼠标移动位置
+                    //记录鼠标移动位置
                     X = mouseMsg.pt.x;//UI坐标，是整数
                     Y = mouseMsg.pt.y;//UI坐标，是整数
 
@@ -241,11 +241,11 @@ namespace MetalMaxSystem
                     }
                     catch (Exception ex)
                     {
-                        // 捕获异常并打印错误信息
-                        //Debug.WriteLine("Error:X{0},Y{1}", X, Y);
+                        //捕获异常并打印错误信息
+                        //MMCore.Tell("Error:X{0},Y{1}", X, Y);
                         //Debug.Log(ex.Message); //需引用Unity方法库
                         Console.WriteLine(ex.Message);
-                        // 抛出异常，将错误信息传递给上层调用者
+                        //抛出异常，将错误信息传递给上层调用者
                         throw;
                     }
 
@@ -257,7 +257,7 @@ namespace MetalMaxSystem
 
                     break;
                 case MouseHook.WM_LBUTTONDOWN:
-                    // 记录鼠标左键按下
+                    //记录鼠标左键按下
                     //MouseDownEvent?.Invoke(PlayerID, MMCore.c_mouseButtonLeft, SWPlayer.MouseVector3F[PlayerID], X, Y);
                     if (MouseDownEvent != null)
                     {
@@ -266,7 +266,7 @@ namespace MetalMaxSystem
 
                     break;
                 case MouseHook.WM_LBUTTONUP:
-                    // 记录鼠标左键弹起
+                    //记录鼠标左键弹起
                     //MouseUpEvent?.Invoke(PlayerID, MMCore.c_mouseButtonLeft, SWPlayer.MouseVector3F[PlayerID], X, Y);
                     if (MouseUpEvent != null)
                     {
@@ -275,7 +275,7 @@ namespace MetalMaxSystem
 
                     break;
                 case MouseHook.WM_LBUTTONDBLCLK:
-                    // 记录鼠标左键双击
+                    //记录鼠标左键双击
                     //MouseLDoubleClickEvent?.Invoke(PlayerID, SWPlayer.MouseVector3F[PlayerID], X, Y);
                     if (MouseLDoubleClickEvent != null)
                     {
@@ -284,7 +284,7 @@ namespace MetalMaxSystem
 
                     break;
                 case MouseHook.WM_RBUTTONDOWN:
-                    // 记录鼠标右键按下
+                    //记录鼠标右键按下
                     //MouseDownEvent?.Invoke(PlayerID, MMCore.c_mouseButtonRight, SWPlayer.MouseVector3F[PlayerID], X, Y);
                     if (MouseDownEvent != null)
                     {
@@ -293,7 +293,7 @@ namespace MetalMaxSystem
 
                     break;
                 case MouseHook.WM_RBUTTONUP:
-                    // 记录鼠标右键弹起
+                    //记录鼠标右键弹起
                     //MouseUpEvent?.Invoke(PlayerID, MMCore.c_mouseButtonRight, SWPlayer.MouseVector3F[PlayerID], X, Y);
                     if (MouseUpEvent != null)
                     {
@@ -302,7 +302,7 @@ namespace MetalMaxSystem
 
                     break;
                 case MouseHook.WM_RBUTTONDBLCLK:
-                    // 记录鼠标右键双击
+                    //记录鼠标右键双击
                     //MouseRDoubleClickEvent?.Invoke(PlayerID, SWPlayer.MouseVector3F[PlayerID], X, Y);
                     if (MouseRDoubleClickEvent != null)
                     {
@@ -338,10 +338,10 @@ namespace MetalMaxSystem
         {
             KeyStatus = wParam;
             KeyValue = keyboardHookStruct.vkCode;
-            // 热键判断
+            //热键判断
             if (KeyStatus == KeyboardHook.WM_KEYDOWN || KeyStatus == KeyboardHook.WM_SYSKEYDOWN)
             {
-                // 按下某个按钮
+                //按下某个按钮
                 switch (KeyValue)
                 {
                     case CTRL:
@@ -353,14 +353,14 @@ namespace MetalMaxSystem
                 }
                 if (KeyValue >= ZERO && KeyValue <= (ZERO + 9))
                 {
-                    // 按下了0-9
+                    //按下了0-9
                     int temp = KeyValue - ZERO;
                     OneToNine[temp] = true;
                 }
             }
             else if (KeyStatus == KeyboardHook.WM_KEYUP || KeyStatus == KeyboardHook.WM_SYSKEYUP)
             {
-                // 松开某个按钮
+                //松开某个按钮
                 switch (KeyValue)
                 {
                     case CTRL:
@@ -372,7 +372,7 @@ namespace MetalMaxSystem
                 }
                 if (KeyValue >= ZERO && KeyValue <= (ZERO + 9))
                 {
-                    // 按下了0-9
+                    //按下了0-9
                     int temp = KeyValue - ZERO;
                     OneToNine[temp] = false;
                 }

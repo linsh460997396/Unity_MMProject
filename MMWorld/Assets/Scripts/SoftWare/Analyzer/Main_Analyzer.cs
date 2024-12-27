@@ -1,4 +1,4 @@
-using MetalMaxSystem.Unity;
+﻿using MetalMaxSystem.Unity;
 
 namespace Analyzer
 {
@@ -22,7 +22,7 @@ namespace Analyzer
             if (!sliceStart)
             {
                 sliceStart = true;
-                StartSliceTextureAndSetSpriteIDMultiMergerAsync(folderPath, "*.png", 0.7f, savePathFrontStr01, savePathFrontStr02, 10, 8, 7, 50); //仅支持png和jpg，文件夹下多个图片合批特征图
+                StartSliceTextureAndSetSpriteIDMultiMergerAsync(folderPath, "*.png", 0.9f, savePathFrontStr01, savePathFrontStr02, 10, 16, 16, 8); //仅支持png和jpg，文件夹下多个图片合批特征图
             }
         }
     }

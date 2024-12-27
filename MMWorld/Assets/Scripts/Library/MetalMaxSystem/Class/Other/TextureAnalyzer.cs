@@ -1,4 +1,4 @@
-#if UNITY_EDITOR || UNITY_STANDALONE
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -20,29 +20,36 @@ namespace MetalMaxSystem.Unity
         //加MonoBehaviour的必须是实例类，可继承使用MonoBehaviour下的方法，只有继承MonoBehaviour的脚本才能被附加到游戏物体上成为其组件，并且可以使用协程和摧毁引擎对象
 
         /// <summary>
-        /// Unity通常的最大纹理尺寸限制
-        /// </summary>
-        const int MAX_TEXTURE_SIZE = 8192;
-
-        /// <summary>
-        /// 合并精灵时的协程处理量计数上限，达到后在控制台通知
-        /// </summary>
-        static int iCountMax = 10000;
-
-        /// <summary>
         /// 提供给每个Task任务记录像素数组，int部分填写taskNum
         /// </summary>
         ConcurrentDictionary<int, Color[]> spritePixels = new ConcurrentDictionary<int, Color[]>();
 
+        private static int _textureSizeLimit = 8192;
+        private static int _messageOnceHandleNum = 10000;
+        private static bool _defaultTransparent = true;
+
+        /// <summary>
+        /// Unity特征纹理通常的最大纹理尺寸限制，默认8192
+        /// </summary>
+        public static int TextureSizeLimit { get => _textureSizeLimit; set => _textureSizeLimit = value; }
+        /// <summary>
+        /// 合并精灵时的处理量（切片计数）上限，达到后在控制台通知，默认10000
+        /// </summary>
+        public static int MessageOnceHandleNum { get => _messageOnceHandleNum; set => _messageOnceHandleNum = value; }
+        /// <summary>
+        /// 合并精灵时是否清理图片背景（将颜色通道设置透明），默认true
+        /// </summary>
+        public static bool DefaultTransparent { get => _defaultTransparent; set => _defaultTransparent = value; }
+
 
         //void Start()
         //{
-        //    //应用示范
-        //    string folderPath = "C:/Users/name/Desktop/地图"; //填写要扫描的目录
-        //    string savePathFrontStr01 = "C:/Users/name/Desktop/MapSP/"; //输出纹理集图片的目录前缀字符
-        //    string savePathFrontStr02 = "C:/Users/name/Desktop/MapIndex/"; //输出纹理文本的目录前缀字符
-        //    StartSliceTextureAndSetSpriteIDMultiMergerAsync(folderPath, "*.png", 0.9f, savePathFrontStr01, savePathFrontStr02, 10, 16, 16, 8); //仅支持png和jpg，目录下多个图片合批特征图
-        //    StartSliceTextureAndSetSpriteIDAsync(folderPath, "*.png", 0.9f, savePathFrontStr01, savePathFrontStr02, 10, 16, 16, 8); //仅支持png和jpg，目录下每个图片独立特征图
+        //   //应用示范
+        //   string folderPath = "C:/Users/name/Desktop/地图"; //填写要扫描的目录
+        //   string savePathFrontStr01 = "C:/Users/name/Desktop/MapSP/"; //输出纹理集图片的目录前缀字符
+        //   string savePathFrontStr02 = "C:/Users/name/Desktop/MapIndex/"; //输出纹理文本的目录前缀字符
+        //   StartSliceTextureAndSetSpriteIDMultiMergerAsync(folderPath, "*.png", 0.9f, savePathFrontStr01, savePathFrontStr02, 10, 16, 16, 8); //仅支持png和jpg，目录下多个图片合批特征图
+        //   StartSliceTextureAndSetSpriteIDAsync(folderPath, "*.png", 0.9f, savePathFrontStr01, savePathFrontStr02, 10, 16, 16, 8); //仅支持png和jpg，目录下每个图片独立特征图
         //}
 
         #region 功能函数
@@ -59,9 +66,11 @@ namespace MetalMaxSystem.Unity
         /// <param name="pixelX">格子像素尺寸</param>
         /// <param name="pixelY">格子像素尺寸</param>
         /// <param name="xCount">合并纹理图时的X方向输出格子数，超过换行</param>
-        public void StartSliceTextureAndSetSpriteIDMultiMergerAsync(string folderPath, string searchPattern, float similarity, string savePathFrontSP, string savePathFrontIndex, int handleCountMax = 10, int pixelX = 16, int pixelY = 16, int xCount = 8)
+        /// <param name="fromBottomLeft">Unity引擎图片绘制时默认以左下为原点(0,0)，所以该参数默认为true，注意本函数扫描时总是左下为原点</param>
+        /// <param name="torf">是否边缘尺寸不足按剩余高宽输出，默认为false（按参数高宽补满默认颜色）</param>
+        public void StartSliceTextureAndSetSpriteIDMultiMergerAsync(string folderPath, string searchPattern, float similarity, string savePathFrontSP, string savePathFrontIndex, int handleCountMax = 10, int pixelX = 16, int pixelY = 16, int xCount = 8, bool fromBottomLeft = true, bool torf = false)
         {
-            StartCoroutine(SliceTextureAndSetSpriteIDMultiMergerAsync(folderPath, searchPattern, similarity, savePathFrontSP, savePathFrontIndex, handleCountMax, pixelX, pixelY, xCount));
+            StartCoroutine(SliceTextureAndSetSpriteIDMultiMergerAsync(folderPath, searchPattern, similarity, savePathFrontSP, savePathFrontIndex, handleCountMax, pixelX, pixelY, xCount, fromBottomLeft, torf));
         }
 
         /// <summary>
@@ -76,17 +85,19 @@ namespace MetalMaxSystem.Unity
         /// <param name="pixelX">格子像素尺寸</param>
         /// <param name="pixelY">格子像素尺寸</param>
         /// <param name="xCount">合并纹理图时的X方向输出格子数，超过换行</param>
-        IEnumerator SliceTextureAndSetSpriteIDMultiMergerAsync(string folderPath, string searchPattern, float similarity, string savePathFrontSP, string savePathFrontIndex, int handleCountMax = 10, int pixelX = 16, int pixelY = 16, int xCount = 8)
+        /// <param name="fromBottomLeft">Unity引擎图片绘制时默认以左下为原点(0,0)，所以该参数默认为true，注意本函数扫描时总是左下为原点</param>
+        /// <param name="torf">是否边缘尺寸不足按剩余高宽输出，默认为false（按参数高宽补满默认颜色）</param>
+        IEnumerator SliceTextureAndSetSpriteIDMultiMergerAsync(string folderPath, string searchPattern, float similarity, string savePathFrontSP, string savePathFrontIndex, int handleCountMax = 10, int pixelX = 16, int pixelY = 16, int xCount = 8, bool fromBottomLeft = true, bool torf = false)
         {
             Texture2D texture; Sprite[] sprites; StringBuilder sb = new StringBuilder(); Color[] currentPixels; Color[] comparisonPixels; string fileName;
             string fileSavePath; float sim; int currentID = 1; int handleCount = 0; int jCount = 0; int fileCount = -1; int sliceMaxId = 1;
-            // 存储精灵编号
+            //存储精灵编号
             //List<int> sliceIds = new List<int>(); //换成可变列表存放
-            // 存放特征精灵
+            //存放特征精灵
             List<Sprite> spritesList = new List<Sprite>();
             Dictionary<int, string> DataTableISCP = new Dictionary<int, string>();
 
-            // 获取目录下所有指定类型文件的路径 
+            //获取目录下所有指定类型文件的路径 
             string[] filePaths = Directory.GetFiles(folderPath, searchPattern);
 
             //遍历目录内所有图片
@@ -95,10 +106,10 @@ namespace MetalMaxSystem.Unity
                 fileCount++;
                 sb.Clear();
 
-                // 加载图片 
+                //加载图片 
                 texture = LoadImageAndConvertToTexture2D(filePath);
-                // 处理图片，分割为精灵小组
-                sprites = SliceTexture(texture, pixelX, pixelY);
+                //处理图片，分割为精灵小组
+                sprites = SliceTexture(texture, pixelX, pixelY, fromBottomLeft, torf);
 
                 if (sprites == null || sprites.Length == 0)
                 {
@@ -107,20 +118,20 @@ namespace MetalMaxSystem.Unity
                 else
                 {
                     //Debug.Log("分割出 " + sprites.Length + " 个Sprite");
-                    // 设定纹理文本保存路径
+                    //设定纹理文本保存路径
                     fileName = Path.GetFileNameWithoutExtension(filePath);
                     fileSavePath = savePathFrontIndex + fileName + ".txt";
-                    // 新建指定长度数组存储精灵编号
+                    //新建指定长度数组存储精灵编号
                     int[] sliceIds = new int[sprites.Length + 1];
 
-                    // 初始化切片编号数组
+                    //初始化切片编号数组
                     for (int ei = 0; ei < sprites.Length; ei++)
                     {
-                        sliceIds[ei] = 0; // 使用0表示尚未分配切片编号
+                        sliceIds[ei] = 0; //使用0表示尚未分配切片编号
                     }
                     if (fileCount == 0)
                     {
-                        sliceIds[0] = 1; // 第一个图的第一个切片编号为1
+                        sliceIds[0] = 1; //第一个图的第一个切片编号为1
                         for (int i = 0; i < sprites.Length; i++)
                         {
                             if (i != 0)
@@ -142,10 +153,10 @@ namespace MetalMaxSystem.Unity
 
                                 handleCount += 1;
 
-                                // 提取当前精灵的像素数据
+                                //提取当前精灵的像素数据
                                 currentPixels = sprites[i].texture.GetPixels();
 
-                                // 与已经编号的精灵进行对比
+                                //与已经编号的精灵进行对比
                                 for (int j = 0; j < i; j++)
                                 {
                                     //记录jCount，用于每轮清空清空标记的量
@@ -168,7 +179,7 @@ namespace MetalMaxSystem.Unity
                                             sliceMaxId++; sliceIds[i] = sliceMaxId;
                                             //if (sliceIds[i] == 0) 
                                             //{ 
-                                            //    Debug.LogError("A型错误！Sprite " + i + " SliceID: " + sliceIds[i] + " CV[i]：" + DataTableISCP[sliceIds[i]] + " j=" + j + " SliceJID: " + sliceIds[j] + " CV[j]：" + DataTableISCP[sliceIds[j]] + " 当前纹理最大编号：" + sliceMaxId);
+                                            //   Debug.LogError("A型错误！Sprite " + i + " SliceID: " + sliceIds[i] + " CV[i]：" + DataTableISCP[sliceIds[i]] + " j=" + j + " SliceJID: " + sliceIds[j] + " CV[j]：" + DataTableISCP[sliceIds[j]] + " 当前纹理最大编号：" + sliceMaxId);
                                             //}
                                             //Debug.Log("对比结束！jCount=" + jCount);
                                         }
@@ -176,13 +187,13 @@ namespace MetalMaxSystem.Unity
                                         continue;
                                     }
 
-                                    // 提取对比精灵的像素数据
+                                    //提取对比精灵的像素数据（这是从原图上找特征索引来对比，上面的for循环只是找出特征索引j，其实第二切片起，与特征纹理数组逐一对比更效率一些）
                                     comparisonPixels = sprites[j].texture.GetPixels();
 
-                                    // 计算相似度
+                                    //计算相似度
                                     sim = CalculateSimilarity(currentPixels, comparisonPixels, similarity);
 
-                                    // 如果相似度达到或以上，则分配相同的切片编号
+                                    //如果相似度达到或以上，则分配相同的切片编号
                                     if (sim >= similarity)
                                     {
                                         sliceIds[i] = sliceIds[j];
@@ -208,10 +219,10 @@ namespace MetalMaxSystem.Unity
                                 currentID++;
                             }
 
-                            // 不是最后一个整数时添加逗号
+                            //不是最后一个整数时添加逗号
                             if (i < sprites.Length - 1)
                             {
-                                sb.Append(",");
+                                sb.Append(',');
                             }
                             if (handleCount >= handleCountMax)
                             {
@@ -227,22 +238,24 @@ namespace MetalMaxSystem.Unity
                         //第二个图开始
                         for (int i = 0; i < sprites.Length; i++)
                         {
-                            // 提取当前精灵的像素数据
+                            handleCount += 1;
+
+                            //提取当前精灵的像素数据
                             currentPixels = sprites[i].texture.GetPixels();
 
-                            // 与已经编号的精灵列表中的精灵进行对比
+                            //与已经编号的精灵列表中的精灵进行对比
                             for (int j = 0; j < spritesList.Count; j++)
                             {
-                                // 提取对比精灵的像素数据
+                                //提取对比精灵的像素数据（for循环内取特诊纹理集逐一对比）
                                 comparisonPixels = spritesList[j].texture.GetPixels();
 
-                                // 计算相似度
+                                //计算相似度
                                 sim = CalculateSimilarity(currentPixels, comparisonPixels, similarity);
 
-                                // 如果相似度达到或以上，则分配相同的切片编号
+                                //如果相似度达到或以上，则分配相同的切片编号
                                 if (sim >= similarity)
                                 {
-                                    sliceIds[i] = j + 1; //直接娶特征纹理编号
+                                    sliceIds[i] = j + 1; //直接取特征纹理编号
                                     break;
                                 }
                                 else if (j == spritesList.Count - 1)
@@ -260,10 +273,10 @@ namespace MetalMaxSystem.Unity
                                 currentID++;
                             }
 
-                            // 不是最后一个整数时添加逗号
+                            //不是最后一个整数时添加逗号
                             if (i < sprites.Length - 1)
                             {
-                                sb.Append(",");
+                                sb.Append(',');
                             }
                             if (handleCount >= handleCountMax)
                             {
@@ -278,10 +291,10 @@ namespace MetalMaxSystem.Unity
                     MMCore.SaveFile(fileSavePath, sb.ToString());
                     Debug.Log("保存成功: " + fileSavePath);
                 }
-                Debug.Log("已处理图片：" + fileCount);
+                Debug.Log("已处理图片：" + (fileCount + 1));
             }
             //生成最终纹理集
-            SpriteMerger(spritesList, "SpriteMerger", xCount, savePathFrontSP);
+            SpriteMerger(spritesList, "SpriteMerger", xCount, savePathFrontSP, fromBottomLeft);
             Debug.Log("处理完成！");
         }
 
@@ -297,9 +310,11 @@ namespace MetalMaxSystem.Unity
         /// <param name="pixelX">格子像素尺寸</param>
         /// <param name="pixelY">格子像素尺寸</param>
         /// <param name="xCount">合并纹理图时的X方向输出格子数，超过换行</param>
-        public void StartSliceTextureAndSetSpriteIDAsync(string folderPath, string searchPattern, float similarity, string savePathFrontSP, string savePathFrontIndex, int handleCountMax = 10, int pixelX = 16, int pixelY = 16, int xCount = 8)
+        /// <param name="fromBottomLeft">Unity引擎图片绘制时默认以左下为原点(0,0)，所以该参数默认为true，注意本函数扫描时总是左下为原点</param>
+        /// <param name="torf">是否边缘尺寸不足按剩余高宽输出，默认为false（按参数高宽补满默认颜色）</param>
+        public void StartSliceTextureAndSetSpriteIDAsync(string folderPath, string searchPattern, float similarity, string savePathFrontSP, string savePathFrontIndex, int handleCountMax = 10, int pixelX = 16, int pixelY = 16, int xCount = 8, bool fromBottomLeft = true, bool torf = false)
         {
-            StartCoroutine(SliceTextureAndSetSpriteIDAsync(folderPath, searchPattern, similarity, savePathFrontSP, savePathFrontIndex, handleCountMax, pixelX, pixelY, xCount));
+            StartCoroutine(SliceTextureAndSetSpriteIDAsync(folderPath, searchPattern, similarity, savePathFrontSP, savePathFrontIndex, handleCountMax, pixelX, pixelY, xCount, fromBottomLeft, torf));
         }
 
         /// <summary>
@@ -314,17 +329,19 @@ namespace MetalMaxSystem.Unity
         /// <param name="pixelX">格子像素尺寸</param>
         /// <param name="pixelY">格子像素尺寸</param>
         /// <param name="xCount">合并纹理图时的X方向输出格子数，超过换行</param>
-        IEnumerator SliceTextureAndSetSpriteIDAsync(string folderPath, string searchPattern, float similarity, string savePathFrontSP, string savePathFrontIndex, int handleCountMax = 10, int pixelX = 16, int pixelY = 16, int xCount = 8)
+        /// <param name="fromBottomLeft">Unity引擎图片绘制时默认以左下为原点(0,0)，所以该参数默认为true，注意本函数扫描时总是左下为原点</param>
+        /// <param name="torf">是否边缘尺寸不足按剩余高宽输出，默认为false（按参数高宽补满默认颜色）</param>
+        IEnumerator SliceTextureAndSetSpriteIDAsync(string folderPath, string searchPattern, float similarity, string savePathFrontSP, string savePathFrontIndex, int handleCountMax = 10, int pixelX = 16, int pixelY = 16, int xCount = 8, bool fromBottomLeft = true, bool torf = false)
         {
             Texture2D texture; Sprite[] sprites; StringBuilder sb = new StringBuilder(); Color[] currentPixels; Color[] comparisonPixels; string fileName;
             string fileSavePath; float sim; int currentID; int handleCount; int jCount; int fileCount = -1; int sliceMaxId;
-            // 存储精灵编号
+            //存储精灵编号
             //List<int> sliceIds = new List<int>(); //换成可变列表存放
-            // 存放特征精灵
+            //存放特征精灵
             List<Sprite> spritesList = new List<Sprite>();
             Dictionary<int, string> DataTableISCP = new Dictionary<int, string>();
 
-            // 获取目录下所有BMP文件的路径 
+            //获取目录下所有BMP文件的路径 
             string[] filePaths = Directory.GetFiles(folderPath, searchPattern);
 
             //遍历目录内所有图片
@@ -343,10 +360,10 @@ namespace MetalMaxSystem.Unity
                 handleCount = 0; //重置协程处理计数
                 jCount = 0; //重置jCount
 
-                // 加载图片 
+                //加载图片 
                 texture = LoadImageAndConvertToTexture2D(filePath);
-                // 处理图片，分割为精灵小组
-                sprites = SliceTexture(texture, pixelX, pixelY);
+                //处理图片，分割为精灵小组
+                sprites = SliceTexture(texture, pixelX, pixelY, fromBottomLeft, torf);
 
                 if (sprites == null || sprites.Length == 0)
                 {
@@ -355,18 +372,18 @@ namespace MetalMaxSystem.Unity
                 else
                 {
                     //Debug.Log("共有 " + sprites.Length + " 个Sprite");
-                    // 设定纹理文本保存路径
+                    //设定纹理文本保存路径
                     fileName = Path.GetFileNameWithoutExtension(filePath);
                     fileSavePath = savePathFrontIndex + fileName + ".txt";
-                    // 新建指定长度数组存储精灵编号
+                    //新建指定长度数组存储精灵编号
                     int[] sliceIds = new int[sprites.Length + 1];
 
-                    // 初始化切片编号数组
+                    //初始化切片编号数组
                     for (int ei = 1; ei < sprites.Length; ei++)
                     {
-                        sliceIds[ei] = 0; // 使用0表示尚未分配切片编号
+                        sliceIds[ei] = 0; //使用0表示尚未分配切片编号
                     }
-                    sliceIds[0] = 1; // 第一个切片编号为1
+                    sliceIds[0] = 1; //第一个切片编号为1
 
                     //对每个精灵进行像素对比
                     for (int i = 0; i < sprites.Length; i++)
@@ -390,10 +407,10 @@ namespace MetalMaxSystem.Unity
 
                             handleCount += 1;
 
-                            // 提取当前精灵的像素数据
+                            //提取当前精灵的像素数据
                             currentPixels = sprites[i].texture.GetPixels();
 
-                            // 与已经编号的精灵进行对比
+                            //与已经编号的精灵进行对比
                             for (int j = 0; j < i; j++)
                             {
                                 //记录jCount，用于每轮清空清空标记的量
@@ -416,7 +433,7 @@ namespace MetalMaxSystem.Unity
                                         sliceMaxId++; sliceIds[i] = sliceMaxId;
                                         //if (sliceIds[i] == 0) 
                                         //{ 
-                                        //    Debug.LogError("A型错误！Sprite " + i + " SliceID: " + sliceIds[i] + " CV[i]：" + DataTableISCP[sliceIds[i]] + " j=" + j + " SliceJID: " + sliceIds[j] + " CV[j]：" + DataTableISCP[sliceIds[j]] + " 当前纹理最大编号：" + sliceMaxId);
+                                        //   Debug.LogError("A型错误！Sprite " + i + " SliceID: " + sliceIds[i] + " CV[i]：" + DataTableISCP[sliceIds[i]] + " j=" + j + " SliceJID: " + sliceIds[j] + " CV[j]：" + DataTableISCP[sliceIds[j]] + " 当前纹理最大编号：" + sliceMaxId);
                                         //}
                                         //Debug.Log("对比结束！jCount=" + jCount);
                                     }
@@ -424,13 +441,13 @@ namespace MetalMaxSystem.Unity
                                     continue;
                                 }
 
-                                // 提取对比精灵的像素数据
+                                //提取对比精灵的像素数据（这是从原图上找特征索引来对比，上面的for循环只是找出特征索引j，其实第二切片起，与特征纹理数组逐一对比更效率一些）
                                 comparisonPixels = sprites[j].texture.GetPixels();
 
-                                // 计算相似度
+                                //计算相似度
                                 sim = CalculateSimilarity(currentPixels, comparisonPixels, similarity);
 
-                                // 如果相似度达到或以上，则分配相同的切片编号
+                                //如果相似度达到或以上，则分配相同的切片编号
                                 if (sim >= similarity)
                                 {
                                     sliceIds[i] = sliceIds[j];
@@ -457,10 +474,10 @@ namespace MetalMaxSystem.Unity
                             currentID++;
                         }
 
-                        // 不是最后一个整数时添加逗号
+                        //不是最后一个整数时添加逗号
                         if (i < sprites.Length - 1)
                         {
-                            sb.Append(",");
+                            sb.Append(',');
                         }
                         if (handleCount >= handleCountMax)
                         {
@@ -476,9 +493,9 @@ namespace MetalMaxSystem.Unity
                     Debug.Log("保存成功: " + fileSavePath);
 
                     //生成纹理集
-                    SpriteMerger(spritesList, fileName, xCount, savePathFrontSP);
+                    SpriteMerger(spritesList, fileName, xCount, savePathFrontSP, fromBottomLeft);
                 }
-                Debug.Log("已处理图片：" + fileCount);
+                Debug.Log("已处理图片：" + (fileCount + 1));
 
             }
             Debug.Log("处理完成！");
@@ -491,19 +508,21 @@ namespace MetalMaxSystem.Unity
         /// <param name="fileName"></param>
         /// <param name="maxSpritesPerRow">每行最多放置的精灵数量</param>
         /// <param name="savePathFrontSP">输出纹理集图片的目录前缀字符如"C:/Users/name/Desktop/MapSP/"</param>
-        public static void SpriteMerger(List<Sprite> sprites, string fileName, int maxSpritesPerRow, string savePathFrontSP)
+        /// <param name="fromBottomLeft">Unity引擎图片绘制时默认以左下为原点(0,0)，所以该参数默认为true，注意本函数扫描时总是左下为原点</param>
+        public static void SpriteMerger(List<Sprite> sprites, string fileName, int maxSpritesPerRow, string savePathFrontSP, bool fromBottomLeft = true)
         {
             int row; int col; int x; int y; int iCount; int spriteWidth; int spriteHeight; int totalRows; int totalWidth; int totalHeight;
 
-            // 获取精灵的纹理数据
+            //获取精灵的纹理数据
             Color[] spriteColors;
 
             /// <summary>
+            /// 如果是精灵编辑器制作的带Meta数据图片，而非直接用函数切割的精灵
             /// Get the reference to the used Texture. If packed this will point to the atlas = ture.If not packed =false（will point to the source Sprite）.
             /// </summary>
             bool packed = false;
 
-            // 检查是否有精灵要合并
+            //检查是否有精灵要合并
             if (sprites.Count == 0)
             {
                 Debug.LogError("No sprites to merge.");
@@ -511,11 +530,11 @@ namespace MetalMaxSystem.Unity
             else
             {
                 iCount = 0;
-                // 所有精灵的尺寸都必须相同（宽度和高度），采用第一个精灵的单位高宽（单位高宽是像素高宽除以每单位像素大小来的）
+                //所有精灵的尺寸都必须相同（宽度和高度），采用第一个精灵的单位高宽（单位高宽是像素高宽除以每单位像素大小来的）
                 //int spriteWidth = (int)sprites[0].bounds.gridSize.pixelX;
                 //int spriteHeight = (int)sprites[0].bounds.gridSize.pixelY;
                 if (packed)
-                {
+                {//如果是精灵编辑器制作的带Meta数据图片，而非直接用函数切割的精灵
                     //这里是采用第一个精灵的像素高宽，因为texture属性是父级纹理，这里不能使用，要做计算
                     spriteWidth = (int)(sprites[0].bounds.size.x * sprites[0].pixelsPerUnit);
                     spriteHeight = (int)(sprites[0].bounds.size.y * sprites[0].pixelsPerUnit);
@@ -528,72 +547,77 @@ namespace MetalMaxSystem.Unity
                 }
                 //Debug.Log("spriteWidth：" + spriteWidth + "spriteHeight：" + spriteHeight);
 
-                // 计算大图的尺寸
-                totalRows = (sprites.Count + maxSpritesPerRow - 1) / maxSpritesPerRow; // 向上取整得所需行数
+                //计算大图的尺寸
+                totalRows = (sprites.Count + maxSpritesPerRow - 1) / maxSpritesPerRow; //向上取整得所需行数
                 totalWidth = maxSpritesPerRow * spriteWidth;
                 totalHeight = totalRows * spriteHeight;
 
-                // 检查宽度和高度是否超过限制
-                if (totalWidth > MAX_TEXTURE_SIZE || totalHeight > MAX_TEXTURE_SIZE)
+                //检查宽度和高度是否超过限制
+                if (totalWidth > TextureSizeLimit || totalHeight > TextureSizeLimit)
                 {
                     Debug.Log("totalRows：" + totalRows + "totalWidth：" + totalWidth + "totalHeight：" + totalHeight);
-                    // 如果两个尺寸都超过了限制，输出警告
-                    if (totalWidth > MAX_TEXTURE_SIZE && totalHeight > MAX_TEXTURE_SIZE)
+                    //如果两个尺寸都超过了限制，输出警告
+                    if (totalWidth > TextureSizeLimit && totalHeight > TextureSizeLimit)
                     {
-                        Debug.LogWarning("Both width and height exceed the maximum texture size limit of " + MAX_TEXTURE_SIZE);
+                        Debug.LogWarning("Both width and height exceed the maximum texture size limit of " + TextureSizeLimit);
                         return;
                     }
 
-                    // 调整尺寸以适应限制
-                    if (totalWidth > MAX_TEXTURE_SIZE)
+                    //调整尺寸以适应限制
+                    if (totalWidth > TextureSizeLimit)
                     {
-                        // 如果宽度超限，尝试将多余的部分分配给高度
-                        int excessWidth = totalWidth - MAX_TEXTURE_SIZE;
+                        //如果宽度超限，尝试将多余的部分分配给高度
+                        int excessWidth = totalWidth - TextureSizeLimit;
                         int numWidth = excessWidth / spriteWidth;
                         totalWidth = totalWidth - excessWidth;
                         totalHeight = totalHeight + excessWidth;
-                        if (totalHeight > MAX_TEXTURE_SIZE)
+                        if (totalHeight > TextureSizeLimit)
                         {
                             //高度超限
-                            Debug.LogWarning("totalHeight exceed the maximum texture size limit of " + MAX_TEXTURE_SIZE);
+                            Debug.LogWarning("totalHeight exceed the maximum texture size limit of " + TextureSizeLimit);
                             return;
                         }
                     }
-                    else if (totalHeight > MAX_TEXTURE_SIZE)
+                    else if (totalHeight > TextureSizeLimit)
                     {
-                        // 如果高度超限，尝试将多余的部分分配给宽度
-                        int excessWidth = totalHeight - MAX_TEXTURE_SIZE;
+                        //如果高度超限，尝试将多余的部分分配给宽度
+                        int excessWidth = totalHeight - TextureSizeLimit;
                         int numWidth = excessWidth / spriteWidth;
                         totalHeight = totalHeight - excessWidth;
                         totalWidth = totalWidth + excessWidth;
-                        if (totalWidth > MAX_TEXTURE_SIZE)
+                        if (totalWidth > TextureSizeLimit)
                         {
                             //宽度超限
-                            Debug.LogWarning("totalWidth exceed the maximum texture size limit of " + MAX_TEXTURE_SIZE);
+                            Debug.LogWarning("totalWidth exceed the maximum texture size limit of " + TextureSizeLimit);
                             return;
                         }
                     }
                 }
 
-                // 创建一个新的Texture2D来保存合并后的精灵
-                // Unity引擎为了优化性能和资源使用，对纹理的尺寸设置了上限，高宽上限通常是8192x8192像素（即8K分辨率）
+                //创建一个新的Texture2D来保存合并后的精灵
+                //Unity引擎为了优化性能和资源使用，对纹理的尺寸设置了上限，高宽上限通常是8192x8192像素（即8K分辨率）
                 Texture2D mergedTexture = new Texture2D(totalWidth, totalHeight, TextureFormat.RGBA32, false);
 
-                // 合并精灵
+                //合并精灵
                 for (int i = 0; i < sprites.Count; i++)
                 {
                     iCount++;
 
-                    // 计算精灵在大图上的位置
+                    //计算精灵在大图上的位置
                     row = i / maxSpritesPerRow;
                     col = i % maxSpritesPerRow;
                     x = col * spriteWidth;
                     y = row * spriteHeight;
 
-                    // 获取精灵的纹理数据
+                    //获取精灵的纹理数据
                     spriteColors = sprites[i].texture.GetPixels();
-
-                    // 将精灵绘制到合并纹理上
+                    //NET框架绘制时左上(0,0)，Unity绘制时左下(0,0)
+                    if (!fromBottomLeft)
+                    {
+                        //如果参数要求左下，那么进行变换
+                        y = totalHeight - y - spriteHeight;
+                    }
+                    //将精灵绘制到合并纹理上
                     for (int spriteY = 0; spriteY < spriteHeight; spriteY++)
                     {
                         for (int spriteX = 0; spriteX < spriteWidth; spriteX++)
@@ -602,7 +626,7 @@ namespace MetalMaxSystem.Unity
                         }
                     }
 
-                    if (iCount >= iCountMax)
+                    if (iCount >= MessageOnceHandleNum)
                     {
                         //达到协程处理量则中断，输出日志
                         iCount = 0;
@@ -610,10 +634,10 @@ namespace MetalMaxSystem.Unity
                     }
                 }
 
-                // 应用更改到纹理
+                //应用更改到纹理
                 mergedTexture.Apply();
 
-                // 将Texture2D保存为PNG文件
+                //将Texture2D保存为PNG文件
                 byte[] pngData = mergedTexture.EncodeToPNG();
                 string savePath = savePathFrontSP + fileName + ".png";
                 MMCore.SaveFile(savePath, pngData);
@@ -621,7 +645,7 @@ namespace MetalMaxSystem.Unity
                 //清理临时图片
                 //Destroy(mergedTexture);
 
-                // 打印消息以确认保存
+                //打印消息以确认保存
                 Debug.Log("Merged sprites saved to: " + savePath);
             }
         }
@@ -638,13 +662,13 @@ namespace MetalMaxSystem.Unity
             bool success = texture.LoadImage(fileData); //加载图片Unity会自动调整尺寸
             if (success)
             {
-                // 图片加载成功
+                //图片加载成功
                 //Debug.Log("Image loaded successfully with width: " + texture.width + " and height: " + texture.height);
                 //Main_MMWorld.label_headTip.GetComponent<TextMeshProUGUI>().text = "Image loaded successfully with width: " + texture.width + " and height: " + texture.height;
             }
             else
             {
-                // 图片加载失败，可能需要检查字节数组是否有效或图片格式是否支持
+                //图片加载失败，可能需要检查字节数组是否有效或图片格式是否支持
                 Debug.LogError("Failed to load image.");
             }
             return texture;
@@ -762,48 +786,76 @@ namespace MetalMaxSystem.Unity
         /// <param name="texture"></param>
         /// <param name="width">像素宽</param>
         /// <param name="height">像素高</param>
-        /// <returns></returns>
-        public static Sprite[] SliceTexture(Texture2D texture, int width, int height)
+        /// <param name="fromBottomLeft">Unity引擎图片绘制时默认以左下为原点(0,0)，所以该参数默认为true，注意本函数扫描时总是左下为原点</param>
+        /// <param name="torf">是否边缘尺寸不足按剩余高宽输出，默认为false（按参数高宽补满默认颜色）</param>
+        /// <returns>返回Sprite（Bitmap）数组</returns>
+        public static Sprite[] SliceTexture(Texture2D texture, int width, int height, bool fromBottomLeft = true, bool torf = false)
         {
-            // 计算切片数量
-            int numSlicesX = texture.width / width;
-            int numSlicesY = texture.height / height;
+            int sliceWidth; int sliceHeight; int heightFixed;
+            //计算切片数量
+            int numSlicesX = (int)Math.Ceiling((float)texture.width / width);
+            int numSlicesY = (int)Math.Ceiling((float)texture.height / height);
             int totalSlices = numSlicesX * numSlicesY;
             Debug.Log("SliceTexture：texture.width " + texture.width + " texture.height " + texture.height + " totalSlices " + totalSlices);
 
-            // 创建一个数组来存储切片
+            //创建一个数组来存储切片
             Sprite[] slices = new Sprite[totalSlices];
             int sliceIndex = 0;
 
-            // 遍历纹理的每个切片
+            //遍历纹理的每个切片
             for (int y = 0; y < numSlicesY; y++)
             {
+                //Unity绘制的时候(0,0)是在左下角，换NET后变成左上(0,0)了
+                if (!fromBottomLeft)
+                {
+                    //如果参数要求变换
+                    heightFixed = texture.height - height - y * height;
+                    if (heightFixed < 0)
+                    {
+                        heightFixed = 0;
+                    }
+                }
+                else
+                {
+                    heightFixed = y * height;
+                }
                 for (int x = 0; x < numSlicesX; x++)
                 {
-                    // 创建一个新的纹理来存储切片
+                    if (torf)
+                    {
+                        sliceWidth = Math.Min(width, texture.width - x * width);
+                        sliceHeight = Math.Min(height, texture.height - y * height);
+                    }
+                    else
+                    {
+                        sliceWidth = width;
+                        sliceHeight = height;
+                    }
+
+                    //创建一个新的纹理来存储切片
                     Texture2D sliceTexture = new Texture2D(width, height);
 
-                    // 复制像素到新的纹理切片中
-                    for (int py = 0; py < height; py++)
+                    //复制像素到新的纹理切片中（期间可以调整颜色）
+                    for (int py = 0; py < sliceHeight; py++)
                     {
-                        for (int px = 0; px < width; px++)
+                        for (int px = 0; px < sliceWidth; px++)
                         {
-                            sliceTexture.SetPixel(px, py, texture.GetPixel(x * width + px, y * height + py));
+                            sliceTexture.SetPixel(px, py, texture.GetPixel(x * width + px, heightFixed + py));
                         }
                     }
 
-                    // 应用更改到纹理
+                    //应用更改到纹理
                     sliceTexture.Apply();
 
-                    // 创建一个新的Sprite，并将其纹理设置为切片纹理
+                    //创建一个新的Sprite，并将其纹理设置为切片纹理
                     Sprite sliceSprite = Sprite.Create(sliceTexture, new Rect(0, 0, sliceTexture.width, sliceTexture.height), new Vector2(0.5f, 0.5f));
 
-                    // 将切片Sprite添加到数组中
+                    //将切片Sprite添加到数组中
                     slices[sliceIndex++] = sliceSprite;
                 }
             }
 
-            // 返回切片数组
+            //返回切片数组
             return slices;
         }
 
@@ -811,7 +863,8 @@ namespace MetalMaxSystem.Unity
         //协程和游戏物体都是主线程的，Unity中使用协程（Coroutine）或者事件委托方式如创建1个游戏对象进行挂组件后由主线程执行，来实现主线程回调
 
         /// <summary>
-        /// Task同步处理目标目录下指定后缀图片并分割成精灵，然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面。仅支持png和jpg，目录下每个图片独立特征图
+        /// 处理目标目录下指定后缀图片并分割成精灵（非多图合批共用纹理ID的处理，只是每个图片独立用1个Task进行分批处理），然后根据纹理像素相似度给组中精灵编号并保存配套纹理集及文本到桌面。仅支持png和jpg，目录下每个图片独立特征图。
+        /// 注意本函数距离完成还需制作上锁机制，暂不推荐使用。
         /// </summary>
         /// <param name="folderPath"></param>
         /// <param name="searchPattern">仅支持这两种图片后缀"*.png"、"*.jpg"</param>
@@ -822,25 +875,10 @@ namespace MetalMaxSystem.Unity
         /// <param name="pixelX">格子像素尺寸</param>
         /// <param name="pixelY">格子像素尺寸</param>
         /// <param name="xCount">合并纹理图时的X方向输出格子数，超过换行</param>
-        public static void SliceTextureAndSetSpriteIDTask(string folderPath, string searchPattern, float similarity, string savePathFrontSP, string savePathFrontIndex, int handleCountMax = 10, int pixelX = 16, int pixelY = 16, int xCount = 8)
+        /// <param name="fromBottomLeft">Unity引擎图片绘制时默认以左下为原点(0,0)，所以该参数默认为true，注意本函数扫描时总是左下为原点</param>
+        public static void SliceTextureAndSetSpriteIDTask(string folderPath, string searchPattern, float similarity, string savePathFrontSP, string savePathFrontIndex, int handleCountMax = 10, int pixelX = 16, int pixelY = 16, int xCount = 8, bool fromBottomLeft = true)
         {
-            Texture2D texture;
-            Sprite[] sprites;
-            StringBuilder sb = new StringBuilder();
-            Color[] currentPixels;
-            Color[] comparisonPixels;
-            string fileName;
-            string fileSavePath;
-            float sim;
-            int currentID;
-            int handleCount;
-            int jCount;
-            int fileCount = -1;
-            int sliceMaxId;
-            //存放特征精灵
-            List<Sprite> spritesList = new List<Sprite>();
-            //跨线程字典
-            ConcurrentDictionary<int, string> DataTableISCP = new ConcurrentDictionary<int, string>();
+            int fileCount = -1; 
             List<Task> tasks = new List<Task>();
 
             //获取目录下所有BMP文件的路径
@@ -850,23 +888,36 @@ namespace MetalMaxSystem.Unity
             foreach (string filePath in filePaths)
             {
                 fileCount++;
-                //如果图片过多，下面动作最好由多个线程进行处理
+                //如果图片过多，下面动作由多线程进行处理（存在多个Task修改共用资源情况下，需要给修改动作上锁或用跨线程安全的数据类型）
                 tasks.Add(
                     Task.Run(() =>
                     {
-                        //清空复用（new也行）
-                        DataTableISCP.Clear();
-                        spritesList.Clear();
-                        sb.Clear();
-                        //下面参数始终重置
+                        //有外部局部变量时请查阅Lambda表达式中的参数传递机制，捕获值类型副本不需上锁，引用类型副本因引用对象正确所以能修改到对象（动作要上锁）
+                        Texture2D texture;
+                        Sprite[] sprites;
+                        Color[] currentPixels;
+                        Color[] comparisonPixels;
+                        string fileName;
+                        string fileSavePath;
+                        float sim;
+                        int currentID;
+                        int handleCount;
+                        int jCount;
+                        int sliceMaxId;
+                        //存放特征精灵
+                        List<Sprite> spritesList = new List<Sprite>();
+                        Dictionary<int, string> DataTableISCP = new Dictionary<int, string>();
+                        StringBuilder sb = new StringBuilder();
+
+                        //参数初始化
                         currentID = 1; //筛选存储特征精灵用的当前ID
                         sliceMaxId = 1; //切片当前最大ID
                         handleCount = 0; //重置协程处理计数
                         jCount = 0; //重置jCount
 
-                        // 加载图片
+                        //加载图片
                         texture = LoadImageAndConvertToTexture2D(filePath);
-                        // 处理图片，分割为精灵小组
+                        //处理图片，分割为精灵小组
                         sprites = SliceTexture(texture, pixelX, pixelY);
 
                         if (sprites == null || sprites.Length == 0)
@@ -876,18 +927,18 @@ namespace MetalMaxSystem.Unity
                         else
                         {
                             //Debug.Log("共有 " + sprites.Length + " 个Sprite");
-                            // 设定纹理文本保存路径
+                            //设定纹理文本保存路径
                             fileName = Path.GetFileNameWithoutExtension(filePath);
                             fileSavePath = savePathFrontIndex + fileName + ".txt";
-                            // 新建指定长度数组存储精灵编号
+                            //新建指定长度数组存储精灵编号
                             int[] sliceIds = new int[sprites.Length + 1];
 
-                            // 初始化切片编号数组
+                            //初始化切片编号数组
                             for (int ei = 1; ei < sprites.Length; ei++)
                             {
-                                sliceIds[ei] = 0; // 使用0表示尚未分配切片编号
+                                sliceIds[ei] = 0; //使用0表示尚未分配切片编号
                             }
-                            sliceIds[0] = 1; // 第一个切片编号为1
+                            sliceIds[0] = 1; //第一个切片编号为1
 
                             //对每个精灵进行像素对比
                             for (int i = 0; i < sprites.Length; i++)
@@ -914,10 +965,10 @@ namespace MetalMaxSystem.Unity
 
                                     handleCount += 1;
 
-                                    // 提取当前精灵的像素数据
+                                    //提取当前精灵的像素数据
                                     currentPixels = sprites[i].texture.GetPixels();
 
-                                    // 与已经编号的精灵进行对比
+                                    //与已经编号的精灵进行对比
                                     for (int j = 0; j < i; j++)
                                     {
                                         //记录jCount，用于每轮清空清空标记的量
@@ -944,7 +995,7 @@ namespace MetalMaxSystem.Unity
                                                 sliceIds[i] = sliceMaxId;
                                                 //if (sliceIds[i] == 0)
                                                 //{
-                                                //    Debug.LogError("A型错误！Sprite " + i + " SliceID: " + sliceIds[i] + " CV[i]：" + DataTableISCP[sliceIds[i]] + " j=" + j + " SliceJID: " + sliceIds[j] + " CV[j]：" + DataTableISCP[sliceIds[j]] + " 当前纹理最大编号：" + sliceMaxId);
+                                                //   Debug.LogError("A型错误！Sprite " + i + " SliceID: " + sliceIds[i] + " CV[i]：" + DataTableISCP[sliceIds[i]] + " j=" + j + " SliceJID: " + sliceIds[j] + " CV[j]：" + DataTableISCP[sliceIds[j]] + " 当前纹理最大编号：" + sliceMaxId);
                                                 //}
                                                 //Debug.Log("对比结束！jCount=" + jCount);
                                             }
@@ -952,13 +1003,13 @@ namespace MetalMaxSystem.Unity
                                             continue;
                                         }
 
-                                        // 提取对比精灵的像素数据
+                                        //提取对比精灵的像素数据（这是从原图上找特征索引来对比，上面的for循环只是找出特征索引j，其实第二切片起，与特征纹理数组逐一对比更效率一些）
                                         comparisonPixels = sprites[j].texture.GetPixels();
 
-                                        // 计算相似度
+                                        //计算相似度
                                         sim = CalculateSimilarity(currentPixels, comparisonPixels, similarity);
 
-                                        // 如果相似度达到或以上，则分配相同的切片编号
+                                        //如果相似度达到或以上，则分配相同的切片编号
                                         if (sim >= similarity)
                                         {
                                             sliceIds[i] = sliceIds[j];
@@ -1022,10 +1073,10 @@ namespace MetalMaxSystem.Unity
                                     currentID++;
                                 }
 
-                                // 不是最后一个整数时添加逗号
+                                //不是最后一个整数时添加逗号
                                 if (i < sprites.Length - 1)
                                 {
-                                    sb.Append(",");
+                                    sb.Append(',');
                                 }
                                 if (handleCount >= handleCountMax)
                                 {
@@ -1039,14 +1090,14 @@ namespace MetalMaxSystem.Unity
                             Debug.Log("保存成功: " + fileSavePath);
 
                             //生成纹理集
-                            SpriteMerger(spritesList, fileName, xCount, savePathFrontSP);
+                            SpriteMerger(spritesList, fileName, xCount, savePathFrontSP, fromBottomLeft);
                         }
                         Debug.Log("已处理图片：" + fileCount);
                     })
                 );
             }
 
-            // 等待所有任务完成
+            //等待所有任务完成
             //await Task.WhenAll(tasks.ToArray()); //等待所有任务完成后，支持返回一个包含所有任务结果的数组（如果任务有返回值的话）
             //↑异步等待，需要方法使用await关键字，它会将控制权返回给调用者（通常是UI线程或其他正在执行的线程），直到等待的任务完成。在等待期间线程不会被阻塞，可继续处理其他任务或事件，当所有任务完成时await后面的代码会继续执行
 
@@ -1058,7 +1109,7 @@ namespace MetalMaxSystem.Unity
             }
             catch (AggregateException ae)
             {
-                // 处理任务执行过程中的异常
+                //处理任务执行过程中的异常
                 foreach (var ex in ae.Flatten().InnerExceptions)
                 {
                     Debug.LogError(ex.Message);
@@ -1097,20 +1148,20 @@ namespace MetalMaxSystem.Unity
 // int x = 5;
 // Action<int> lambda = (y) => { y = 10; };
 // lambda(x);
-// Console.WriteLine(x); // 输出 5，因为 x 的值没有被改变
+// Console.WriteLine(x); //输出 5，因为 x 的值没有被改变
 // 按引用传递
 // 如果你想要 Lambda 表达式能够修改原始变量，你需要使用 ref 关键字来按引用传递参数。这适用于值类型和引用类型。
 
 // int x = 5;
 // Action<ref int> lambda = (ref int y) => { y = 10; };
 // lambda(ref x);
-// Console.WriteLine(x); // 输出 10，因为 x 的值被改变了
+// Console.WriteLine(x); //输出 10，因为 x 的值被改变了
 // 对于引用类型（如 class、interface、array 和 delegate），即使你没有使用 ref 关键字，参数也是按引用传递的。但是，这里的“按引用传递”实际上传递的是对对象的引用（即内存地址的副本），而不是对象本身的副本。因此，你可以通过这个引用修改对象的属性或字段，但不能改变引用本身指向的对象。
 
 // MyClass obj = new MyClass { Value = 5 };
 // Action<MyClass> lambda = (myObj) => { myObj.Value = 10; };
 // lambda(obj);
-// Console.WriteLine(obj.Value); // 输出 10，因为 obj 的 Value 属性被改变了
+// Console.WriteLine(obj.Value); //输出 10，因为 obj 的 Value 属性被改变了
 
 // for( int i = ....)
 //     lambda ()=>{  print i  }
