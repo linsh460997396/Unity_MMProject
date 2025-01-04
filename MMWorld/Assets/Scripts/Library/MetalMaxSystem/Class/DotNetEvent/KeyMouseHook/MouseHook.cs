@@ -192,6 +192,7 @@ namespace MetalMaxSystem
                 if (OnMouseActivity == null)
                 {
                     throw new Exception("Please set handler first!Then run Start");
+
                 }
                 //安装鼠标钩子
                 if (hMouseHook == 0)

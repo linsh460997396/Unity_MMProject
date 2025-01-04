@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text;
 
 namespace MetalMaxSystem
@@ -115,26 +115,26 @@ namespace MetalMaxSystem
         /// 强制将缓冲区内容写入文件，不清理StringBuilder缓冲区
         /// </summary>
         /// <param name="path"></param>
-        /// <param name="append"></param>
+        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
         /// <param name="encoding"></param>
         /// <param name="writeStyle"></param>
         /// <param name="bufferSize"></param>
-        public void Flush(string path, bool append, Encoding encoding, bool writeStyle = true, int bufferSize = 8192)
+        public void Flush(string path, bool fileAppend, Encoding encoding, bool writeStyle = true, int bufferSize = 8192)
         {
-            FlushBuffer(path, append, encoding, false, writeStyle, bufferSize);
+            FlushBuffer(path, fileAppend, encoding, false, writeStyle, bufferSize);
         }
 
         /// <summary>
         /// 强制将缓冲区内容写入文件，最后清理StringBuilder缓冲区
         /// </summary>
         /// <param name="path"></param>
-        /// <param name="append"></param>
+        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
         /// <param name="encoding"></param>
         /// <param name="writeStyle"></param>
         /// <param name="bufferSize"></param>
-        public void Close(string path, bool append, Encoding encoding, bool writeStyle = true, int bufferSize = 8192)
+        public void Close(string path, bool fileAppend, Encoding encoding, bool writeStyle = true, int bufferSize = 8192)
         {
-            FlushBuffer(path, append, encoding, true, writeStyle, bufferSize);
+            FlushBuffer(path, fileAppend, encoding, true, writeStyle, bufferSize);
         }
 
         /// <summary>
