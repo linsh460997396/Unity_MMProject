@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 namespace MetalMaxSystem
 {
     /// <summary>
-    /// 代码混肴器
+    /// 代码混淆器
     /// </summary>
     public class CodeObfuscator
     {
@@ -16,16 +16,16 @@ namespace MetalMaxSystem
         private HashSet<string> exclusionSet;
 
         /// <summary>
-        /// 自定义的混肴规则属性，用于正则匹配代码正文进行替换
+        /// 自定义的混淆规则属性，用于正则匹配代码正文进行替换
         /// </summary>
         public Dictionary<string, string> Replacements { get; set; }
         /// <summary>
-        /// 自定义的混肴规则属性，用于正则匹配代码正文进行第二遍替换
+        /// 自定义的混淆规则属性，用于正则匹配代码正文进行第二遍替换
         /// </summary>
         public Dictionary<string, string> Replacements2 { get; set; }
 
         /// <summary>
-        /// 创建代码混肴器类实例，此后可使用"实例名.Replacements"属性自定义混肴规则以及使用"ObfuscateCode"方法进行代码混肴。
+        /// 创建代码混淆器类实例，此后可使用"实例名.Replacements"属性自定义混淆规则以及使用"ObfuscateCode"方法进行代码混淆。
         /// </summary>
         public CodeObfuscator()
         {
@@ -53,7 +53,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 手动添加混肴规则（以字典中的键值对，字符形式添加）
+        /// 手动添加混淆规则（以字典中的键值对，字符形式添加）
         /// </summary>
         /// <param name="originalName"></param>
         /// <param name="obfuscatedName"></param>
@@ -73,7 +73,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 自动添加混肴规则：指定函数名会自动生成其混肴名称到混肴规则（过程中会自动去重，也不会生成相同混肴名称）
+        /// 自动添加混淆规则：指定函数名会自动生成其混淆名称到混淆规则（过程中会自动去重，也不会生成相同混淆名称）
         /// </summary>
         /// <param name="originalName"></param>
         public void AddReplacement(string originalName)
@@ -121,7 +121,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以字典中自定义的混肴规则，进行代码文本中的函数名混肴
+        /// 以字典中自定义的混淆规则，进行代码文本中的函数名混淆
         /// </summary>
         /// <param name="code"></param>
         /// <returns></returns>
@@ -140,7 +140,7 @@ namespace MetalMaxSystem
                 if (Replacements.ContainsKey(match))
                 {
                     //键存在且没有指定前缀字符时返回键对应的替换值
-                    //要解决：Lib_gf_A和gf_A，如后者加到混肴规则，前者也会被替换一部分，需调用本函数前检查全函数名，如第一遍混肴规则里的键名是函数名的一部分则剔除该键
+                    //要解决：Lib_gf_A和gf_A，如后者加到混淆规则，前者也会被替换一部分，需调用本函数前检查全函数名，如第一遍混淆规则里的键名是函数名的一部分则剔除该键
                     return Replacements[match];
                 }
                 else
@@ -160,7 +160,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以字典（Replacements2）中自定义的混肴规则，进行代码文本中被双引号包围的字符串混肴
+        /// 以字典（Replacements2）中自定义的混淆规则，进行代码文本中被双引号包围的字符串混淆
         /// </summary>
         /// <param name="code"></param>
         /// <returns></returns>
@@ -179,7 +179,7 @@ namespace MetalMaxSystem
                 if (Replacements2.ContainsKey(match))
                 {
                     //键存在且没有指定前缀字符时返回键对应的替换值
-                    //要解决：："A"+"A"和"+"，如后者加到混肴规则，会出问题，所幸分组显示混肴规则中+或&不打反斜线转义匹配不出来，所以大概无需改良
+                    //要解决：："A"+"A"和"+"，如后者加到混淆规则，会出问题，所幸分组显示混淆规则中+或&不打反斜线转义匹配不出来，所以大概无需改良
                     return Replacements2[match];
                 }
                 else

@@ -4,7 +4,7 @@ using System.Text;
 namespace MetalMaxSystem
 {
     /// <summary>
-    /// 处理文件写入的类。平时在StringBuilder中积累字符，最后将StringBuilder中的字符写入文件。
+    /// 文件写入器（处理文件写入的类）。平时在StringBuilder中积累字符，最后将StringBuilder中的字符写入文件。
     /// </summary>
     public class FileWriter
     {

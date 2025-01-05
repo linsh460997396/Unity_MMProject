@@ -21,6 +21,8 @@ using Mathf = UnityEngine.Mathf;
 using Debug = UnityEngine.Debug;
 using Vector2F = UnityEngine.Vector2;
 using Vector3F = UnityEngine.Vector3;
+using System.Globalization;//判断英文字符用到
+using System.Linq;//混肴处理字符串转义时用到
 #else
 //其他.Net环境（Framwork4.8、Net8+）
 using System.Diagnostics;
@@ -216,7 +218,14 @@ namespace MetalMaxSystem
         //静态数据是从模板形成的内存中唯一的可修改副本（不同类同名也不一样，要考虑命名空间和类名路径，无需担心重复）
         //数组元素数量上限均+1是习惯问题，防止某些循环以数组判断时最后退出还+1导致超限
 
+        /// <summary>
+        /// MMCore.Write或WriteLine中的文件写入器
+        /// </summary>
         public static FileWriter fileWriter;
+        /// <summary>
+        /// 是否在调用MMCore.Write或WriteLine、WriteLineFlush、WriteClose、WriteCopy时顺带Debug调试（不包含WriteLineNow和WriteNow）
+        /// </summary>
+        public static bool writeTell = false;
 
         /// <summary>
         /// 键盘按键已注册数量（每个数组元素算1个，即使它们+=多个委托函数）
@@ -1039,7 +1048,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 将字符串转换为字节数组，再转成2位16进制字符串格式或转成10进制数字再转为3位8进制字符串格式，以供在Galaxy代码中混肴使用
+        /// 将字符串转换为字节数组，再转成2位16进制字符串格式或转成10进制数字再转为3位8进制字符串格式，以供在Galaxy代码中混淆使用
         /// Galaxy代码会自动转转义8和16位格式字符串（\0及\pixelX）为ASCII值（数字）,再转为控制字符使用
         /// </summary>
         /// <param name="input"></param>
@@ -1068,7 +1077,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 将字符串转换为字节数组，再转成10进制数字，再转为3位8进制字符串格式，以供在Galaxy代码中混肴使用
+        /// 将字符串转换为字节数组，再转成10进制数字，再转为3位8进制字符串格式，以供在Galaxy代码中混淆使用
         /// Galaxy代码会自动转转义8和16位格式字符串（\0及\pixelX）为ASCII值（数字）,再转为控制字符使用
         /// 如八进制"\0124"、"\0114"表示十进制的84和76，Galaxy脚本中识别为"T"和"L"
         /// </summary>
@@ -1086,7 +1095,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 将字符串转换为字节数组，再转成2位16进制字符串格式，以供在Galaxy代码中混肴使用
+        /// 将字符串转换为字节数组，再转成2位16进制字符串格式，以供在Galaxy代码中混淆使用
         /// Galaxy代码会自动转转义8和16位格式字符串（\0及\pixelX）为ASCII值（数字）,再转为控制字符使用
         /// 如十六进制"\x4C"表示十进制的84，Galaxy脚本中识别为"T"
         /// </summary>
@@ -1809,7 +1818,7 @@ namespace MetalMaxSystem
         /// <summary>
         /// 验证字符串是否为合法文件（夹）名称，可以是虚拟路径（本函数不验证其真实存在）
         /// </summary>
-        /// <param name="path">文件（夹）路径全名</param>
+        /// <param name="path">文件（夹）路径全名，注意该字符串末尾没有斜杠</param>
         /// <returns></returns>
         public static bool IsDFPath(string path)
         {
@@ -1958,7 +1967,10 @@ namespace MetalMaxSystem
         /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
         public static void WriteLine(string value, bool bufferAppend = true)
         {
-            Tell(value);//临时调试
+            if (writeTell == true) 
+            {
+                Tell(value);//临时调试
+            }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.WriteLine(value, !bufferAppend);
         }
@@ -1973,6 +1985,10 @@ namespace MetalMaxSystem
         /// <param name="flush">是否使用Flush方法（不清空StringBuilder），默认false（使用Close方法，会清空StringBuilder）</param>
         public static void WriteLine(string path, string value, bool bufferAppend = true, bool end = false, bool fileAppend = false, bool flush = false)
         {
+            if (writeTell == true)
+            {
+                Tell(value);//临时调试
+            }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.WriteLine(value, !bufferAppend);
             if (end)
@@ -1989,6 +2005,10 @@ namespace MetalMaxSystem
         /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
         public static void WriteLineFlush(string path, string value, bool bufferAppend = true, bool fileAppend = false)
         {
+            if (writeTell == true)
+            {
+                Tell(value);//临时调试
+            }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.WriteLine(value, !bufferAppend);
             fileWriter.Flush(path, fileAppend, Encoding.UTF8);
@@ -2002,6 +2022,10 @@ namespace MetalMaxSystem
         /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
         public static void WriteLineClose(string path, string value, bool bufferAppend = true, bool fileAppend = false)
         {
+            if (writeTell == true)
+            {
+                Tell(value);//临时调试
+            }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.WriteLine(value, !bufferAppend);
             fileWriter.Close(path, fileAppend, Encoding.UTF8);
@@ -2018,6 +2042,10 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static FileWriter WriteLineCopy(string path, string value, bool bufferAppend = true, bool end = false, bool fileAppend = false, bool flush = false)
         {
+            if (writeTell == true)
+            {
+                Tell(value);//临时调试
+            }
             FileWriter tempFileWriter = new FileWriter();
             if (fileWriter != null)
             {
@@ -2042,6 +2070,10 @@ namespace MetalMaxSystem
         /// <param name="flush">是否使用Flush方法（不清空StringBuilder），默认false（使用Close方法，会清空StringBuilder）</param>
         public static void WriteLine(string path, string value, bool bufferAppend, Encoding encoding, bool end = false, bool fileAppend = false, bool flush = false)
         {
+            if (writeTell == true)
+            {
+                Tell(value);//临时调试
+            }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.WriteLine(value, !bufferAppend);
             if (end)
@@ -2057,6 +2089,10 @@ namespace MetalMaxSystem
         /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
         public static void Write(string value, bool bufferAppend = true)
         {
+            if (writeTell == true)
+            {
+                Tell(value);//临时调试
+            }
             //Tell(value);//临时调试
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.Write(value, !bufferAppend);
@@ -2072,6 +2108,10 @@ namespace MetalMaxSystem
         /// <param name="flush">是否使用Flush方法（不清空StringBuilder），默认false（使用Close方法，会清空StringBuilder）</param>
         public static void Write(string path, string value, bool bufferAppend = true, bool end = false, bool fileAppend = false, bool flush = false)
         {
+            if (writeTell == true)
+            {
+                Tell(value);//临时调试
+            }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.Write(value, !bufferAppend);
             if (end)
@@ -2088,6 +2128,10 @@ namespace MetalMaxSystem
         /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
         public static void WriteFlush(string path, string value, bool bufferAppend = true, bool fileAppend = false)
         {
+            if (writeTell == true)
+            {
+                Tell(value);//临时调试
+            }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.Write(value, !bufferAppend);
             fileWriter.Flush(path, fileAppend, Encoding.UTF8);
@@ -2101,6 +2145,10 @@ namespace MetalMaxSystem
         /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
         public static void WriteClose(string path, string value, bool bufferAppend = true, bool fileAppend = false)
         {
+            if (writeTell == true)
+            {
+                Tell(value);//临时调试
+            }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.Write(value, !bufferAppend);
             fileWriter.Close(path, fileAppend, Encoding.UTF8);
@@ -2118,6 +2166,10 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static FileWriter WriteCopy(string path, string value, bool bufferAppend = true, bool end = false, bool fileAppend = false, bool flush = false)
         {
+            if (writeTell == true)
+            {
+                Tell(value);//临时调试
+            }
             FileWriter tempFileWriter = new FileWriter();
             if (fileWriter != null)
             {
@@ -2142,6 +2194,10 @@ namespace MetalMaxSystem
         /// <param name="flush">是否使用Flush方法（不清空StringBuilder），默认false（使用Close方法，会清空StringBuilder）</param>
         public static void Write(string path, string value, bool bufferAppend, Encoding encoding, bool end = false, bool fileAppend = false, bool flush = false)
         {
+            if (writeTell == true)
+            {
+                Tell(value);//临时调试
+            }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.Write(value, !bufferAppend);
             if (end)
@@ -2343,16 +2399,16 @@ namespace MetalMaxSystem
         /// //MMCore.Tell("下载完成！");
         /// </summary>
         /// <param name="url">浏览器网址</param>
-        /// <param name="filename">自定义文件名</param>
+        /// <param name="fileName">自定义文件名</param>
         /// <param name="path">下载路径，如 @"C:\Users\Admin\Desktop\Download\"</param>
         /// <param name="bufferAppend">发生文件重复时覆盖</param>
         /// <returns></returns>
-        public static bool Download(string url, string filename, string path, bool cover)
+        public static bool Download(string url, string fileName, string path, bool cover)
         {
             string tempPath = Path.Combine(Path.GetDirectoryName(path), "temp");//确定临时目录全名路径
-            string filepath = Path.Combine(path, filename);//确定最终下载文件全名路径
+            string filepath = Path.Combine(path, fileName);//确定最终下载文件全名路径
             Directory.CreateDirectory(tempPath);  //创建临时目录
-            string tempFile = tempPath + "\\" + filename + ".temp"; //确定临时下载文件全名路径
+            string tempFile = tempPath + "\\" + fileName + ".temp"; //确定临时下载文件全名路径
             if (File.Exists(tempFile))
             {
                 File.Delete(tempFile);    //临时下载文件存在则删除
