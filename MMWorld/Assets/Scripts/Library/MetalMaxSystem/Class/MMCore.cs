@@ -1447,56 +1447,71 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 对字符串中的特殊字符（如中文）进行转义处理，并将其转换为字节数组。该函数支持多种转义序列，包括十六进制、八进制和常见的转义字符（如 \n, \t, \r 等）。
-        /// 通过这种方式，可以确保字符串在某些特定上下文中（如网络传输或文件存储）能够正确解析。
+        /// 对字符串中特殊字符（如中文、转义字符）进行处理，使输出后的字节数组（可直接ToString）完整代表原文要表达的直观内容。
+        /// 应注意该直观内容是原文的解析结果，原文中的转义字符已被还原为实际字符。
+        /// 函数在处理原文时支持处理多种转义序列，包括十六进制、八进制和常见的转义字符（如 \n, \t, \r 等）。
+        /// 通过这种方式，确保了字符串在某些特定上下文中（如网络传输、文件存储）能够正确解析。
+        /// 如果还原原文或应用于按字节混淆为8和16进制的，在遍历到字节\时应注意该字节在原文其实是两个\字符。
+        /// 使用Encoding.UTF8.GetString(bytes)可以将字节数组转为字符串（切记不是bytes.ToString()）。
+        /// 另外星际2代码中"UI\\Box\\NanaKey_UI_CustomButton_01.dds" ="UI/Box/NanaKey_UI_CustomButton_01.dds"，
+        /// 两个\虽然是想要表示一个\的意思，但实际1个\不支持的，所以2个\\得改为一个/（或/的转义序列）而不是\的2个转义序列。
         /// </summary>
-        /// <param name="Text">任意字符串</param>
+        /// <param name="Text">任意字符串，可以是夹在冒号间的原文</param>
+        /// <param name="torf">true处理连续的两个\字符为1个\（即处理双\的转义），如需保留两个\或变成1个/或其他字符串时则应设置torf=false（默认）</param>
+        /// <param name="torfString">torf=false时生效，当torfString不为null则连续2个\字符将被处理为自定义torfString（默认值"/"），只改torf=false而torfString=null时将保留双\</param>
         /// <returns></returns>
-        public static byte[] Escape(string Text)
+        public static byte[] Escape(string Text, bool torf = false, string torfString = "/")
         {
-            byte[] bytes = Encoding.UTF8.GetBytes(Text);
+            //C#中的字符Char是Unicode字符，一个Char类型的变量占2个字节，即16位（值范围0-65535），1个Char类型的变量可以存储一个Unicode字符（包括单个中文）
+            byte[] bytes = Encoding.UTF8.GetBytes(Text);//将字符串转换为8位字节数组（值范围0-255）
+            //Console.WriteLine(BitConverter.GetBytes('地').Length);//2字节，用错了方法
+            //BitConverter.GetBytes通常用于将基础数据类型（如整数、浮点数等）转换为字节数组
+            //然而这个方法并不适用于字符类型（char）因为char在C#中是一个两字节的Unicode字符而BitConverter主要设计用于处理单字节、双字节、四字节、八字节等固定长度的数据类型
             List<byte> result = new List<byte>();
-
             for (int i = 0; i < bytes.Length;)
-            {
+            {//遍历字节数组
                 if (bytes[i] != '\\')
-                {
+                {//如果不是转义符，直接添加到结果中
                     result.Add(bytes[i]);
                     i++;
                 }
                 else
-                {
-                    i++;
+                {//如果原文中有转义符，根据转义符的不同，进行处理，因为后续混淆转义2个字符分别是\和n的话不会被编译器认为是换行符（如"Hello\x5C\x6EWorld"输出后是Hello\nWorld）
+                    i++;//扫描转义符后的1位字符
                     if (i < bytes.Length)
-                    {
+                    {//如果不是最后一个字符
                         string s = "";
                         if (bytes[i] == 'x')
-                        {
+                        {//如果该字节是x代表十六进制
                             s = "";
-                            i++;
+                            i++;//扫描指针继续前进1位
                             int k = 0;
                             while (k < 2 && i + k < bytes.Length && IsHexchar(bytes[i + k])) k++;
-                            for (int j = 0; j < k; j++) s += (char)bytes[i + j];
+                            //十六进制字符的长度为2，这里扫描x之后最大2位字符
+                            for (int j = 0; j < k; j++) s += (char)bytes[i + j];//s存入这2位字符
+                            //s转换为字节
                             byte hexvalue = Convert.ToByte(s, 16);
-                            result.Add(hexvalue);
-                            i += k;
+                            result.Add(hexvalue);//添加到结果中
+                            i += k;//扫描指针继续前进k位，以便下次扫描
                         }
                         else if (bytes[i] == '0')
-                        {
+                        {//如果该字节0代表八进制（对0后面最大抓3位字符并转字节数组）
                             s = "";
-                            i++;
+                            i++;//扫描指针继续前进1位
                             int k = 0;
                             while (k < 3 && i + k < bytes.Length && IsOctchar(bytes[i + k])) k++;
-                            //这里注意如果k等于3 并且转换后的值超过255 则应将k-1重新计算一次
-                            for (int j = 0; j < k; j++) s += (char)bytes[i + j];
-
+                            //0到177：表示ASCII码表中0到127的字符（即DELETE字符），使用一到三位八进制数（有效转义字符范围）
+                            //200到377：表示ASCII码表中128到255的字符，使用三位八进制数（在某些编译器或解释器中可能视为扩展八进制转义字符，用于表示负值（在signed char类型中）或超出ASCII码表范围的值）
+                            //上述的k只有0~2没有3
+                            for (int j = 0; j < k; j++) s += (char)bytes[i + j];//s存入这k位字符
                             byte hexvalue;
                             try
                             {
+                                //尝试将s转换为字节
                                 hexvalue = Convert.ToByte(s, 8);
                             }
                             catch
-                            {
+                            {//这里k必然等于3并且转换后的值超过255（转换字节出错），则应将k-1重新计算一次
                                 s = "";
                                 k--;
                                 for (int j = 0; j < k; j++) s += (char)bytes[i + j];
@@ -1507,11 +1522,11 @@ namespace MetalMaxSystem
                             i += k;
                         }
                         else if (char.IsDigit((char)bytes[i]))
-                        {
+                        {//如果该字节代表的字符是1~9的数字
                             s = "";
                             int k = 0;
                             while (k < 3 && i + k < bytes.Length && IsHexchar(bytes[i + k])) k++;
-                            //这里注意如果k等于3 并且转换后的值超过255 则应将k-1重新计算一次
+                            //抓取包含该字节在内的3位十六进制字符（不会包含\，抓到什么就直接转原文字节，只抓3位方便万一是八进制如177）
                             for (int j = 0; j < k; j++) s += (char)bytes[i + j];
                             byte hexvalue;
                             try
@@ -1530,38 +1545,65 @@ namespace MetalMaxSystem
                         }
                         else
                         {
-
+                            //处理特殊含义的转义字符
                             switch ((char)bytes[i])
                             {
                                 case 'n':
+                                    //把原文中的@"\n"（2个字符）变成1个字符'\n'，以便后续转义出来的字符被编译器或解释器正确解析（余同）
                                     result.Add((byte)'\n');
                                     break;
                                 case 't':
-                                    result.Add((byte)'\t');
+                                    result.Add((byte)'\t');//是水平制表符（Tab）
                                     break;
                                 case 'r':
-                                    result.Add((byte)'\r');
+                                    result.Add((byte)'\r');//是回车符（Carriage Return）
                                     break;
                                 case '\\':
-                                    result.Add((byte)'\\');
+                                    if (torf)
+                                    {//正常转义连续的两个\字符（变成1个）
+                                        result.Add((byte)'\\');
+                                    }
+                                    else
+                                    {
+                                        if (torfString == null)
+                                        {//只改torf=false而torfString=null(默认)时将保留双\
+                                            result.Add((byte)'\\');
+                                            result.Add((byte)'\\');
+                                        }
+                                        else
+                                        {//用户自定义的torfString
+                                            if (torfString != "")
+                                            {//torfString不为空
+                                                //连续的两个\字符处理变成torfString，用户可填写任意字符串（如/或其他）
+                                                for (int j = 0; j < torfString.Length; j++)
+                                                {
+                                                    result.Add((byte)torfString[j]);
+                                                }
+                                            }
+                                            else
+                                            {//用户定义了空torfString
+                                                break;//连续的两个\字符处理变成无
+                                            }
+                                        }
+                                    }
                                     break;
                                 case '\'':
-                                    result.Add((byte)'\'');
+                                    result.Add((byte)'\'');//是单引号字符（Single Quote）
                                     break;
                                 case '\"':
-                                    result.Add((byte)'\"');
+                                    result.Add((byte)'\"');//是双引号字符（Double Quote）
                                     break;
                                 case 'b':
-                                    result.Add((byte)'\b');
+                                    result.Add((byte)'\b');//是退格符（Backspace）
                                     break;
                                 case 'f':
-                                    result.Add((byte)'\f');
+                                    result.Add((byte)'\f');//是换页符（Formfeed）
                                     break;
                                 case 'v':
-                                    result.Add((byte)'\v');
+                                    result.Add((byte)'\v');//是垂直制表符（Vertical Tab）
                                     break;
                                 default:
-                                    // 如果是未知的转义符，保留原样
+                                    //如果是未知的转义符，保留原样2个字符
                                     result.Add((byte)'\\');
                                     result.Add(bytes[i]);
                                     break;
@@ -1580,11 +1622,13 @@ namespace MetalMaxSystem
         /// <summary>
         /// 混淆处理（将字符串变转义序列）。字符串中每个字符将被转换为八进制或十六进制（X2）表示
         /// </summary>
-        /// <param name="str">任意字符串</param>
+        /// <param name="str">任意字符串，可以是夹在冒号间的原文</param>
+        /// <param name="torf">true处理连续的两个\字符为1个\（即处理双\的转义），如需保留两个\或变成1个/或其他字符串时则应设置torf=false（默认）</param>
+        /// <param name="torfString">torf=false时生效，当torfString不为null则连续2个\字符将被处理为自定义torfString（默认值"/"），只改torf=false而torfString=null时将保留双\</param>
         /// <returns></returns>
-        public static string Obfuscate(string str)
+        public static string Obfuscate(string str, bool torf = false, string torfString = "/")
         {
-            byte[] bytes = Escape(str);
+            byte[] bytes = Escape(str, torf, torfString);
             Random random = new Random();
             string result = string.Concat(bytes.Select(b =>
             {
@@ -1967,7 +2011,7 @@ namespace MetalMaxSystem
         /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
         public static void WriteLine(string value, bool bufferAppend = true)
         {
-            if (writeTell == true) 
+            if (writeTell == true)
             {
                 Tell(value);//临时调试
             }
