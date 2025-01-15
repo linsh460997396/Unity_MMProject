@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace MMWorld
@@ -142,6 +142,25 @@ namespace MMWorld
         public void Init(Stage lv_stage, float lv_pixelX, float lv_pixelY)
         {
             stage = lv_stage;
+            pixelX = lv_pixelX;
+            pixelY = lv_pixelY;
+
+            //预填充一些玩家历史（逻辑）坐标数据防越界
+            positionHistory.Clear();
+            var p = new Vector2(pixelX, pixelY);
+            for (int i = 0; i < Scene.fps; i++)
+            {
+                positionHistory.Add(p);
+            }
+        }
+
+        /// <summary>
+        /// 玩家逻辑坐标初始化
+        /// </summary>
+        /// <param name="lv_pixelX">逻辑坐标</param>
+        /// <param name="lv_pixelY">逻辑坐标</param>
+        public void InitPosition(float lv_pixelX, float lv_pixelY)
+        {
             pixelX = lv_pixelX;
             pixelY = lv_pixelY;
 

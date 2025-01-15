@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System;
 using UnityEngine;
@@ -122,11 +122,19 @@ namespace CellSpace
 
         #region 字段、属性方法（I前缀的变量表示接口变量，可被覆写）
 
+        /// <summary>
+        /// 存储用户团块空间（制造过地形的）
+        /// </summary>
+        [NonSerialized] public static List<CellChunk> userCellChunks = new List<CellChunk>();
+
         // CellSpaceEngine的每个静态变量都有一个非静态的等价物。非静态变量的名称与静态变量相同，只是在开头用小写的L，使用这些变量是为了能够在Unity中编辑这些变量，包括在引擎设置窗口中。
         // 在编辑器的Awake功能中，非静态变量被应用于它们的静态对应(通过场景中的Engine游戏对象)，所以在运行时改变非静态变量不会产生任何影响。
 
-        //OP结构（含静态声明的共享对象池），可存储预制体实例化后的GameObject
-        public static OP[] PrefabOPs;
+        /// <summary>
+        /// OP结构体数组（含静态声明的共享对象池），可绑定预制体实例化后的GameObject
+        /// </summary>
+        [NonSerialized] public static OP[] PrefabOPs;
+
         /// <summary>
         /// 纹理ID字符列表，0为大地图（第2材质），1~239为小地图（第3材质）,240为龙珠世界地图（第4材质），一共241个
         /// </summary>
@@ -139,17 +147,6 @@ namespace CellSpace
         /// 存储场景图片宽度信息的列表数组，供地图创建函数使用
         /// </summary>
         [NonSerialized] public static List<ushort> mapWidths = new List<ushort>();
-        /// <summary>
-        /// 存储默认碰撞类型为Cube的纹理ID列表数组，数组索引0是人1是车。
-        /// 碰撞条件：单元纹理ID在人车默认碰撞列表 且 该场景单元ID可进入字段=假（默认都是假，加载场景后可针对如小地图屋子进行设置真）。
-        /// 大地图上许多屋子都是可以踩的，只有小地图上的屋子入口能不能踩需要额外状态判断。
-        /// </summary>
-        [NonSerialized]
-        public static List<ushort>[] cubeColliderIDs = new List<ushort>[]
-        {
-            new List<ushort>(),
-            new List<ushort>()
-        };
 
         /// <summary>
         /// 当前活动世界的名称（对应存储世界数据的文件夹）
@@ -581,9 +578,9 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 读各场景纹理ID文本（用于地图自动绘制）
+        /// 读各预制场景纹理ID文本（用于后续自动绘制）
         /// </summary>
-        static void LoadTXT()
+        static void LoadPrefabSceneTextureIDs()
         {
             //读取ID文本前初始化数组中的每个List元素（用于存放场景纹理ID）
             for (int i = 0; i < mapContents.Length; i++)
@@ -681,8 +678,8 @@ namespace CellSpace
             //↓龙珠地图目前是临时测试用的，50行18列会自动转换出892个预制体实例
             CreateTexPrefabBatch(num2, (ushort)(num3 - 1), 3, (ushort)TextureUnitX[3], (ushort)TextureUnitY[3]);
 
-            //读取重装机兵全场景纹理ID文本
-            LoadTXT();
+            //读取重装机兵等预制场景纹理ID文本
+            LoadPrefabSceneTextureIDs();
         }
 
         /// <summary>
@@ -707,52 +704,6 @@ namespace CellSpace
         public void Awake()
         {
             //本函数负责引擎初始化
-
-            //↓录制默认碰撞（碰撞条件：单元纹理ID在人车默认碰撞列表 且 该场景单元ID可进入字段=假（默认都是假，加载场景后可针对如小地图屋子进行设置真））
-
-            //人的默认碰撞类型
-            for (ushort i = 11; i <= 20; i++) { cubeColliderIDs[0].Add(i); }//大地图左下第一个纹理从11编号起算
-            for (ushort i = 23; i <= 24; i++) { cubeColliderIDs[0].Add(i); }
-            for (ushort i = 23; i <= 24; i++) { cubeColliderIDs[0].Add(i); }
-            cubeColliderIDs[0].Add(29);//栅栏
-            for (ushort i = 34; i <= 37; i++) { cubeColliderIDs[0].Add(i); }
-            for (ushort i = 39; i <= 46; i++) { cubeColliderIDs[0].Add(i); }
-            for (ushort i = 48; i <= 53; i++) { cubeColliderIDs[0].Add(i); }
-            for (ushort i = 55; i <= 57; i++) { cubeColliderIDs[0].Add(i); }
-            cubeColliderIDs[0].Add(60);
-            cubeColliderIDs[0].Add(62);
-            cubeColliderIDs[0].Add(67);
-            for (ushort i = 80; i <= 84; i++) { cubeColliderIDs[0].Add(i); }
-            for (ushort i = 90; i <= 102; i++) { cubeColliderIDs[0].Add(i); }
-            for (ushort i = 109; i <= 112; i++) { cubeColliderIDs[0].Add(i); }
-            for (ushort i = 115; i <= 116; i++) { cubeColliderIDs[0].Add(i); }
-            cubeColliderIDs[0].Add(118);
-            for (ushort i = 121; i <= 124; i++) { cubeColliderIDs[0].Add(i); }
-            for (ushort i = 151; i <= 155; i++) { cubeColliderIDs[0].Add(i); }
-            for (ushort i = 159; i <= 162; i++) { cubeColliderIDs[0].Add(i); }
-            //↑大地图碰撞录制完毕
-
-            //车的默认碰撞类型
-            for (ushort i = 11; i <= 20; i++) { cubeColliderIDs[1].Add(i); }//山河
-            for (ushort i = 23; i <= 25; i++) { cubeColliderIDs[1].Add(i); }//多了小树
-            cubeColliderIDs[1].Add(29);//栅栏
-            for (ushort i = 34; i <= 37; i++) { cubeColliderIDs[1].Add(i); }
-            for (ushort i = 48; i <= 53; i++) { cubeColliderIDs[1].Add(i); }
-            for (ushort i = 55; i <= 57; i++) { cubeColliderIDs[1].Add(i); }
-            cubeColliderIDs[1].Add(60);
-            cubeColliderIDs[1].Add(62);
-            cubeColliderIDs[1].Add(67);
-            cubeColliderIDs[1].Add(72); cubeColliderIDs[1].Add(73);
-            for (ushort i = 80; i <= 84; i++) { cubeColliderIDs[1].Add(i); }
-            for (ushort i = 90; i <= 102; i++) { cubeColliderIDs[1].Add(i); }
-            for (ushort i = 109; i <= 112; i++) { cubeColliderIDs[1].Add(i); }
-            for (ushort i = 115; i <= 116; i++) { cubeColliderIDs[1].Add(i); }
-            cubeColliderIDs[1].Add(118);
-            for (ushort i = 121; i <= 124; i++) { cubeColliderIDs[1].Add(i); }
-            for (ushort i = 151; i <= 155; i++) { cubeColliderIDs[1].Add(i); }
-            for (ushort i = 159; i <= 162; i++) { cubeColliderIDs[1].Add(i); }
-            //↑大地图碰撞录制完毕
-
             EngineInstance = this; //this关键字引用了当前类的一个实例，但它不能用在静态字段的初始化中，所以写在这
             //获取对象上的团块管理器组件实例（这里指名为"CellChunkManager"的脚本类型组件实例化后的对象）
             ChunkManagerInstance = GetComponent<CellChunkManager>();

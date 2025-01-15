@@ -1,4 +1,4 @@
-namespace MMWorld.Test
+﻿namespace MMWorld.Test
 {
 
     /// <summary>
@@ -64,11 +64,12 @@ namespace MMWorld.Test
         {//关卡开局
          //配置怪生成器
             var time = scene.time; //等同运行游戏逻辑的次数
+            //创建怪物或NPC
             monsterGenerators.Add(new MMTestMonsterGenerator("stage0_1", this, time + Scene.fps * 0, time + Scene.fps * 10, 10));
             //重置玩家位置（关卡,逻辑坐标X,逻辑坐标Y）
             //第一个镇子场景如要出现在本地(1,1)位置，则填逻辑坐标=本地坐标*gridSize即(100,100)，目前gridSize=100表示将1个渲染层实际是1.0边长的单元格从逻辑上又划分了100格，空间内本地距离0.01作为游戏逻辑用的逻辑距离1
             player.Init(this, 350, 350);
-            state = 1;//设置关卡索引 
+            state = 1;//设置下一个自动轮入的关卡索引
         }
 
         /// <summary>
@@ -87,6 +88,7 @@ namespace MMWorld.Test
             //}
             Update_PlayerBullets();
             player.Update();
+            //不再有新关卡索引时，就一直循环该方法，玩家自由移动和射击、更新位置和动画
         }
 
         /// <summary>

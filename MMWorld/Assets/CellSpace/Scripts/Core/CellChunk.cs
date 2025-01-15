@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using System;
@@ -481,7 +481,7 @@ namespace CellSpace
         // == get cell
 
         /// <summary>
-        /// 返回指定数组索引处的单元数据（即修改单元的种类），函数采用平面1D数组索引作为参数而不是x,z,z的2D/3D空间坐标。
+        /// 返回指定数组索引处的单元数据（即单元的种类），函数采用平面1D数组索引作为参数而不是x,z,z的2D/3D空间坐标。
         /// </summary>
         /// <param name="rawIndex">平面1D数组索引</param>
         /// <returns></returns>
@@ -491,7 +491,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 返回指定索引处的单元数据（即修改单元的种类）。与GetCell不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
+        /// 返回指定索引处的单元数据（即单元的种类）。与GetCell不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -509,7 +509,7 @@ namespace CellSpace
             }
         }
         /// <summary>
-        /// 返回指定索引处的单元数据（即修改单元的种类）。与GetCell不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
+        /// 返回指定索引处的单元数据（即单元的种类）。与GetCell不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -520,7 +520,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 返回指定索引处的单元数据（即修改单元的种类）。与GetCell不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
+        /// 返回指定索引处的单元数据（即单元的种类）。与GetCell不同，团块索引不能超过团块边界(例如x不能小于0且大于团块边长-1)。
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
@@ -537,7 +537,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 返回指定单元索引处的单元数据（即修改单元的种类）。当单元索引超过团块边界时将返回相邻团块中的单元数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（单元种类ID的最大上限值65535）
+        /// 返回指定单元索引处的单元数据（即单元的种类）。当单元索引超过团块边界时将返回相邻团块中的单元数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（单元种类ID的最大上限值65535）
         /// </summary>
         /// <param name="x">单元索引</param>
         /// <param name="y">单元索引</param>
@@ -607,7 +607,7 @@ namespace CellSpace
             }
         }
         /// <summary>
-        /// 返回指定单元索引处的单元数据（即修改单元的种类）。当单元索引超过团块边界时将返回相邻团块中的单元数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（单元种类ID的最大上限值65535）
+        /// 返回指定单元索引处的单元数据（即单元的种类）。当单元索引超过团块边界时将返回相邻团块中的单元数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（单元种类ID的最大上限值65535）
         /// </summary>
         /// <param name="x">单元索引</param>
         /// <param name="y">单元索引</param>
@@ -653,7 +653,7 @@ namespace CellSpace
             }
         }
         /// <summary>
-        /// 返回指定索引处的单元数据（即修改单元的种类）。当团块索引超过团块边界时将返回相邻团块中的单元数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（单元种类ID的最大上限值65535）
+        /// 返回指定索引处的单元数据（即单元的种类）。当团块索引超过团块边界时将返回相邻团块中的单元数据（如当前已实例化），若没有实例化则返回一个ushort.MaxValue（单元种类ID的最大上限值65535）
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>

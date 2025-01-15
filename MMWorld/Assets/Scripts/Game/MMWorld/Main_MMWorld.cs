@@ -1,4 +1,4 @@
-using CellSpace;
+﻿using CellSpace;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,12 +18,14 @@ namespace MMWorld
         [NonSerialized] public static List<Sprite>[] characters;
         [NonSerialized] public static List<Sprite>[] monsters;
 
-        Transform engineTransform;
+        Transform engineTransform;Scene scene;
         CPIndex lastPos, currentPos;
         bool sceneEnabled = false;
 
+        //AddComponent时，Awake方法会在添加的那一帧立即执行，但Start方法则在下一帧的Update之前执行‌
+
         /// <summary>
-        /// 挂上组件时运行（无论是否激活，仅自运行1次）
+        /// 挂上组件时运行（无论是否激活，仅自动运行1次）
         /// </summary>
         void Awake()
         {
@@ -44,14 +46,15 @@ namespace MMWorld
 
             //在周围刷地图（移动时不导致地形变掉只用来显示更多范围），可定点一次生成完整的图（同时请将团块边长和刷图范围调大），在地形较大甚至无限的情况下使用移动式（绑玩家身上）
             engineTransform = GameObject.Find("CPEngine").transform;
+            scene = gameObject.GetComponent<Scene>();
 
             //InvokeRepeating用于特定时间间隔内执行与游戏自动更新频率不同步的情况，如在游戏开始后1秒执行操作来让主要组件充分调度完毕，然后每隔指定秒执行一次
             //不会新开线程，它是在Unity主线程中间隔执行所以引擎对象不需回调，但第三个参数在运行过程修改无效（类似GE的周期触发器但有办法重写其调用的内部方法来支持变量）
-            InvokeRepeating("InitMap", 0f, 0.00625f);
+            InvokeRepeating(nameof(InitMap), 0f, 0.0625f);
         }
 
         /// <summary>
-        /// 组件激活时运行一次（反复激活反复自运行）
+        /// 组件激活时运行一次（反复激活反复运行）
         /// </summary>
         void OnEnable()
         {
@@ -59,7 +62,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// OnEnable后运行一次（仅自运行1次反复激活无效）
+        /// OnEnable后运行一次（仅自动运行1次，反复激活无效）
         /// </summary>
         void Start()
         {
@@ -87,15 +90,25 @@ namespace MMWorld
             //如果多人模式已启用但连接尚未建立则不加载块
             if (CPEngine.EnableMultiplayer) { if (!Network.isClient && !Network.isServer) { return; } }
             //跟踪人物当前所在团块位置索引（先在originalTransform创建，等控制人行走后换playerTransform）
-            currentPos = CPEngine.PositionToChunkIndex(engineTransform.position);
+            if (scene.enabled && scene.player != null && scene.player.go.gameObject != null)
+            {
+                currentPos = CPEngine.PositionToChunkIndex(scene.player.go.gameObject.transform.position);
+                //Debug.Log("Player Position: " + currentPos.x + " " + currentPos.y + " " + currentPos.z);
+            }
+            else
+            {
+                currentPos = CPEngine.PositionToChunkIndex(engineTransform.position);
+            }
             if (currentPos.IsEqual(lastPos) == false)
-            {//如果索引与前一帧不同，则在当前位置生成团块
+            {//如果索引与前一帧不同，则在当前索引位置生成团块
+
                 CellChunkManager.SpawnChunks(currentPos.x, currentPos.y, currentPos.z);
-                if (CPEngine.EnableMultiplayer && CPEngine.MultiplayerTrackPosition && CPEngine.Network != null)
-                {
-                    //多人游戏模式下更新玩家位置
-                    Client.UpdatePlayerPosition(currentPos);
-                }
+
+                //if (CPEngine.EnableMultiplayer && CPEngine.MultiplayerTrackPosition && CPEngine.Network != null)
+                //{
+                //    //多人游戏模式下更新玩家位置
+                //    Client.UpdatePlayerPosition(currentPos);
+                //}
             }
             lastPos = currentPos;
         }
@@ -105,7 +118,6 @@ namespace MMWorld
         /// </summary>
         void LoadAssets()
         {
-
             #region 
             //注意Application.dataPath打包前是Assets文件夹下的路径，打包后是识别exe程序名称_Data文件夹下的路径
             //Unity自带切割上万精灵应用到meta要几个小时情况时，可换此加载方式
@@ -124,7 +136,6 @@ namespace MMWorld
             //loadTXT.Run(true);//以后台模式运行这个触发器
             ////等待子线程完成（要使用精确结果进行下一步时）
             //loadTXT.Thread.Join();
-            #endregion
 
             //由于使用了材质纹理UV划区，这里的精灵可以不再使用
             //mapSprites = new List<Sprite>[2];
@@ -140,6 +151,7 @@ namespace MMWorld
             //}
             //mapSprites[0].AddRange(tmpWSP);
             //mapSprites[1].AddRange(tmpMSP);
+            #endregion
 
             //读取余下资源
             LoadAllResources();

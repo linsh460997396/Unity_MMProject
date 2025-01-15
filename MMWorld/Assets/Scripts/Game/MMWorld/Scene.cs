@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using MMWorld.Test;
 
 namespace MMWorld
@@ -155,6 +155,7 @@ namespace MMWorld
 
             //初始化玩家
             player = new Player(this);
+            TextureColliderSet.player = player;//碰撞录制器切图时角色位置重制用
 
             //初始化起始关卡
             stage = new MMTestStage(this);
