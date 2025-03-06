@@ -149,7 +149,7 @@ namespace MMWorld
             grids = new GameObject[256, 256, 2];
 
             //创建两个碰撞标记用预制体
-            prefabA0 = CreatePrefab("prefabA0", 4, 0.5f, "Custom/CShader");
+            prefabA0 = CreatePrefab("prefabA0", 4, 0.5f, "Custom/CShader_0");
             prefabA1 = CreatePrefab("prefabA1", 4, 0.5f, "Custom/CShader_1");
             HideObject(prefabA0); HideObject(prefabA1);
 

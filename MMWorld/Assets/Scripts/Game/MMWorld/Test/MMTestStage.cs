@@ -77,17 +77,17 @@
         /// </summary>
         public void P1()
         {
-            Update_Effect_Explosions();
-            Update_Effect_Numbers();
-            Update_Monsters();
+            //Update_Effect_Explosions();//更新爆炸特效
+            //Update_Effect_Numbers();//更新数字特效
+            //Update_Monsters();//更新怪物
             //怪物没了就进下个state索引
             //if (Update_MonstersGenerators() == 0)
             //{         // 怪生成器 已经没了
             //    timeout = scene.time + Scene.fps * 60;      // 设置 60 秒超时
             //    state = 2;
             //}
-            Update_PlayerBullets();
-            player.Update();
+            //Update_PlayerBullets();//更新玩家子弹
+            player.Update();//更新玩家（移动、渲染、技能）
             //不再有新关卡索引时，就一直循环该方法，玩家自由移动和射击、更新位置和动画
         }
 
