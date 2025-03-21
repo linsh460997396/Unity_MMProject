@@ -1641,19 +1641,23 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 将英文字符串转换为中文（GalaxyEditor）
+        /// 将十六进制表示的英文+数字组合字符串转回中文表示（用于GalaxyEditor）
         /// </summary>
         /// <param name="hexString">十六位字符组成的字符串如"E58AA8E59BBEE6B58BE8AF95"</param>
-        /// <returns></returns>
+        /// <returns>正常返回中文字符串，错误时返回空字符串</returns>
         public static string HexStringToChineseCharacter(string hexString)
         {
-            byte[] bytes = new byte[hexString.Length / 2];//创建一个字节数组（C#每个字符Char占2字节16位）
-            for (int i = 0; i < hexString.Length; i += 2)
+            try 
             {
-                bytes[i / 2] = Convert.ToByte(hexString.Substring(i, 2), 16);
+                byte[] bytes = new byte[hexString.Length / 2];//创建一个字节数组（C#每个字符Char占2字节16位）
+                for (int i = 0; i < hexString.Length; i += 2)
+                {
+                    bytes[i / 2] = Convert.ToByte(hexString.Substring(i, 2), 16);
+                }
+                string result = System.Text.Encoding.UTF8.GetString(bytes);
+                return result;
             }
-            string result = System.Text.Encoding.UTF8.GetString(bytes);
-            return result;
+            catch { return ""; }
         }
 
         /// <summary>
