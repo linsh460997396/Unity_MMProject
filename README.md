@@ -39,5 +39,4 @@
 # 完整项目下载（1.28GB）
 
 天翼网盘
-
-https://cloud.189.cn/t/bu2iAj7zEJVz（访问码：7s17）
+http://cloud.189.cn/t/yYzi6nV77ze2（访问码：7eyu）
