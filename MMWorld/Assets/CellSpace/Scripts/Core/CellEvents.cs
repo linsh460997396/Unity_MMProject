@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 // inherit from this class if you don'transform want to use the default events
 

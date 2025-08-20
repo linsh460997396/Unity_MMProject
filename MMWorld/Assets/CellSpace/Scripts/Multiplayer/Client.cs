@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace CellSpace
 {
@@ -14,48 +14,48 @@ namespace CellSpace
         public void OnConnectedToServer()
         {
             Debug.Log("Client: Connected to server.");
-            if (CPEngine.EnableMultiplayer == false) Debug.LogWarning("CellSpace: Multiplayer is disabled. Unexpected behavior may occur.");
-            CPEngine.SaveCellData = false; // disable local saving for client
+            if (CPEngine.enableMultiplayer == false) Debug.LogWarning("CellSpace: Multiplayer is disabled. Unexpected behavior may occur.");
+            CPEngine.saveCellData = false; // disable local saving for client
         }
 
         // ===== network communication ============
 
         public static void UpdatePlayerPosition(int x, int y, int z)
         {
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
-                CPEngine.Network.GetComponent<NetworkView>().RPC("UpdatePlayerPosition", RPCMode.Server, Network.player, x, y, 0);
+                CPEngine.network.GetComponent<NetworkView>().RPC("UpdatePlayerPosition", RPCMode.Server, Network.player, x, y, 0);
             }
             else
             {
-                CPEngine.Network.GetComponent<NetworkView>().RPC("UpdatePlayerPosition", RPCMode.Server, Network.player, x, y, z);
+                CPEngine.network.GetComponent<NetworkView>().RPC("UpdatePlayerPosition", RPCMode.Server, Network.player, x, y, z);
             }
         }
         public static void UpdatePlayerPosition(int x, int y)
         {
-            CPEngine.Network.GetComponent<NetworkView>().RPC("UpdatePlayerPosition", RPCMode.Server, Network.player, x, y, 0);
+            CPEngine.network.GetComponent<NetworkView>().RPC("UpdatePlayerPosition", RPCMode.Server, Network.player, x, y, 0);
         }
         public static void UpdatePlayerPosition(CPIndex index)
         {
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
-                CPEngine.Network.GetComponent<NetworkView>().RPC("UpdatePlayerPosition", RPCMode.Server, Network.player, index.x, index.y, 0);
+                CPEngine.network.GetComponent<NetworkView>().RPC("UpdatePlayerPosition", RPCMode.Server, Network.player, index.x, index.y, 0);
             }
             else
             {
-                CPEngine.Network.GetComponent<NetworkView>().RPC("UpdatePlayerPosition", RPCMode.Server, Network.player, index.x, index.y, index.z);
+                CPEngine.network.GetComponent<NetworkView>().RPC("UpdatePlayerPosition", RPCMode.Server, Network.player, index.x, index.y, index.z);
             }
         }
         public static void UpdatePlayerRange(int range)
         {
-            CPEngine.Network.GetComponent<NetworkView>().RPC("UpdatePlayerRange", RPCMode.Server, Network.player, range);
+            CPEngine.network.GetComponent<NetworkView>().RPC("UpdatePlayerRange", RPCMode.Server, Network.player, range);
         }
 
         [RPC]
         public void ReceiveCellData(int chunkx, int chunky, int chunkz, byte[] data)
         {
             GameObject chunkObject;
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 chunkObject = CellChunkManager.GetChunk(chunkx, chunky); // find the chunk
             }
@@ -89,7 +89,7 @@ namespace CellSpace
             int chunkx = info.chunk.ChunkIndex.x;
             int chunky = info.chunk.ChunkIndex.y;
             int chunkz = 0;
-            if (!CPEngine.HorizontalMode)
+            if (!CPEngine.horizontalMode)
             {
                 chunkz = info.chunk.ChunkIndex.z;
             }
@@ -110,7 +110,7 @@ namespace CellSpace
             int chunkx = info.chunk.ChunkIndex.x;
             int chunky = info.chunk.ChunkIndex.y;
             int chunkz = 0; //2D模式下z值为0
-            if (!CPEngine.HorizontalMode)
+            if (!CPEngine.horizontalMode)
             {
                 chunkz = info.chunk.ChunkIndex.z;
             }
@@ -128,7 +128,7 @@ namespace CellSpace
         [RPC]
         public void ReceivePlaceBlock(NetworkPlayer sender, int x, int y, int z, int chunkx, int chunky, int chunkz, int data)
         {   // receives a change sent by other client or server
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 ReceivePlaceBlock(sender, x, y, chunkx, chunky, data);
             }
@@ -175,7 +175,7 @@ namespace CellSpace
         [RPC]
         public void ReceiveChangeBlock(NetworkPlayer sender, int x, int y, int z, int chunkx, int chunky, int chunkz, int data)
         {   // receives a change sent by other client or server
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 ReceiveChangeBlock(sender, x, y, chunkx, chunky, data);
             }

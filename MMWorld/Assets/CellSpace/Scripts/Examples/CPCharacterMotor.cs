@@ -1,11 +1,11 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace CellSpace.Examples
 {
-    // 角色移动相关的结构体，包含各种移动属性 
+    // 角色移动相关的结构体,包含各种移动属性 
     public struct CPCharacterMotorMovement
     {
-        // 最大水平速度（向前、向侧、向后） 
+        // 最大水平速度(向前、向侧、向后) 
         public float maxForwardSpeed;
         public float maxSidewaysSpeed;
         public float maxBackwardsSpeed;
@@ -25,7 +25,7 @@ namespace CellSpace.Examples
         public Vector3 lastHitPoint;
     }
 
-    // 跳跃相关的结构体，包含跳跃属性 
+    // 跳跃相关的结构体,包含跳跃属性 
     public struct CPCharacterMotorJumping
     {
         // 能否跳跃、基础跳跃高度、额外跳跃高度 
@@ -43,7 +43,7 @@ namespace CellSpace.Examples
         public Vector3 jumpDir;
     }
 
-    // 移动平台相关的结构体，包含移动平台交互的属性 
+    // 移动平台相关的结构体,包含移动平台交互的属性 
     public struct CPCharacterMotorMovingPlatform
     {
         public bool enabled;
@@ -59,7 +59,7 @@ namespace CellSpace.Examples
         public bool newPlatform;
     }
 
-    // 滑动相关的结构体，包含滑动属性 
+    // 滑动相关的结构体,包含滑动属性 
     public struct CPCharacterMotorSliding
     {
         public bool enabled;
@@ -77,7 +77,7 @@ namespace CellSpace.Examples
         PermaLocked
     }
 
-    //这个脚本实现了角色的移动、跳跃、与移动平台交互以及一些物理相关的操作等功能。 
+    //这个脚本实现了角色的移动、跳跃、与移动平台交互以及一些物理相关的操作等功能. 
     public class CPCharacterMotor : MonoBehaviour
     {
         // 判断脚本是否响应输入 
@@ -206,12 +206,12 @@ namespace CellSpace.Examples
             {
                 if (movement.velocity.y < 0)
                 {
-                    // 速度被异常向下改变时，忽略该改变 
+                    // 速度被异常向下改变时,忽略该改变 
                     movement.velocity.y = velocity.y;
                 }
                 else
                 {
-                    // 向上移动被阻挡，视为碰到天花板，停止进一步跳跃 
+                    // 向上移动被阻挡,视为碰到天花板,停止进一步跳跃 
                     jumping.holdingJumpButton = false;
                 }
             }
@@ -232,10 +232,10 @@ namespace CellSpace.Examples
             }
         }
 
-        // 根据输入改变速度的方法（这里需要根据具体游戏输入逻辑完善） 
+        // 根据输入改变速度的方法(这里需要根据具体游戏输入逻辑完善) 
         private Vector3 ApplyInputVelocityChange(Vector3 velocity)
         {
-            // 这里只是示例，实际需要根据输入系统获取正确的输入方向 
+            // 这里只是示例,实际需要根据输入系统获取正确的输入方向 
             if (canControl)
             {
                 velocity.x = inputMoveDirection.x;
@@ -244,7 +244,7 @@ namespace CellSpace.Examples
             return velocity;
         }
 
-        // 应用重力和跳跃力的方法（这里需要根据具体物理逻辑完善跳跃部分） 
+        // 应用重力和跳跃力的方法(这里需要根据具体物理逻辑完善跳跃部分) 
         private Vector3 ApplyGravityAndJumping(Vector3 velocity)
         {
             if (!grounded)
@@ -257,7 +257,7 @@ namespace CellSpace.Examples
             }
             else if (inputJump && jumping.enabled)
             {
-                // 这里只是简单示例，实际跳跃逻辑更复杂 
+                // 这里只是简单示例,实际跳跃逻辑更复杂 
                 velocity.y = Mathf.Sqrt(2 * jumping.baseHeight * movement.gravity);
                 jumping.jumping = true;
                 jumping.lastStartTime = Time.time;
@@ -272,7 +272,7 @@ namespace CellSpace.Examples
             return movingPlatform.enabled && movingPlatform.activePlatform != null;
         }
 
-        // 检测是否接地的测试方法（这里需要根据具体碰撞检测逻辑完善） 
+        // 检测是否接地的测试方法(这里需要根据具体碰撞检测逻辑完善) 
         private bool IsGroundedTest()
         {
             return false;
@@ -281,20 +281,20 @@ namespace CellSpace.Examples
 }
 
 //1.结构体和枚举的定义
-//   - 首先定义了`CPCharacterMotorMovement`、`CPCharacterMotorJumping`、`CPCharacterMotorMovingPlatform`和`CPCharacterMotorSliding`结构体，它们分别包含了与角色移动、跳跃、与移动平台交互以及滑动相关的属性。 
-//   - 定义了`CPMovementTransferOnJump`枚举类型，用于表示跳跃时速度传递的方式。 
+//   - 首先定义了`CPCharacterMotorMovement`、`CPCharacterMotorJumping`、`CPCharacterMotorMovingPlatform`和`CPCharacterMotorSliding`结构体,它们分别包含了与角色移动、跳跃、与移动平台交互以及滑动相关的属性. 
+//   - 定义了`CPMovementTransferOnJump`枚举类型,用于表示跳跃时速度传递的方式. 
 //2. 类的定义和初始化 
-//   - 定义了`CPCharacterMotor`类，它继承自`MonoBehaviour`。在类中定义了各种公共和私有变量，包括表示角色状态的变量（如`canControl`、`grounded`等）以及各个功能模块的实例。 
-//   - 在`Awake`方法中获取`CharacterController`组件并初始化`tr`（角色的`Transform`）。 
+//   - 定义了`CPCharacterMotor`类,它继承自`MonoBehaviour`.在类中定义了各种公共和私有变量,包括表示角色状态的变量(如`canControl`、`grounded`等)以及各个功能模块的实例. 
+//   - 在`Awake`方法中获取`CharacterController`组件并初始化`tr`(角色的`Transform`). 
 //3. 更新逻辑 
-//   - 在`Update`和`FixedUpdate`方法中根据`useFixedUpdate`变量决定调用`UpdateFunction`方法。 
-//   - `UpdateFunction`方法包含了角色移动、跳跃、与移动平台交互等一系列逻辑的实现。 
-//     - 首先处理速度的更新，包括根据输入更新速度、应用重力和跳跃力。 
-//     - 接着处理与移动平台的交互，包括移动和旋转相关的逻辑。 
-//     - 然后进行角色的移动操作，包括处理碰撞相关的逻辑、计算速度等。 
-//     - 最后处理角色从接地到非接地状态的转换逻辑。 
+//   - 在`Update`和`FixedUpdate`方法中根据`useFixedUpdate`变量决定调用`UpdateFunction`方法. 
+//   - `UpdateFunction`方法包含了角色移动、跳跃、与移动平台交互等一系列逻辑的实现. 
+//     - 首先处理速度的更新,包括根据输入更新速度、应用重力和跳跃力. 
+//     - 接着处理与移动平台的交互,包括移动和旋转相关的逻辑. 
+//     - 然后进行角色的移动操作,包括处理碰撞相关的逻辑、计算速度等. 
+//     - 最后处理角色从接地到非接地状态的转换逻辑. 
 //4. 功能方法 
-//   - `ApplyInputVelocityChange`方法根据输入改变速度，但这里只是简单示例，实际需要根据游戏的输入系统进行完善。 
-//   - `ApplyGravityAndJumping`方法应用重力和跳跃力，跳跃部分的逻辑也只是简单示例，需要进一步完善。 
-//   - `MoveWithPlatform`方法用于判断是否与移动平台交互。 
-//   - `IsGroundedTest`方法用于检测角色是否接地，这里只是简单返回`false`，实际需要根据具体的碰撞检测逻辑来实现。
+//   - `ApplyInputVelocityChange`方法根据输入改变速度,但这里只是简单示例,实际需要根据游戏的输入系统进行完善. 
+//   - `ApplyGravityAndJumping`方法应用重力和跳跃力,跳跃部分的逻辑也只是简单示例,需要进一步完善. 
+//   - `MoveWithPlatform`方法用于判断是否与移动平台交互. 
+//   - `IsGroundedTest`方法用于检测角色是否接地,这里只是简单返回`false`,实际需要根据具体的碰撞检测逻辑来实现.

@@ -21,7 +21,7 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 采用协程（异步）的方式下载文件
+        /// 采用协程(异步)的方式下载文件
         /// </summary>
         /// <param name="fileUrl">文件的URL</param>
         /// <param name="savePath">保存文件的路径</param>

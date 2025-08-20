@@ -13,9 +13,9 @@ using Vector3 = UnityEngine.Vector3;
 namespace MMWorld
 {
     /// <summary>
-    /// 纹理碰撞设置器，利用主摄像机注视增删碰撞，也管理着碰撞文件更新。
+    /// 纹理碰撞设置器,利用主摄像机注视增删碰撞,也管理着碰撞文件更新.
     /// </summary>
-    public class TextureColliderSet : MonoBehaviour
+    public class MapEditor : MonoBehaviour
     {
         #region 字段及其属性方法
 
@@ -24,19 +24,19 @@ namespace MMWorld
         /// </summary>
         public static Player player;
         /// <summary>
-        /// 网格数组，用于存储碰撞标记
+        /// 网格数组,用于存储碰撞标记
         /// </summary>
         private static GameObject[,,] grids;
         /// <summary>
-        /// 主地形空间团块的游戏物体
+        /// 主地形团块(空间)的游戏物体
         /// </summary>
         private static GameObject chunkGO;
         /// <summary>
-        /// 主地形空间团块的游戏物体上的CellChunk组件
+        /// 主地形团块(空间)的游戏物体上的CellChunk组件
         /// </summary>
         private static CellChunk chunk;
         /// <summary>
-        /// 碰撞标记用预制体，AO代表人碰撞，A1代表车碰撞
+        /// 碰撞标记用预制体,AO代表人碰撞,A1代表车碰撞
         /// </summary>
         private static GameObject prefabA0, prefabA1;
         /// <summary>
@@ -60,53 +60,58 @@ namespace MMWorld
         /// </summary>
         private static Canvas mainCanva;
         /// <summary>
-        /// 决定特征纹理是否选择的开关
+        /// 仅读内置素材模式的开关
         /// </summary>
-        private static Toggle TextureModeToggle;
+        private static Toggle insideModeToggle;
         /// <summary>
-        /// 决定标记是否显示的开关
+        /// 地图编辑模式的开关
         /// </summary>
-        private static Toggle ShowColliderToggle;
+        private static Toggle mapEditorToggle;
         /// <summary>
-        /// 执行碰撞保存的按钮
+        /// 决定移动时碰撞效果是否开启的开关
         /// </summary>
-        private static GameObject button_run;
+        private static Toggle colliderToggle;
         /// <summary>
-        /// 主UI顶部提示标签
+        /// 决定碰撞标记是否显示的开关
+        /// </summary>
+        private static Toggle showColliderToggle;
+        /// <summary>
+        /// 执行外部保存的按钮.会将编辑过的碰撞保存到外部路径,即游戏名_Data/Res/ColliderFiles/MapCollider.txt文件中,地图场景结果保存到游戏名_Data/Res/MapIndex目录.
+        /// 如果勾选"仅读内置"则始终使用内部路径,否则有外部路径文件存在时将被自动使用.
+        /// </summary>
+        private static GameObject button_outsideSave;
+        /// <summary>
+        /// UI顶部提示标签
         /// </summary>
         private static GameObject label_headTip;
         /// <summary>
-        /// 主UI的功能选择下拉框
+        /// 功能选择下拉框
         /// </summary>
         private static GameObject comboBox_selectFunc;
         /// <summary>
-        /// 主UI的输入框，暂用于读取碰撞文件并显示
+        /// UI界面的编号输入框,目前用于填写地图或纹理集编号数字
         /// </summary>
-        private static GameObject textBox_input;
+        private static GameObject textBox_workID;
         /// <summary>
-        /// 主UI界面的工作路径输入框，目前用于填写地图或纹理集编号数字来工作
+        /// UI界面的工作目录输入框,目前用于显示外部素材目录的路径
         /// </summary>
-        private static GameObject textBox_workPath;
+        private static GameObject textBox_outsideResPath;
         /// <summary>
-        /// 主UI界面的工作文件输入框，目前用于显示碰撞文件路径
+        /// UI界面的运行按钮
         /// </summary>
-        private static GameObject textBox_ruleFilePath;
+        private static GameObject button_run;
         /// <summary>
-        /// 主UI界面的选择工作路径按钮，目前用于切换地图或纹理集
+        /// UI界面的打开外部素材目录的按钮
         /// </summary>
-        private static GameObject button_selectWorkPath;
+        private static GameObject button_openFolder;
         /// <summary>
-        /// 主UI界面的选择工作文件按钮，目前用于点击读取碰撞文件到输入框展示
+        /// UI界面的地图编辑器模式勾选框
         /// </summary>
-        private static GameObject button_selectWorkFile;
+        private static GameObject checkBox_mapEditorMode;
         /// <summary>
-        /// 主UI界面的特征纹理勾选框，用于决定工作编号是地图还是特征纹理（默认勾选）
+        /// UI界面的碰撞显示勾选框,用于控制碰撞标记的显示与否
         /// </summary>
-        private static GameObject checkBox_TextureMode;
-        /// <summary>
-        /// 主UI界面的特征纹理勾选框，用于决定工作编号是地图还是特征纹理（默认勾选）
-        /// </summary>
-        private static GameObject checkBox_ShowCollider;
+        private static GameObject checkBox_showCollider;
         /// <summary>
         /// 用户当前设置的碰撞操作类型
         /// </summary>
@@ -120,11 +125,11 @@ namespace MMWorld
         /// </summary>
         private static string colliderValue;
         /// <summary>
-        /// 地形网格宽度
+        /// 纹理集最大网格宽度
         /// </summary>
         private static int gridWidth = 8;
         /// <summary>
-        /// 地形网格高度
+        /// 纹理集最大网格高度
         /// </summary>
         private static int gridHeight = 170;
         /// <summary>
@@ -134,7 +139,7 @@ namespace MMWorld
 
         private static int _mapID = 1;
         /// <summary>
-        /// 碰撞设置器的工作用图编号，需结合特征纹理勾选框来决定是地图编号还是特征纹理集编号
+        /// 地图编号,结合功能来决定是地图编号还是特征纹理集的编号
         /// </summary>
         public static int MapID { get => _mapID; set => _mapID = value; }
 
@@ -153,7 +158,7 @@ namespace MMWorld
             prefabA1 = CreatePrefab("prefabA1", 4, 0.5f, "Custom/CShader_1");
             HideObject(prefabA0); HideObject(prefabA1);
 
-            //碰撞设置时，摄像机的投影模式应该是正交投影（以获取正确的鼠标点击位置）
+            //碰撞设置时,摄像机的投影模式应该是正交投影(以获取正确的鼠标点击位置)
             if (Camera.main != null)
             {
                 //将摄像机的投影模式设置为正交投影
@@ -181,43 +186,42 @@ namespace MMWorld
                 //Variable Init
                 label_headTip = GameObject.Find("label_headTip");
                 comboBox_selectFunc = GameObject.Find("comboBox_selectFunc");
-                textBox_input = GameObject.Find("textBox_input");
-                textBox_workPath = GameObject.Find("textBox_workPath");
-                textBox_ruleFilePath = GameObject.Find("textBox_ruleFilePath");
-                button_selectWorkPath = GameObject.Find("button_selectWorkPath");
-                button_selectWorkFile = GameObject.Find("button_selectWorkFile");
+                textBox_workID = GameObject.Find("textBox_workID");
+                textBox_outsideResPath = GameObject.Find("textBox_outsideResPath");
                 button_run = GameObject.Find("button_run");
-                checkBox_TextureMode = GameObject.Find("checkBox_TextureMode");
-                TextureModeToggle = checkBox_TextureMode.GetComponent<Toggle>();
-                checkBox_ShowCollider = GameObject.Find("checkBox_ShowCollider");
-                ShowColliderToggle = checkBox_ShowCollider.GetComponent<Toggle>();
+                button_openFolder = GameObject.Find("button_openFolder");
+                button_outsideSave = GameObject.Find("button_outsideSave");
+                checkBox_mapEditorMode = GameObject.Find("checkBox_mapEditorMode");
+                colliderToggle = checkBox_mapEditorMode.GetComponent<Toggle>();
+                checkBox_showCollider = GameObject.Find("checkBox_showCollider");
+                showColliderToggle = checkBox_showCollider.GetComponent<Toggle>();
 
                 //Value Dft
                 label_headTip.GetComponent<TextMeshProUGUI>().color = Color.red;
                 if (comboBox_selectFunc.GetComponent<TMP_Dropdown>().value < 0)
                 {
-                    //当值为-1（未选）时，重置为第一个元素选项
+                    //当值为-1(未选)时,重置为第一个元素选项
                     comboBox_selectFunc.GetComponent<TMP_Dropdown>().value = 0;
                 }
 
                 //Event Register
-                button_selectWorkPath.GetComponent<Button>().onClick.AddListener(button1_Click);
-                button_selectWorkFile.GetComponent<Button>().onClick.AddListener(button2_Click);
-                textBox_workPath.GetComponent<TMP_InputField>().onValueChanged.AddListener(OnTextChanged);
+                button_run.GetComponent<Button>().onClick.AddListener(button1_Click);
+                button_openFolder.GetComponent<Button>().onClick.AddListener(button2_Click);
+                textBox_workID.GetComponent<TMP_InputField>().onValueChanged.AddListener(OnTextChanged);
 
                 //other
-                textBox_ruleFilePath.GetComponent<TMP_InputField>().text = Application.dataPath + "/Resources/ColliderFiles/MapCollider.txt";//显示默认路径
-                textBox_input.GetComponent<TMP_InputField>().lineType = TMP_InputField.LineType.MultiLineNewline;//多行
+                textBox_outsideResPath.GetComponent<TMP_InputField>().text = Application.dataPath + "/Resources/ColliderFiles/MapCollider.txt";//显示默认路径
+                //textBox_input.GetComponent<TMP_InputField>().lineType = TMP_InputField.LineType.MultiLineNewline;//多行
             }
         }
 
         private void Update()
         {
-            if (mainCanvaGO.activeSelf == false && TextureModeToggle.isOn && MapID >= 0 && MapID < 2)
+            if (mainCanvaGO.activeSelf == false && colliderToggle.isOn && MapID >= 0 && MapID < 2)
             {
                 Update_TextureCollider();
             }
-            else if (mainCanvaGO.activeSelf == false && !TextureModeToggle.isOn && MapID >= 0 && MapID < 240)
+            else if (mainCanvaGO.activeSelf == false && !colliderToggle.isOn && MapID >= 0 && MapID < 240)
             {
                 Update_MapCollider();
             }
@@ -227,7 +231,7 @@ namespace MMWorld
             }
             else if (Input.GetKeyDown(KeyCode.Tilde) || Input.GetKeyDown(KeyCode.BackQuote) && mainCanvaGO != null)
             {//按波浪或反引号键来显隐界面
-                colliderID = "0";//显隐时总是重置用户选择的碰撞类型，以免误操作
+                colliderID = "0";//显隐时总是重置用户选择的碰撞类型,以免误操作
                 mainCanvaGO.SetActive(!mainCanvaGO.activeSelf);
             }
         }
@@ -237,7 +241,7 @@ namespace MMWorld
         private void Update_TextureCollider()
         {
             int startID = -1;
-            if (TextureModeToggle.isOn)
+            if (colliderToggle.isOn)
             {
                 switch (MapID)
                 {
@@ -254,9 +258,9 @@ namespace MMWorld
                 if (startID != -1)
                 {
                     SelectColliderID();//获取用户设置的碰撞操作类型
-                    Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);//获取鼠标点击位置（正交相机获取XY，Z始终等于相机的近裁剪面位置）
+                    Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);//获取鼠标点击位置(正交相机获取XY,Z始终等于相机的近裁剪面位置)
                     if (mousePosition.x >= 0 && mousePosition.x < gridWidth && mousePosition.y >= 0 && mousePosition.y < gridHeight)
-                    {//如鼠标碰到有效单元（没出当前网格范围）
+                    {//如鼠标碰到有效单元(没出当前网格范围)
                         if (Input.GetMouseButtonDown(0))
                         {//左键则放置标记在单元位置
                             textureID = ((int)mousePosition.x + 8 * (int)mousePosition.y + startID).ToString();
@@ -362,7 +366,7 @@ namespace MMWorld
                     }
                     else if (Input.GetKeyDown(KeyCode.Tilde) || Input.GetKeyDown(KeyCode.BackQuote) && mainCanvaGO != null)
                     {//按波浪或反引号键来显隐界面
-                        colliderID = "0";//显隐时总是重置用户选择的碰撞类型，以免误操作
+                        colliderID = "0";//显隐时总是重置用户选择的碰撞类型,以免误操作
                         mainCanvaGO.SetActive(!mainCanvaGO.activeSelf);
                     }
                 }
@@ -374,7 +378,7 @@ namespace MMWorld
         private void Update_MapCollider()
         {
             int mapIndex; int startID = -1;
-            if (!TextureModeToggle.isOn)
+            if (!colliderToggle.isOn)
             {
                 switch (MapID)
                 {
@@ -389,12 +393,12 @@ namespace MMWorld
                 if (startID != -1 && MapID >= 0 && MapID < 240)
                 {
                     SelectColliderID();//获取用户设置的碰撞操作类型
-                    Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);//获取鼠标点击位置（正交相机获取XY，Z始终等于相机的近裁剪面位置）
+                    Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);//获取鼠标点击位置(正交相机获取XY,Z始终等于相机的近裁剪面位置)
                     if (mousePosition.x >= 0 && mousePosition.x < gridWidth && mousePosition.y >= 0 && mousePosition.y < gridHeight)
-                    {//如鼠标碰到有效单元（没出当前网格范围）
+                    {//如鼠标碰到有效单元(没出当前网格范围)
                         if (Input.GetMouseButtonDown(0))
                         {//左键则放置标记在单元位置
-                            mapIndex = (int)mousePosition.x + gridWidth * (int)mousePosition.y;//如果是拉多镇21宽度，鼠标点击第一格是0+21*0的索引[0]
+                            mapIndex = (int)mousePosition.x + gridWidth * (int)mousePosition.y;//如果是拉多镇21宽度,鼠标点击第一格是0+21*0的索引[0]
                             textureID = (CPEngine.mapIDs[MapID][mapIndex] + startID).ToString();
                             if (colliderID == "1" && !mapColliderDictionary.TryGetValue(textureID, out colliderValue))
                             {
@@ -452,7 +456,7 @@ namespace MMWorld
                         }
                         else if (Input.GetMouseButtonDown(1))
                         {//右键则删除标记
-                            mapIndex = (int)mousePosition.x + gridWidth * (int)mousePosition.y;//如果是拉多镇21宽度，鼠标点击第一格是0+21*0的索引[0]
+                            mapIndex = (int)mousePosition.x + gridWidth * (int)mousePosition.y;//如果是拉多镇21宽度,鼠标点击第一格是0+21*0的索引[0]
                             textureID = (CPEngine.mapIDs[MapID][mapIndex] + startID).ToString();
                             if (colliderID == "1" && mapColliderDictionary.TryGetValue(textureID, out colliderValue) && colliderValue == colliderID)
                             {
@@ -499,7 +503,7 @@ namespace MMWorld
                     }
                     else if (Input.GetKeyDown(KeyCode.Tilde) || Input.GetKeyDown(KeyCode.BackQuote) && mainCanvaGO != null)
                     {//按波浪或反引号键来显隐界面
-                        colliderID = "0";//显隐时总是重置用户选择的碰撞类型，以免误操作
+                        colliderID = "0";//显隐时总是重置用户选择的碰撞类型,以免误操作
                         mainCanvaGO.SetActive(!mainCanvaGO.activeSelf);
                     }
                 }
@@ -507,8 +511,9 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// 读取碰撞文件，若存在则将纹理ID及其对应的碰撞信息保存到mapColliderDictionary。
-        /// 开局初始化时，默认是小地图纹理集，将初始化创建碰撞标记。
+        /// 读取碰撞文件,若存在则将纹理ID及其对应的碰撞信息保存到mapColliderDictionary.
+        /// 开局初始化时,默认是小地图纹理集,将初始化创建碰撞标记.
+        /// 如果开启"仅读内置"则始终使用内部路径的碰撞文件,否则有外部路径文件存在时将被自动使用.
         /// </summary>
         private void LoadColliderFile()
         {
@@ -524,7 +529,7 @@ namespace MMWorld
                     c = int.Parse(fields[i]) - 162;
                     if (c >= 163 && c <= 1522)
                     {
-                        //开局初始化时，默认是小地图纹理集，这里创建碰撞标记
+                        //开局初始化时,默认是小地图纹理集,这里创建碰撞标记
                         a = (int.Parse(fields[i]) - 162) % 8;
                         b = (int.Parse(fields[i]) - 162) / 8;
                         if (fields[i + 1] == "1")
@@ -575,11 +580,11 @@ namespace MMWorld
         {
             MMCore.Write(string.Join(",", mapColliderDictionary.Select(kvp => $"{kvp.Key},{kvp.Value}")));
             MMCore.fileWriter.Close(Application.dataPath + "/Resources/ColliderFiles/MapCollider.txt", false, Encoding.UTF8);
-            Debug.Log("执行保存..若未见文件更新，请点击VS2022界面再切回Unity窗口！");
+            Debug.Log("执行保存..若未见文件更新,请点击VS2022界面再切回Unity窗口！");
         }
 
         /// <summary>
-        /// 用户设置的碰撞操作类型：0没有碰撞，1=人碰撞，2=车碰撞，3=人和车碰撞，每种都是左键添加右键移除
+        /// 用户设置的碰撞操作类型:0没有碰撞,1=人碰撞,2=车碰撞,3=人和车碰撞,每种都是左键添加右键移除
         /// </summary>
         private void SelectColliderID()
         {
@@ -658,17 +663,17 @@ namespace MMWorld
             else if (prefab == prefabA1) { index = 2; }
 
             if (grids[(int)position.x, (int)position.y, index - 1] != null)
-            {//实际物理位置存在该对象时进行摧毁（这里修改为隐藏）
+            {//实际物理位置存在该对象时进行摧毁(这里修改为隐藏)
                 //Destroy(grids[(int)position.x, (int)position.y, index - 1]);
                 HideObject(grids[(int)position.x, (int)position.y, index - 1]);
             }
         }
 
         /// <summary>
-        /// 创建一个平面圆形游戏物体（默认仅背面渲染，摄像机从Z低处向上看得到），会立马出现在场景，可手动隐藏或保存为预制体（素材文件）后清除它。
+        /// 创建一个平面圆形游戏物体(默认仅背面渲染,摄像机从Z低处向上看得到),会立马出现在场景,可手动隐藏或保存为预制体(素材文件)后清除它.
         /// </summary>
         /// <param name="name">预制体名称</param>
-        /// <param name="segments">分段数决定圆的平滑程度，越少圆看起来就越像是多边形，越多圆就越接近于真正的圆形，少于4个会看不到圆而是正方形，2~3个则是三角，1个是条线</param>
+        /// <param name="segments">分段数决定圆的平滑程度,越少圆看起来就越像是多边形,越多圆就越接近于真正的圆形,少于4个会看不到圆而是正方形,2~3个则是三角,1个是条线</param>
         /// <param name="radius">半径</param>
         /// <param name="shaderName">Shader名称</param>
         /// <returns></returns>
@@ -678,7 +683,7 @@ namespace MMWorld
             MeshFilter meshFilter = prefab.AddComponent<MeshFilter>();
             meshFilter.mesh = CreateCircleMeshBoth(segments, radius, 1.0f);
             MeshRenderer meshRenderer = prefab.AddComponent<MeshRenderer>();
-            //纹理数据会被加载并传递给Shader，但由于Shader被固定为输出红色，后面即使meshRenderer.material.mainTexture=各种纹理都不会影响
+            //纹理数据会被加载并传递给Shader,但由于Shader被固定为输出红色,后面即使meshRenderer.material.mainTexture=各种纹理都不会影响
             meshRenderer.material = new Material(Shader.Find(shaderName));
             return prefab;
         }
@@ -705,7 +710,7 @@ namespace MMWorld
                 vertices[i] = new Vector3(Mathf.Cos(angle) * radius, Mathf.Sin(angle) * radius, height);
             }
 
-            // 生成三角形索引，与原始平面网格相同
+            // 生成三角形索引,与原始平面网格相同
             for (int i = 0; i < segments; i++)
             {
                 triangles[i * 3] = 0;
@@ -767,12 +772,12 @@ namespace MMWorld
             //    }
             //}
 
-            if (CPEngine.userCellChunks.Count > 0)
+            if (CellChunkManager.Chunks.Values.Count > 0)
             {
                 if (chunk == null)
                 {
-                    Debug.Log("CPEngine.userCellChunks.Count = " + CPEngine.userCellChunks.Count);
-                    foreach (CellChunk cellChunk in CPEngine.userCellChunks)
+                    Debug.Log("CellChunkManager.Chunks.Values.Count = " + CellChunkManager.Chunks.Values.Count);
+                    foreach (CellChunk cellChunk in CellChunkManager.Chunks.Values)
                     {
                         if (!cellChunk.Fresh)
                         {
@@ -787,17 +792,17 @@ namespace MMWorld
                 if (chunk != null)
                 {
                     //根据输入内容来切换地图
-                    string temp = textBox_workPath.GetComponent<TMP_InputField>().text;
+                    string temp = textBox_workID.GetComponent<TMP_InputField>().text;
                     if (temp != null || temp != "" && MMCore.IsNumeric(temp))
                     {
                         int id = int.Parse(temp);
                         Debug.Log("id = " + id);
-                        if (id >= 0 && id < 240 && !TextureModeToggle.isOn)
-                        {//数字是有效的，且是地图编号
+                        if (id >= 0 && id <= 240 && !colliderToggle.isOn)
+                        {//数字是有效的,且是地图编号
                             LoadMap(id);
                         }
-                        else if (id >= 0 && id < 2 && TextureModeToggle.isOn)
-                        {//数字是有效的，且是重装机兵特征纹理编号
+                        else if (id >= 0 && id < 2 && colliderToggle.isOn)
+                        {//数字是有效的,且是重装机兵特征纹理编号
                             LoadTexture(id);
                         }
                     }
@@ -806,11 +811,11 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// 点击加载碰撞文本
+        /// 
         /// </summary>
         private void button2_Click()
         {
-            textBox_input.GetComponent<TMP_InputField>().text = Resources.Load<TextAsset>("ColliderFiles/MapCollider").text;
+            //textBox_input.GetComponent<TMP_InputField>().text = Resources.Load<TextAsset>("ColliderFiles/MapCollider").text;
         }
 
         /// <summary>
@@ -827,7 +832,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// mapID=0为大地图，小地图从1~239开始（1是拉多镇），240是龙珠大地图测试
+        /// mapID=0为大地图,小地图从1~239开始(1是拉多镇),240是龙珠大地图测试
         /// </summary>
         /// <param name="mapID"></param>
         private void LoadMap(int mapID)
@@ -842,7 +847,7 @@ namespace MMWorld
                     for (int x = 0; x < 256; x++)
                     {
                         i++;
-                        if (CPEngine.HorizontalMode)
+                        if (CPEngine.horizontalMode)
                         {
                             chunk.SetCell(x, y, (ushort)(CPEngine.mapIDs[0][i] + 10), true);//重装机兵大地图第一个纹理编号从11开始
                             SetColliderByTextureID((CPEngine.mapIDs[0][i] + 10).ToString(), new Vector3(x, y, 0));
@@ -854,34 +859,34 @@ namespace MMWorld
             }
             else if (mapID > 0 && mapID < 240)
             {//刷小地图
-                int width = CPEngine.mapWidths[mapID - 1];//拉多是mapId=1，格子宽度=CPEngine.mapWidths[0]
+                int width = CPEngine.mapWidths[mapID - 1];//拉多是mapId=1,格子宽度=CPEngine.mapWidths[0]
                 int currentX = 0; // 当前列的索引
                 int currentY = 0; // 当前行的索引
 
                 gridWidth = width; gridHeight = (CPEngine.mapIDs[mapID].Count + width - 1) / width;
                 MapClear(width, (CPEngine.mapIDs[mapID].Count + width - 1) / width); MapColliderClear();
 
-                // 由于我们不知道总格子数，我们将使用一个条件来检查是否应该停止
+                // 由于我们不知道总格子数,我们将使用一个条件来检查是否应该停止
                 bool shouldStop = false;
 
                 while (!shouldStop)
                 {
                     i++; // 增加计数
-                    if (CPEngine.HorizontalMode)
+                    if (CPEngine.horizontalMode)
                     {
                         chunk.SetCell(currentX, currentY, (ushort)(CPEngine.mapIDs[mapID][i] + 162), true);//重装机兵小地图第一个纹理编号从163开始
                         SetColliderByTextureID((CPEngine.mapIDs[mapID][i] + 162).ToString(), new Vector3(currentX, currentY, 0));
                     }
                     currentX++;
 
-                    // 如果达到行宽，则换行
+                    // 如果达到行宽,则换行
                     if (currentX >= width)
                     {
                         currentX = 0; // 重置列索引
                         currentY++;   // 增加行索引
 
                         // 检查是否应该停止
-                        if (i + 1 >= CPEngine.mapIDs[mapID].Count) //如拉多的格子数是384，达到就停止
+                        if (i + 1 >= CPEngine.mapIDs[mapID].Count) //如拉多的格子数是384,达到就停止
                         {
                             shouldStop = true;
                         }
@@ -890,24 +895,24 @@ namespace MMWorld
                 //进行角色位置重置
                 player.InitPosition(350, 350);
             }
-            //else if (mapID == 240)
-            //{//刷龙珠大地图
-            //    for (int y = 0; y < 349; y++)
-            //    {
-            //        for (int x = 0; x < 512; x++)
-            //        {
-            //            i++;
-            //            if (CPEngine.HorizontalMode)
-            //            {
-            //                chunk.SetCell(x, y, (ushort)(CPEngine.mapIDs[240][i] + 1522), true);//龙珠大地图第一个纹理编号从1523开始
-            //            }
-            //        }
-            //    }
-            //}
+            else if (mapID == 240)
+            {//刷龙珠大地图
+                for (int y = 0; y < 349; y++)
+                {
+                    for (int x = 0; x < 512; x++)
+                    {
+                        i++;
+                        if (CPEngine.horizontalMode)
+                        {
+                            chunk.SetCell(x, y, (ushort)(CPEngine.mapIDs[240][i] + 1522), true);//龙珠大地图第一个纹理编号从1523开始
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
-        /// 0是大地图纹理，1是小地图纹理
+        /// 0是大地图纹理,1是小地图纹理
         /// </summary>
         /// <param name="textureID"></param>
         private void LoadTexture(int textureID)
@@ -923,7 +928,7 @@ namespace MMWorld
                     for (int x = 0; x < 8; x++)
                     {
                         i++;
-                        if (CPEngine.HorizontalMode)
+                        if (CPEngine.horizontalMode)
                         {
                             chunk.SetCell(x, y, (ushort)(x + 8 * y + 11), true);//重装机兵大地图第一个纹理编号从11开始
                             SetColliderByTextureID((x + 8 * y + 11).ToString(), new Vector3(x, y, 0));
@@ -943,7 +948,7 @@ namespace MMWorld
                     for (int x = 0; x < 8; x++)
                     {
                         i++;
-                        if (CPEngine.HorizontalMode)
+                        if (CPEngine.horizontalMode)
                         {
                             chunk.SetCell(x, y, (ushort)(x + 8 * y + 163), true);//重装机兵大地图第一个纹理编号从163开始
                             SetColliderByTextureID((x + 8 * y + 163).ToString(), new Vector3(x, y, 0));
@@ -962,18 +967,18 @@ namespace MMWorld
         /// <param name="yStart"></param>
         private void MapClear(int xStart, int yStart)
         {
-            for (int y = 0; y < CPEngine.ChunkSideLength; y++)
+            for (int y = 0; y < CPEngine.chunkSideLength; y++)
             {
-                for (int x = 0; x < CPEngine.ChunkSideLength; x++)
+                for (int x = 0; x < CPEngine.chunkSideLength; x++)
                 {
                     // 检查当前坐标是否在排除区域内
                     if (x < xStart && y < yStart)
                     {
-                        //如果在排除区域内，跳过这个坐标
+                        //如果在排除区域内,跳过这个坐标
                         continue;
                     }
 
-                    if (CPEngine.HorizontalMode)
+                    if (CPEngine.horizontalMode)
                     {
                         if (chunk.GetCellID(x, y) != 0)
                         {
@@ -985,7 +990,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// 清理地图碰撞标记。根据当前gridWidth和gridHeight进行遍历查找存在的对象并隐藏。
+        /// 清理地图碰撞标记.根据当前gridWidth和gridHeight进行遍历查找存在的对象并隐藏.
         /// </summary>
         private void MapColliderClear()
         {

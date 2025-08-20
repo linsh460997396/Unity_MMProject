@@ -1,4 +1,4 @@
-//namespace MMWorld.Test
+﻿//namespace MMWorld.Test
 //{
 //    /// <summary>
 //    /// 测试关卡3
@@ -6,7 +6,7 @@
 //    public class TestStage3 : Stage
 //    {
 //        /// <summary>
-//        /// 超时指标（用于切换游玩模块）
+//        /// 超时指标(用于切换游玩模块)
 //        /// </summary>
 //        public int timeout;
 
@@ -21,8 +21,8 @@
 //            scene.EnableMinimap(true);
 
 //            //先给自己创建一些初始技能
-//            //todo：通过配置来创建，纯技能并没有什么意义，只有进了关卡之后才能实例化、开始工作，也就是说技能依附于关卡存在
-//            //玩家在游戏过程中，技能可能会 增加，成长，都应该写进 配置。 这样切换关卡后，可以根据配置 再次创建技能
+//            //todo:通过配置来创建,纯技能并没有什么意义,只有进了关卡之后才能实例化、开始工作,也就是说技能依附于关卡存在
+//            //玩家在游戏过程中,技能可能会 增加,成长,都应该写进 配置. 这样切换关卡后,可以根据配置 再次创建技能
 //            {
 //                var ps = new PlayerSkill(this);
 //                ps.Init();
@@ -118,7 +118,7 @@
 //        /// </summary>
 //        public void P3()
 //        {
-//            scene.SetStage(new TestStage1(scene));          // 已超时：切到新关卡
+//            scene.SetStage(new TestStage1(scene));          // 已超时:切到新关卡
 //        }
 //    }
 //}

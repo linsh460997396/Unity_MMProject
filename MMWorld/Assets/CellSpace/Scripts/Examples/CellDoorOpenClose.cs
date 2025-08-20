@@ -1,4 +1,4 @@
-namespace CellSpace.Examples
+﻿namespace CellSpace.Examples
 {
     public class CellDoorOpenClose : DefaultCellEvents
     {

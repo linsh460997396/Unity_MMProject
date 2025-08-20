@@ -1,6 +1,6 @@
 ﻿using System;
 #if UNITY_EDITOR || UNITY_STANDALONE
-//Unity编辑器、独立应用程序（不包括Web播放器）
+//Unity编辑器、独立应用程序(不包括Web播放器)
 using Vector3F = UnityEngine.Vector3;
 #elif MonoGame
 //使用VS2022的MonoGame插件框架
@@ -11,8 +11,8 @@ using Vector3F = System.Numerics.Vector3;
 
 namespace MetalMaxSystem
 {
-    //虚拟键码：https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes?redirectedfrom=MSDN
-    //CSDN原址：https://blog.csdn.net/qq_43851684/article/details/113096306
+    //虚拟键码:https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes?redirectedfrom=MSDN
+    //CSDN原址:https://blog.csdn.net/qq_43851684/article/details/113096306
 
     /// <summary>
     /// 监听服务
@@ -23,7 +23,7 @@ namespace MetalMaxSystem
 
         private bool _defaultEvent = false;
         /// <summary>
-        /// 判断键鼠总控预制事件是否已注册，通过函数“AddKeyMouseEvent”可快捷将本类实例中5个预制事件KeyDown、KeyUp、MouseMove、MouseDown、MouseUp注册给库内预制函数引用，从而使用按键总控管理衍生的所有功能（比如将“移动”、“发射火箭”等函数动作注册给Q键）
+        /// 判断键鼠总控预制事件是否已注册,通过函数“AddKeyMouseEvent”可快捷将本类实例中5个预制事件KeyDown、KeyUp、MouseMove、MouseDown、MouseUp注册给库内预制函数引用,从而使用按键总控管理衍生的所有功能(比如将“移动”、“发射火箭”等函数动作注册给Q键)
         /// </summary>
         public bool DefaultEvent
         {
@@ -47,7 +47,7 @@ namespace MetalMaxSystem
         /// </summary>
         private readonly KeyboardHook MyKeyboardHook;
 
-        //↓用户可自定义函数引用（委托），在监听到事件发生时去执行
+        //↓用户可自定义函数引用(委托),在监听到事件发生时去执行
         public KeyDownEventFuncref KeyDownEvent;
         public KeyDoubleClickEventFuncref KeyDoubleClickEvent;
         public KeyUpEventFuncref KeyUpEvent;
@@ -72,7 +72,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// [构造函数]创建监听服务，可自定用户玩家编号（范围是1-15）
+        /// [构造函数]创建监听服务,可自定用户玩家编号(范围是1-15)
         /// </summary>
         public RecordService(int player)
         {
@@ -210,12 +210,12 @@ namespace MetalMaxSystem
 
         #endregion
 
-        //以下处理动作不宜放时间复杂度高的函数动作，建议只记录变量变化，由其他线程读取这些变量后决定触发动作
+        //以下处理动作不宜放时间复杂度高的函数动作,建议只记录变量变化,由其他线程读取这些变量后决定触发动作
 
         #region 鼠标事件处理
 
         /// <summary>
-        /// 鼠标事件处理函数，对接系统底层非托管事件，并按用户设定线程的周期间隔将指定状态记录到托管数据，本函数不做其他消耗时间的处理，请另外读取这些状态数据来组织动作
+        /// 鼠标事件处理函数,对接系统底层非托管事件,并按用户设定线程的周期间隔将指定状态记录到托管数据,本函数不做其他消耗时间的处理,请另外读取这些状态数据来组织动作
         /// </summary>
         /// <param name="wParam">鼠标事件状态</param>
         /// <param name="mouseMsg">存储着鼠标信息</param>
@@ -226,17 +226,17 @@ namespace MetalMaxSystem
             {
                 case MouseHook.WM_MOUSEMOVE:
                     //记录鼠标移动位置
-                    X = mouseMsg.pt.x;//UI坐标，是整数
-                    Y = mouseMsg.pt.y;//UI坐标，是整数
+                    X = mouseMsg.pt.x;//UI坐标,是整数
+                    Y = mouseMsg.pt.y;//UI坐标,是整数
 
-                    //注：到此记录了WParam和X,Y即可，不宜写时间复杂度较高的逻辑，剩下的"按键总控"功能（给按键注册注销更换委托函数，用于蓄力、移动、释放技能、按弹菜单等游戏世界逻辑）通过读取本类信息另外开线程去制作即可
+                    //注:到此记录了WParam和X,Y即可,不宜写时间复杂度较高的逻辑,剩下的"按键总控"功能(给按键注册注销更换委托函数,用于蓄力、移动、释放技能、按弹菜单等游戏世界逻辑)通过读取本类信息另外开线程去制作即可
 
-                    //思考：X,Y如何转化为世界坐标？
+                    //思考:X,Y如何转化为世界坐标？
 
-                    //Z从上述（X,Y）的信息中获得
+                    //Z从上述(X,Y)的信息中获得
                     try
                     {
-                        //鼠标的移动会出界导致负数，X和Y在小于0时其属性方法必须纠正为0
+                        //鼠标的移动会出界导致负数,X和Y在小于0时其属性方法必须纠正为0
                         Z = Game.MapHeight + Game.TerrainHeight[X, Y] + MMCore.DictionaryFloatLoad0(true, "Unit.TerrainHeight");
                     }
                     catch (Exception ex)
@@ -245,7 +245,7 @@ namespace MetalMaxSystem
                         //MMCore.Tell("Error:X{0},Y{1}", X, Y);
                         //Debug.Log(ex.Message); //需引用Unity方法库
                         Console.WriteLine(ex.Message);
-                        //抛出异常，将错误信息传递给上层调用者
+                        //抛出异常,将错误信息传递给上层调用者
                         throw;
                     }
 
@@ -330,7 +330,7 @@ namespace MetalMaxSystem
          */
 
         /// <summary>
-        /// 键盘事件处理函数，对接系统底层非托管事件，并按用户设定线程的周期间隔将指定状态记录到托管数据，本函数不做其他消耗时间的处理，请另外读取这些状态数据来组织动作
+        /// 键盘事件处理函数,对接系统底层非托管事件,并按用户设定线程的周期间隔将指定状态记录到托管数据,本函数不做其他消耗时间的处理,请另外读取这些状态数据来组织动作
         /// </summary>
         /// <param name="wParam">键盘事件状态</param>
         /// <param name="keyboardHookStruct">存储着虚拟键码</param>
@@ -382,7 +382,7 @@ namespace MetalMaxSystem
         /// <summary>
         /// 是否按下了 Ctrl + alt + 0-9
         /// </summary>
-        /// <returns>返回0-9代表按下了Ctrl+alt+0-9，返回-1代表没有按下</returns>
+        /// <returns>返回0-9代表按下了Ctrl+alt+0-9,返回-1代表没有按下</returns>
         public int IsPressTarget()
         {
             if ((!CtrlAlt[0]) || (!CtrlAlt[1]))

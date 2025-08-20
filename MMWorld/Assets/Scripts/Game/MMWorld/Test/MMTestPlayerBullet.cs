@@ -1,10 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace MMWorld.Test
 {
 
     /// <summary>
-    /// MM测试专用玩家子弹（发射物）
+    /// MM测试专用玩家子弹(发射物)
     /// </summary>
     public class MMTestPlayerBullet : PlayerBullet
     {
@@ -29,7 +29,7 @@ namespace MMWorld.Test
         public int knockbackForce;
 
         /// <summary>
-        /// [构造函数]MM测试专用玩家子弹（发射物）
+        /// [构造函数]MM测试专用玩家子弹(发射物)
         /// </summary>
         /// <param name="ps">MMTestPlayerSkill对象</param>
         public MMTestPlayerBullet(MMTestPlayerSkill ps) : base(ps)
@@ -46,7 +46,7 @@ namespace MMWorld.Test
         public override bool Update()
         {
 
-            // 维护超时黑名单，先把超时的删光
+            // 维护超时黑名单,先把超时的删光
             var now = scene.time;
             var newTIme = now + pierceDelay;
             for (var i = hitBlackList.Count - 1; i >= 0; --i)
@@ -71,7 +71,7 @@ namespace MMWorld.Test
             }
             else
             {
-                //遍历九宫挨个处理相交，消耗穿刺数量
+                //遍历九宫挨个处理相交,消耗穿刺数量
                 monstersSpaceContainer.Foreach9All(pixelX, pixelY, HitCheck);
                 if (pierceCount <= 0) return true;
             }
@@ -80,10 +80,10 @@ namespace MMWorld.Test
             pixelX += incX;
             pixelY += incY;
 
-            //坐标超出grid地图范围：自杀
+            //坐标超出grid地图范围:自杀
             if (pixelX < 0 || pixelX >= Scene.gridChunkWidth || pixelY < 0 || pixelY >= Scene.gridChunkHeight) return true;
 
-            //生命周期完结：自杀
+            //生命周期完结:自杀
             return lifeEndTime < scene.time;
         }
 
@@ -103,23 +103,23 @@ namespace MMWorld.Test
                 var listLen = hitBlackList.Count;
                 for (var i = 0; i < listLen; ++i)
                 {
-                    if (hitBlackList[i].Key == m) return false;     //存在：不产生伤害，继续遍历下一只怪
+                    if (hitBlackList[i].Key == m) return false;     //存在:不产生伤害,继续遍历下一只怪
                 }
 
-                //不存在：加入列表
+                //不存在:加入列表
                 hitBlackList.Add(new KeyValuePair<SpaceItem, int>(m, scene.time + pierceDelay));
 
                 //伤害怪
                 ((Monster)m).Hurt(damage, knockbackForce);
 
-                //如果穿刺计数已用光，停止遍历
+                //如果穿刺计数已用光,停止遍历
                 if (pierceCount-- == 0)
                 {
-                    //todo：这儿可放点特效
+                    //todo:这儿可放点特效
                     return true;
                 }
             }
-            //未命中：继续遍历下一只怪
+            //未命中:继续遍历下一只怪
             return false;
         }
 

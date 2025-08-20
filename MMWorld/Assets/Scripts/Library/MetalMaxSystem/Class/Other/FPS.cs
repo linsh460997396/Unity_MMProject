@@ -10,8 +10,8 @@ namespace MetalMaxSystem.Unity
     {
         private float deltaTime = 0.0f;
 
-        [Tooltip("用于调整显示区高度，值越大高度越小")] //编辑器界面鼠标悬浮该字段时提示
-        public int size = 20;
+        [Tooltip("用于调整显示区高度,值越大高度越小")] //编辑器界面鼠标悬浮该字段时提示
+        public int size = 20;//非静态公共字段会自动初始化
 
         private void Awake()
         {
@@ -20,19 +20,19 @@ namespace MetalMaxSystem.Unity
 
         void Update()
         {
-            //计算每帧之间的时间差，并进行平滑处理，避免帧率波动带来的突变
+            //计算每帧之间的时间差,并进行平滑处理,避免帧率波动带来的突变
             deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
         }
 
         void OnGUI()
         {
-            //在Unity游戏引擎中显示当前的帧率（FPS）和每帧的渲染时间（以毫秒为单位）
+            //在Unity游戏引擎中显示当前的帧率(FPS)和每帧的渲染时间(以毫秒为单位)
 
-            //获取当前屏幕的宽度和高度，用于后续计算显示区域的大小和位置
+            //获取当前屏幕的宽度和高度,用于后续计算显示区域的大小和位置
             int w = Screen.width, h = Screen.height;
-            //创建一个新的GUIStyle对象，用于定义文本的样式，包括对齐方式、字体大小和颜色
+            //创建一个新的GUIStyle对象,用于定义文本的样式,包括对齐方式、字体大小和颜色
             GUIStyle style = new GUIStyle();
-            //定义一个矩形区域rect，用于指定帧率显示的位置和大小
+            //定义一个矩形区域rect,用于指定帧率显示的位置和大小
             Rect rect = new Rect(0, 0, w, h * 2 / size); //设置帧率显示区域的位置和大小  
                                                          //Rect rect = new Rect(0, 0, 200, 100); 
                                                          //设置文本控件锚点的对齐方式为左上角(UI屏幕一般都以左上角为原点)
@@ -41,7 +41,7 @@ namespace MetalMaxSystem.Unity
             style.fontSize = h * 2 / size;
             //设置文本颜色为深蓝色
             style.normal.textColor = new Color(0.0f, 0.0f, 0.5f, 1.0f);
-            //计算当前的帧率（FPS）和每帧的渲染时间（以毫秒为单位）
+            //计算当前的帧率(FPS)和每帧的渲染时间(以毫秒为单位)
             float fps = 1.0f / deltaTime;
             float ms = deltaTime * 1000.0f; //秒转毫秒
             string text = string.Format("{0:0.} FPS | {1:0.} ms", fps, ms);

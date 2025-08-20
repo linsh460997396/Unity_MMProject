@@ -1,4 +1,4 @@
-//using UnityEngine;
+﻿//using UnityEngine;
 
 //namespace MMWorld.Test
 //{
@@ -63,7 +63,7 @@
 //        }
 
 //        /// <summary>
-//        /// 测试P1（玩家屏幕范围产生大量随机数字特性）
+//        /// 测试P1(玩家屏幕范围产生大量随机数字特性)
 //        /// </summary>
 //        public void P1()
 //        {

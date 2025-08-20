@@ -1,10 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace CellSpace
 {
     /// <summary>
-    /// 填充圆形扩散的格子偏移量数组，主用于更高效的2D范围内找最近网格容器（单元），生成一系列均匀分布在多个圆周上的点，并将这些点的坐标及每个圆周上的点数量存储起来。
+    /// 填充圆形扩散的格子偏移量数组,主用于更高效的2D范围内找最近网格容器(单元),生成一系列均匀分布在多个圆周上的点,并将这些点的坐标及每个圆周上的点数量存储起来.
     /// </summary>
     public class CellRingDiffuseXZ
     {
@@ -12,7 +12,7 @@ namespace CellSpace
         public List<CellXZInfo> idxzs = new();
 
         /// <summary>
-        /// 填充圆形扩散的格子偏移量数组，主用于更高效的2D范围内找最近网格容器（单元），生成一系列均匀分布在多个圆周上的点，并将这些点的坐标及每个圆周上的点数量存储起来。
+        /// 填充圆形扩散的格子偏移量数组,主用于更高效的2D范围内找最近网格容器(单元),生成一系列均匀分布在多个圆周上的点,并将这些点的坐标及每个圆周上的点数量存储起来.
         /// </summary>
         /// <param name="gridNumRows">网格行数</param>
         /// <param name="cellSize">单元大小</param>

@@ -1,5 +1,5 @@
 ﻿#if UNITY_EDITOR || UNITY_STANDALONE
-//Unity编辑器、独立应用程序（不包括Web播放器）
+//Unity编辑器、独立应用程序(不包括Web播放器)
 using Vector2F = UnityEngine.Vector2;
 using Vector3F = UnityEngine.Vector3;
 #elif MonoGame
@@ -14,7 +14,7 @@ using Vector3F = System.Numerics.Vector3;
 namespace MetalMaxSystem
 {
     /// <summary>
-    /// 玩家类，为每个玩家创建它并初始化所需信息，内置字段以外的临时属性可用数据表添加修改
+    /// 玩家类,为每个玩家创建它并初始化所需信息,内置字段以外的临时属性可用数据表添加修改
     /// </summary>
     public static class Player
     {
@@ -61,7 +61,7 @@ namespace MetalMaxSystem
         private static Vector2F[] _mouseVector2F = new Vector2F[Game.c_maxPlayers + 1];
 
         private static string[] _type = new string[Game.c_maxPlayers + 1];
-        private static string[] _handle = new string[Game.c_maxPlayers + 1];//句柄格式："A1-A1-A1-A0000001"
+        private static string[] _handle = new string[Game.c_maxPlayers + 1];//句柄格式:"A1-A1-A1-A0000001"
 
         private static bool[] _localUser = new bool[Game.c_maxPlayers + 1];
         private static string[] _status = new string[Game.c_maxPlayers + 1];
@@ -178,7 +178,7 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 键盘按键按下的有效状态（因为即便按下也能逻辑否决，所以真实有效按键必须键按下+有效状态同时符合）。禁用玩家操作时总是false，某些情况可设计针对某键禁止操作
+        /// 键盘按键按下的有效状态(因为即便按下也能逻辑否决,所以真实有效按键必须键按下+有效状态同时符合).禁用玩家操作时总是false,某些情况可设计针对某键禁止操作
         /// </summary>
         public static bool[,] KeyDownState
         {
@@ -284,7 +284,7 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 鼠标按键按下的有效状态（因为即便按下也能逻辑否决，所以真实有效按键必须键按下+有效状态同时符合）
+        /// 鼠标按键按下的有效状态(因为即便按下也能逻辑否决,所以真实有效按键必须键按下+有效状态同时符合)
         /// </summary>
         public static bool[,] MouseDownState
         {
@@ -421,8 +421,8 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 鼠标点高度，mouseVectorZ=MapHeight+TerrainHeight+Unit.TerrainHeight+Unit.Height
-        /// 悬崖、地形物件及单位在移动、诞生摧毁时应将高度信息刷新，以便实时获取
+        /// 鼠标点高度,mouseVectorZ=MapHeight+TerrainHeight+Unit.TerrainHeight+Unit.Height
+        /// 悬崖、地形物件及单位在移动、诞生摧毁时应将高度信息刷新,以便实时获取
         /// </summary>
         public static float[] MouseVectorZ
         {
@@ -437,7 +437,7 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 修正后的鼠标点高度（扣减了地面高度，所以这是相对地面的高度），mouseVectorZFixed=mouseVectorZ-MapHeight=TerrainHeight+Unit.TerrainHeight+Unit.Height
+        /// 修正后的鼠标点高度(扣减了地面高度,所以这是相对地面的高度),mouseVectorZFixed=mouseVectorZ-MapHeight=TerrainHeight+Unit.TerrainHeight+Unit.Height
         /// </summary>
         public static float[] MouseVectorZFixed
         {
@@ -452,7 +452,7 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 鼠标与玩家控制单位在世界中的2D角度，象限分布：右=0度，上=90°，左=180°，下=270°，可用于调整行走方向
+        /// 鼠标与玩家控制单位在世界中的2D角度,象限分布:右=0度,上=90°,左=180°,下=270°,可用于调整行走方向
         /// </summary>
         public static float[] MouseToUnitControlAngle
         {
@@ -482,7 +482,7 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 鼠标与玩家控制单位在世界中的3D角度，常用于调整鼠标自动镜头
+        /// 鼠标与玩家控制单位在世界中的3D角度,常用于调整鼠标自动镜头
         /// </summary>
         public static float[] MouseToUnitControlRange3F
         {
@@ -512,7 +512,7 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 鼠标3D点向量坐标，修正了鼠标点高度（扣减了地图高度，所以这是相对地面的高度），mouseVectorZFixed=mouseVectorZ-MapHeight=TerrainHeight+Unit.TerrainHeight+Unit.Height
+        /// 鼠标3D点向量坐标,修正了鼠标点高度(扣减了地图高度,所以这是相对地面的高度),mouseVectorZFixed=mouseVectorZ-MapHeight=TerrainHeight+Unit.TerrainHeight+Unit.Height
         /// </summary>
         public static Vector3F[] MouseVector3FFixed
         {
@@ -527,7 +527,7 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 鼠标3D点向量坐标，鼠标Z点在单位高度顶部，Z=MapHeight+TerrainHeight+Unit.TerrainHeight+Unit.Height
+        /// 鼠标3D点向量坐标,鼠标Z点在单位高度顶部,Z=MapHeight+TerrainHeight+Unit.TerrainHeight+Unit.Height
         /// </summary>
         public static Vector3F[] MouseVector3F
         {
@@ -542,7 +542,7 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 鼠标3D点向量坐标，鼠标Z点在单位层地形物件高度顶部（单位脚底），Z=MapHeight+TerrainHeight+Unit.TerrainHeight
+        /// 鼠标3D点向量坐标,鼠标Z点在单位层地形物件高度顶部(单位脚底),Z=MapHeight+TerrainHeight+Unit.TerrainHeight
         /// </summary>
         public static Vector3F[] MouseVector3FUnitTerrain
         {
@@ -557,7 +557,7 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 鼠标3D点向量坐标，鼠标Z点在悬崖、地形物件顶部，Z=MapHeight+TerrainHeight
+        /// 鼠标3D点向量坐标,鼠标Z点在悬崖、地形物件顶部,Z=MapHeight+TerrainHeight
         /// </summary>
         public static Vector3F[] MouseVector3FTerrain
         {
@@ -588,7 +588,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 玩家类型（中立Neutral、电脑Ai、用户User、玩家Player、敌人Enemy）
+        /// 玩家类型(中立Neutral、电脑Ai、用户User、玩家Player、敌人Enemy)
         /// </summary>
         public static string[] Type
         {
@@ -633,7 +633,7 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 用户状态（"Online"、"Offline"、其他状态字符）
+        /// 用户状态("Online"、"Offline"、其他状态字符)
         /// </summary>
         public static string[] Status
         {

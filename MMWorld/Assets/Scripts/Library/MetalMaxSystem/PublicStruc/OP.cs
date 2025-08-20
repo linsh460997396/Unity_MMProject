@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MetalMaxSystem.Unity
 {
-    //官方池（ObjectPool）只是一些基本功能，进出池部分属性重置预填都没做的，还是用此轮子
+    //官方池(ObjectPool)只是一些基本功能,进出池部分属性重置预填都没做的,还是用此轮子
 
     /// <summary>
     /// 对象池
@@ -17,17 +17,17 @@ namespace MetalMaxSystem.Unity
         public GameObject gameObject;
 
         /// <summary>
-        /// 对象的空间变换属性，包括位置（Position）、旋转（Rotation）和缩放（Scale）
+        /// 对象的空间变换属性,包括位置(Position)、旋转(Rotation)和缩放(Scale)
         /// </summary>
         public Transform transform;
 
         /// <summary>
-        /// 激活状态
+        /// 结构体的激活状态,应与gameobject的激活状态保持一致
         /// </summary>
         public bool actived;
 
         /// <summary>
-        /// 对象池（静态字段，内存唯一）
+        /// 对象池(静态字段,内存唯一)
         /// </summary>
         public static Stack<OP> pool;
 
@@ -39,9 +39,9 @@ namespace MetalMaxSystem.Unity
         /// </summary>
         public void Enable()
         {
-            if (!actived)
+            actived = true;
+            if (gameObject != null)
             {
-                actived = true;
                 gameObject.SetActive(true);
             }
         }
@@ -51,30 +51,31 @@ namespace MetalMaxSystem.Unity
         /// </summary>
         public void Disable()
         {
-            if (actived)
+            actived = false;
+            if (gameObject != null)
             {
-                actived = false;
                 gameObject.SetActive(false);
             }
         }
 
         /// <summary>
-        /// 从对象池拿OP并返回. 没有就新建（ref方便用外面对象接收结果）
+        /// 从对象池拿OP并返回. 没有就新建(ref方便用外面对象接收结果).
         /// </summary>
-        /// <param name="objectPool">游戏物体名称</param>
-        public static void Pop(ref OP objectPool)
+        /// <param name="objectPool"></param>
+        /// <param name="createGameObject">是否创建GameObject,默认创建</param>
+        public static void Pop(ref OP objectPool, bool createGameObject = true)
         {
 #if UNITY_EDITOR
             Debug.Assert(objectPool.gameObject == null);
 #endif
             if (!pool.TryPop(out objectPool))
             {
-                objectPool = New();
+                objectPool = New(createGameObject);
             }
         }
 
         /// <summary>
-        /// 将OP退回对象池（ref的好处是可以从外面接收到函数修改后的结果）
+        /// 将OP退回对象池(ref的好处是可以从外面接收到函数修改后的结果).其上的游戏物体则失活处理(不摧毁,等待复用).
         /// </summary>
         /// <param name="objectPool"></param>
         public static void Push(ref OP objectPool)
@@ -87,40 +88,46 @@ namespace MetalMaxSystem.Unity
 
             //推入栈顶
             pool.Push(objectPool);
-            //清空（主要针对堆上的引用类型）防止对象池也摧毁情况下还存在着堆数据，导致这个结构体对象不再使用时，引发内存泄露
-            //引用类型内存依然在堆上，跟刚推入栈的结构体复制体值类型数据中的GameObject内存索引仍挂钩，这个结构体实例清空后只留下一个静态pool字段即可（里面存着大量原结构体的复制体）
-            //退回后再读这个结构体，除了pool什么都没有
+            //清空(主要针对堆上的引用类型)防止对象池也摧毁情况下还存在着堆数据,导致这个结构体对象不再使用时,引发内存泄露.
+            //引用类型的主要内存依然在堆上占用,跟刚退入栈的值类型结构体GameObject字段仍挂钩
+            //Push方法后再读这个结构体,它除了对象池什么复杂引用都不挂钩了.若还有字段在关联着堆数据,那么垃圾就一直在,这里需要清空.
             objectPool.gameObject = null;
             objectPool.transform = null;
-            //↑光清空了池内复制体值类型，外面若还有个原结构体值类型在关联着堆数据，那么垃圾就一直在
-            objectPool.actived = false;
         }
 
         /// <summary>
-        /// 新建OP并返回
+        /// 新建OP结构体类型对象并返回.
+        /// 如参数createGameObject为true,那么每个OP.New()诞生结构体对象都会新建一个GameObject与之绑定.
         /// </summary>
+        /// <param name="createGameObject">是否创建GameObject,默认创建</param>
+        /// <param name="actived">结构体激活状态</param>
         /// <returns></returns>
-        public static OP New()
+        public static OP New(bool createGameObject = true, bool actived = true)
         {
             OP objectPool = new();
-            objectPool.gameObject = new GameObject();
-            objectPool.transform = objectPool.gameObject.GetComponent<Transform>();
-            objectPool.gameObject.SetActive(false); //创建后默认隐藏
+            objectPool.actived = actived;
+            if (createGameObject)
+            {
+                objectPool.gameObject = new GameObject();
+                //objectPool.gameObject.SetActive(true); //创建后默认是激活状态
+                objectPool.transform = objectPool.gameObject.transform;
+            }
             return objectPool;
         }
 
         /// <summary>
-        /// 初始化创建底层对象池（预填充）
+        /// 初始化创建底层对象池(预填充).会调用OP.New().
         /// </summary>
-        /// <param name="material"></param>
-        /// <param name="count"></param>
-        public static void Init(int count)
+        /// <param name="count">数量</param>
+        /// <param name="createGameObject">是否创建GameObject,默认创建</param>
+        public static OP[] Init(int count, bool createGameObject = true)
         {
-            OP.pool = new(count);
+            pool = new(count);
             for (int i = 0; i < count; i++)
             {
-                pool.Push(New());
+                pool.Push(New(createGameObject));
             }
+            return pool.ToArray();
         }
 
         /// <summary>

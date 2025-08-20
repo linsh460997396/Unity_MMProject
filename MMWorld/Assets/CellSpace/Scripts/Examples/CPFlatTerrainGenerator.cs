@@ -1,4 +1,4 @@
-namespace CellSpace.Examples
+﻿namespace CellSpace.Examples
 {
 
     public class CPFlatTerrainGenerator : CPTerrainGenerator
@@ -8,13 +8,13 @@ namespace CellSpace.Examples
         {
 
             int chunky = chunk.ChunkIndex.y;
-            int SideLength = CPEngine.ChunkSideLength;
+            int SideLength = CPEngine.chunkSideLength;
 
             for (int x = 0; x < SideLength; x++)
             {
                 for (int y = 0; y < SideLength; y++)
                 {
-                    if (CPEngine.HorizontalMode)
+                    if (CPEngine.horizontalMode)
                     {
                      // for all Items in the chunk
                         int currentHeight = y + (SideLength * chunky); // get absolute height for the cell

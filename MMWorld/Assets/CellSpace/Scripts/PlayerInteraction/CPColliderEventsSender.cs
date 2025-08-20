@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace CellSpace
 {
@@ -17,7 +17,7 @@ namespace CellSpace
             CPIndex cellIndex = chunk.PositionToCellIndex(transform.position);
             CellInfo cellInfo = new CellInfo(cellIndex, chunk);
             //print(cellInfo.GetCellID());
-            //create a local copy of the collision voxel so we can call functions on it.创建一个碰撞体素的本地副本，这样我们就可以在其上调用函数
+            //create a local copy of the collision voxel so we can call functions on it.创建一个碰撞体素的本地副本,这样我们就可以在其上调用函数
             GameObject cellObject = Instantiate(CPEngine.GetCellGameObject(cellInfo.GetCellID())) as GameObject;
             CellEvents events = cellObject.GetComponent<CellEvents>();
             if (events != null)

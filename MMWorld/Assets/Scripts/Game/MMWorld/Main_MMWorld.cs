@@ -1,4 +1,5 @@
 ﻿using CellSpace;
+using MetalMaxSystem.Unity;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,67 +14,75 @@ namespace MMWorld
     /// </summary>
     public class Main_MMWorld : MonoBehaviour
     {
-        //[NonSerialized] public static List<Sprite>[] mapSprites; //由于CellSpace使用了材质纹理UV自动划区，该精灵数组不再使用
+        //[NonSerialized] public static List<Sprite>[] mapSprites; //由于CellSpace使用了材质纹理UV自动划区,该精灵数组不再使用
         [NonSerialized] public static List<Sprite>[] vehicle;
         [NonSerialized] public static List<Sprite>[] characters;
         [NonSerialized] public static List<Sprite>[] monsters;
 
-        Transform engineTransform;Scene scene;
-        CPIndex lastPos, currentPos;
-        bool sceneEnabled = false;
+        public static Scene scene;
+        public static bool sceneEnabled = false;
 
-        //AddComponent时，Awake方法会在添加的那一帧立即执行，但Start方法则在下一帧的Update之前执行‌
+        ///// <summary>
+        ///// 挂上组件时运行(无论是否激活,仅自动运行1次)
+        ///// </summary>
+        //public void Awake()
+        //{
+
+        //}
+
+        ///// <summary>
+        ///// 组件激活时运行一次(反复激活反复运行)
+        ///// </summary>
+        //public void OnEnable()
+        //{
+
+        //}
 
         /// <summary>
-        /// 挂上组件时运行（无论是否激活，仅自动运行1次）
+        /// OnEnable后运行一次(仅自动运行1次,反复激活无效)
         /// </summary>
-        void Awake()
+        public void Start()
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
             LoadAssets();
             stopwatch.Stop();
-            Debug.Log("LoadAllAssets" + $"耗时：{stopwatch.ElapsedMilliseconds}ms");
+            Debug.Log("LoadAllAssets" + $"耗时:{stopwatch.ElapsedMilliseconds}ms");
 
-            //TE_AIBehavior.Main(); //unsafe模式下测试亿次AI行为，前往Scripts/Test/Example找到并激活使用（取消注释）
+            //TE_AIBehavior.Main(); //unsafe模式下测试亿次AI行为,前往Scripts/Test/Example找到并激活使用(取消注释)
 
-            //测试触发器（子线程运行）
+            //测试触发器(子线程运行)
             //Trigger timerUpdate = new Trigger();
             //timerUpdate.Update += TestFunc;
             //timerUpdate.Duetime = 1000;//前摇等待1s
             //timerUpdate.Period = 500;//500ms执行一次
             //timerUpdate.TriggerStart(true);//后台运行触发
 
-            //在周围刷地图（移动时不导致地形变掉只用来显示更多范围），可定点一次生成完整的图（同时请将团块边长和刷图范围调大），在地形较大甚至无限的情况下使用移动式（绑玩家身上）
-            engineTransform = GameObject.Find("CPEngine").transform;
             scene = gameObject.GetComponent<Scene>();
-
-            //InvokeRepeating用于特定时间间隔内执行与游戏自动更新频率不同步的情况，如在游戏开始后1秒执行操作来让主要组件充分调度完毕，然后每隔指定秒执行一次
-            //不会新开线程，它是在Unity主线程中间隔执行所以引擎对象不需回调，但第三个参数在运行过程修改无效（类似GE的周期触发器但有办法重写其调用的内部方法来支持变量）
-            InvokeRepeating(nameof(InitMap), 0f, 0.0625f);
+            CPEngine.Active();
         }
 
-        /// <summary>
-        /// 组件激活时运行一次（反复激活反复运行）
-        /// </summary>
-        void OnEnable()
+        private bool isFirstUpdate = true;
+        IEnumerator DelayedStartTick()
         {
-
-        }
-
-        /// <summary>
-        /// OnEnable后运行一次（仅自动运行1次，反复激活无效）
-        /// </summary>
-        void Start()
-        {
-
+            yield return new WaitForSeconds(0.5f);
+            CPEngine.Tick();
         }
 
         /// <summary>
         /// 每帧运行
         /// </summary>
-        void Update()
+        public void Update()
         {
+            if (isFirstUpdate)
+            {
+                isFirstUpdate = false;
+                StartCoroutine(DelayedStartTick());
+            }
+            else 
+            {
+                CPEngine.Tick();
+            }
             if (sceneEnabled == false && CellChunkManager.SpawningChunks == false)
             {//幸存者场景组件未启用且单元团块空间停止生成时
                 sceneEnabled = true;
@@ -83,45 +92,15 @@ namespace MMWorld
 
         #region 功能函数
 
-        private void InitMap()
-        {
-            //刷地图前保证前置核心组件已经初始化完成
-            if (!CPEngine.Initialized || !CellChunkManager.Initialized) { return; }
-            //如果多人模式已启用但连接尚未建立则不加载块
-            if (CPEngine.EnableMultiplayer) { if (!Network.isClient && !Network.isServer) { return; } }
-            //跟踪人物当前所在团块位置索引（先在originalTransform创建，等控制人行走后换playerTransform）
-            if (scene.enabled && scene.player != null && scene.player.go.gameObject != null)
-            {
-                currentPos = CPEngine.PositionToChunkIndex(scene.player.go.gameObject.transform.position);
-                //Debug.Log("Player Position: " + currentPos.x + " " + currentPos.y + " " + currentPos.z);
-            }
-            else
-            {
-                currentPos = CPEngine.PositionToChunkIndex(engineTransform.position);
-            }
-            if (currentPos.IsEqual(lastPos) == false)
-            {//如果索引与前一帧不同，则在当前索引位置生成团块
-
-                CellChunkManager.SpawnChunks(currentPos.x, currentPos.y, currentPos.z);
-
-                //if (CPEngine.EnableMultiplayer && CPEngine.MultiplayerTrackPosition && CPEngine.Network != null)
-                //{
-                //    //多人游戏模式下更新玩家位置
-                //    Client.UpdatePlayerPosition(currentPos);
-                //}
-            }
-            lastPos = currentPos;
-        }
-
         /// <summary>
         /// 读取素材的总动作
         /// </summary>
         void LoadAssets()
         {
             #region 
-            //注意Application.dataPath打包前是Assets文件夹下的路径，打包后是识别exe程序名称_Data文件夹下的路径
-            //Unity自带切割上万精灵应用到meta要几个小时情况时，可换此加载方式
-            //没用Resources方式的不会被做成素材包，玩家可直观修改替换这些素材文件（不推荐）
+            //注意Application.dataPath打包前是Assets文件夹下的路径,打包后是识别exe程序名称_Data文件夹下的路径
+            //Unity自带切割上万精灵应用到meta要几个小时情况时,可换此加载方式
+            //没用Resources方式的不会被做成素材包,玩家可直观修改替换这些素材文件
             //Texture2D tmpWP = TextureAnalyzer.LoadImageAndConvertToTexture2D(Application.dataPath + "/Resources/Textures/WorldSP.png");
             //Texture2D tmpMP = TextureAnalyzer.LoadImageAndConvertToTexture2D(Application.dataPath + "/Resources/Textures/MapSP.png");
             //Sprite[] tmpWSP = TextureAnalyzer.SliceTexture(tmpWP, 16, 16);
@@ -130,17 +109,17 @@ namespace MMWorld
             //Texture2D tWorldSP = Resources.Load<Texture2D>("Textures/WorldSP");
             //Texture2D tMapSP = Resources.Load<Texture2D>("Textures/WorldSP");
 
-            //不沾引擎主线程对象情况可让子线程来处理（同时也是测试子线程运用），如果是ECS设计模式则专门有支持引擎对象通过的官方线程处理
-            //Trigger loadTXT = new Trigger(1); //创建1个循环1次的触发器实例（以子线程运行）
-            //loadTXT.Awake += Trigger_LoadTXT_Func; //将需要委托运行的函数注册到Awake事件（该事件在触发器实例启动后运行1次，可在触发器实例属性中设置启动前摇）
+            //不沾引擎主线程对象情况可让子线程来处理(同时也是测试子线程运用),如果是ECS设计模式则专门有支持引擎对象通过的官方线程处理
+            //Trigger loadTXT = new Trigger(1); //创建1个循环1次的触发器实例(以子线程运行)
+            //loadTXT.Awake += Trigger_LoadTXT_Func; //将需要委托运行的函数注册到Awake事件(该事件在触发器实例启动后运行1次,可在触发器实例属性中设置启动前摇)
             //loadTXT.Run(true);//以后台模式运行这个触发器
-            ////等待子线程完成（要使用精确结果进行下一步时）
+            ////等待子线程完成(要使用精确结果进行下一步时)
             //loadTXT.Thread.Join();
 
-            //由于使用了材质纹理UV划区，这里的精灵可以不再使用
+            //由于使用了材质纹理UV划区,这里的精灵可以不再使用
             //mapSprites = new List<Sprite>[2];
 
-            //官方Resources方法（推荐），Resources文件夹内的素材会自动打包，不用担心打包后路径问题（这种方式素材打包后玩家没法直观修改和替换，但可以提供Mod接口）
+            //官方Resources方法(推荐),Resources文件夹内的素材会自动打包,不用担心打包后路径问题(这种方式素材打包后玩家没法直观修改和替换,但可以提供Mod接口)
             //Sprite[] tmpWSP = Resources.LoadAll<Sprite>("Textures/WorldSP");
             //Sprite[] tmpMSP = Resources.LoadAll<Sprite>("Textures/MapSP");
 
@@ -158,14 +137,14 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// 读取所有资源（怪物、角色、载具的纹理和精灵切片）
+        /// 读取所有资源(怪物、角色、载具的纹理和精灵切片)
         /// </summary>
         public void LoadAllResources()
         {
             LoadAllVehicle();
             LoadAllCharacters();
             LoadAllMonsters();
-            //还差UI素材读取，幸存者游戏暂时不需要
+            //还差UI素材读取,幸存者游戏暂时不需要
         }
 
         /// <summary>
@@ -179,7 +158,7 @@ namespace MMWorld
             {
                 monsters[i] = new List<Sprite>();
             }
-            //以下不是手敲的..扫描文件夹进行的打印，散图读取效率还行就懒得合并了，因为Unity已经切片，读完不用分割精灵直接可以使用数组monsters[TypeIndex][SpriteIndex]
+            //以下不是手敲的..扫描文件夹进行的打印,散图读取效率还行就懒得合并了,因为Unity已经切片,读完不用分割精灵直接可以使用数组monsters[TypeIndex][SpriteIndex]
             monsters[0].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E01_火焰枪"));
             monsters[1].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E01_火焰炮"));
             monsters[2].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E02_加农炮"));
@@ -421,14 +400,14 @@ namespace MMWorld
         //}
 
         ///// <summary>
-        ///// Trigger事件下自动函数引用（委托）。注意：引擎对象默认在主线程创建，所以涉及它们的动作在子线程要回调使用，不然报错！
+        ///// Trigger事件下自动函数引用(委托).注意:引擎对象默认在主线程创建,所以涉及它们的动作在子线程要回调使用,不然报错！
         ///// </summary>
         ///// <param name="sender"></param>
         ///// <param name="e"></param>
         //private void TestFunc(object sender, EventArgs e) { }
 
         ///// <summary>
-        ///// 注册到子线程的动作（处理240个纹理文本的读取）
+        ///// 注册到子线程的动作(处理240个纹理文本的读取)
         ///// </summary>
         ///// <param name="sender"></param>
         ///// <param name="e"></param>
@@ -468,28 +447,12 @@ namespace MMWorld
         #endregion
 
         #endregion
-
-        #region CPEngine Map Manager
-
-        // multiplayer
-        public void OnConnectedToServer()
-        {
-            if (CPEngine.EnableMultiplayer && CPEngine.MultiplayerTrackPosition)
-            {
-                StartCoroutine(InitialPositionAndRangeUpdate());
-            }
-        }
-
-        IEnumerator InitialPositionAndRangeUpdate()
-        {
-            while (CPEngine.Network == null)
-            {
-                yield return new WaitForEndOfFrame();
-            }
-            Client.UpdatePlayerPosition(currentPos);
-            Client.UpdatePlayerRange(CPEngine.ChunkSpawnDistance);
-        }
-
-        #endregion
     }
 }
+
+// Unity脚本生命周期和组件
+// 继承MonoBehaviour的类可以作为Unity组件挂载到游戏物体上,并在Unity编辑器中显示其公共非静态字段和属性(可通过Inspector面板编辑).
+// 组件用法:Unity中随便新建一个空对象,Inspector面板把脚本拖到组件位置即挂载(自定义类要作为组件挂载必须一个cs文件一个类,且类名须与文件名一致).或代码直接给游戏物体添加组件.
+// 私有或静态字段不被自动序列化到Inspetor,想要强制被序列化请使用[SerializeField]特性,想不被序列化请使用[NonSerialized]特性.
+// Start、Update等生命周期方法是Unity控制脚本执行的关键,即使存在Awake但上述方法不存在时在编辑器界面不提供组件启禁用选项.
+// AddComponent时,Awake方法会在添加的那一帧立即执行,但Start方法则在下一帧的Update之前执行‌.

@@ -1,8 +1,8 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace CellSpace.Examples
 {
-    //如果希望使用默认事件和自定义事件，则从CellEvents类继承
+    //如果希望使用默认事件和自定义事件,则从CellEvents类继承
     public class DefaultCellEvents : CellEvents
     {
         public override void OnMouseDown(int mouseButton, CellInfo cellInfo)
@@ -41,7 +41,7 @@ namespace CellSpace.Examples
         {
             CPIndex indexBelow;
             // if the block below is grass, change it to dirt
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 indexBelow = new CPIndex(cellInfo.index.x, cellInfo.index.y - 1);
             }
@@ -59,7 +59,7 @@ namespace CellSpace.Examples
         {
             CPIndex indexAbove;
             // if the block above is tall grass, destroy it
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 indexAbove = new CPIndex(cellInfo.index.x, cellInfo.index.y + 1);
             }

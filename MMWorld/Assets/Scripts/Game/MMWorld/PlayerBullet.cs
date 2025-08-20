@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace MMWorld
 {
     /// <summary>
-    /// 玩家子弹（发射物）
+    /// 玩家子弹(发射物)
     /// </summary>
     public class PlayerBullet
     {
@@ -38,7 +38,7 @@ namespace MMWorld
         /// </summary>
         public const float displayBaseScale = 1f;
         /// <summary>
-        /// [逻辑坐标]原始半径（数字越大则实际采用越小），默认是Scene.gridSize/2大小
+        /// [逻辑坐标]原始半径(数字越大则实际采用越小),默认是Scene.gridSize/2大小
         /// </summary>
         public const float defaultRadius = Scene.gridSize / 2;
         /// <summary>
@@ -58,7 +58,7 @@ namespace MMWorld
         /// </summary>
         public float incX, incY;
         /// <summary>
-        /// 自杀时间点（单位：帧）
+        /// 自杀时间点(单位:帧)
         /// </summary>
         public int lifeEndTime;
 
@@ -82,7 +82,7 @@ namespace MMWorld
         public int life;
 
         /// <summary>
-        /// [构造函数]玩家子弹（发射物）
+        /// [构造函数]玩家子弹(发射物)
         /// </summary>
         /// <param name="ps"></param>
         public PlayerBullet(PlayerSkill ps)
@@ -103,7 +103,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// 初始化玩家子弹（发射物）
+        /// 初始化玩家子弹(发射物)
         /// </summary>
         /// <param name="x_">逻辑坐标</param>
         /// <param name="y_">逻辑坐标</param>
@@ -115,7 +115,7 @@ namespace MMWorld
         {
             //从对象池分配U3D底层对象
             GO.Pop(ref go);
-            go.spriteRenderer.sprite = scene.sprites_bullets[1];//默认使用第二个子弹（第一个是箭头状）
+            go.spriteRenderer.sprite = scene.sprites_bullets[1];//默认使用第二个子弹(第一个是箭头状)
             go.transform.rotation = Quaternion.Euler(0, 0, -radians_ * (180f / Mathf.PI));
             lifeEndTime = life + scene.time;
             radians = radians_;
@@ -127,7 +127,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// [虚方法]更新玩家子弹（发射物）
+        /// [虚方法]更新玩家子弹(发射物)
         /// </summary>
         /// <returns></returns>
         public virtual bool Update()
@@ -145,21 +145,21 @@ namespace MMWorld
             pixelX += incX;
             pixelY += incY;
 
-            //坐标超出grid地图范围：自杀（或转移到下一个团块空间）
+            //坐标超出grid地图范围:自杀(或转移到下一个团块空间)
             if (pixelX < 0 || pixelX >= Scene.gridChunkWidth || pixelY < 0 || pixelY >= Scene.gridChunkHeight) return true;
 
-            //生命周期完结：自杀
+            //生命周期完结:自杀
             return lifeEndTime < scene.time;
         }
 
         /// <summary>
-        /// [虚方法]绘制玩家子弹（发射物）
+        /// [虚方法]绘制玩家子弹(发射物)
         /// </summary>
         /// <param name="cx">玩家逻辑位置</param>
         /// <param name="cy">玩家逻辑位置</param>
         public virtual void Draw(float cx, float cy)
         {
-            //因为人始终是在屏幕中间，只要不在屏幕内就不显示
+            //因为人始终是在屏幕中间,只要不在屏幕内就不显示
             if (pixelX < cx - Scene.designWidth_2 || pixelX > cx + Scene.designWidth_2 || pixelY < cy - Scene.designHeight_2 || pixelY > cy + Scene.designHeight_2)
             {
                 go.Disable();
@@ -186,15 +186,15 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// [虚方法]摧毁玩家子弹（发射物）
+        /// [虚方法]摧毁玩家子弹(发射物)
         /// </summary>
         public void Destroy()
         {
 #if UNITY_EDITOR
-            if (go.gameObject != null)           // unity 点击停止按钮后，这些变量似乎有可能提前变成 null
+            if (go.gameObject != null)           // unity 点击停止按钮后,这些变量似乎有可能提前变成 null
 #endif
             {
-                //将U3D底层对象（游戏物体）失活后退回池
+                //将U3D底层对象(游戏物体)失活后退回池
                 GO.Push(ref go);
             }
             //hitBlackList = null;

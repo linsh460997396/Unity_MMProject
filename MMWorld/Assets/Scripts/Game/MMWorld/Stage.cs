@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace MMWorld
@@ -53,14 +53,14 @@ namespace MMWorld
         /*************************************************************************************************************************/
         /*************************************************************************************************************************/
 
-        //在某些情况下，基类可能包含一些纯虚函数（即没有实现的虚函数），使其成为抽象类。通过将构造函数设为protected（或私有），可以确保这个抽象类不会被直接实例化
+        //在某些情况下,基类可能包含一些纯虚函数(即没有实现的虚函数),使其成为抽象类.通过将构造函数设为protected(或私有),可以确保这个抽象类不会被直接实例化
 
         /// <summary>
         /// [构造函数]关卡
         /// </summary>
         /// <param name="scene_"></param>
         protected Stage(Scene scene_)
-        {//将构造函数设为protected意味着这个构造函数不能在类的外部直接被调用，从而防止了类的直接实例化
+        {//将构造函数设为protected意味着这个构造函数不能在类的外部直接被调用,从而防止了类的直接实例化
             scene = scene_;
             player = scene_.player;
             monstersSpaceContainer = new(Scene.gridChunkNumRows, Scene.gridChunkNumCols, Scene.gridSize);
@@ -69,7 +69,7 @@ namespace MMWorld
 
 
         /// <summary>
-        /// [虚方法]关卡更新函数，在派生类可按需要覆盖（使用override）
+        /// [虚方法]关卡更新函数,在派生类可按需要覆盖(使用override)
         /// </summary>
         /// <exception cref="System.Exception"></exception>
         public virtual void Update()
@@ -78,7 +78,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// [虚方法]绘制图形（播放怪物、玩家子弹（发射物）、爆炸特效、数字等精灵切片），在派生类可按需要覆盖（使用override）
+        /// [虚方法]绘制图形(播放怪物、玩家子弹(发射物)、爆炸特效、数字等精灵切片),在派生类可按需要覆盖(使用override)
         /// </summary>
         public virtual void Draw()
         {
@@ -91,7 +91,7 @@ namespace MMWorld
             var cx = player.pixelX;
             var cy = player.pixelY;
 
-            //怪物、玩家子弹（发射物）、爆炸特性、数字特性出现在玩家镜头内则进行绘制
+            //怪物、玩家子弹(发射物)、爆炸特性、数字特性出现在玩家镜头内则进行绘制
             var len = monsters.Count;
             for (int i = 0; i < len; ++i)
             {
@@ -118,7 +118,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// [虚方法]绘制编辑器视图下的场景辅助，在派生类可按需要覆盖（使用override）
+        /// [虚方法]绘制编辑器视图下的场景辅助,在派生类可按需要覆盖(使用override)
         /// </summary>
         public virtual void DrawGizmos()
         {
@@ -136,13 +136,13 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// [虚方法]关卡摧毁，在派生类可按需要覆盖（使用override）
+        /// [虚方法]关卡摧毁,在派生类可按需要覆盖(使用override)
         /// </summary>
         public virtual void Destroy()
         {
             foreach (var o in monsters)
             {
-                o.Destroy(false);             // 纯 destroy，不从 monsters 移除自己
+                o.Destroy(false);             // 纯 destroy,不从 monsters 移除自己
             }
             foreach (var o in playerBullets)
             {

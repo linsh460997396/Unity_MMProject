@@ -1,5 +1,5 @@
 ﻿#if UNITY_EDITOR || UNITY_STANDALONE
-//Unity编辑器、独立应用程序（不包括Web播放器）
+//Unity编辑器、独立应用程序(不包括Web播放器)
 using Vector2F = UnityEngine.Vector2;
 #elif MonoGame
 //使用VS2022的MonoGame插件框架
@@ -34,7 +34,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 目标类型：0=无，1=单位，2=二维点，3=物品
+        /// 目标类型:0=无,1=单位,2=二维点,3=物品
         /// </summary>
         public int TargetType { get; set; }
 

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 namespace CellSpace
@@ -14,12 +14,19 @@ namespace CellSpace
 
         void Awake()
         {
-            if (CPEngine.EnableMultiplayer == false) Debug.LogWarning("CellSpace: Multiplayer is disabled. Unexpected behavior may occur.");
-            CPEngine.Network = this.gameObject;
-            ResetPlayerData();
-            if (Network.isServer)
+            if (CellSpacePrefab.initialized == true && CellSpacePrefab.awakeEnable.ContainsKey("CPNetwork"))
             {
-                Debug.Log("Server: Server initialized.");
+                if (CPEngine.enableMultiplayer == false) Debug.LogWarning("CellSpace: Multiplayer is disabled. Unexpected behavior may occur.");
+                if (CPEngine.network == null) 
+                { 
+                    CPEngine.network = this.gameObject;
+                    Debug.LogWarning("CPEngine.network == null Then CPEngine.network = this.gameObject");
+                }
+                ResetPlayerData();
+                if (Network.isServer)
+                {
+                    Debug.Log("Server: Server initialized.");
+                }
             }
         }
 
@@ -36,7 +43,7 @@ namespace CellSpace
 
         void OnPlayerDisconnected_(NetworkPlayer player)
         {
-            if (CPEngine.MultiplayerTrackPosition)
+            if (CPEngine.multiplayerTrackPosition)
             {
                 PlayerPositions.Remove(player);
                 PlayerChunkSpawnDistances.Remove(player);
@@ -49,14 +56,14 @@ namespace CellSpace
         [RPC]
         public void SendCellData(NetworkPlayer player, int chunkx, int chunky, int chunkz)
         {
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 SendCellData(player, chunkx, chunky);
             }
             else
             {
-             // >> You can check whether the request for voxel data is valid here <<
-             // if (true) {
+                // >> You can check whether the request for voxel data is valid here <<
+                // if (true) {
                 CellChunk chunk = CellChunkManager.SpawnChunkFromServer(chunkx, chunky, chunkz).GetComponent<CellChunk>(); // get the chunk (spawn it if it's not spawned already)
                 chunk.Lifetime = 0f; // refresh the chunk's lifetime
                 string data = CellChunkDataFiles.CompressData(chunk); // get data from the chunk and compress it
@@ -83,7 +90,7 @@ namespace CellSpace
         [RPC]
         public void ServerPlaceBlock(NetworkPlayer sender, int x, int y, int z, int chunkx, int chunky, int chunkz, int data)
         {
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 ServerPlaceBlock(sender, x, y, chunkx, chunky, data);
             }
@@ -112,7 +119,7 @@ namespace CellSpace
             if (EnableDebugLog) Debug.Log("Server: Received ChangeBlock from player " + sender.ToString());
             // You can check whether the change sent by the client is valid here
             // if (true) {
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 DistributeChange(sender, x, y, chunkx, chunky, data, true);
             }
@@ -134,13 +141,13 @@ namespace CellSpace
 
         void DistributeChange(NetworkPlayer sender, int x, int y, int z, int chunkx, int chunky, int chunkz, int data, bool isChangeBlock)
         { // sends a change in the voxel data to all clients
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 DistributeChange(sender, x, y, chunkx, chunky, data, isChangeBlock);
             }
             else
             {
-             // update server
+                // update server
                 ApplyOnServer(x, y, z, chunkx, chunky, chunkz, data, isChangeBlock); // the server can'transform send RPCs to itself so we'll need to call them directly
 
                 // send to every client
@@ -148,7 +155,7 @@ namespace CellSpace
                 {
                     if (player != Network.player)
                     { // skip server
-                        if (CPEngine.MultiplayerTrackPosition == false || IsWithinRange(player, new CPIndex(chunkx, chunky, chunkz)))
+                        if (CPEngine.multiplayerTrackPosition == false || IsWithinRange(player, new CPIndex(chunkx, chunky, chunkz)))
                         { // check if the change is within range of each player
 
                             if (EnableDebugLog) Debug.Log("Server: Sending cell change to player " + player.ToString());
@@ -177,7 +184,7 @@ namespace CellSpace
             {
                 if (player != Network.player)
                 { // skip server
-                    if (CPEngine.MultiplayerTrackPosition == false || IsWithinRange(player, new CPIndex(chunkx, chunky)))
+                    if (CPEngine.multiplayerTrackPosition == false || IsWithinRange(player, new CPIndex(chunkx, chunky)))
                     { // check if the change is within range of each player
 
                         if (EnableDebugLog) Debug.Log("Server: Sending cell change to player " + player.ToString());
@@ -205,7 +212,7 @@ namespace CellSpace
             {
                 return false;
             }
-            if (!CPEngine.HorizontalMode)
+            if (!CPEngine.horizontalMode)
             {
                 if (Mathf.Abs(PlayerPositions[player].z - chunkIndex.z) > PlayerChunkSpawnDistances[player])
                 {
@@ -218,7 +225,7 @@ namespace CellSpace
 
         void ApplyOnServer(int x, int y, int z, int chunkx, int chunky, int chunkz, int data, bool isChangeBlock)
         { // updates the voxel data stored on the server with the change sent by client
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 ApplyOnServer(x, y, chunkx, chunky, data, isChangeBlock);
             }
@@ -253,7 +260,7 @@ namespace CellSpace
         [RPC]
         public void UpdatePlayerPosition(NetworkPlayer player, int chunkx, int chunky, int chunkz)
         { // sent by client
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 UpdatePlayerPosition(player, chunkx, chunky);
             }
@@ -282,7 +289,7 @@ namespace CellSpace
 
         void Update()
         {
-
+            Debug.Log("Server: Update() called. AutosaveTime: " + AutosaveTime.ToString() + ", autosaveTimer: " + autosaveTimer.ToString());
             if (AutosaveTime > 0.0001f)
             {
                 if (autosaveTimer >= AutosaveTime)

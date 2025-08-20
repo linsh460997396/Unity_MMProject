@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace CellSpace
 {
@@ -23,22 +23,22 @@ namespace CellSpace
         public void InitializeGenerator()
         {
             // load seed if it's not loaded yet.加载种子文件若还没进行
-            while (CPEngine.WorldSeed == 0)
+            while (CPEngine.worldSeed == 0)
             {
-                //从文件中读取当前活动世界的种子，或者如果没有找到种子文件则随机生成一个新的种子，并将其存储在Engine.WorldSeed变量中。
+                //从文件中读取当前活动世界的种子,或者如果没有找到种子文件则随机生成一个新的种子,并将其存储在Engine.WorldSeed变量中.
                 CPEngine.GetSeed();
             }
-            seed = CPEngine.WorldSeed;
+            seed = CPEngine.worldSeed;
             // get chunk component.获取团块组件
             chunk = GetComponent<CellChunk>();
             // generate data.生成体素数据
             GenerateCellData();
             // set empty.设置团块为空状态
             chunk.Empty = true;
-            //遍历团块中的每一个体素ID（体素块种类）
+            //遍历团块中的每一个体素ID(体素块种类)
             foreach (ushort cellID in chunk.CellData)
             {
-                //只要有任意一个体素ID（体素块种类）不为空块
+                //只要有任意一个体素ID(体素块种类)不为空块
                 if (cellID != 0)
                 {
                     //团块的空属性置为否
@@ -52,7 +52,7 @@ namespace CellSpace
 
         public virtual void GenerateCellData()
         {
-            //虚函数，待实现
+            //虚函数,待子类实现
         }
     }
 

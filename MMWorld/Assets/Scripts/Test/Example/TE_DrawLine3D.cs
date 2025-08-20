@@ -1,4 +1,4 @@
-//using UnityEngine;
+﻿//using UnityEngine;
 
 //namespace Test.Example
 //{
@@ -15,13 +15,13 @@
 
 //        void Update()
 //        {
-//            //按下手柄扳机键，每次按下的时候都会创建一个新的线段
+//            //按下手柄扳机键,每次按下的时候都会创建一个新的线段
 //            if (Input.GetKeyDown(KeyCode.A) && !isDraw)
 //            {
 //                isDraw = true;
-//                //创建一个空物体，并且添加LineRenderer组件
+//                //创建一个空物体,并且添加LineRenderer组件
 //                line = new GameObject().AddComponent<LineRenderer>();
-//                line.positionCount = 0;//设置点的数量为0，因为刚开始的时候默认里面会有两个点
+//                line.positionCount = 0;//设置点的数量为0,因为刚开始的时候默认里面会有两个点
 //                line.startWidth = 0.05f;//设置线条的宽高
 //                line.endWidth = 0.05f;
 //                line.material = mat;//设置线条的材质
@@ -30,7 +30,7 @@
 
 //            if (isDraw)
 //            {
-//                //判断两帧手柄的距离，超过三厘米再添加，不然会导致点的数量剧增
+//                //判断两帧手柄的距离,超过三厘米再添加,不然会导致点的数量剧增
 //                if (Vector3.Distance(lastPos, handle.position) > 0.03f)
 //                {
 //                    RealTimeDrawLine(line, handle.position);

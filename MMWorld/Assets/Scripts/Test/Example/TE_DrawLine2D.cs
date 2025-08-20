@@ -1,4 +1,4 @@
-//using System.Collections.Generic;
+﻿//using System.Collections.Generic;
 //using UnityEngine;
 //using UnityEngine.UI;
 
@@ -41,7 +41,7 @@
 //                    Vector3 vec = currentPoint - lastPoint;
 //                    //向量大小<10像素不画网格
 //                    if (vec.magnitude < 10) { return; }
-//                    Vector3 normal = Vector3.Cross(vec.normalized, Vector3.forward).normalized; //单位法向量（画布平面内）
+//                    Vector3 normal = Vector3.Cross(vec.normalized, Vector3.forward).normalized; //单位法向量(画布平面内)
 
 //                    if (isNewLine)
 //                    {
@@ -81,7 +81,7 @@
 //                    //防止断节
 //                    lastPoint = currentPoint;
 
-//                    //通知渲染引擎顶点数据已更改，以便引擎可以重新计算或更新相应的图形数据
+//                    //通知渲染引擎顶点数据已更改,以便引擎可以重新计算或更新相应的图形数据
 //                    SetVerticesDirty();
 //                }
 //            }

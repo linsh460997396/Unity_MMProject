@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace MMWorld.Test
 {
@@ -36,7 +36,7 @@ namespace MMWorld.Test
             castCount = 3;
         }
 
-        //如果有一个基类也定义了一个名为Init的方法，那么在派生类中使用“new”关键字定义的Init方法将会隐藏基类中的那个方法
+        //如果有一个基类也定义了一个名为Init的方法,那么在派生类中使用“new”关键字定义的Init方法将会隐藏基类中的那个方法
 
         /// <summary>
         /// 更新
@@ -51,9 +51,9 @@ namespace MMWorld.Test
 
                 // 子弹发射逻辑
                 // 找射程内 距离最近的 最多 castCount 只 分别朝向其发射子弹
-                // 如果不足 castCount 只，轮流扫射，直到用光 castCount 发
+                // 如果不足 castCount 只,轮流扫射,直到用光 castCount 发
                 // 0 只 就面对朝向发射
-                // 发射时和 player 保持一个距离，同时随着 count 的减少，距离也变短，以解决同一帧内同一角度发射多粒 完全重叠在一起看不出来的问题
+                // 发射时和 player 保持一个距离,同时随着 count 的减少,距离也变短,以解决同一帧内同一角度发射多粒 完全重叠在一起看不出来的问题
 
                 var x = player.pixelX;
                 var y = player.pixelY;

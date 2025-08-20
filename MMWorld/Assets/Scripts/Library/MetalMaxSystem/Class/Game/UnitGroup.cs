@@ -1,4 +1,4 @@
-namespace MetalMaxSystem
+﻿namespace MetalMaxSystem
 {
     /// <summary>
     /// 单位组
@@ -55,8 +55,8 @@ namespace MetalMaxSystem
             int va = 1, ai = 1;
             for (; (ai >= 0 && va <= ae) || (ai < 0 && va >= ae); va += ai)
             {
-                //直接对比单位也是可以的，但以防从Object转换出来的Unit是新的实例，最好给字典追加一个单位类型
-                //这里采用标签句柄对比：每个单位组元素序号必然对应一个已注册单位标签，且注册序号从1开始，若单位的标签句柄不存在（为0）不会匹配到
+                //直接对比单位也是可以的,但以防从Object转换出来的Unit是新的实例,最好给字典追加一个单位类型
+                //这里采用标签句柄对比:每个单位组元素序号必然对应一个已注册单位标签,且注册序号从1开始,若单位的标签句柄不存在(为0)不会匹配到
                 if (MMCore.HD_ReturnObjectTagFromRegNumStr(va, Name) == MMCore.HD_ReturnObjectTagStr(unit))
                 {
                     return true;

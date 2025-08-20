@@ -1,6 +1,7 @@
 ﻿#if !(UNITY_EDITOR || UNITY_STANDALONE || NET5_0_OR_GREATER)
 #define NETFRAMEWORK
 #endif
+//↓MonoGame插件下启用
 //#define MonoGame
 
 using System;
@@ -16,7 +17,7 @@ using System.Collections.Concurrent;
 //↓防止与System.Windows.Forms.Timer混淆
 using Timer = System.Threading.Timer;
 #if UNITY_EDITOR || UNITY_STANDALONE
-//Unity编辑器、独立应用程序（不包括Web播放器）
+//Unity编辑器、独立应用程序(不包括Web播放器)
 using Mathf = UnityEngine.Mathf;
 using Debug = UnityEngine.Debug;
 using Vector2F = UnityEngine.Vector2;
@@ -24,24 +25,24 @@ using Vector3F = UnityEngine.Vector3;
 using System.Globalization;//判断英文字符用到
 using System.Linq;//混肴处理字符串转义时用到
 #else
-//其他.Net环境（Framwork4.8、Net8+）
+//其他.Net环境(Framwork4.8、Net8+)
 using System.Diagnostics;
 //↓可使用.Net中的Debug.WriteLine
 using Debug = System.Diagnostics.Debug;
 #if WINDOWS || NET8_0_OR_GREATER || NETFRAMEWORK
-//↓支持WINDOWS框架下识别硬件标识等（如果依然是灰色，请手动添加或安装程序集）
+//↓支持WINDOWS框架下识别硬件标识等(如果依然是灰色,请手动添加或安装程序集)
 using System.Management;
 using Microsoft.Win32;
 using System.Windows;
 #endif
 #if NETFRAMEWORK
-//使用VS2022的NETFRAMEWORK4.8框架时，校准Mathf
+//使用VS2022的NETFRAMEWORK4.8框架时,校准Mathf
 using Mathf = System.Math;
 #else
 using Mathf = System.MathF;
 #endif
 #if MonoGame
-//使用VS2022的MonoGame插件框架时，校准2F3F向量
+//使用VS2022的MonoGame插件框架时,校准2F3F向量
 using Vector2F = Microsoft.Xna.Framework.Vector2;
 using Vector3F = Microsoft.Xna.Framework.Vector3;
 #else
@@ -180,7 +181,7 @@ namespace MetalMaxSystem
         //键鼠函数引用上限及单键注册上限
 
         /// <summary>
-        /// 键盘按键句柄上限（句柄范围0~98，无按键-1）
+        /// 键盘按键句柄上限(句柄范围0~98,无按键-1)
         /// </summary>
         public const int c_keyMax = 98;
         /// <summary>
@@ -188,7 +189,7 @@ namespace MetalMaxSystem
         /// </summary>
         public const int c_regKeyMax = 8;
         /// <summary>
-        /// 鼠标按键句柄上限（句柄范围1~5，无按键0）
+        /// 鼠标按键句柄上限(句柄范围1~5,无按键0)
         /// </summary>
         public const int c_mouseMax = 5;
         /// <summary>
@@ -199,47 +200,47 @@ namespace MetalMaxSystem
         //主副循环入口函数引用上限及单入口注册上限
 
         /// <summary>
-        /// 主副循环入口句柄上限（句柄范围0~9）
+        /// 主副循环入口句柄上限(句柄范围0~9)
         /// </summary>
-        private const int c_entryMax = 9;//内部使用，无需给用户使用
+        private const int c_entryMax = 9;//内部使用,无需给用户使用
         /// <summary>
         /// 每个主副循环入口可注册函数上限
         /// </summary>
-        private const int c_regEntryMax = 1;//内部使用，无需给用户使用
+        private const int c_regEntryMax = 1;//内部使用,无需给用户使用
 
         #endregion
 
-        #region "全局和局部变量"（不同作用域下的无属性字段）
+        #region "全局和局部变量"(不同作用域下的无属性字段)
 
-        //类只有字段没变量说法，但理论上公有静态字段是该程序在内存中唯一的全局变量，无论类实例化多次或多线程从模板调用，它只生成一次副本直到程序结束才清理
-        //而非静态（实例）类每次实例化都复制一份模板去形成多个副本，私有实例字段相当于类的局部变量
-        //不标Static则类及其成员在结束时垃圾回收，标Static则副本唯一且程序结束才从内存消失
-        //静态局部变量在函数结束时不参与垃圾回收，以便相同函数重复访问
-        //静态数据是从模板形成的内存中唯一的可修改副本（不同类同名也不一样，要考虑命名空间和类名路径，无需担心重复）
-        //数组元素数量上限均+1是习惯问题，防止某些循环以数组判断时最后退出还+1导致超限
+        //类只有字段没变量说法,但理论上公有静态字段是该程序在内存中唯一的全局变量,无论类实例化多次或多线程从模板调用,它只生成一次副本直到程序结束才清理
+        //而非静态(实例)类每次实例化都复制一份模板去形成多个副本,私有实例字段相当于类的局部变量
+        //不标Static则类及其成员在结束时垃圾回收,标Static则副本唯一且程序结束才从内存消失
+        //静态局部变量在函数结束时不参与垃圾回收,以便相同函数重复访问
+        //静态数据是从模板形成的内存中唯一的可修改副本(不同类同名也不一样,要考虑命名空间和类名路径,无需担心重复)
+        //数组元素数量上限均+1是习惯问题,防止某些循环以数组判断时最后退出还+1导致超限
 
         /// <summary>
         /// MMCore.Write或WriteLine中的文件写入器
         /// </summary>
         public static FileWriter fileWriter;
         /// <summary>
-        /// 是否在调用MMCore.Write或WriteLine、WriteLineFlush、WriteClose、WriteCopy时顺带Debug调试（不包含WriteLineNow和WriteNow）
+        /// 是否在调用MMCore.Write或WriteLine、WriteLineFlush、WriteClose、WriteCopy时顺带Debug调试(不包含WriteLineNow和WriteNow)
         /// </summary>
         public static bool writeTell = false;
 
         /// <summary>
-        /// 键盘按键已注册数量（每个数组元素算1个，即使它们+=多个委托函数）
+        /// 键盘按键已注册数量(每个数组元素算1个,即使它们+=多个委托函数)
         /// </summary>
         private static int[] keyEventFuncrefGroupNum = new int[c_keyMax + 1];//内部使用
 
         /// <summary>
-        /// 鼠标按键的已注册数量（每个数组元素算1个，即使它们+=多个委托函数）
+        /// 鼠标按键的已注册数量(每个数组元素算1个,即使它们+=多个委托函数)
         /// </summary>
         private static int[] mouseEventFuncrefGroupNum = new int[c_mouseMax + 1];//内部使用
 
         private static bool[] _stopKeyMouseEvent = new bool[Game.c_maxPlayers + 1];
         /// <summary>
-        /// 用户按键事件禁用状态（用于过场、剧情对话、特殊技能如禁锢时强制停用用户的按键事件）
+        /// 用户按键事件禁用状态(用于过场、剧情对话、特殊技能如禁锢时强制停用用户的按键事件)
         /// </summary>
         public static bool[] StopKeyMouseEvent
         {
@@ -255,13 +256,13 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 主副循环每个入口的已注册数量（每个数组元素算1个，即使它们+=多个委托函数）
+        /// 主副循环每个入口的已注册数量(每个数组元素算1个,即使它们+=多个委托函数)
         /// </summary>
         private static int[] entryEventFuncrefGroupNum = new int[c_entryMax + 1];//内部使用
 
         private static bool[] _stopEntryEvent = new bool[Game.c_maxPlayers + 1];
         /// <summary>
-        /// 主副循环事件禁用状态（用于特殊情况如个人处理队列过多、玩家间未同步时间过长情况下停用用户主副循环事件）
+        /// 主副循环事件禁用状态(用于特殊情况如个人处理队列过多、玩家间未同步时间过长情况下停用用户主副循环事件)
         /// </summary>
         public static bool[] StopEntryEvent
         {
@@ -278,79 +279,79 @@ namespace MetalMaxSystem
 
         #region 哈希表&字典声明
 
-        #region 字典（单线程读写，跨线程若只读也可安全使用）
+        #region 字典(单线程读写,跨线程若只读也可安全使用)
 
         #region 值类型
 
         /// <summary>
-        /// 全局字典<string,int> （不排泄，直到程序结束）
+        /// 全局字典<string,int> (不排泄,直到程序结束)
         /// </summary>
         private static Dictionary<string, int> globalDictionaryInt = new Dictionary<string, int>();//内部使用
         /// <summary>
-        /// 临时字典<string,int> （函数或动作集结束时应手动排泄）
+        /// 临时字典<string,int> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static Dictionary<string, int> localDictionaryInt = new Dictionary<string, int>();//内部使用
 
         /// <summary>
-        /// 全局字典<string,long> （不排泄，直到程序结束）
+        /// 全局字典<string,long> (不排泄,直到程序结束)
         /// </summary>
         private static Dictionary<string, long> globalDictionaryLong = new Dictionary<string, long>();//内部使用
         /// <summary>
-        /// 临时字典<string,long> （函数或动作集结束时应手动排泄）
+        /// 临时字典<string,long> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static Dictionary<string, long> localDictionaryLong = new Dictionary<string, long>();//内部使用
 
         /// <summary>
-        /// 全局字典<string,char> （不排泄，直到程序结束）
+        /// 全局字典<string,char> (不排泄,直到程序结束)
         /// </summary>
         private static Dictionary<string, char> globalDictionaryChar = new Dictionary<string, char>();//内部使用
         /// <summary>
-        /// 临时字典<string,char> （函数或动作集结束时应手动排泄）
+        /// 临时字典<string,char> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static Dictionary<string, char> localDictionaryChar = new Dictionary<string, char>();//内部使用
 
         /// <summary>
-        /// 全局字典<string,float> （不排泄，直到程序结束）
+        /// 全局字典<string,float> (不排泄,直到程序结束)
         /// </summary>
         private static Dictionary<string, float> globalDictionaryFloat = new Dictionary<string, float>();//内部使用
         /// <summary>
-        /// 临时字典<string,float> （函数或动作集结束时应手动排泄）
+        /// 临时字典<string,float> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static Dictionary<string, float> localDictionaryFloat = new Dictionary<string, float>();//内部使用
 
         /// <summary>
-        /// 全局字典<string,double> （不排泄，直到程序结束）
+        /// 全局字典<string,double> (不排泄,直到程序结束)
         /// </summary>
         private static Dictionary<string, double> globalDictionaryDouble = new Dictionary<string, double>();//内部使用
         /// <summary>
-        /// 临时字典<string,double> （函数或动作集结束时应手动排泄）
+        /// 临时字典<string,double> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static Dictionary<string, double> localDictionaryDouble = new Dictionary<string, double>();//内部使用
 
         /// <summary>
-        /// 全局字典<string,bool> （不排泄，直到程序结束）
+        /// 全局字典<string,bool> (不排泄,直到程序结束)
         /// </summary>
         private static Dictionary<string, bool> globalDictionaryBool = new Dictionary<string, bool>();//内部使用
         /// <summary>
-        /// 临时字典<string,bool> （函数或动作集结束时应手动排泄）
+        /// 临时字典<string,bool> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static Dictionary<string, bool> localDictionaryBool = new Dictionary<string, bool>();//内部使用
 
         /// <summary>
-        /// 全局字典<string,byte> （不排泄，直到程序结束）
+        /// 全局字典<string,byte> (不排泄,直到程序结束)
         /// </summary>
         private static Dictionary<string, byte> globalDictionaryByte = new Dictionary<string, byte>();//内部使用
         /// <summary>
-        /// 临时字典<string,byte> （函数或动作集结束时应手动排泄）
+        /// 临时字典<string,byte> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static Dictionary<string, byte> localDictionaryByte = new Dictionary<string, byte>();//内部使用
 
         /// <summary>
-        /// 全局字典<string,Vector> （不排泄，直到程序结束）
+        /// 全局字典<string,Vector> (不排泄,直到程序结束)
         /// </summary>
         private static Dictionary<string, Vector2F> globalDictionaryVector = new Dictionary<string, Vector2F>();//内部使用
         /// <summary>
-        /// 临时字典<string,Vector> （函数或动作集结束时应手动排泄）
+        /// 临时字典<string,Vector> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static Dictionary<string, Vector2F> localDictionaryVector = new Dictionary<string, Vector2F>();//内部使用
 
@@ -359,29 +360,29 @@ namespace MetalMaxSystem
         #region 引用类型
 
         /// <summary>
-        /// 全局字典<string,Object> （不排泄，直到程序结束）
+        /// 全局字典<string,Object> (不排泄,直到程序结束)
         /// </summary>
         private static Dictionary<string, object> globalDictionaryObject = new Dictionary<string, object>();//内部使用
         /// <summary>
-        /// 临时字典<string,Object> （函数或动作集结束时应手动排泄）
+        /// 临时字典<string,Object> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static Dictionary<string, object> localDictionaryObject = new Dictionary<string, object>();//内部使用
 
         /// <summary>
-        /// 全局字典<string,Timer> （不排泄，直到程序结束）
+        /// 全局字典<string,Timer> (不排泄,直到程序结束)
         /// </summary>
         private static Dictionary<string, Timer> globalDictionaryTimer = new Dictionary<string, Timer>();//内部使用
         /// <summary>
-        /// 临时字典<string,Timer> （函数或动作集结束时应手动排泄）
+        /// 临时字典<string,Timer> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static Dictionary<string, Timer> localDictionaryTimer = new Dictionary<string, Timer>();//内部使用
 
         /// <summary>
-        /// 全局字典<string,string> （不排泄，直到程序结束）
+        /// 全局字典<string,string> (不排泄,直到程序结束)
         /// </summary>
         private static Dictionary<string, string> globalDictionaryString = new Dictionary<string, string>();//内部使用
         /// <summary>
-        /// 临时字典<string,string> （函数或动作集结束时应手动排泄）
+        /// 临时字典<string,string> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static Dictionary<string, string> localDictionaryString = new Dictionary<string, string>();//内部使用
 
@@ -389,90 +390,90 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region 哈希表（跨线程）
+        #region 哈希表(跨线程)
         /// <summary>
-        /// 全局哈希表（不排泄，直到程序结束）
+        /// 全局哈希表(不排泄,直到程序结束)
         /// </summary>
         private static Hashtable globalHashTable = new Hashtable();//内部使用
         /// <summary>
-        /// 临时哈希表（函数或动作集结束时应手动排泄）
+        /// 临时哈希表(函数或动作集结束时应手动排泄)
         /// </summary>
         private static Hashtable localHashTable = new Hashtable();//内部使用
         #endregion
 
-        #region 跨线程字典（专为并发访问设计的线程安全集合）
+        #region 跨线程字典(专为并发访问设计的线程安全集合)
 
         #region 值类型
 
         /// <summary>
-        /// 全局跨线程字典<string,int> （不排泄，直到程序结束）
+        /// 全局跨线程字典<string,int> (不排泄,直到程序结束)
         /// </summary>
         private static ConcurrentDictionary<string, int> globalCDictionaryInt = new ConcurrentDictionary<string, int>();//内部使用
         /// <summary>
-        /// 临时跨线程字典<string,int> （函数或动作集结束时应手动排泄）
+        /// 临时跨线程字典<string,int> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static ConcurrentDictionary<string, int> localCDictionaryInt = new ConcurrentDictionary<string, int>();//内部使用
 
         /// <summary>
-        /// 全局跨线程字典<string,long> （不排泄，直到程序结束）
+        /// 全局跨线程字典<string,long> (不排泄,直到程序结束)
         /// </summary>
         private static ConcurrentDictionary<string, long> globalCDictionaryLong = new ConcurrentDictionary<string, long>();//内部使用
         /// <summary>
-        /// 临时跨线程字典<string,long> （函数或动作集结束时应手动排泄）
+        /// 临时跨线程字典<string,long> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static ConcurrentDictionary<string, long> localCDictionaryLong = new ConcurrentDictionary<string, long>();//内部使用
 
         /// <summary>
-        /// 全局跨线程字典<string,char> （不排泄，直到程序结束）
+        /// 全局跨线程字典<string,char> (不排泄,直到程序结束)
         /// </summary>
         private static ConcurrentDictionary<string, char> globalCDictionaryChar = new ConcurrentDictionary<string, char>();//内部使用
         /// <summary>
-        /// 临时跨线程字典<string,char> （函数或动作集结束时应手动排泄）
+        /// 临时跨线程字典<string,char> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static ConcurrentDictionary<string, char> localCDictionaryChar = new ConcurrentDictionary<string, char>();//内部使用
 
         /// <summary>
-        /// 全局跨线程字典<string,float> （不排泄，直到程序结束）
+        /// 全局跨线程字典<string,float> (不排泄,直到程序结束)
         /// </summary>
         private static ConcurrentDictionary<string, float> globalCDictionaryFloat = new ConcurrentDictionary<string, float>();//内部使用
         /// <summary>
-        /// 临时跨线程字典<string,float> （函数或动作集结束时应手动排泄）
+        /// 临时跨线程字典<string,float> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static ConcurrentDictionary<string, float> localCDictionaryFloat = new ConcurrentDictionary<string, float>();//内部使用
 
         /// <summary>
-        /// 全局跨线程字典<string,double> （不排泄，直到程序结束）
+        /// 全局跨线程字典<string,double> (不排泄,直到程序结束)
         /// </summary>
         private static ConcurrentDictionary<string, double> globalCDictionaryDouble = new ConcurrentDictionary<string, double>();//内部使用
         /// <summary>
-        /// 临时跨线程字典<string,double> （函数或动作集结束时应手动排泄）
+        /// 临时跨线程字典<string,double> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static ConcurrentDictionary<string, double> localCDictionaryDouble = new ConcurrentDictionary<string, double>();//内部使用
 
         /// <summary>
-        /// 全局跨线程字典<string,bool> （不排泄，直到程序结束）
+        /// 全局跨线程字典<string,bool> (不排泄,直到程序结束)
         /// </summary>
         private static ConcurrentDictionary<string, bool> globalCDictionaryBool = new ConcurrentDictionary<string, bool>();//内部使用
         /// <summary>
-        /// 临时跨线程字典<string,bool> （函数或动作集结束时应手动排泄）
+        /// 临时跨线程字典<string,bool> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static ConcurrentDictionary<string, bool> localCDictionaryBool = new ConcurrentDictionary<string, bool>();//内部使用
 
         /// <summary>
-        /// 全局跨线程字典<string,byte> （不排泄，直到程序结束）
+        /// 全局跨线程字典<string,byte> (不排泄,直到程序结束)
         /// </summary>
         private static ConcurrentDictionary<string, byte> globalCDictionaryByte = new ConcurrentDictionary<string, byte>();//内部使用
         /// <summary>
-        /// 临时跨线程字典<string,byte> （函数或动作集结束时应手动排泄）
+        /// 临时跨线程字典<string,byte> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static ConcurrentDictionary<string, byte> localCDictionaryByte = new ConcurrentDictionary<string, byte>();//内部使用
 
         /// <summary>
-        /// 全局跨线程字典<string,Vector> （不排泄，直到程序结束）
+        /// 全局跨线程字典<string,Vector> (不排泄,直到程序结束)
         /// </summary>
         private static ConcurrentDictionary<string, Vector2F> globalCDictionaryVector = new ConcurrentDictionary<string, Vector2F>();//内部使用
         /// <summary>
-        /// 临时跨线程字典<string,Vector> （函数或动作集结束时应手动排泄）
+        /// 临时跨线程字典<string,Vector> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static ConcurrentDictionary<string, Vector2F> localCDictionaryVector = new ConcurrentDictionary<string, Vector2F>();//内部使用
 
@@ -481,29 +482,29 @@ namespace MetalMaxSystem
         #region 引用类型
 
         /// <summary>
-        /// 全局跨线程字典<string,Object> （不排泄，直到程序结束）
+        /// 全局跨线程字典<string,Object> (不排泄,直到程序结束)
         /// </summary>
         private static ConcurrentDictionary<string, object> globalCDictionaryObject = new ConcurrentDictionary<string, object>();//内部使用
         /// <summary>
-        /// 临时跨线程字典<string,Object> （函数或动作集结束时应手动排泄）
+        /// 临时跨线程字典<string,Object> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static ConcurrentDictionary<string, object> localCDictionaryObject = new ConcurrentDictionary<string, object>();//内部使用
 
         /// <summary>
-        /// 全局跨线程字典<string,Timer> （不排泄，直到程序结束）
+        /// 全局跨线程字典<string,Timer> (不排泄,直到程序结束)
         /// </summary>
         private static ConcurrentDictionary<string, Timer> globalCDictionaryTimer = new ConcurrentDictionary<string, Timer>();//内部使用
         /// <summary>
-        /// 临时跨线程字典<string,Timer> （函数或动作集结束时应手动排泄）
+        /// 临时跨线程字典<string,Timer> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static ConcurrentDictionary<string, Timer> localCDictionaryTimer = new ConcurrentDictionary<string, Timer>();//内部使用
 
         /// <summary>
-        /// 全局跨线程字典<string,string> （不排泄，直到程序结束）
+        /// 全局跨线程字典<string,string> (不排泄,直到程序结束)
         /// </summary>
         private static ConcurrentDictionary<string, string> globalCDictionaryString = new ConcurrentDictionary<string, string>();//内部使用
         /// <summary>
-        /// 临时跨线程字典<string,string> （函数或动作集结束时应手动排泄）
+        /// 临时跨线程字典<string,string> (函数或动作集结束时应手动排泄)
         /// </summary>
         private static ConcurrentDictionary<string, string> localCDictionaryString = new ConcurrentDictionary<string, string>();//内部使用
 
@@ -513,21 +514,21 @@ namespace MetalMaxSystem
 
         #endregion
 
-        //声明用于存放键盘、鼠标"按键事件引用类型"委托变量的二维数组集合（单元素也是集合能+=多个委托函数），C#自带委托列表类型能继续存储这些委托类型变量
+        //声明用于存放键盘、鼠标"按键事件引用类型"委托变量的二维数组集合(单元素也是集合能+=多个委托函数),C#自带委托列表类型能继续存储这些委托类型变量
 
         /// <summary>
-        /// 键盘按键事件引用委托类型变量数组[c_keyMax + 1, c_regKeyMax + 1]，用于自定义委托函数注册
+        /// 键盘按键事件引用委托类型变量数组[c_keyMax + 1, c_regKeyMax + 1],用于自定义委托函数注册
         /// </summary>
         private static KeyMouseEventFuncref[,] keyEventFuncrefGroup = new KeyMouseEventFuncref[c_keyMax + 1, c_regKeyMax + 1];//内部使用
         /// <summary>
-        /// 鼠标按键事件引用委托类型变量数组[c_mouseMax + 1, c_regMouseMax + 1]，用于自定义委托函数注册
+        /// 鼠标按键事件引用委托类型变量数组[c_mouseMax + 1, c_regMouseMax + 1],用于自定义委托函数注册
         /// </summary>
         private static KeyMouseEventFuncref[,] mouseEventFuncrefGroup = new KeyMouseEventFuncref[c_mouseMax + 1, c_regMouseMax + 1];//内部使用
 
         //声明用于存放"主副循环入口事件引用类型"委托变量二维数组集合
 
         /// <summary>
-        /// 主副循环入口事件引用委托类型变量数组[c_entryMax + 1, c_regEntryMax + 1]，用于自定义委托函数注册
+        /// 主副循环入口事件引用委托类型变量数组[c_entryMax + 1, c_regEntryMax + 1],用于自定义委托函数注册
         /// </summary>
         private static EntryEventFuncref[,] entryEventFuncrefGroup = new EntryEventFuncref[c_entryMax + 1, c_regEntryMax + 1];//内部使用
 
@@ -540,20 +541,20 @@ namespace MetalMaxSystem
         /// </summary>
         static MMCore()
         {
-            //这里可给字段进行第二次赋值或安排其他动作（字段的首次赋值是在声明时，同一次初始化执行顺序受动作所在上下文影响）
+            //这里可给字段进行第二次赋值或安排其他动作(字段的首次赋值是在声明时,同一次初始化执行顺序受动作所在上下文影响)
         }
 
         #endregion
 
         #region 字段及其属性方法
 
-        //字段及其属性方法（避免不安全读写，private保护和隐藏字段，设计成只允许通过public修饰的属性方法间接去安全读写）
-        //本库前缀单个_开头字段表示其拥有属性方法（若有双_开头表示自定义类型如委托）
+        //字段及其属性方法(避免不安全读写,private保护和隐藏字段,设计成只允许通过public修饰的属性方法间接去安全读写)
+        //本库前缀单个_开头字段表示其拥有属性方法(若有双_开头表示自定义类型如委托)
 
         private static bool isDataTableTypeSet = false;
         private static bool _dataTableType = false;
         /// <summary>
-        /// 数据表类型，为true时全局切换为哈希表（跨线程安全），其他情况默认采用字典（勿跨线程），可通过切换DataTableType来对比读写效率（只允许被改变一次，请在入口或使用数据表前进行设置）
+        /// 数据表类型,为true时全局切换为哈希表(跨线程安全),其他情况默认采用字典(勿跨线程),可通过切换DataTableType来对比读写效率(只允许被改变一次,请在入口或使用数据表前进行设置)
         /// </summary>
         public static bool DataTableType
         {
@@ -575,7 +576,7 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 存储区容错处理当表键值存在时执行线程默认等待的间隔。常用于多线程触发器频繁写值，如大量注册注销动作使存储区数据重排序的，因表正在使用需排队等待完成才给执行下一个。执行原理：将调用该函数的当前线程反复挂起period毫秒，直到动作要写入的存储区闲置
+        /// 存储区容错处理当表键值存在时执行线程默认等待的间隔.常用于多线程触发器频繁写值,如大量注册注销动作使存储区数据重排序的,因表正在使用需排队等待完成才给执行下一个.执行原理:将调用该函数的当前线程反复挂起period毫秒,直到动作要写入的存储区闲置
         /// </summary>
         public static int dataTableThreadWaitPeriod = 50;
 
@@ -586,7 +587,7 @@ namespace MetalMaxSystem
 
         private static int _directoryEmptyUserDefIndex = 0;
         /// <summary>
-        /// 用户定义的空目录形式，以供内部判断：0是子文件（夹）数量为0，1是目录大小为0，2是前两者必须都符合，如果用户输入错误，本属性方法将纠正为默认值0
+        /// 用户定义的空目录形式,以供内部判断:0是子文件(夹)数量为0,1是目录大小为0,2是前两者必须都符合,如果用户输入错误,本属性方法将纠正为默认值0
         /// </summary>
         public static int DirectoryEmptyUserDefIndex
         {
@@ -594,7 +595,7 @@ namespace MetalMaxSystem
             {
                 return _directoryEmptyUserDefIndex;
             }
-            //如果用户输入错误，纠正为默认值0
+            //如果用户输入错误,纠正为默认值0
             set
             {
                 if (value >= 0 && value <= 2)
@@ -645,7 +646,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 随机实数（不含最大值）
+        /// 随机实数(不含最大值)
         /// </summary>
         /// <param name="min"></param>
         /// <param name="max"></param>
@@ -664,7 +665,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 随机整数（不含最大值）
+        /// 随机整数(不含最大值)
         /// </summary>
         /// <param name="min"></param>
         /// <param name="max"></param>
@@ -683,7 +684,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 将Vector3转Vector2（去掉Z轴）
+        /// 将Vector3转Vector2(去掉Z轴)
         /// </summary>
         /// <param name="vector"></param>
         /// <returns></returns>
@@ -697,7 +698,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        ///  以实数返回二维坐标（pixelX,pixelY）与（a,b）形成的角度（单位：度）
+        ///  以实数返回二维坐标(pixelX,pixelY)与(a,b)形成的角度(单位:度)
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -715,7 +716,7 @@ namespace MetalMaxSystem
 #if NETFRAMEWORK
             float magnitude1 = (float)Mathf.Sqrt(vector1.X * vector1.X + vector1.Y * vector1.Y);
             float magnitude2 = (float)Mathf.Sqrt(vector2.X * vector2.X + vector2.Y * vector2.Y);
-            //180除以π（圆周率）的结果等于57.29578
+            //180除以π(圆周率)的结果等于57.29578
             float angle = (float)(Mathf.Acos(dotProduct / (magnitude1 * magnitude2)) * 180 / Mathf.PI);
 #else
             float magnitude1 = Mathf.Sqrt(vector1.X * vector1.X + vector1.Y * vector1.Y);
@@ -728,7 +729,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回三维坐标（pixelX,pixelY,z）与（a,b,c）形成的角度（单位：度）
+        /// 以实数返回三维坐标(pixelX,pixelY,z)与(a,b,c)形成的角度(单位:度)
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -759,7 +760,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回二维点1点2形成的角度（单位：度）
+        /// 以实数返回二维点1点2形成的角度(单位:度)
         /// Returns the angle from point 1 to point 2 as a real value, in degrees
         /// </summary>
         /// <param name="point1">二维点</param>
@@ -781,7 +782,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回三维点1点2形成的角度（单位：度）
+        /// 以实数返回三维点1点2形成的角度(单位:度)
         /// </summary>
         /// <param name="point1">三维点</param>
         /// <param name="point2">三维点</param>
@@ -811,7 +812,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回二维向量之间形成的角度（单位：度）
+        /// 以实数返回二维向量之间形成的角度(单位:度)
         /// </summary>
         /// <param name="vector1"></param>
         /// <param name="vector2"></param>
@@ -836,7 +837,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回三维向量之间形成的角度（单位：度）
+        /// 以实数返回三维向量之间形成的角度(单位:度)
         /// </summary>
         /// <param name="vector1"></param>
         /// <param name="vector2"></param>
@@ -861,7 +862,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回二维坐标（pixelX,pixelY）与（a,b）形成的距离（单位：m）
+        /// 以实数返回二维坐标(pixelX,pixelY)与(a,b)形成的距离(单位:m)
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -884,7 +885,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回二维点之间形成的距离（单位：m）
+        /// 以实数返回二维点之间形成的距离(单位:m)
         /// </summary>
         /// <param name="point1"></param>
         /// <param name="point2"></param>
@@ -905,7 +906,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回二维向量之间形成的距离（单位：m）
+        /// 以实数返回二维向量之间形成的距离(单位:m)
         /// </summary>
         /// <param name="vector1"></param>
         /// <param name="vector2"></param>
@@ -933,7 +934,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回三维坐标（pixelX,pixelY,z）与（a,b,c）形成的距离（单位：度）
+        /// 以实数返回三维坐标(pixelX,pixelY,z)与(a,b,c)形成的距离(单位:度)
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -960,7 +961,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回三维点之间形成的距离（单位：m）
+        /// 以实数返回三维点之间形成的距离(单位:m)
         /// </summary>
         /// <param name="point1"></param>
         /// <param name="point2"></param>
@@ -983,7 +984,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回三维向量之间形成的距离（单位：m）
+        /// 以实数返回三维向量之间形成的距离(单位:m)
         /// </summary>
         /// <param name="vector1"></param>
         /// <param name="vector2"></param>
@@ -1019,7 +1020,7 @@ namespace MetalMaxSystem
         #region Functions 通用功能
 
         /// <summary>
-        /// 如果是Unity引擎则使用Debug.Log(contents)，其他情况切换至.NET下的Debug.WriteLine(contents)
+        /// 如果是Unity引擎则使用Debug.Log(contents),其他情况切换至.NET下的Debug.WriteLine(contents)
         /// </summary>
         /// <param name="contents">内容</param>
         /// <returns></returns>
@@ -1033,7 +1034,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 如果是Unity引擎则使用Debug.Log(contents)，其他情况切换至.NET下的Debug.WriteLine(contents)
+        /// 如果是Unity引擎则使用Debug.Log(contents),其他情况切换至.NET下的Debug.WriteLine(contents)
         /// </summary>
         /// <param name="contents">内容</param>
         /// <param name="args">要组合的其他任意参数</param>
@@ -1048,11 +1049,11 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 将字符串转换为字节数组，再转成2位16进制字符串格式或转成10进制数字再转为3位8进制字符串格式，以供在Galaxy代码中混淆使用
-        /// Galaxy代码会自动转转义8和16位格式字符串（\0及\pixelX）为ASCII值（数字）,再转为控制字符使用
+        /// 将字符串转换为字节数组,再转成2位16进制字符串格式或转成10进制数字再转为3位8进制字符串格式,以供在Galaxy代码中混淆使用
+        /// Galaxy代码会自动转转义8和16位格式字符串(\0及\pixelX)为ASCII值(数字),再转为控制字符使用
         /// </summary>
         /// <param name="input"></param>
-        /// <param name="r">向16进制转换的概率，否则向8进制转换</param>
+        /// <param name="r">向16进制转换的概率,否则向8进制转换</param>
         /// <returns></returns>
         public static string ConvertStringToHOMixed(string input, double r)
         {
@@ -1077,9 +1078,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 将字符串转换为字节数组，再转成10进制数字，再转为3位8进制字符串格式，以供在Galaxy代码中混淆使用
-        /// Galaxy代码会自动转转义8和16位格式字符串（\0及\pixelX）为ASCII值（数字）,再转为控制字符使用
-        /// 如八进制"\0124"、"\0114"表示十进制的84和76，Galaxy脚本中识别为"T"和"L"
+        /// 将字符串转换为字节数组,再转成10进制数字,再转为3位8进制字符串格式,以供在Galaxy代码中混淆使用
+        /// Galaxy代码会自动转转义8和16位格式字符串(\0及\pixelX)为ASCII值(数字),再转为控制字符使用
+        /// 如八进制"\0124"、"\0114"表示十进制的84和76,Galaxy脚本中识别为"T"和"L"
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -1095,9 +1096,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 将字符串转换为字节数组，再转成2位16进制字符串格式，以供在Galaxy代码中混淆使用
-        /// Galaxy代码会自动转转义8和16位格式字符串（\0及\pixelX）为ASCII值（数字）,再转为控制字符使用
-        /// 如十六进制"\x4C"表示十进制的84，Galaxy脚本中识别为"T"
+        /// 将字符串转换为字节数组,再转成2位16进制字符串格式,以供在Galaxy代码中混淆使用
+        /// Galaxy代码会自动转转义8和16位格式字符串(\0及\pixelX)为ASCII值(数字),再转为控制字符使用
+        /// 如十六进制"\x4C"表示十进制的84,Galaxy脚本中识别为"T"
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -1120,7 +1121,7 @@ namespace MetalMaxSystem
         public static string RemoveComments(string code)
         {
             string pattern = @"//.*?$|/\*.*?\*/";
-            //使用 RegexOptions.Multiline 选项来指定模式应在多个行上进行匹配，并使用 RegexOptions.Singleline 选项来指定模式应在单个连续字符串上进行匹配
+            //使用 RegexOptions.Multiline 选项来指定模式应在多个行上进行匹配,并使用 RegexOptions.Singleline 选项来指定模式应在单个连续字符串上进行匹配
             RegexOptions options = RegexOptions.Multiline | RegexOptions.Singleline;
             string result = Regex.Replace(code, pattern, string.Empty, options);
             return result;
@@ -1152,7 +1153,7 @@ namespace MetalMaxSystem
         public static readonly IntPtr HFILE_ERROR = new IntPtr(-1);
 
         /// <summary>
-        /// 文件是否被占用（WIN32 API调用）
+        /// 文件是否被占用(WIN32 API调用)
         /// </summary>
         /// <param name="fileFullNmae"></param>
         /// <returns></returns>
@@ -1166,7 +1167,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 文件是否被占用（文件流判断法）
+        /// 文件是否被占用(文件流判断法)
         /// </summary>
         /// <param name="fileName"></param>
         /// <returns>true表示正在使用,false没有使用 </returns>
@@ -1190,7 +1191,7 @@ namespace MetalMaxSystem
         #endregion
 
         /// <summary>
-        /// 递归方式强制删除目录（进最里层删除文件使目录为空后删除这个空目录，层层递出时重复动作），删除前会去掉文件（夹）的Archive、ReadOnly、Hidden属性以确保删除
+        /// 递归方式强制删除目录(进最里层删除文件使目录为空后删除这个空目录,层层递出时重复动作),删除前会去掉文件(夹)的Archive、ReadOnly、Hidden属性以确保删除
         /// </summary>
         /// <param name="dirInfo"></param>
         public static void DelDirectoryRecursively(DirectoryInfo dirInfo)
@@ -1201,17 +1202,17 @@ namespace MetalMaxSystem
             }
             foreach (FileInfo newInfo in dirInfo.GetFiles())
             {
-                //处理每个目录内部的文件（从里层开始删除）
+                //处理每个目录内部的文件(从里层开始删除)
                 newInfo.Attributes &= ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
                 newInfo.Delete();
             }
-            //对每个目录处理（从里层开始删除）
+            //对每个目录处理(从里层开始删除)
             dirInfo.Attributes &= ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
             dirInfo.Delete(true);
         }
 
         /// <summary>
-        /// 递归方式强制删除目录（进最里层删除文件使目录为空后删除这个空目录，层层递出时重复动作），删除前会去掉文件（夹）的Archive、ReadOnly、Hidden属性以确保删除
+        /// 递归方式强制删除目录(进最里层删除文件使目录为空后删除这个空目录,层层递出时重复动作),删除前会去掉文件(夹)的Archive、ReadOnly、Hidden属性以确保删除
         /// </summary>
         /// <param name="dirPath"></param>
         public static void DelDirectoryRecursively(string dirPath)
@@ -1225,7 +1226,7 @@ namespace MetalMaxSystem
         /// 删除目录
         /// </summary>
         /// <param name="dirInfo"></param>
-        /// <returns>删除成功返回真，否则返回假</returns>
+        /// <returns>删除成功返回真,否则返回假</returns>
         public static bool DelDirectory(DirectoryInfo dirInfo)
         {
             bool torf = false;
@@ -1241,7 +1242,7 @@ namespace MetalMaxSystem
         /// 删除目录
         /// </summary>
         /// <param name="dirPath"></param>
-        /// <returns>删除返回真，否则返回假</returns>
+        /// <returns>删除返回真,否则返回假</returns>
         public static bool DelDirectory(string dirPath)
         {
             bool torf = false;
@@ -1255,7 +1256,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 删除文件到回收站功能专用属性，已添加Shell API特性[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+        /// 删除文件到回收站功能专用属性,已添加Shell API特性[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
         /// </summary>
         /// <param name="lpFileOp"></param>
         /// <returns></returns>
@@ -1263,7 +1264,7 @@ namespace MetalMaxSystem
         public static extern int SHFileOperation(ref SHFILEOPSTRUCT lpFileOp);
 
         /// <summary>
-        /// 删除文件到回收站功能专用结构体，已添加特性[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        /// 删除文件到回收站功能专用结构体,已添加特性[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         /// </summary>
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public struct SHFILEOPSTRUCT
@@ -1279,7 +1280,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 删除文件到回收站功能专用枚举，已添加特性[Flags]
+        /// 删除文件到回收站功能专用枚举,已添加特性[Flags]
         /// </summary>
         [Flags]
         public enum SHFileOperationFlags : ushort
@@ -1320,12 +1321,12 @@ namespace MetalMaxSystem
             };
             if (!torf)
             {
-                //不确认直接删除（通过或运算符集成准许撤销+不出现任何对话框）
+                //不确认直接删除(通过或运算符集成准许撤销+不出现任何对话框)
                 fileop.fFlags = (ushort)(SHFileOperationFlags.FOF_ALLOWUNDO | SHFileOperationFlags.FOF_NOCONFIRMATION);
             }
             else
             {
-                //需要用户确认删除，文件操作属性清空
+                //需要用户确认删除,文件操作属性清空
                 fileop.fFlags = 0;
             }
             SHFileOperation(ref fileop);
@@ -1349,12 +1350,12 @@ namespace MetalMaxSystem
             };
             if (!torf)
             {
-                //不确认直接删除（通过或运算符集成准许撤销+不出现任何对话框）
+                //不确认直接删除(通过或运算符集成准许撤销+不出现任何对话框)
                 fileop.fFlags = (ushort)(SHFileOperationFlags.FOF_ALLOWUNDO | SHFileOperationFlags.FOF_NOCONFIRMATION);
             }
             else
             {
-                //需要用户确认删除，文件操作属性清空
+                //需要用户确认删除,文件操作属性清空
                 fileop.fFlags = 0;
             }
             SHFileOperation(ref fileop);
@@ -1367,7 +1368,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool IsChineseCharacter(char c)
         {
-            //检查是否是汉字（基本区块）
+            //检查是否是汉字(基本区块)
             return c >= '\u4e00' && c <= '\u9fff';
             //如果需要支持更多区块可在这里添加额外的条件
         }
@@ -1378,9 +1379,9 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool IsChinesePunctuation(char c)
         {
-            //非英文标点符号且字符位于CJK符号和标点符号的范围内（大致）
+            //非英文标点符号且字符位于CJK符号和标点符号的范围内(大致)
             return ((!IsEnglishPunctuation(c)) && c >= '\u3000' && c <= '\u303f');
-            //注意：这个范围可能不是完全准确的，需要根据实际情况调整
+            //注意:这个范围可能不是完全准确的,需要根据实际情况调整
         }
         /// <summary>
         /// 是否为英文字母
@@ -1407,16 +1408,16 @@ namespace MetalMaxSystem
                    category == UnicodeCategory.FinalQuotePunctuation ||
                    category == UnicodeCategory.OtherPunctuation;
 
-            // char.GetUnicodeCategory方法获取字符的Unicode类别（UnicodeCategory），然后根据这个类别判断字符是否为标点符号
-            // Unicode 标准将字符分为多个类别，其中与标点符号相关的类别包括：
-            // OpenPunctuation：开标点符号，例如 (、[、{
-            // ClosePunctuation：闭标点符号，例如 )、]、}
-            // ConnectorPunctuation：连接标点符号，例如 _
-            // DashPunctuation：破折号标点符号，例如 -、—
-            // InitialQuotePunctuation：初始引号标点符号，例如 “、‘
-            // FinalQuotePunctuation：结束引号标点符号，例如 ”、’
-            // OtherPunctuation：其他标点符号，包括一些特殊的标点符号，例如 !、@、#、$、%、``、&、* 等
-            // 如果字符的 Unicode 类别属于上述任何一个类别，方法返回 true，否则返回 false
+            // char.GetUnicodeCategory方法获取字符的Unicode类别(UnicodeCategory),然后根据这个类别判断字符是否为标点符号
+            // Unicode 标准将字符分为多个类别,其中与标点符号相关的类别包括:
+            // OpenPunctuation:开标点符号,例如 (、[、{
+            // ClosePunctuation:闭标点符号,例如 )、]、}
+            // ConnectorPunctuation:连接标点符号,例如 _
+            // DashPunctuation:破折号标点符号,例如 -、—
+            // InitialQuotePunctuation:初始引号标点符号,例如 “、‘
+            // FinalQuotePunctuation:结束引号标点符号,例如 ”、’
+            // OtherPunctuation:其他标点符号,包括一些特殊的标点符号,例如 !、@、#、$、%、``、&、* 等
+            // 如果字符的 Unicode 类别属于上述任何一个类别,方法返回 true,否则返回 false
         }
         /// <summary>
         /// 是否十六进制字符
@@ -1447,36 +1448,36 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 对字符串中特殊字符（如中文、转义字符）进行处理，使输出后的字节数组（可直接ToString）完整代表原文要表达的直观内容。
-        /// 应注意该直观内容是原文的解析结果，原文中的转义字符已被还原为实际字符。
-        /// 函数在处理原文时支持处理多种转义序列，包括十六进制、八进制和常见的转义字符（如 \n, \t, \r 等）。
-        /// 通过这种方式，确保了字符串在某些特定上下文中（如网络传输、文件存储）能够正确解析。
-        /// 如果还原原文或应用于按字节混淆为8和16进制的，在遍历到字节\时应注意该字节在原文其实是两个\字符。
-        /// 使用Encoding.UTF8.GetString(bytes)可以将字节数组转为字符串（切记不是bytes.ToString()）。
-        /// 另外星际2代码中"UI\\Box\\NanaKey_UI_CustomButton_01.dds" ="UI/Box/NanaKey_UI_CustomButton_01.dds"，
-        /// 两个\虽然是想要表示一个\的意思，但实际1个\不支持的，所以2个\\得改为一个/（或/的转义序列）而不是\的2个转义序列。
+        /// 对字符串中特殊字符(如中文、转义字符)进行处理,使输出后的字节数组(可直接ToString)完整代表原文要表达的直观内容.
+        /// 应注意该直观内容是原文的解析结果,原文中的转义字符已被还原为实际字符.
+        /// 函数在处理原文时支持处理多种转义序列,包括十六进制、八进制和常见的转义字符(如 \n, \t, \r 等).
+        /// 通过这种方式,确保了字符串在某些特定上下文中(如网络传输、文件存储)能够正确解析.
+        /// 如果还原原文或应用于按字节混淆为8和16进制的,在遍历到字节\时应注意该字节在原文其实是两个\字符.
+        /// 使用Encoding.UTF8.GetString(bytes)可以将字节数组转为字符串(切记不是bytes.ToString()).
+        /// 另外星际2代码中"UI\\Box\\NanaKey_UI_CustomButton_01.dds" ="UI/Box/NanaKey_UI_CustomButton_01.dds",
+        /// 两个\虽然是想要表示一个\的意思,但实际1个\不支持的,所以2个\\得改为一个/(或/的转义序列)而不是\的2个转义序列.
         /// </summary>
-        /// <param name="Text">任意字符串，可以是夹在冒号间的原文</param>
-        /// <param name="torf">true处理连续的两个\字符为1个\（即处理双\的转义），如需保留两个\或变成1个/或其他字符串时则应设置torf=false（默认）</param>
-        /// <param name="torfString">torf=false时生效，当torfString不为null则连续2个\字符将被处理为自定义torfString（默认值"/"），只改torf=false而torfString=null时将保留双\</param>
+        /// <param name="Text">任意字符串,可以是夹在冒号间的原文</param>
+        /// <param name="torf">true处理连续的两个\字符为1个\(即处理双\的转义),如需保留两个\或变成1个/或其他字符串时则应设置torf=false(默认)</param>
+        /// <param name="torfString">torf=false时生效,当torfString不为null则连续2个\字符将被处理为自定义torfString(默认值"/"),只改torf=false而torfString=null时将保留双\</param>
         /// <returns></returns>
         public static byte[] Escape(string Text, bool torf = false, string torfString = "/")
         {
-            //C#中的字符Char是Unicode字符，一个Char类型的变量占2个字节，即16位（值范围0-65535），1个Char类型的变量可以存储一个Unicode字符（包括单个中文）
-            byte[] bytes = Encoding.UTF8.GetBytes(Text);//将字符串转换为8位字节数组（值范围0-255）
-            //Console.WriteLine(BitConverter.GetBytes('地').Length);//2字节，用错了方法
-            //BitConverter.GetBytes通常用于将基础数据类型（如整数、浮点数等）转换为字节数组
-            //然而这个方法并不适用于字符类型（char）因为char在C#中是一个两字节的Unicode字符而BitConverter主要设计用于处理单字节、双字节、四字节、八字节等固定长度的数据类型
+            //C#中的字符Char是Unicode字符,一个Char类型的变量占2个字节,即16位(值范围0-65535),1个Char类型的变量可以存储一个Unicode字符(包括单个中文)
+            byte[] bytes = Encoding.UTF8.GetBytes(Text);//将字符串转换为8位字节数组(值范围0-255)
+            //Console.WriteLine(BitConverter.GetBytes('地').Length);//2字节,用错了方法
+            //BitConverter.GetBytes通常用于将基础数据类型(如整数、浮点数等)转换为字节数组
+            //然而这个方法并不适用于字符类型(char)因为char在C#中是一个两字节的Unicode字符而BitConverter主要设计用于处理单字节、双字节、四字节、八字节等固定长度的数据类型
             List<byte> result = new List<byte>();
             for (int i = 0; i < bytes.Length;)
             {//遍历字节数组
                 if (bytes[i] != '\\')
-                {//如果不是转义符，直接添加到结果中
+                {//如果不是转义符,直接添加到结果中
                     result.Add(bytes[i]);
                     i++;
                 }
                 else
-                {//如果原文中有转义符，根据转义符的不同，进行处理，因为后续混淆转义2个字符分别是\和n的话不会被编译器认为是换行符（如"Hello\x5C\x6EWorld"输出后是Hello\nWorld）
+                {//如果原文中有转义符,根据转义符的不同,进行处理,因为后续混淆转义2个字符分别是\和n的话不会被编译器认为是换行符(如"Hello\x5C\x6EWorld"输出后是Hello\nWorld)
                     i++;//扫描转义符后的1位字符
                     if (i < bytes.Length)
                     {//如果不是最后一个字符
@@ -1487,21 +1488,21 @@ namespace MetalMaxSystem
                             i++;//扫描指针继续前进1位
                             int k = 0;
                             while (k < 2 && i + k < bytes.Length && IsHexchar(bytes[i + k])) k++;
-                            //十六进制字符的长度为2，这里扫描x之后最大2位字符
+                            //十六进制字符的长度为2,这里扫描x之后最大2位字符
                             for (int j = 0; j < k; j++) s += (char)bytes[i + j];//s存入这2位字符
                             //s转换为字节
                             byte hexvalue = Convert.ToByte(s, 16);
                             result.Add(hexvalue);//添加到结果中
-                            i += k;//扫描指针继续前进k位，以便下次扫描
+                            i += k;//扫描指针继续前进k位,以便下次扫描
                         }
                         else if (bytes[i] == '0')
-                        {//如果该字节0代表八进制（对0后面最大抓3位字符并转字节数组）
+                        {//如果该字节0代表八进制(对0后面最大抓3位字符并转字节数组)
                             s = "";
                             i++;//扫描指针继续前进1位
                             int k = 0;
                             while (k < 3 && i + k < bytes.Length && IsOctchar(bytes[i + k])) k++;
-                            //0到177：表示ASCII码表中0到127的字符（即DELETE字符），使用一到三位八进制数（有效转义字符范围）
-                            //200到377：表示ASCII码表中128到255的字符，使用三位八进制数（在某些编译器或解释器中可能视为扩展八进制转义字符，用于表示负值（在signed char类型中）或超出ASCII码表范围的值）
+                            //0到177:表示ASCII码表中0到127的字符(即DELETE字符),使用一到三位八进制数(有效转义字符范围)
+                            //200到377:表示ASCII码表中128到255的字符,使用三位八进制数(在某些编译器或解释器中可能视为扩展八进制转义字符,用于表示负值(在signed char类型中)或超出ASCII码表范围的值)
                             //上述的k只有0~2没有3
                             for (int j = 0; j < k; j++) s += (char)bytes[i + j];//s存入这k位字符
                             byte hexvalue;
@@ -1511,7 +1512,7 @@ namespace MetalMaxSystem
                                 hexvalue = Convert.ToByte(s, 8);
                             }
                             catch
-                            {//这里k必然等于3并且转换后的值超过255（转换字节出错），则应将k-1重新计算一次
+                            {//这里k必然等于3并且转换后的值超过255(转换字节出错),则应将k-1重新计算一次
                                 s = "";
                                 k--;
                                 for (int j = 0; j < k; j++) s += (char)bytes[i + j];
@@ -1526,7 +1527,7 @@ namespace MetalMaxSystem
                             s = "";
                             int k = 0;
                             while (k < 3 && i + k < bytes.Length && IsHexchar(bytes[i + k])) k++;
-                            //抓取包含该字节在内的3位十六进制字符（不会包含\，抓到什么就直接转原文字节，只抓3位方便万一是八进制如177）
+                            //抓取包含该字节在内的3位十六进制字符(不会包含\,抓到什么就直接转原文字节,只抓3位方便万一是八进制如177)
                             for (int j = 0; j < k; j++) s += (char)bytes[i + j];
                             byte hexvalue;
                             try
@@ -1549,18 +1550,18 @@ namespace MetalMaxSystem
                             switch ((char)bytes[i])
                             {
                                 case 'n':
-                                    //把原文中的@"\n"（2个字符）变成1个字符'\n'，以便后续转义出来的字符被编译器或解释器正确解析（余同）
+                                    //把原文中的@"\n"(2个字符)变成1个字符'\n',以便后续转义出来的字符被编译器或解释器正确解析(余同)
                                     result.Add((byte)'\n');
                                     break;
                                 case 't':
-                                    result.Add((byte)'\t');//是水平制表符（Tab）
+                                    result.Add((byte)'\t');//是水平制表符(Tab)
                                     break;
                                 case 'r':
-                                    result.Add((byte)'\r');//是回车符（Carriage Return）
+                                    result.Add((byte)'\r');//是回车符(Carriage Return)
                                     break;
                                 case '\\':
                                     if (torf)
-                                    {//正常转义连续的两个\字符（变成1个）
+                                    {//正常转义连续的两个\字符(变成1个)
                                         result.Add((byte)'\\');
                                     }
                                     else
@@ -1574,7 +1575,7 @@ namespace MetalMaxSystem
                                         {//用户自定义的torfString
                                             if (torfString != "")
                                             {//torfString不为空
-                                                //连续的两个\字符处理变成torfString，用户可填写任意字符串（如/或其他）
+                                                //连续的两个\字符处理变成torfString,用户可填写任意字符串(如/或其他)
                                                 for (int j = 0; j < torfString.Length; j++)
                                                 {
                                                     result.Add((byte)torfString[j]);
@@ -1588,22 +1589,22 @@ namespace MetalMaxSystem
                                     }
                                     break;
                                 case '\'':
-                                    result.Add((byte)'\'');//是单引号字符（Single Quote）
+                                    result.Add((byte)'\'');//是单引号字符(Single Quote)
                                     break;
                                 case '\"':
-                                    result.Add((byte)'\"');//是双引号字符（Double Quote）
+                                    result.Add((byte)'\"');//是双引号字符(Double Quote)
                                     break;
                                 case 'b':
-                                    result.Add((byte)'\b');//是退格符（Backspace）
+                                    result.Add((byte)'\b');//是退格符(Backspace)
                                     break;
                                 case 'f':
-                                    result.Add((byte)'\f');//是换页符（Formfeed）
+                                    result.Add((byte)'\f');//是换页符(Formfeed)
                                     break;
                                 case 'v':
-                                    result.Add((byte)'\v');//是垂直制表符（Vertical Tab）
+                                    result.Add((byte)'\v');//是垂直制表符(Vertical Tab)
                                     break;
                                 default:
-                                    //如果是未知的转义符，保留原样2个字符
+                                    //如果是未知的转义符,保留原样2个字符
                                     result.Add((byte)'\\');
                                     result.Add(bytes[i]);
                                     break;
@@ -1620,11 +1621,11 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 混淆处理（将字符串变转义序列）。字符串中每个字符将被转换为八进制或十六进制（X2）表示
+        /// 混淆处理(将字符串变转义序列).字符串中每个字符将被转换为八进制或十六进制(X2)表示
         /// </summary>
-        /// <param name="str">任意字符串，可以是夹在冒号间的原文</param>
-        /// <param name="torf">true处理连续的两个\字符为1个\（即处理双\的转义），如需保留两个\或变成1个/或其他字符串时则应设置torf=false（默认）</param>
-        /// <param name="torfString">torf=false时生效，当torfString不为null则连续2个\字符将被处理为自定义torfString（默认值"/"），只改torf=false而torfString=null时将保留双\</param>
+        /// <param name="str">任意字符串,可以是夹在冒号间的原文</param>
+        /// <param name="torf">true处理连续的两个\字符为1个\(即处理双\的转义),如需保留两个\或变成1个/或其他字符串时则应设置torf=false(默认)</param>
+        /// <param name="torfString">torf=false时生效,当torfString不为null则连续2个\字符将被处理为自定义torfString(默认值"/"),只改torf=false而torfString=null时将保留双\</param>
         /// <returns></returns>
         public static string Obfuscate(string str, bool torf = false, string torfString = "/")
         {
@@ -1635,21 +1636,21 @@ namespace MetalMaxSystem
                 // 随机选择八进制或十六进制表示
                 return random.Next(2) == 0
                     ? $"\\x{b:X2}" // 十六进制表示
-                    : $"\\{Convert.ToString(b, 8).PadLeft(3, '0')}"; // 八进制表示，补足三位
+                    : $"\\{Convert.ToString(b, 8).PadLeft(3, '0')}"; // 八进制表示,补足三位
             }));
             return result;
         }
 
         /// <summary>
-        /// 将十六进制表示的英文+数字组合字符串转回中文表示（用于GalaxyEditor）
+        /// 将十六进制表示的英文+数字组合字符串转回中文表示(用于GalaxyEditor)
         /// </summary>
         /// <param name="hexString">十六位字符组成的字符串如"E58AA8E59BBEE6B58BE8AF95"</param>
-        /// <returns>正常返回中文字符串，错误时返回空字符串</returns>
+        /// <returns>正常返回中文字符串,错误时返回空字符串</returns>
         public static string HexStringToChineseCharacter(string hexString)
         {
             try 
             {
-                byte[] bytes = new byte[hexString.Length / 2];//创建一个字节数组（C#每个字符Char占2字节16位）
+                byte[] bytes = new byte[hexString.Length / 2];//创建一个字节数组(C#每个字符Char占2字节16位)
                 for (int i = 0; i < hexString.Length; i += 2)
                 {
                     bytes[i / 2] = Convert.ToByte(hexString.Substring(i, 2), 16);
@@ -1810,7 +1811,7 @@ namespace MetalMaxSystem
             long len = 0;
             //定义一个DirectoryInfo对象
             DirectoryInfo di = new DirectoryInfo(dirPath);
-            //通过GetFiles方法,获取di目录中的所有文件的大小，量越大越慢
+            //通过GetFiles方法,获取di目录中的所有文件的大小,量越大越慢
             foreach (FileInfo fi in di.GetFiles())
             {
                 len += fi.Length;
@@ -1829,10 +1830,10 @@ namespace MetalMaxSystem
 
 #if WINDOWS || NET8_0_OR_GREATER || NETFRAMEWORK
         /// <summary>
-        /// 取得设备硬盘的卷序列号（在Unity、MonoGame不适用）
+        /// 取得设备硬盘的卷序列号(在Unity、MonoGame不适用)
         /// </summary>
         /// <param name="diskSymbol">盘符</param>
-        /// <returns>成功返回卷序列号，失败返回"uHnIk"</returns>
+        /// <returns>成功返回卷序列号,失败返回"uHnIk"</returns>
         public static string GetHardDiskID(string diskSymbol)
         {
             try
@@ -1864,24 +1865,24 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 验证字符串是否为合法文件（夹）名称，可以是虚拟路径（本函数不验证其真实存在）
+        /// 验证字符串是否为合法文件(夹)名称,可以是虚拟路径(本函数不验证其真实存在)
         /// </summary>
-        /// <param name="path">文件（夹）路径全名，注意该字符串末尾没有斜杠</param>
+        /// <param name="path">文件(夹)路径全名,注意该字符串末尾没有斜杠</param>
         /// <returns></returns>
         public static bool IsDFPath(string path)
         {
-            //发现带中文符号会识别不出，为中文符号继续追加（）【】：
+            //发现带中文符号会识别不出,为中文符号继续追加()【】:
             Regex regex = new Regex(
-                @"^([a-zA-Z]:\\)([-\u4e00-\u9fa5\w\s.（）【】：~!@#$%^&()\[\]{}+=]+\\?)*$"
+                @"^([a-zA-Z]:\\)([-\u4e00-\u9fa5\w\s.()【】:~!@#$%^&()\[\]{}+=]+\\?)*$"
             );
             Match result = regex.Match(path);
             return result.Success;
         }
 
         /// <summary>
-        /// 验证字符串路径的文件（夹）是否真实存在
+        /// 验证字符串路径的文件(夹)是否真实存在
         /// </summary>
-        /// <param name="path">文件（夹）路径全名</param>
+        /// <param name="path">文件(夹)路径全名</param>
         /// <returns></returns>
         public static bool IsDF(string path)
         {
@@ -1909,8 +1910,8 @@ namespace MetalMaxSystem
                 //Directory = 16,
                 //Archive = 32,
                 //Device = 64,
-                //如果设置了ReadOnly和Directory，则FileAttributes等于16+1=17，二进制为00001001
-                //如果没有设置目录位，则会得到零：
+                //如果设置了ReadOnly和Directory,则FileAttributes等于16+1=17,二进制为00001001
+                //如果没有设置目录位,则会得到零:
                 //File.GetAttributes(source) = 00000001
                 // FileAttributes.Directory = 00001000 &
                 //-------------------------------------
@@ -1962,7 +1963,7 @@ namespace MetalMaxSystem
         {
             bool torf = false;
             DirectoryInfo dir = new DirectoryInfo(path);
-            //为了效率，只要验证当前层就可以了
+            //为了效率,只要验证当前层就可以了
             if (dir.GetFiles().Length + dir.GetDirectories().Length == 0)
             {
                 torf = true;
@@ -1971,7 +1972,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 验证路径是否为用户定义的空目录，通过MMCore.DirectoryEmptyUserDefIndex属性可定义空目录形式
+        /// 验证路径是否为用户定义的空目录,通过MMCore.DirectoryEmptyUserDefIndex属性可定义空目录形式
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
@@ -2009,10 +2010,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 使用FileWriter写文本每行。写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区
+        /// 使用FileWriter写文本每行.写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区
         /// </summary>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
         public static void WriteLine(string value, bool bufferAppend = true)
         {
             if (writeTell == true)
@@ -2023,14 +2024,14 @@ namespace MetalMaxSystem
             fileWriter.WriteLine(value, !bufferAppend);
         }
         /// <summary>
-        /// 使用FileWriter写文本每行（默认UTF-8）。写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区（直到参数end=true时写入文件，文件若不存在则自动新建）
+        /// 使用FileWriter写文本每行(默认UTF-8).写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区(直到参数end=true时写入文件,文件若不存在则自动新建)
         /// </summary>
         /// <param name="path">要写入的文件路径</param>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
-        /// <param name="end">立即写入文件并，如果flush=false则清理StringBuilder缓冲区</param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
-        /// <param name="flush">是否使用Flush方法（不清空StringBuilder），默认false（使用Close方法，会清空StringBuilder）</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
+        /// <param name="end">立即写入文件并,如果flush=false则清理StringBuilder缓冲区</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
+        /// <param name="flush">是否使用Flush方法(不清空StringBuilder),默认false(使用Close方法,会清空StringBuilder)</param>
         public static void WriteLine(string path, string value, bool bufferAppend = true, bool end = false, bool fileAppend = false, bool flush = false)
         {
             if (writeTell == true)
@@ -2045,12 +2046,12 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 使用FileWriter写文本每行（默认UTF-8）到文件（若不存在则自动新建）。FileWriter将调用Flush()方法，结束后保留MMCore.fileWriter的StringBuilder类型的Buffer缓冲区。
+        /// 使用FileWriter写文本每行(默认UTF-8)到文件(若不存在则自动新建).FileWriter将调用Flush()方法,结束后保留MMCore.fileWriter的StringBuilder类型的Buffer缓冲区.
         /// </summary>
         /// <param name="path">要写入的文件路径</param>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
         public static void WriteLineFlush(string path, string value, bool bufferAppend = true, bool fileAppend = false)
         {
             if (writeTell == true)
@@ -2062,12 +2063,12 @@ namespace MetalMaxSystem
             fileWriter.Flush(path, fileAppend, Encoding.UTF8);
         }
         /// <summary>
-        /// 使用FileWriter写文本每行（默认UTF-8）到文件（若不存在则自动新建）。FileWriter将调用Close()方法，结束后清理MMCore.fileWriter的StringBuilder类型的Buffer缓冲区。
+        /// 使用FileWriter写文本每行(默认UTF-8)到文件(若不存在则自动新建).FileWriter将调用Close()方法,结束后清理MMCore.fileWriter的StringBuilder类型的Buffer缓冲区.
         /// </summary>
         /// <param name="path">要写入的文件路径</param>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
         public static void WriteLineClose(string path, string value, bool bufferAppend = true, bool fileAppend = false)
         {
             if (writeTell == true)
@@ -2079,14 +2080,14 @@ namespace MetalMaxSystem
             fileWriter.Close(path, fileAppend, Encoding.UTF8);
         }
         /// <summary>
-        /// 使用FileWriter副本（复制MMCore.fileWriter的StringBuilder类型的Buffer缓冲区）后写文本每行（默认UTF-8）到文件（若不存在则自动新建）。
+        /// 使用FileWriter副本(复制MMCore.fileWriter的StringBuilder类型的Buffer缓冲区)后写文本每行(默认UTF-8)到文件(若不存在则自动新建).
         /// </summary>
         /// <param name="path">要写入的文件路径</param>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
-        /// <param name="end">立即写入文件，如果flush=false则清理StringBuilder缓冲区</param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
-        /// <param name="flush">是否使用Flush方法（不清空StringBuilder），默认false（使用Close方法，会清空StringBuilder）</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
+        /// <param name="end">立即写入文件,如果flush=false则清理StringBuilder缓冲区</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
+        /// <param name="flush">是否使用Flush方法(不清空StringBuilder),默认false(使用Close方法,会清空StringBuilder)</param>
         /// <returns></returns>
         public static FileWriter WriteLineCopy(string path, string value, bool bufferAppend = true, bool end = false, bool fileAppend = false, bool flush = false)
         {
@@ -2107,15 +2108,15 @@ namespace MetalMaxSystem
             return tempFileWriter;
         }
         /// <summary>
-        /// 使用FileWriter写文本每行。写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区（直到参数end=true时写入文件，文件若不存在则自动新建）
+        /// 使用FileWriter写文本每行.写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区(直到参数end=true时写入文件,文件若不存在则自动新建)
         /// </summary>
         /// <param name="path">要写入的文件路径</param>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
         /// <param name="encoding">编码</param>
-        /// <param name="end">立即写入文件并，如果flush=false则清理StringBuilder缓冲区</param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
-        /// <param name="flush">是否使用Flush方法（不清空StringBuilder），默认false（使用Close方法，会清空StringBuilder）</param>
+        /// <param name="end">立即写入文件并,如果flush=false则清理StringBuilder缓冲区</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
+        /// <param name="flush">是否使用Flush方法(不清空StringBuilder),默认false(使用Close方法,会清空StringBuilder)</param>
         public static void WriteLine(string path, string value, bool bufferAppend, Encoding encoding, bool end = false, bool fileAppend = false, bool flush = false)
         {
             if (writeTell == true)
@@ -2131,10 +2132,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 使用FileWriter写文本。写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区
+        /// 使用FileWriter写文本.写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区
         /// </summary>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
         public static void Write(string value, bool bufferAppend = true)
         {
             if (writeTell == true)
@@ -2146,14 +2147,14 @@ namespace MetalMaxSystem
             fileWriter.Write(value, !bufferAppend);
         }
         /// <summary>
-        /// 使用FileWriter写文本（默认UTF-8）。写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区（直到参数end=true时写入文件，文件若不存在则自动新建）
+        /// 使用FileWriter写文本(默认UTF-8).写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区(直到参数end=true时写入文件,文件若不存在则自动新建)
         /// </summary>
         /// <param name="path">要写入的文件路径</param>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
-        /// <param name="end">立即写入文件并，如果flush=false则清理StringBuilder缓冲区</param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
-        /// <param name="flush">是否使用Flush方法（不清空StringBuilder），默认false（使用Close方法，会清空StringBuilder）</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
+        /// <param name="end">立即写入文件并,如果flush=false则清理StringBuilder缓冲区</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
+        /// <param name="flush">是否使用Flush方法(不清空StringBuilder),默认false(使用Close方法,会清空StringBuilder)</param>
         public static void Write(string path, string value, bool bufferAppend = true, bool end = false, bool fileAppend = false, bool flush = false)
         {
             if (writeTell == true)
@@ -2168,12 +2169,12 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 使用FileWriter写文本（默认UTF-8）到文件（若不存在则自动新建）。FileWriter将调用Flush()方法，结束后保留MMCore.fileWriter的StringBuilder类型的Buffer缓冲区。
+        /// 使用FileWriter写文本(默认UTF-8)到文件(若不存在则自动新建).FileWriter将调用Flush()方法,结束后保留MMCore.fileWriter的StringBuilder类型的Buffer缓冲区.
         /// </summary>
         /// <param name="path">要写入的文件路径</param>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
         public static void WriteFlush(string path, string value, bool bufferAppend = true, bool fileAppend = false)
         {
             if (writeTell == true)
@@ -2185,12 +2186,12 @@ namespace MetalMaxSystem
             fileWriter.Flush(path, fileAppend, Encoding.UTF8);
         }
         /// <summary>
-        /// 使用FileWriter写文本（默认UTF-8）到文件（若不存在则自动新建）。FileWriter将调用Close()方法，结束后清理MMCore.fileWriter的StringBuilder类型的Buffer缓冲区。
+        /// 使用FileWriter写文本(默认UTF-8)到文件(若不存在则自动新建).FileWriter将调用Close()方法,结束后清理MMCore.fileWriter的StringBuilder类型的Buffer缓冲区.
         /// </summary>
         /// <param name="path">要写入的文件路径</param>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
         public static void WriteClose(string path, string value, bool bufferAppend = true, bool fileAppend = false)
         {
             if (writeTell == true)
@@ -2203,14 +2204,14 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 使用FileWriter副本（复制MMCore.fileWriter的StringBuilder类型的Buffer缓冲区）后写文本（默认UTF-8）到文件（若不存在则自动新建）。
+        /// 使用FileWriter副本(复制MMCore.fileWriter的StringBuilder类型的Buffer缓冲区)后写文本(默认UTF-8)到文件(若不存在则自动新建).
         /// </summary>
         /// <param name="path">要写入的文件路径</param>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
-        /// <param name="end">立即写入文件，如果flush=false则清理StringBuilder缓冲区</param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
-        /// <param name="flush">是否使用Flush方法（不清空StringBuilder），默认false（使用Close方法，会清空StringBuilder）</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
+        /// <param name="end">立即写入文件,如果flush=false则清理StringBuilder缓冲区</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
+        /// <param name="flush">是否使用Flush方法(不清空StringBuilder),默认false(使用Close方法,会清空StringBuilder)</param>
         /// <returns></returns>
         public static FileWriter WriteCopy(string path, string value, bool bufferAppend = true, bool end = false, bool fileAppend = false, bool flush = false)
         {
@@ -2231,15 +2232,15 @@ namespace MetalMaxSystem
             return tempFileWriter;
         }
         /// <summary>
-        /// 使用FileWriter写文本。写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区（直到参数end=true时写入文件，文件若不存在则自动新建）
+        /// 使用FileWriter写文本.写入内容暂存在MMCore.fileWriter的StringBuilder类型的Buffer缓冲区(直到参数end=true时写入文件,文件若不存在则自动新建)
         /// </summary>
         /// <param name="path">要写入的文件路径</param>
         /// <param name="value">要写入的字符内容</param>
-        /// <param name="bufferAppend">false覆盖缓冲区（即写入前清理StringBuilder）,true向缓冲区追加文本</param>
+        /// <param name="bufferAppend">false覆盖缓冲区(即写入前清理StringBuilder),true向缓冲区追加文本</param>
         /// <param name="encoding">编码</param>
-        /// <param name="end">立即写入文件并，如果flush=false则清理StringBuilder缓冲区</param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
-        /// <param name="flush">是否使用Flush方法（不清空StringBuilder），默认false（使用Close方法，会清空StringBuilder）</param>
+        /// <param name="end">立即写入文件并,如果flush=false则清理StringBuilder缓冲区</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
+        /// <param name="flush">是否使用Flush方法(不清空StringBuilder),默认false(使用Close方法,会清空StringBuilder)</param>
         public static void Write(string path, string value, bool bufferAppend, Encoding encoding, bool end = false, bool fileAppend = false, bool flush = false)
         {
             if (writeTell == true)
@@ -2255,69 +2256,69 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 立即写文本每行（默认UTF-8），文件若不存在则自动新建，StreamWriter默认缓冲区大小为8192个字节（8KB），满时自动写入文件，本函数使用using代码块，StreamWriter对象被关闭时，缓冲区中的数据也会被写入文件。
+        /// 立即写文本每行(默认UTF-8),文件若不存在则自动新建,StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="value"></param>
-        /// <param name="append">false是覆盖，true是追加文本</param>
+        /// <param name="append">false是覆盖,true是追加文本</param>
         public static void WriteLineNow(string path, string value, bool append, int bufferSize = 8192)
         {
             using (StreamWriter sw = new StreamWriter(path, append, Encoding.UTF8, bufferSize))
             {
                 sw.WriteLine(value);
-                //sw.Flush(); 不等待sw.Close()即刻写入，对于遍历大量写入来说并不效率，故此时不写
+                //sw.Flush(); 不等待sw.Close()即刻写入,对于遍历大量写入来说并不效率,故此时不写
             }
-            //using代码块结束，StreamWriter对象被关闭，缓冲区中的数据被写入文件
+            //using代码块结束,StreamWriter对象被关闭,缓冲区中的数据被写入文件
 
         }
         /// <summary>
-        /// 立即写文本每行，文件若不存在则自动新建，StreamWriter默认缓冲区大小为8192个字节（8KB），满时自动写入文件，本函数使用using代码块，StreamWriter对象被关闭时，缓冲区中的数据也会被写入文件。
+        /// 立即写文本每行,文件若不存在则自动新建,StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="value"></param>
-        /// <param name="append">false是覆盖，true是追加文本</param>
+        /// <param name="append">false是覆盖,true是追加文本</param>
         /// <param name="encoding"></param>
         public static void WriteLineNow(string path, string value, bool append, Encoding encoding, int bufferSize = 8192)
         {
             using (StreamWriter sw = new StreamWriter(path, append, encoding, bufferSize))
             {
                 sw.WriteLine(value);
-                //sw.Flush(); 不等待sw.Close()即刻写入，对于遍历大量写入来说并不效率，故此时不写
+                //sw.Flush(); 不等待sw.Close()即刻写入,对于遍历大量写入来说并不效率,故此时不写
             }
-            //using代码块结束，StreamWriter对象被关闭，缓冲区中的数据被写入文件
+            //using代码块结束,StreamWriter对象被关闭,缓冲区中的数据被写入文件
 
         }
 
         /// <summary>
-        /// 立即写文本（默认UTF-8），文件若不存在则自动新建，StreamWriter默认缓冲区大小为8192个字节（8KB），满时自动写入文件，本函数使用using代码块，StreamWriter对象被关闭时，缓冲区中的数据也会被写入文件。
+        /// 立即写文本(默认UTF-8),文件若不存在则自动新建,StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="value"></param>
-        /// <param name="append">false是覆盖，true是追加文本</param>
+        /// <param name="append">false是覆盖,true是追加文本</param>
         public static void WriteNow(string path, string value, bool append, int bufferSize = 8192)
         {
             using (StreamWriter sw = new StreamWriter(path, append, Encoding.UTF8, bufferSize))
             {
                 sw.Write(value);
-                //sw.Flush(); 不等待sw.Close()即刻写入，对于遍历大量写入来说并不效率，故此时不写
+                //sw.Flush(); 不等待sw.Close()即刻写入,对于遍历大量写入来说并不效率,故此时不写
             }
-            //using代码块结束，StreamWriter对象被关闭，缓冲区中的数据被写入文件
+            //using代码块结束,StreamWriter对象被关闭,缓冲区中的数据被写入文件
         }
         /// <summary>
-        /// 立即写文本，文件若不存在则自动新建，StreamWriter默认缓冲区大小为8192个字节（8KB），满时自动写入文件，本函数使用using代码块，StreamWriter对象被关闭时，缓冲区中的数据也会被写入文件。
+        /// 立即写文本,文件若不存在则自动新建,StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="value"></param>
-        /// <param name="append">false是覆盖，true是追加文本</param>
+        /// <param name="append">false是覆盖,true是追加文本</param>
         /// <param name="encoding"></param>
         public static void WriteNow(string path, string value, bool append, Encoding encoding, int bufferSize = 8192)
         {
             using (StreamWriter sw = new StreamWriter(path, append, encoding, bufferSize))
             {
                 sw.Write(value);
-                //sw.Flush(); 不等待sw.Close()即刻写入，对于遍历大量写入来说并不效率，故此时不写
+                //sw.Flush(); 不等待sw.Close()即刻写入,对于遍历大量写入来说并不效率,故此时不写
             }
-            //using代码块结束，StreamWriter对象被关闭，缓冲区中的数据被写入文件
+            //using代码块结束,StreamWriter对象被关闭,缓冲区中的数据被写入文件
         }
 
         /// <summary>
@@ -2438,7 +2439,7 @@ namespace MetalMaxSystem
 
         /// <summary>
         /// 下载指定网站的指定节点内容到指定目录并保存为自定义文件名
-        /// 使用范例：
+        /// 使用范例:
         /// HtmlDocument doc = new();
         /// doc.LoadHtml(MMCore.CreateGetHttpResponse("https://ac.qq.com/Comic/ComicInfo/id/542330"));
         /// HtmlNode img = doc.DocumentNode.SelectSingleNode("/html/body/div[3]/div[3]/div[1]/div[1]/div[1]/a/img");
@@ -2448,7 +2449,7 @@ namespace MetalMaxSystem
         /// </summary>
         /// <param name="url">浏览器网址</param>
         /// <param name="fileName">自定义文件名</param>
-        /// <param name="path">下载路径，如 @"C:\Users\Admin\Desktop\Download\"</param>
+        /// <param name="path">下载路径,如 @"C:\Users\Admin\Desktop\Download\"</param>
         /// <param name="bufferAppend">发生文件重复时覆盖</param>
         /// <returns></returns>
         public static bool Download(string url, string fileName, string path, bool cover)
@@ -2513,11 +2514,11 @@ namespace MetalMaxSystem
         ///生成随机字符串 
         ///</summary>
         ///<param name="length">目标字符串的长度</param>
-        ///<param name="useNum">是否包含数字，1=包含，默认为包含</param>
-        ///<param name="useLow">是否包含小写字母，1=包含，默认为包含</param>
-        ///<param name="useUpp">是否包含大写字母，1=包含，默认为包含</param>
-        ///<param name="useSpe">是否包含特殊字符，1=包含，默认为不包含</param>
-        ///<param name="custom">要包含的自定义字符，直接输入要包含的字符列表</param>
+        ///<param name="useNum">是否包含数字,1=包含,默认为包含</param>
+        ///<param name="useLow">是否包含小写字母,1=包含,默认为包含</param>
+        ///<param name="useUpp">是否包含大写字母,1=包含,默认为包含</param>
+        ///<param name="useSpe">是否包含特殊字符,1=包含,默认为不包含</param>
+        ///<param name="custom">要包含的自定义字符,直接输入要包含的字符列表</param>
         ///<returns>指定长度的随机字符串</returns>
         public static string GetRandomString(int length, bool useNum = true, bool useLow = true, bool useUpp = true, bool useSpe = false, string custom = null)
         {
@@ -2537,7 +2538,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 创建目录，若已存在则什么也不干
+        /// 创建目录,若已存在则什么也不干
         /// </summary>
         /// <param name="path"></param>
         public static void CreatDirectory(string path)
@@ -2550,7 +2551,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 创建文件，若已存在则什么也不干
+        /// 创建文件,若已存在则什么也不干
         /// </summary>
         /// <param name="filepath"></param>
         public static void CreatFile(string filepath)
@@ -2562,7 +2563,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 调用File.WriteAllText将文本内存写入文件（若路径不存在会尝试建立）
+        /// 调用File.WriteAllText将文本内存写入文件(若路径不存在会尝试建立)
         /// </summary>
         /// <param name="fileSavePath"></param>
         /// <param name="content"></param>
@@ -2572,7 +2573,7 @@ namespace MetalMaxSystem
             {
                 string directoryPath = Path.GetDirectoryName(fileSavePath);
 
-                //如果目录不存在，则创建它
+                //如果目录不存在,则创建它
                 if (!Directory.Exists(directoryPath))
                 {
                     Directory.CreateDirectory(directoryPath);
@@ -2597,7 +2598,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 调用File.WriteAllBytes将文本内存写入文件（若路径不存在会尝试建立）
+        /// 调用File.WriteAllBytes将文本内存写入文件(若路径不存在会尝试建立)
         /// </summary>
         /// <param name="fileSavePath"></param>
         /// <param name="content"></param>
@@ -2607,7 +2608,7 @@ namespace MetalMaxSystem
             {
                 string directoryPath = Path.GetDirectoryName(fileSavePath);
 
-                //如果目录不存在，则创建它
+                //如果目录不存在,则创建它
                 if (!Directory.Exists(directoryPath))
                 {
                     Directory.CreateDirectory(directoryPath);
@@ -2676,22 +2677,22 @@ namespace MetalMaxSystem
 #endif
         #region 弹幕爬取
 
-        //功能出处：https://blog.csdn.net/qq_15505341/article/details/79212070/
+        //功能出处:https://blog.csdn.net/qq_15505341/article/details/79212070/
 
         /// <summary>
-        /// 获取弹幕信息（本函数待改中请勿使用）
+        /// 获取弹幕信息(本函数待改中请勿使用)
         /// </summary>
         /// <param name="room"></param>
         /// <returns></returns>
         public static string Post(string room)
         {
             string postString = "roomid=" + room + "&token=&csrf_token=我是图中的马赛克";//要发送的数据
-            byte[] postData = Encoding.UTF8.GetBytes(postString);//编码，尤其是汉字，事先要看下抓取网页的编码方式  
+            byte[] postData = Encoding.UTF8.GetBytes(postString);//编码,尤其是汉字,事先要看下抓取网页的编码方式  
             string url = @"http://api.live.bilibili.com/ajax/msg";//地址  
 
             WebClient webClient = new WebClient();
             webClient.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36");
-            webClient.Headers.Add("Content-Type", "application/pixelX-www-form-urlencoded");//采取POST方式必须加的header，如果改为GET方式的话就去掉这句话即可  
+            webClient.Headers.Add("Content-Type", "application/pixelX-www-form-urlencoded");//采取POST方式必须加的header,如果改为GET方式的话就去掉这句话即可  
             webClient.Headers.Add("Cookie",
                 "可耻的马赛克"
                 );
@@ -2701,7 +2702,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 处理弹幕信息为中文（本函数待改中请勿使用）
+        /// 处理弹幕信息为中文(本函数待改中请勿使用)
         /// </summary>
         /// <param name="room"></param>
         /// <returns></returns>
@@ -2712,7 +2713,7 @@ namespace MetalMaxSystem
             //正则匹配
             foreach (Match item in Regex.Matches(danmu, "text\":\".*?\""))
             {
-                //截取字符串，将unicode码转换为中文
+                //截取字符串,将unicode码转换为中文
                 list.Add(Regex.Unescape(item.Value.Substring(7, item.Value.Length - 8)));
             }
             return list;
@@ -2725,11 +2726,11 @@ namespace MetalMaxSystem
 
         #region Functions 数据表功能
 
-        //注：用户与基础数据表通用键名，用户数据表的键名默认添加前缀"HD_"进行区分，用数据表设计其他功能时应再次添加不重复前缀以免与用户数据表键区重叠（参互动管理功能）
+        //注:用户与基础数据表通用键名,用户数据表的键名默认添加前缀"HD_"进行区分,用数据表设计其他功能时应再次添加不重复前缀以免与用户数据表键区重叠(参互动管理功能)
 
-        #region 用户快捷数据表（哈希和字典二选一，默认采用字典，建议中途不要再切换否则请直接使用基础数据表）
+        #region 用户快捷数据表(哈希和字典二选一,默认采用字典,建议中途不要再切换否则请直接使用基础数据表)
 
-        //建议使用泛型字典，值与引用类型尽量不混用，引用类型可以互转但值类型尽可能多
+        //建议使用泛型字典,值与引用类型尽量不混用,引用类型可以互转但值类型尽可能多
 
         #region 引用类型
 
@@ -2806,7 +2807,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[]，模拟1维数组
+        /// 从数据表中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -2825,7 +2826,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,]，模拟2维数组
+        /// 从数据表中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -2845,7 +2846,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,]，模拟3维数组
+        /// 从数据表中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -2866,7 +2867,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,,]，模拟4维数组
+        /// 从数据表中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -2925,7 +2926,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟1维数组
+        /// 保存数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -2945,7 +2946,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟2维数组
+        /// 保存数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -2966,7 +2967,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟3维数组
+        /// 保存数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -2988,7 +2989,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟4维数组
+        /// 保存数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3028,7 +3029,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3046,7 +3047,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3065,7 +3066,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3085,7 +3086,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3179,7 +3180,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[]，模拟1维数组
+        /// 从数据表中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3198,7 +3199,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,]，模拟2维数组
+        /// 从数据表中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3218,7 +3219,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,]，模拟3维数组
+        /// 从数据表中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3239,7 +3240,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,,]，模拟4维数组
+        /// 从数据表中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3298,7 +3299,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟1维数组
+        /// 保存数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3318,7 +3319,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟2维数组
+        /// 保存数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3339,7 +3340,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟3维数组
+        /// 保存数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3361,7 +3362,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟4维数组
+        /// 保存数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3401,7 +3402,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3419,7 +3420,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3438,7 +3439,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3458,7 +3459,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3556,7 +3557,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[]，模拟1维数组
+        /// 从数据表中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3575,7 +3576,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,]，模拟2维数组
+        /// 从数据表中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3595,7 +3596,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,]，模拟3维数组
+        /// 从数据表中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3616,7 +3617,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,,]，模拟4维数组
+        /// 从数据表中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3675,7 +3676,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟1维数组
+        /// 保存数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3695,7 +3696,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟2维数组
+        /// 保存数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3716,7 +3717,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟3维数组
+        /// 保存数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3738,7 +3739,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟4维数组
+        /// 保存数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3778,7 +3779,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3796,7 +3797,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3815,7 +3816,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3835,7 +3836,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3873,7 +3874,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3891,7 +3892,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3910,7 +3911,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -3930,7 +3931,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4024,7 +4025,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[]，模拟1维数组
+        /// 从数据表中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4043,7 +4044,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,]，模拟2维数组
+        /// 从数据表中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4063,7 +4064,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,]，模拟3维数组
+        /// 从数据表中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4084,7 +4085,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,,]，模拟4维数组
+        /// 从数据表中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4143,7 +4144,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟1维数组
+        /// 保存数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4163,7 +4164,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟2维数组
+        /// 保存数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4184,7 +4185,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟3维数组
+        /// 保存数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4206,7 +4207,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟4维数组
+        /// 保存数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4246,7 +4247,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4264,7 +4265,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4283,7 +4284,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4303,7 +4304,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4341,7 +4342,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4359,7 +4360,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4378,7 +4379,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4398,7 +4399,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4492,7 +4493,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[]，模拟1维数组
+        /// 从数据表中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4511,7 +4512,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,]，模拟2维数组
+        /// 从数据表中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4531,7 +4532,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,]，模拟3维数组
+        /// 从数据表中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4552,7 +4553,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,,]，模拟4维数组
+        /// 从数据表中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4611,7 +4612,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟1维数组
+        /// 保存数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4631,7 +4632,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟2维数组
+        /// 保存数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4652,7 +4653,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟3维数组
+        /// 保存数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4674,7 +4675,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟4维数组
+        /// 保存数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4714,7 +4715,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4732,7 +4733,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4751,7 +4752,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4771,7 +4772,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4809,7 +4810,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4827,7 +4828,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4846,7 +4847,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4866,7 +4867,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4960,7 +4961,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[]，模拟1维数组
+        /// 从数据表中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4979,7 +4980,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,]，模拟2维数组
+        /// 从数据表中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -4999,7 +5000,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,]，模拟3维数组
+        /// 从数据表中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5020,7 +5021,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,,]，模拟4维数组
+        /// 从数据表中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5079,7 +5080,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟1维数组
+        /// 保存数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5099,7 +5100,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟2维数组
+        /// 保存数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5120,7 +5121,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟3维数组
+        /// 保存数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5142,7 +5143,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟4维数组
+        /// 保存数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5182,7 +5183,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5200,7 +5201,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5219,7 +5220,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5239,7 +5240,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5277,7 +5278,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5295,7 +5296,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5314,7 +5315,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5334,7 +5335,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5428,7 +5429,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[]，模拟1维数组
+        /// 从数据表中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5447,7 +5448,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,]，模拟2维数组
+        /// 从数据表中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5467,7 +5468,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,]，模拟3维数组
+        /// 从数据表中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5488,7 +5489,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,,]，模拟4维数组
+        /// 从数据表中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5547,7 +5548,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟1维数组
+        /// 保存数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5567,7 +5568,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟2维数组
+        /// 保存数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5588,7 +5589,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟3维数组
+        /// 保存数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5610,7 +5611,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟4维数组
+        /// 保存数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5650,7 +5651,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5668,7 +5669,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5687,7 +5688,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5707,7 +5708,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5745,7 +5746,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5763,7 +5764,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5782,7 +5783,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5802,7 +5803,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5896,7 +5897,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[]，模拟1维数组
+        /// 从数据表中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5915,7 +5916,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,]，模拟2维数组
+        /// 从数据表中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5935,7 +5936,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,]，模拟3维数组
+        /// 从数据表中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -5956,7 +5957,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,,]，模拟4维数组
+        /// 从数据表中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6015,7 +6016,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟1维数组
+        /// 保存数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6035,7 +6036,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟2维数组
+        /// 保存数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6056,7 +6057,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟3维数组
+        /// 保存数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6078,7 +6079,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟4维数组
+        /// 保存数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6118,7 +6119,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6136,7 +6137,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6155,7 +6156,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6175,7 +6176,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6213,7 +6214,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6231,7 +6232,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6250,7 +6251,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6270,7 +6271,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6364,7 +6365,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[]，模拟1维数组
+        /// 从数据表中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6383,7 +6384,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,]，模拟2维数组
+        /// 从数据表中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6403,7 +6404,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,]，模拟3维数组
+        /// 从数据表中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6424,7 +6425,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,,]，模拟4维数组
+        /// 从数据表中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6483,7 +6484,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟1维数组
+        /// 保存数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6503,7 +6504,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟2维数组
+        /// 保存数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6524,7 +6525,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟3维数组
+        /// 保存数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6546,7 +6547,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟4维数组
+        /// 保存数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6586,7 +6587,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6604,7 +6605,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6623,7 +6624,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6643,7 +6644,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6681,7 +6682,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6699,7 +6700,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6718,7 +6719,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6738,7 +6739,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6832,7 +6833,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[]，模拟1维数组
+        /// 从数据表中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6851,7 +6852,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,]，模拟2维数组
+        /// 从数据表中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6871,7 +6872,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,]，模拟3维数组
+        /// 从数据表中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6892,7 +6893,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从数据表中移除Key[,,,]，模拟4维数组
+        /// 从数据表中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6951,7 +6952,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟1维数组
+        /// 保存数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6971,7 +6972,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟2维数组
+        /// 保存数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -6992,7 +6993,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟3维数组
+        /// 保存数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7014,7 +7015,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存数据表键值对，模拟4维数组
+        /// 保存数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7054,7 +7055,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7072,7 +7073,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7091,7 +7092,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7111,7 +7112,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7149,7 +7150,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟1维数组
+        /// 读取数据表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7167,7 +7168,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟2维数组
+        /// 读取数据表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7186,7 +7187,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟3维数组
+        /// 读取数据表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7206,7 +7207,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取数据表键值对，模拟4维数组
+        /// 读取数据表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7232,16 +7233,16 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region 基础数据表（提供哈希、字典、跨线程字典）
+        #region 基础数据表(提供哈希、字典、跨线程字典)
 
-        #region 哈希表（任意类型）
+        #region 哈希表(任意类型)
 
-        //使用哈希表设计存取任意类型（不支持泛型）
+        //使用哈希表设计存取任意类型(不支持泛型)
 
         /// <summary>
-        /// 添加哈希表键值对（重复添加则覆盖）
+        /// 添加哈希表键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=临时</param>
+        /// <param name="place">true=全局,false=临时</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void HashTableSet(bool place, string key, object val)//内部使用
@@ -7304,7 +7305,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从哈希表中移除Key。注：移除并不效率，如果要重复使用该键可赋空值）
+        /// 从哈希表中移除Key.注:移除并不效率,如果要重复使用该键可赋空值)
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7314,7 +7315,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从哈希表中移除Key[]，模拟1维数组。注：移除并不效率，如果要重复使用该键可赋空值）
+        /// 从哈希表中移除Key[],模拟1维数组.注:移除并不效率,如果要重复使用该键可赋空值)
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7325,7 +7326,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从哈希表中移除Key[,]，模拟2维数组。注：移除并不效率，如果要重复使用该键可赋空值）
+        /// 从哈希表中移除Key[,],模拟2维数组.注:移除并不效率,如果要重复使用该键可赋空值)
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7337,7 +7338,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从哈希表中移除Key[,,]，模拟3维数组。注：移除并不效率，如果要重复使用该键可赋空值）
+        /// 从哈希表中移除Key[,,],模拟3维数组.注:移除并不效率,如果要重复使用该键可赋空值)
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7350,7 +7351,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从哈希表中移除Key[,,,]，模拟4维数组。注：移除并不效率，如果要重复使用该键可赋空值）
+        /// 从哈希表中移除Key[,,,],模拟4维数组.注:移除并不效率,如果要重复使用该键可赋空值)
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7364,7 +7365,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 移除哈希表键值对。注：移除并不效率，如果要重复使用该键可赋空值）
+        /// 移除哈希表键值对.注:移除并不效率,如果要重复使用该键可赋空值)
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7386,7 +7387,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存哈希表键值对，模拟1维数组
+        /// 保存哈希表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7398,7 +7399,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存哈希表键值对，模拟2维数组
+        /// 保存哈希表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7411,7 +7412,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存哈希表键值对，模拟3维数组
+        /// 保存哈希表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7425,7 +7426,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存哈希表键值对，模拟4维数组
+        /// 保存哈希表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7455,7 +7456,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取哈希表键值对，模拟1维数组
+        /// 读取哈希表键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7471,7 +7472,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取哈希表键值对，模拟2维数组
+        /// 读取哈希表键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7488,7 +7489,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取哈希表键值对，模拟3维数组
+        /// 读取哈希表键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7506,7 +7507,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取哈希表键值对，模拟4维数组
+        /// 读取哈希表键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7526,18 +7527,18 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region 字典（勿跨线程）
+        #region 字典(勿跨线程)
 
-        //使用字典设计存取指定类型（采用泛型时尽可能多分类来防止装箱耗时，尽量存到指定类型，引用类型之间的互转除外，但平时大量遍历且常用的也可以拆分出来）
+        //使用字典设计存取指定类型(采用泛型时尽可能多分类来防止装箱耗时,尽量存到指定类型,引用类型之间的互转除外,但平时大量遍历且常用的也可以拆分出来)
 
         #region 值类型
 
         #region Int字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void DictionaryIntSet(bool place, string key, int val)//内部使用
@@ -7611,7 +7612,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7622,7 +7623,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7634,7 +7635,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7647,7 +7648,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7683,7 +7684,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7695,7 +7696,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7708,7 +7709,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7722,7 +7723,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7752,7 +7753,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7768,7 +7769,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7785,7 +7786,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7803,7 +7804,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7837,7 +7838,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7853,7 +7854,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7870,7 +7871,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7888,7 +7889,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7911,9 +7912,9 @@ namespace MetalMaxSystem
         #region Long字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void DictionaryLongSet(bool place, string key, long val)//内部使用
@@ -7987,7 +7988,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -7998,7 +7999,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8010,7 +8011,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8023,7 +8024,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8059,7 +8060,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8071,7 +8072,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8084,7 +8085,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8098,7 +8099,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8128,7 +8129,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8144,7 +8145,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8161,7 +8162,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8179,7 +8180,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8213,7 +8214,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8229,7 +8230,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8246,7 +8247,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8264,7 +8265,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8287,9 +8288,9 @@ namespace MetalMaxSystem
         #region Char字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void DictionaryCharSet(bool place, string key, char val)//内部使用
@@ -8363,7 +8364,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8374,7 +8375,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8386,7 +8387,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8399,7 +8400,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8435,7 +8436,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8447,7 +8448,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8460,7 +8461,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8474,7 +8475,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8504,7 +8505,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8520,7 +8521,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8537,7 +8538,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8555,7 +8556,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8589,7 +8590,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8605,7 +8606,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8622,7 +8623,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8640,7 +8641,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8663,9 +8664,9 @@ namespace MetalMaxSystem
         #region Float字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void DictionaryFloatSet(bool place, string key, float val)//内部使用
@@ -8739,7 +8740,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8750,7 +8751,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8762,7 +8763,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8775,7 +8776,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8811,7 +8812,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8823,7 +8824,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8836,7 +8837,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8850,7 +8851,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8880,7 +8881,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8896,7 +8897,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8913,7 +8914,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8931,7 +8932,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8965,7 +8966,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8981,7 +8982,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -8998,7 +8999,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9016,7 +9017,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9039,9 +9040,9 @@ namespace MetalMaxSystem
         #region Double字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void DictionaryDoubleSet(bool place, string key, double val)//内部使用
@@ -9115,7 +9116,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9126,7 +9127,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9138,7 +9139,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9151,7 +9152,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9187,7 +9188,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9199,7 +9200,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9212,7 +9213,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9226,7 +9227,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9256,7 +9257,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9272,7 +9273,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9289,7 +9290,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9307,7 +9308,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9341,7 +9342,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9357,7 +9358,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9374,7 +9375,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9392,7 +9393,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9415,9 +9416,9 @@ namespace MetalMaxSystem
         #region Bool字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void DictionaryBoolSet(bool place, string key, bool val)//内部使用
@@ -9494,7 +9495,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9505,7 +9506,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9517,7 +9518,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9530,7 +9531,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9566,7 +9567,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9578,7 +9579,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9591,7 +9592,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9605,7 +9606,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9635,7 +9636,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9651,7 +9652,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9668,7 +9669,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9686,7 +9687,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9720,7 +9721,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9736,7 +9737,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9753,7 +9754,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9771,7 +9772,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9794,9 +9795,9 @@ namespace MetalMaxSystem
         #region Byte字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void DictionaryByteSet(bool place, string key, byte val)//内部使用
@@ -9870,7 +9871,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9881,7 +9882,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9893,7 +9894,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9906,7 +9907,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9942,7 +9943,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9954,7 +9955,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9967,7 +9968,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -9981,7 +9982,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10011,7 +10012,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10027,7 +10028,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10044,7 +10045,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10062,7 +10063,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10096,7 +10097,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10112,7 +10113,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10129,7 +10130,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10147,7 +10148,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10172,9 +10173,9 @@ namespace MetalMaxSystem
         //C#中结构体是值类型
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void DictionaryVectorSet(bool place, string key, Vector2F val)//内部使用
@@ -10248,7 +10249,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10259,7 +10260,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10271,7 +10272,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10284,7 +10285,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10320,7 +10321,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10332,7 +10333,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10345,7 +10346,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10359,7 +10360,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10389,7 +10390,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10405,7 +10406,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10422,7 +10423,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10440,7 +10441,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10474,7 +10475,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10490,7 +10491,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10507,7 +10508,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10525,7 +10526,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10552,9 +10553,9 @@ namespace MetalMaxSystem
         #region Object字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void DictionaryObjectSet(bool place, string key, object val)//内部使用
@@ -10628,7 +10629,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10639,7 +10640,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10651,7 +10652,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10664,7 +10665,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10700,7 +10701,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10712,7 +10713,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10725,7 +10726,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10739,7 +10740,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10769,7 +10770,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10785,7 +10786,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10802,7 +10803,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10820,7 +10821,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10845,9 +10846,9 @@ namespace MetalMaxSystem
         //C#中字符串是引用类型
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void DictionaryStringSet(bool place, string key, string val)//内部使用
@@ -10921,7 +10922,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10932,7 +10933,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10944,7 +10945,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10957,7 +10958,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -10993,7 +10994,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11005,7 +11006,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11018,7 +11019,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11032,7 +11033,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11062,7 +11063,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11078,7 +11079,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11095,7 +11096,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11113,7 +11114,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11146,9 +11147,9 @@ namespace MetalMaxSystem
         #region Int字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void CDictionaryIntSet(bool place, string key, int val)//内部使用
@@ -11216,7 +11217,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11227,7 +11228,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11239,7 +11240,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11252,7 +11253,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11289,7 +11290,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11301,7 +11302,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11314,7 +11315,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11328,7 +11329,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11358,7 +11359,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11374,7 +11375,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11391,7 +11392,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11409,7 +11410,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11443,7 +11444,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11459,7 +11460,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11476,7 +11477,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11494,7 +11495,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11517,9 +11518,9 @@ namespace MetalMaxSystem
         #region Long字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void CDictionaryLongSet(bool place, string key, long val)//内部使用
@@ -11587,7 +11588,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11598,7 +11599,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11610,7 +11611,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11623,7 +11624,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11660,7 +11661,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11672,7 +11673,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11685,7 +11686,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11699,7 +11700,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11729,7 +11730,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11745,7 +11746,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11762,7 +11763,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11780,7 +11781,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11814,7 +11815,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11830,7 +11831,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11847,7 +11848,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11865,7 +11866,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11888,9 +11889,9 @@ namespace MetalMaxSystem
         #region Char字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void CDictionaryCharSet(bool place, string key, char val)//内部使用
@@ -11959,7 +11960,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11970,7 +11971,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11982,7 +11983,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -11995,7 +11996,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12032,7 +12033,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12044,7 +12045,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12057,7 +12058,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12071,7 +12072,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12101,7 +12102,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12117,7 +12118,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12134,7 +12135,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12152,7 +12153,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12186,7 +12187,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12202,7 +12203,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12219,7 +12220,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12237,7 +12238,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12260,9 +12261,9 @@ namespace MetalMaxSystem
         #region Float字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void CDictionaryFloatSet(bool place, string key, float val)//内部使用
@@ -12330,7 +12331,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12341,7 +12342,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12353,7 +12354,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12366,7 +12367,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12403,7 +12404,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12415,7 +12416,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12428,7 +12429,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12442,7 +12443,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12472,7 +12473,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12488,7 +12489,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12505,7 +12506,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12523,7 +12524,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12557,7 +12558,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12573,7 +12574,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12590,7 +12591,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12608,7 +12609,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12631,9 +12632,9 @@ namespace MetalMaxSystem
         #region Double字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void CDictionaryDoubleSet(bool place, string key, double val)//内部使用
@@ -12701,7 +12702,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12712,7 +12713,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12724,7 +12725,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12737,7 +12738,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12774,7 +12775,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12786,7 +12787,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12799,7 +12800,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12813,7 +12814,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12843,7 +12844,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12859,7 +12860,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12876,7 +12877,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12894,7 +12895,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12928,7 +12929,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12944,7 +12945,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12961,7 +12962,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -12979,7 +12980,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13002,9 +13003,9 @@ namespace MetalMaxSystem
         #region Bool字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void CDictionaryBoolSet(bool place, string key, bool val)//内部使用
@@ -13075,7 +13076,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13086,7 +13087,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13098,7 +13099,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13111,7 +13112,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13148,7 +13149,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13160,7 +13161,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13173,7 +13174,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13187,7 +13188,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13217,7 +13218,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13233,7 +13234,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13250,7 +13251,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13268,7 +13269,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13302,7 +13303,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13318,7 +13319,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13335,7 +13336,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13353,7 +13354,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13376,9 +13377,9 @@ namespace MetalMaxSystem
         #region Byte字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void CDictionaryByteSet(bool place, string key, byte val)//内部使用
@@ -13446,7 +13447,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13457,7 +13458,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13469,7 +13470,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13482,7 +13483,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13519,7 +13520,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13531,7 +13532,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13544,7 +13545,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13558,7 +13559,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13588,7 +13589,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13604,7 +13605,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13621,7 +13622,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13639,7 +13640,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13673,7 +13674,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13689,7 +13690,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13706,7 +13707,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13724,7 +13725,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13749,9 +13750,9 @@ namespace MetalMaxSystem
         //C#中结构体是值类型
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void CDictionaryVectorSet(bool place, string key, Vector2F val)//内部使用
@@ -13819,7 +13820,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13830,7 +13831,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13842,7 +13843,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13855,7 +13856,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13892,7 +13893,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13904,7 +13905,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13917,7 +13918,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13931,7 +13932,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13961,7 +13962,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13977,7 +13978,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -13994,7 +13995,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14012,7 +14013,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14046,7 +14047,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14062,7 +14063,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14079,7 +14080,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14097,7 +14098,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14124,9 +14125,9 @@ namespace MetalMaxSystem
         #region Object字典
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void CDictionaryObjectSet(bool place, string key, object val)//内部使用
@@ -14194,7 +14195,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14205,7 +14206,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14217,7 +14218,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14230,7 +14231,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14267,7 +14268,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14279,7 +14280,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14292,7 +14293,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14306,7 +14307,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14336,7 +14337,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14352,7 +14353,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14369,7 +14370,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14387,7 +14388,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14412,9 +14413,9 @@ namespace MetalMaxSystem
         //C#中字符串是引用类型
 
         /// <summary>
-        /// 添加字典键值对（重复添加则覆盖）
+        /// 添加字典键值对(重复添加则覆盖)
         /// </summary>
-        /// <param name="place">true=全局，false=局部</param>
+        /// <param name="place">true=全局,false=局部</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
         private static void CDictionaryStringSet(bool place, string key, string val)//内部使用
@@ -14482,7 +14483,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[]，模拟1维数组
+        /// 从字典中移除Key[],模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14493,7 +14494,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,]，模拟2维数组
+        /// 从字典中移除Key[,],模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14505,7 +14506,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,]，模拟3维数组
+        /// 从字典中移除Key[,,],模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14518,7 +14519,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 从字典中移除Key[,,,]，模拟4维数组
+        /// 从字典中移除Key[,,,],模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14555,7 +14556,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟1维数组
+        /// 保存字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14567,7 +14568,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟2维数组
+        /// 保存字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14580,7 +14581,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟3维数组
+        /// 保存字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14594,7 +14595,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 保存字典键值对，模拟4维数组
+        /// 保存字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14624,7 +14625,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟1维数组
+        /// 读取字典键值对,模拟1维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14640,7 +14641,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟2维数组
+        /// 读取字典键值对,模拟2维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14657,7 +14658,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟3维数组
+        /// 读取字典键值对,模拟3维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14675,7 +14676,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 读取字典键值对，模拟4维数组
+        /// 读取字典键值对,模拟4维数组
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
@@ -14703,14 +14704,14 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region Functions 互动管理（默认使用用户快捷数据表）
+        #region Functions 互动管理(默认使用用户快捷数据表)
 
         //用数据表实现不同类型数据互动、信息管理
 
         #region 存储区状态队列管理
 
         /// <summary>
-        /// 存储区容错处理函数，当哈希表键值存在时执行线程等待。常用于多线程触发器频繁写值，如大量注册注销动作使存储区数据重排序的，因哈希表正在使用需排队等待完成才给执行下一个。执行原理：将调用该函数的当前线程反复挂起dataTableThreadWaitPeriod毫秒，直到动作要写入的存储区闲置
+        /// 存储区容错处理函数,当哈希表键值存在时执行线程等待.常用于多线程触发器频繁写值,如大量注册注销动作使存储区数据重排序的,因哈希表正在使用需排队等待完成才给执行下一个.执行原理:将调用该函数的当前线程反复挂起dataTableThreadWaitPeriod毫秒,直到动作要写入的存储区闲置
         /// </summary>
         /// <param name="key"></param>
         public static void ThreadWait(string key)
@@ -14722,7 +14723,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 存储区容错处理函数，当哈希表键值存在时执行线程等待。常用于多线程触发器频繁写值，如大量注册注销动作使存储区数据重排序的，因哈希表正在使用需排队等待完成才给执行下一个。执行原理：将调用该函数的当前线程反复挂起period毫秒，直到动作要写入的存储区闲置
+        /// 存储区容错处理函数,当哈希表键值存在时执行线程等待.常用于多线程触发器频繁写值,如大量注册注销动作使存储区数据重排序的,因哈希表正在使用需排队等待完成才给执行下一个.执行原理:将调用该函数的当前线程反复挂起period毫秒,直到动作要写入的存储区闲置
         /// </summary>
         /// <param name="key"></param>
         /// <param name="period"></param>
@@ -14735,17 +14736,17 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 存储区容错处理函数，引发注册注销等存储区频繁重排序的动作，在函数开始/完成写入存储区时，应设置线程等待（val=1）/闲置（val=0）
+        /// 存储区容错处理函数,引发注册注销等存储区频繁重排序的动作,在函数开始/完成写入存储区时,应设置线程等待(val=1)/闲置(val=0)
         /// </summary>
         /// <param name="key"></param>
-        /// <param name="val">函数动作完成，所写入存储区闲置时填false，反之填true</param>
+        /// <param name="val">函数动作完成,所写入存储区闲置时填false,反之填true</param>
         private static void ThreadWaitSet(string key, bool val)
         {
             DataTableBoolSave0(true, "MMCore_ThreadWait_" + key, val);
         }
 
         /// <summary>
-        /// 存储区容错处理函数，当哈希表键值存在时执行线程等待。常用于多线程触发器频繁写值，如大量注册注销动作使存储区数据重排序的，因哈希表正在使用需排队等待完成才给执行下一个。执行原理：将调用该函数的当前线程反复挂起dataTableThreadWaitPeriod毫秒，直到动作要写入的存储区闲置
+        /// 存储区容错处理函数,当哈希表键值存在时执行线程等待.常用于多线程触发器频繁写值,如大量注册注销动作使存储区数据重排序的,因哈希表正在使用需排队等待完成才给执行下一个.执行原理:将调用该函数的当前线程反复挂起dataTableThreadWaitPeriod毫秒,直到动作要写入的存储区闲置
         /// </summary>
         /// <param name="key"></param>
         public static void ThreadWait(bool place, string key)
@@ -14757,7 +14758,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 存储区容错处理函数，当哈希表键值存在时执行线程等待。常用于多线程触发器频繁写值，如大量注册注销动作使存储区数据重排序的，因哈希表正在使用需排队等待完成才给执行下一个。执行原理：将调用该函数的当前线程反复挂起period毫秒，直到动作要写入的存储区闲置
+        /// 存储区容错处理函数,当哈希表键值存在时执行线程等待.常用于多线程触发器频繁写值,如大量注册注销动作使存储区数据重排序的,因哈希表正在使用需排队等待完成才给执行下一个.执行原理:将调用该函数的当前线程反复挂起period毫秒,直到动作要写入的存储区闲置
         /// </summary>
         /// <param name="key"></param>
         /// <param name="period"></param>
@@ -14770,10 +14771,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 存储区容错处理函数，引发注册注销等存储区频繁重排序的动作，在函数开始/完成写入存储区时，应设置线程等待（val=1）/闲置（val=0）
+        /// 存储区容错处理函数,引发注册注销等存储区频繁重排序的动作,在函数开始/完成写入存储区时,应设置线程等待(val=1)/闲置(val=0)
         /// </summary>
         /// <param name="key"></param>
-        /// <param name="val">函数动作完成，所写入存储区闲置时填false，反之填true</param>
+        /// <param name="val">函数动作完成,所写入存储区闲置时填false,反之填true</param>
         private static void ThreadWaitSet(bool place, string key, bool val)
         {
             DataTableBoolSave0(place, "MMCore_ThreadWait_" + key, val);
@@ -14785,25 +14786,25 @@ namespace MetalMaxSystem
 
         #region 任意类型
 
-        //提示：可以将本类型作为模板修改后产生其他类型
-        //提示：尽可能使用对口类型，以防值类型与引用类型发生转换时拆装箱降低性能
+        //提示:可以将本类型作为模板修改后产生其他类型
+        //提示:尽可能使用对口类型,以防值类型与引用类型发生转换时拆装箱降低性能
 
         //--------------------------------------------------------------------------------------------------
         //任意类型组Start
         //--------------------------------------------------------------------------------------------------
 
-        #region 给对象注册句柄，对象和句柄形成双向映射关系
+        #region 给对象注册句柄,对象和句柄形成双向映射关系
 
         //管理对象和句柄的双重映射关系的一对字典
         private static Dictionary<object, int> objectTag = new Dictionary<object, int>();
         private static Dictionary<int, object> tagObject = new Dictionary<int, object>();
         /// <summary>
-        /// Object组中最大句柄（施行永续+1的方案）
+        /// Object组中最大句柄(施行永续+1的方案)
         /// </summary>
         private static int objectJBNum = 0;
 
         /// <summary>
-        /// 互动O_注册Object标签句柄并返回，若对象已被注册则返回其句柄，本函数不会进行重复注册
+        /// 互动O_注册Object标签句柄并返回,若对象已被注册则返回其句柄,本函数不会进行重复注册
         /// </summary>
         /// <param name="lp_object"></param>
         /// <returns>返回一个Object的已注册标签</returns>
@@ -14811,7 +14812,7 @@ namespace MetalMaxSystem
         {
             int lv_jBNum = objectJBNum;
             if (lv_jBNum == 0 || !objectTag.ContainsKey(lp_object))
-            { //若最大句柄为0或虽最大句柄不为0但对象从未注册过，则最大句柄+1并作为对象句柄
+            { //若最大句柄为0或虽最大句柄不为0但对象从未注册过,则最大句柄+1并作为对象句柄
                 objectJBNum++; lv_jBNum++;
                 //双向的映射关系
                 objectTag[lp_object] = lv_jBNum;
@@ -14819,16 +14820,16 @@ namespace MetalMaxSystem
                 return lv_jBNum;
             }
             else
-            { //这是一个重复注册的对象，直接返回其句柄
+            { //这是一个重复注册的对象,直接返回其句柄
                 return objectTag[lp_object];
             }
         }
 
         /// <summary>
-        /// 互动O_返回Object已注册标签句柄，对象未注册则返回0
+        /// 互动O_返回Object已注册标签句柄,对象未注册则返回0
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <returns>返回一个Object的已注册标签，错误返回0</returns>
+        /// <returns>返回一个Object的已注册标签,错误返回0</returns>
         public static int HD_ReturnObjectTag(object lp_object)
         {
             int lv_jBNum = objectJBNum;
@@ -14837,13 +14838,13 @@ namespace MetalMaxSystem
                 return lv_jBNum;
             }
             else
-            { //这是一个已注册的对象，直接返回其句柄
+            { //这是一个已注册的对象,直接返回其句柄
                 return objectTag[lp_object];
             }
         }
 
         /// <summary>
-        /// 互动O_注册Object标签句柄并返回。为Object自动设置新的标签句柄，重复时会返回已注册的Object标签。这是一个内部函数，一般不需要手动使用
+        /// 互动O_注册Object标签句柄并返回.为Object自动设置新的标签句柄,重复时会返回已注册的Object标签.这是一个内部函数,一般不需要手动使用
         /// </summary>
         /// <param name="lp_object"></param>
         /// <returns>返回一个Object的已注册标签""</returns>
@@ -14856,7 +14857,7 @@ namespace MetalMaxSystem
         /// 互动O_返回Object已注册标签句柄
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <returns>返回一个Object的已注册标签，错误返回""</returns>
+        /// <returns>返回一个Object的已注册标签,错误返回""</returns>
         public static string HD_ReturnObjectTagStr(object lp_object)
         {
             return HD_ReturnObjectTag(lp_object).ToString();
@@ -14865,10 +14866,10 @@ namespace MetalMaxSystem
         #endregion
 
         /// <summary>
-        /// 互动O_注册Object(高级)。在指定Key存入Object，固有状态、固有自定义值是Object独一无二的标志（本函数重复注册会刷新），之后可用互动O_"返回Object注册总数"、"返回Object序号"、"返回序号对应Object"、"返回序号对应Object标签"、"返回Object自定义值"。Object组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将Object组转为Key。固有状态相当于单位组单位活体，如需另外设置多个标记可使用"互动O_设定Object状态/自定义值"
+        /// 互动O_注册Object(高级).在指定Key存入Object,固有状态、固有自定义值是Object独一无二的标志(本函数重复注册会刷新),之后可用互动O_"返回Object注册总数"、"返回Object序号"、"返回序号对应Object"、"返回序号对应Object标签"、"返回Object自定义值".Object组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将Object组转为Key.固有状态相当于单位组单位活体,如需另外设置多个标记可使用"互动O_设定Object状态/自定义值"
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_key">存储键区，默认值"_Object"</param>
+        /// <param name="lp_key">存储键区,默认值"_Object"</param>
         /// <param name="lp_inherentStats">固有状态</param>
         /// <param name="lp_inherentCustomValue">固有自定义值</param>
         public static void HD_RegObject(object lp_object, string lp_key, string lp_inherentStats = "true", string lp_inherentCustomValue = "")
@@ -14939,10 +14940,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_注册Object。在指定Key存入Object，固有状态、固有自定义值是Object独一无二的标志（本函数重复注册不会刷新），之后可用互动O_"返回Object注册总数"、"返回Object序号"、"返回序号对应Object"、"返回Object自定义值"。Object组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将Object组转为Key。首次注册时固有状态自动为true（相当于单位组单位活体），之后只能通过"互动O_注册Object（高级）"改写，如需另外设置多个标记可使用"互动O_设定Object状态/自定义值"
+        /// 互动O_注册Object.在指定Key存入Object,固有状态、固有自定义值是Object独一无二的标志(本函数重复注册不会刷新),之后可用互动O_"返回Object注册总数"、"返回Object序号"、"返回序号对应Object"、"返回Object自定义值".Object组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将Object组转为Key.首次注册时固有状态自动为true(相当于单位组单位活体),之后只能通过"互动O_注册Object(高级)"改写,如需另外设置多个标记可使用"互动O_设定Object状态/自定义值"
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_key">存储键区，默认值"_Object"</param>
+        /// <param name="lp_key">存储键区,默认值"_Object"</param>
         public static void HD_RegObject_Simple(object lp_object, string lp_key)
         {
             //Variable Declarations
@@ -15006,10 +15007,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_注销Object。用"互动O_注册Object"到Key，之后可用本函数彻底摧毁注册信息并将序号重排（包括Object标签有效状态、固有状态及自定义值）。注册注销同时进行会排队等待0.0625s直到没有注销动作，注销并不提升多少内存只是变量内容清空并序号重利用，非特殊要求一般不注销，而是用"互动O_设定Object状态"让Object状态失效（类似单位组的单位活体状态）。Object组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将Object组转为Key。本函数无法摧毁用"互动O_设定Object状态/自定义值"创建的状态和自定义值，需手工填入""来排泄（非大量注销则提升内存量极小，可不管）。本函数参数Key若填Object组变量ID时会清空Object组专用状态
+        /// 互动O_注销Object.用"互动O_注册Object"到Key,之后可用本函数彻底摧毁注册信息并将序号重排(包括Object标签有效状态、固有状态及自定义值).注册注销同时进行会排队等待0.0625s直到没有注销动作,注销并不提升多少内存只是变量内容清空并序号重利用,非特殊要求一般不注销,而是用"互动O_设定Object状态"让Object状态失效(类似单位组的单位活体状态).Object组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将Object组转为Key.本函数无法摧毁用"互动O_设定Object状态/自定义值"创建的状态和自定义值,需手工填入""来排泄(非大量注销则提升内存量极小,可不管).本函数参数Key若填Object组变量ID时会清空Object组专用状态
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_key">存储键区，默认值"_Object"</param>
+        /// <param name="lp_key">存储键区,默认值"_Object"</param>
         public static void HD_DestroyObject(object lp_object, string lp_key)
         {
             //Variable Declarations
@@ -15036,7 +15037,7 @@ namespace MetalMaxSystem
                     lv_num -= 1;
                     //摧毁对象句柄有效状态
                     DataTableBoolClear0(true, "HD_IfObjectTag_" + lv_tagStr);
-                    //摧毁对象在组中的注册状态（在其他组仍可能存在，可结合对象句柄有效状态一起判断）
+                    //摧毁对象在组中的注册状态(在其他组仍可能存在,可结合对象句柄有效状态一起判断)
                     DataTableBoolClear0(true, "IfObjectGTag" + lv_str + "_" + lv_tagStr);
                     //摧毁对象自身固有状态和固有自定义值
                     DataTableStringClear0(true, "HD_ObjectCV_" + lv_tagStr);
@@ -15051,7 +15052,7 @@ namespace MetalMaxSystem
                         lv_c = DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_b + 1);
                         DataTableIntSave1(true, (lp_key + "HD_ObjectTag"), lv_b, lv_c);
                     }
-                    //注销后触发序号重列，这里-1可以让挑选回滚，以再次检查重排后的当前挑选序号
+                    //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                     lv_a -= 1;
                 }
             }
@@ -15059,10 +15060,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_移除Object。用"互动O_注册Object"到Key，之后可用本函数仅摧毁Key区注册的信息并将序号重排，用于Object组或多个键区仅移除Object（保留Object标签有效状态、固有值）。注册注销同时进行会排队等待0.0625s直到没有注销动作，注销并不提升多少内存只是变量内容清空并序号重利用，非特殊要求一般不注销，而是用"互动O_设定Object状态"让Object状态失效（类似单位组的单位活体状态）。Object组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将Object组转为Key。本函数无法摧毁用"互动O_设定Object状态/自定义值"创建的状态和自定义值，需手工填入""来排泄（非大量注销则提升内存量极小，可不管）。本函数参数Key若填Object组变量ID时会清空Object组专用状态
+        /// 互动O_移除Object.用"互动O_注册Object"到Key,之后可用本函数仅摧毁Key区注册的信息并将序号重排,用于Object组或多个键区仅移除Object(保留Object标签有效状态、固有值).注册注销同时进行会排队等待0.0625s直到没有注销动作,注销并不提升多少内存只是变量内容清空并序号重利用,非特殊要求一般不注销,而是用"互动O_设定Object状态"让Object状态失效(类似单位组的单位活体状态).Object组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将Object组转为Key.本函数无法摧毁用"互动O_设定Object状态/自定义值"创建的状态和自定义值,需手工填入""来排泄(非大量注销则提升内存量极小,可不管).本函数参数Key若填Object组变量ID时会清空Object组专用状态
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_key">存储键区，默认值"_Object"</param>
+        /// <param name="lp_key">存储键区,默认值"_Object"</param>
         public static void HD_RemoveObject(object lp_object, string lp_key)
         {
             //Variable Declarations
@@ -15087,7 +15088,7 @@ namespace MetalMaxSystem
                 if ((DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_a) == lv_tag))
                 {
                     lv_num -= 1;
-                    //摧毁对象在组中的注册状态（在其他组仍可能存在，可结合对象句柄有效状态一起判断）
+                    //摧毁对象在组中的注册状态(在其他组仍可能存在,可结合对象句柄有效状态一起判断)
                     DataTableBoolClear0(true, "IfObjectGTag" + lv_str + "_" + lv_tagStr);
                     //摧毁对象自身固有状态和固有自定义值
                     DataTableStringClear0(true, "HD_ObjectCV" + lv_str + "_" + lv_tagStr);
@@ -15099,7 +15100,7 @@ namespace MetalMaxSystem
                         lv_c = DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_b + 1);
                         DataTableIntSave1(true, (lp_key + "HD_ObjectTag"), lv_b, lv_c);
                     }
-                    //注销后触发序号重列，这里-1可以让挑选回滚，以再次检查重排后的当前挑选序号
+                    //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                     lv_a -= 1;
                 }
             }
@@ -15107,9 +15108,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回Object注册总数。必须先使用"互动O_注册Object"才能返回指定Key里的注册总数。Object组使用时，可用"获取变量的内部名称"将Object组转为Key。
+        /// 互动O_返回Object注册总数.必须先使用"互动O_注册Object"才能返回指定Key里的注册总数.Object组使用时,可用"获取变量的内部名称"将Object组转为Key.
         /// </summary>
-        /// <param name="lp_key">存储键区，默认值"_Object"</param>
+        /// <param name="lp_key">存储键区,默认值"_Object"</param>
         /// <returns></returns>
         public static int HD_ReturnObjectNumMax(string lp_key)
         {
@@ -15124,10 +15125,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回Object序号。使用"互动O_注册Object"后使用本函数可返回Key里的注册序号，Key无元素返回0，Key有元素但对象不在里面则返回-1，Object标签尚未注册则返回-2。Object组使用时，可用"获取变量的内部名称"将Object组转为Key
+        /// 互动O_返回Object序号.使用"互动O_注册Object"后使用本函数可返回Key里的注册序号,Key无元素返回0,Key有元素但对象不在里面则返回-1,Object标签尚未注册则返回-2.Object组使用时,可用"获取变量的内部名称"将Object组转为Key
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_key">存储键区，默认值"_Object"</param>
+        /// <param name="lp_key">存储键区,默认值"_Object"</param>
         /// <returns>如果对象没有注册过直接返回0</returns>
         public static int HD_ReturnObjectNum(object lp_object, string lp_key)
         {
@@ -15177,10 +15178,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回序号对应Object。使用"互动O_注册Object"后，在参数填入注册序号可返回Object。Object组使用时，可用"获取变量的内部名称"将Object组转为Key
+        /// 互动O_返回序号对应Object.使用"互动O_注册Object"后,在参数填入注册序号可返回Object.Object组使用时,可用"获取变量的内部名称"将Object组转为Key
         /// </summary>
         /// <param name="lp_regNum"></param>
-        /// <param name="lp_key">存储键区，默认值"_Object"</param>
+        /// <param name="lp_key">存储键区,默认值"_Object"</param>
         /// <returns></returns>
         public static object HD_ReturnObjectFromRegNum(int lp_regNum, string lp_key)
         {
@@ -15195,7 +15196,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回句柄标签对应Object。使用"互动O_注册Object"后，在参数填入句柄标签（整数）可返回Object，标签是Object的句柄。Object组使用时，可用"获取变量的内部名称"将Object组转为Key
+        /// 互动O_返回句柄标签对应Object.使用"互动O_注册Object"后,在参数填入句柄标签(整数)可返回Object,标签是Object的句柄.Object组使用时,可用"获取变量的内部名称"将Object组转为Key
         /// </summary>
         /// <param name="lp_tag">句柄标签</param>
         /// <returns></returns>
@@ -15204,7 +15205,7 @@ namespace MetalMaxSystem
 
             if (tagObject.ContainsKey(lp_tag))
             {
-                //键存在，可以安全地访问
+                //键存在,可以安全地访问
                 return tagObject[lp_tag];
             }
             else
@@ -15214,10 +15215,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回序号对应Object标签句柄。使用"互动O_注册Object"后，在参数填入注册序号可返回Object标签（字符串）。Object组使用时，可用"获取变量的内部名称"将Object组转为Key
+        /// 互动O_返回序号对应Object标签句柄.使用"互动O_注册Object"后,在参数填入注册序号可返回Object标签(字符串).Object组使用时,可用"获取变量的内部名称"将Object组转为Key
         /// </summary>
         /// <param name="lp_regNum">注册序号</param>
-        /// <param name="lp_key">存储键区，默认值"_Object"</param>
+        /// <param name="lp_key">存储键区,默认值"_Object"</param>
         /// <returns></returns>
         public static string HD_ReturnObjectTagFromRegNumStr(int lp_regNum, string lp_key)
         {
@@ -15232,10 +15233,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回序号对应Object标签句柄。使用"互动O_注册Object"后，在参数填入注册序号可返回Object标签（整数）。Object组使用时，可用"获取变量的内部名称"将Object组转为Key
+        /// 互动O_返回序号对应Object标签句柄.使用"互动O_注册Object"后,在参数填入注册序号可返回Object标签(整数).Object组使用时,可用"获取变量的内部名称"将Object组转为Key
         /// </summary>
         /// <param name="lp_regNum">注册序号</param>
-        /// <param name="lp_key">存储键区，默认值"_Object"</param>
+        /// <param name="lp_key">存储键区,默认值"_Object"</param>
         /// <returns></returns>
         public static int HD_ReturnObjectTagFromRegNum(int lp_regNum, string lp_key)
         {
@@ -15250,10 +15251,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_设置Object状态。必须先"注册"获得功能库内部句柄，再使用本函数给Object设定一个状态值，之后可用"互动O_返回Object状态"。类型参数用以记录多个不同状态，仅当"类型"参数填Object组ID转的Object串时，状态值"true"和"false"是Object的Object组专用状态值，用于内部函数筛选Object状态（相当于单位组单位索引是否有效），其他类型不会干扰系统内部，可随意填写。虽然注销时反向清空注册信息，但用"互动O_设定Object状态/自定义值"创建的值需要手工填入""来排泄（非大量注销则提升内存量极小，可不管）。注：固有状态值是注册函数赋予的系统内部变量（相当于单位组单位是否活体），只能通过"互动O_注册Object（高级）"函数或将本函数参数"类型"设为空时改写
+        /// 互动O_设置Object状态.必须先"注册"获得功能库内部句柄,再使用本函数给Object设定一个状态值,之后可用"互动O_返回Object状态".类型参数用以记录多个不同状态,仅当"类型"参数填Object组ID转的Object串时,状态值"true"和"false"是Object的Object组专用状态值,用于内部函数筛选Object状态(相当于单位组单位索引是否有效),其他类型不会干扰系统内部,可随意填写.虽然注销时反向清空注册信息,但用"互动O_设定Object状态/自定义值"创建的值需要手工填入""来排泄(非大量注销则提升内存量极小,可不管).注:固有状态值是注册函数赋予的系统内部变量(相当于单位组单位是否活体),只能通过"互动O_注册Object(高级)"函数或将本函数参数"类型"设为空时改写
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_key">存储类型，可填写任意状态标记如"State"</param>
+        /// <param name="lp_key">存储类型,可填写任意状态标记如"State"</param>
         /// <param name="lp_stats">状态</param>
         public static void HD_SetObjectState(object lp_object, string lp_key, string lp_stats)
         {
@@ -15268,10 +15269,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回Object状态。使用"互动O_设定Object状态"后可使用本函数，将本函数参数"类型"设为空时返回固有值。类型参数用以记录多个不同状态，仅当"类型"参数为Object组ID转的字符串时，返回的状态值"true"和"false"是Object的Object组专用状态值，用于内部函数筛选Object状态（相当于单位组单位索引是否有效）
+        /// 互动O_返回Object状态.使用"互动O_设定Object状态"后可使用本函数,将本函数参数"类型"设为空时返回固有值.类型参数用以记录多个不同状态,仅当"类型"参数为Object组ID转的字符串时,返回的状态值"true"和"false"是Object的Object组专用状态值,用于内部函数筛选Object状态(相当于单位组单位索引是否有效)
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_key">存储类型，可填写任意状态标记如"State"</param>
+        /// <param name="lp_key">存储类型,可填写任意状态标记如"State"</param>
         /// <returns></returns>
         public static string HD_ReturnObjectState(object lp_object, string lp_key)
         {
@@ -15288,10 +15289,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_设置Object自定义值。必须先"注册"获得功能库内部句柄，再使用本函数设定Object的自定义值，之后可使用"互动O_返回Object自定义值"，类型参数用以记录多个不同自定义值。注：固有自定义值是注册函数赋予的系统内部变量，只能通过"互动O_注册Object（高级）"函数或将本函数参数"类型"设为空时改写
+        /// 互动O_设置Object自定义值.必须先"注册"获得功能库内部句柄,再使用本函数设定Object的自定义值,之后可使用"互动O_返回Object自定义值",类型参数用以记录多个不同自定义值.注:固有自定义值是注册函数赋予的系统内部变量,只能通过"互动O_注册Object(高级)"函数或将本函数参数"类型"设为空时改写
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_key">存储类型，可填写任意自定义值标记如"A"</param>
+        /// <param name="lp_key">存储类型,可填写任意自定义值标记如"A"</param>
         /// <param name="lp_customValue">自定义值</param>
         public static void HD_SetObjectCV(object lp_object, string lp_key, string lp_customValue)
         {
@@ -15306,10 +15307,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回Object自定义值。使用"互动O_设定Object自定义值"后可使用本函数，将本函数参数"类型"设为空时返回固有值，该参数用以记录多个不同自定义值
+        /// 互动O_返回Object自定义值.使用"互动O_设定Object自定义值"后可使用本函数,将本函数参数"类型"设为空时返回固有值,该参数用以记录多个不同自定义值
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_key">存储类型，可填写任意自定义值标记如"A"</param>
+        /// <param name="lp_key">存储类型,可填写任意自定义值标记如"A"</param>
         /// <returns></returns>
         public static string HD_ReturnObjectCV(object lp_object, string lp_key)
         {
@@ -15326,7 +15327,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回Object固有状态。必须先使用"互动O_注册Object"才能返回到该值，固有状态是独一无二的标记（相当于单位组单位是否活体）
+        /// 互动O_返回Object固有状态.必须先使用"互动O_注册Object"才能返回到该值,固有状态是独一无二的标记(相当于单位组单位是否活体)
         /// </summary>
         /// <param name="lp_object"></param>
         /// <returns></returns>
@@ -15343,7 +15344,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回Object固有自定义值。必须先使用"互动O_注册Object"才能返回到该值，固有值是独一无二的标记
+        /// 互动O_返回Object固有自定义值.必须先使用"互动O_注册Object"才能返回到该值,固有值是独一无二的标记
         /// </summary>
         /// <param name="lp_object"></param>
         /// <returns></returns>
@@ -15360,7 +15361,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_设置Object的实数标记。必须先"注册"获得功能库内部句柄，再使用本函数让Object携带一个实数值，之后可使用"互动O_返回Object的实数标记"。Object组使用时，可用"获取变量的内部名称"将Object组转为Key
+        /// 互动O_设置Object的实数标记.必须先"注册"获得功能库内部句柄,再使用本函数让Object携带一个实数值,之后可使用"互动O_返回Object的实数标记".Object组使用时,可用"获取变量的内部名称"将Object组转为Key
         /// </summary>
         /// <param name="lp_object"></param>
         /// <param name="lp_realNumTag">实数标记</param>
@@ -15375,7 +15376,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回Object的实数标记。使用"互动O_设定Object的实数标记"后可使用本函数。Object组使用时，可用"获取变量的内部名称"将Object组转为Key
+        /// 互动O_返回Object的实数标记.使用"互动O_设定Object的实数标记"后可使用本函数.Object组使用时,可用"获取变量的内部名称"将Object组转为Key
         /// </summary>
         /// <param name="lp_object"></param>
         /// <returns></returns>
@@ -15390,7 +15391,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回Object标签句柄有效状态。将Object视作独一无二的个体，标签是它本身，有效状态则类似"单位是否有效"，当使用"互动O_注册Object"或"互动OG_添加Object到Object组"后激活Object有效状态（值为"true"），除非使用"互动O_注册Object（高级）"改写，否则直到注销才会摧毁
+        /// 互动O_返回Object标签句柄有效状态.将Object视作独一无二的个体,标签是它本身,有效状态则类似"单位是否有效",当使用"互动O_注册Object"或"互动OG_添加Object到Object组"后激活Object有效状态(值为"true"),除非使用"互动O_注册Object(高级)"改写,否则直到注销才会摧毁
         /// </summary>
         /// <param name="lp_object"></param>
         /// <returns></returns>
@@ -15405,10 +15406,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动O_返回Object注册状态。使用"互动O_注册Object"或"互动OG_添加Object到Object组"后可使用本函数获取注册Object在Key中的注册状态，该状态只能注销或从Object组中移除时清空。Object组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将Object组转为Key
+        /// 互动O_返回Object注册状态.使用"互动O_注册Object"或"互动OG_添加Object到Object组"后可使用本函数获取注册Object在Key中的注册状态,该状态只能注销或从Object组中移除时清空.Object组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将Object组转为Key
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_key">存储键区，默认值"_Object"</param>
+        /// <param name="lp_key">存储键区,默认值"_Object"</param>
         /// <returns></returns>
         public static bool HD_ReturnIfObjectTagKey(object lp_object, string lp_key)
         {
@@ -15423,10 +15424,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_根据自定义值类型将Object组排序。根据Object携带的自定义值类型，对指定的Object组元素进行冒泡排序。Object组变量字符可通过"转换变量内部名称"获得
+        /// 互动OG_根据自定义值类型将Object组排序.根据Object携带的自定义值类型,对指定的Object组元素进行冒泡排序.Object组变量字符可通过"转换变量内部名称"获得
         /// </summary>
-        /// <param name="lp_key">存储键区，默认填Object组名称</param>
-        /// <param name="lp_cVStr">自定义值类型（要求自定义值是数字）</param>
+        /// <param name="lp_key">存储键区,默认填Object组名称</param>
+        /// <param name="lp_cVStr">自定义值类型(要求自定义值是数字)</param>
         /// <param name="lp_big">是否大值靠前</param>
         public static void HD_ObjectGSortCV(string lp_key, string lp_cVStr, bool lp_big)
         {
@@ -15471,7 +15472,7 @@ namespace MetalMaxSystem
                     DataTableIntSave1(false, "HD_ObjStackOutTag", 1, lv_tag);
                     DataTableIntSave1(false, "HD_ObjStackOutTagValue", 1, lv_tagValue);
                     DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", 1, lv_a);
-                    //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+"，IteraOrig="+IntToString(lv_a));
+                    //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+",IteraOrig="+IntToString(lv_a));
                 }
                 else
                 {
@@ -15504,17 +15505,17 @@ namespace MetalMaxSystem
                         }
                         else
                         {
-                            //Console.WriteLine("大值靠前"+"，当前lv_b=" +IntToString(lv_b));
+                            //Console.WriteLine("大值靠前"+",当前lv_b=" +IntToString(lv_b));
                             if (lv_tagValue > DataTableIntLoad1(false, "HD_ObjStackOutTagValue", lv_b))
                             {
                                 //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnObjectTagFromRegNum(lv_b, lp_key))+"值"+IntToString(DataTableIntLoad1(false, "HD_ObjStackOutTagValue", lv_b)));
-                                //Console.WriteLine("生效的lv_b：" + IntToString(lv_b));
+                                //Console.WriteLine("生效的lv_b:" + IntToString(lv_b));
                                 lv_intStackOutSize += 1;
-                                //Console.WriteLine("lv_intStackOutSize：" + IntToString(lv_intStackOutSize));
+                                //Console.WriteLine("lv_intStackOutSize:" + IntToString(lv_intStackOutSize));
                                 autoHD_ae = (lv_b + 1);
-                                //Console.WriteLine("autoHD_ae：" + IntToString(autoHD_ae));
+                                //Console.WriteLine("autoHD_ae:" + IntToString(autoHD_ae));
                                 lv_c = lv_intStackOutSize;
-                                //Console.WriteLine("lv_c：" + IntToString(lv_c));
+                                //Console.WriteLine("lv_c:" + IntToString(lv_c));
                                 //Console.WriteLine("递减For lv_c=" + IntToString(lv_c) +"≥"+IntToString(autoHD_ae));
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
@@ -15553,17 +15554,17 @@ namespace MetalMaxSystem
             //Console.WriteLine("最终处理For 1~" + IntToString(lv_num));
             for (; ((autoE_ai >= 0 && lv_a <= autoE_ae) || (autoE_ai < 0 && lv_a >= autoE_ae)); lv_a += autoE_ai)
             {
-                //从序号里取出元素Tag、自定义值、新老句柄，让元素交换
+                //从序号里取出元素Tag、自定义值、新老句柄,让元素交换
                 //lv_tagStr = DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_a).ToString(); //原始序号元素
                 lv_tag = DataTableIntLoad1(false, "HD_ObjStackOutTag", lv_a);
                 lv_tagValuestr = HD_ReturnObjectCV(HD_ReturnObjectFromTag(lv_tag), lp_cVStr);
                 lv_tagValue = Convert.ToInt32(lv_tagValuestr);
-                //Console.WriteLine("第"+IntToString(lv_a) +"个元素：" + IntToString(lv_tagStr));
+                //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr));
                 lv_b = DataTableIntLoad1(false, "HD_ObjStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
-                                                                                     //Console.WriteLine("第"+IntToString(lv_a) +"个元素：" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号：" + IntToString(lv_tagStr));
+                                                                                     //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号:" + IntToString(lv_tagStr));
                 if (lv_a != lv_b)
                 {
-                    //Console.WriteLine("lv_a："+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
+                    //Console.WriteLine("lv_a:"+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
                     DataTableIntSave1(true, (lp_key + "HD_ObjectTag"), lv_a, lv_tag); //lv_tag放入新序号
                                                                                       //Console.WriteLine("元素"+IntToString(lv_tagStr) +"放入lv_b=" + IntToString(lv_b)+"位置");
                 }
@@ -15572,9 +15573,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_Object组排序。对指定的Object组元素进行冒泡排序（根据元素句柄）。Object组变量字符可通过"转换变量内部名称"获得
+        /// 互动OG_Object组排序.对指定的Object组元素进行冒泡排序(根据元素句柄).Object组变量字符可通过"转换变量内部名称"获得
         /// </summary>
-        /// <param name="lp_key">存储键区，默认填Object组名称</param>
+        /// <param name="lp_key">存储键区,默认填Object组名称</param>
         /// <param name="lp_big">是否大值靠前</param>
         public static void HD_ObjectGSort(string lp_key, bool lp_big)
         {
@@ -15619,7 +15620,7 @@ namespace MetalMaxSystem
                     DataTableIntSave1(false, "HD_ObjStackOutTag", 1, lv_tag);
                     DataTableIntSave1(false, "HD_ObjStackOutTagValue", 1, lv_tagValue);
                     DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", 1, lv_a);
-                    //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+"，IteraOrig="+IntToString(lv_a));
+                    //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+",IteraOrig="+IntToString(lv_a));
                 }
                 else
                 {
@@ -15652,17 +15653,17 @@ namespace MetalMaxSystem
                         }
                         else
                         {
-                            //Console.WriteLine("大值靠前"+"，当前lv_b=" +IntToString(lv_b));
+                            //Console.WriteLine("大值靠前"+",当前lv_b=" +IntToString(lv_b));
                             if (lv_tagValue > DataTableIntLoad1(false, "HD_ObjStackOutTagValue", lv_b))
                             {
                                 //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnObjectTagFromRegNum(lv_b, lp_key))+"值"+IntToString(DataTableIntLoad1(false, "HD_ObjStackOutTagValue", lv_b)));
-                                //Console.WriteLine("生效的lv_b：" + IntToString(lv_b));
+                                //Console.WriteLine("生效的lv_b:" + IntToString(lv_b));
                                 lv_intStackOutSize += 1;
-                                //Console.WriteLine("lv_intStackOutSize：" + IntToString(lv_intStackOutSize));
+                                //Console.WriteLine("lv_intStackOutSize:" + IntToString(lv_intStackOutSize));
                                 autoHD_ae = (lv_b + 1);
-                                //Console.WriteLine("autoHD_ae：" + IntToString(autoHD_ae));
+                                //Console.WriteLine("autoHD_ae:" + IntToString(autoHD_ae));
                                 lv_c = lv_intStackOutSize;
-                                //Console.WriteLine("lv_c：" + IntToString(lv_c));
+                                //Console.WriteLine("lv_c:" + IntToString(lv_c));
                                 //Console.WriteLine("递减For lv_c=" + IntToString(lv_c) +"≥"+IntToString(autoHD_ae));
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
@@ -15701,16 +15702,16 @@ namespace MetalMaxSystem
             //Console.WriteLine("最终处理For 1~" + IntToString(lv_num));
             for (; ((autoE_ai >= 0 && lv_a <= autoE_ae) || (autoE_ai < 0 && lv_a >= autoE_ae)); lv_a += autoE_ai)
             {
-                //从序号里取出元素Tag、自定义值、新老句柄，让元素交换
+                //从序号里取出元素Tag、自定义值、新老句柄,让元素交换
                 //lv_tagStr = DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_a).ToString(); //原始序号元素
                 lv_tag = DataTableIntLoad1(false, "HD_ObjStackOutTag", lv_a);
                 lv_tagValue = lv_tag;
-                //Console.WriteLine("第"+IntToString(lv_a) +"个元素：" + IntToString(lv_tagStr));
+                //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr));
                 lv_b = DataTableIntLoad1(false, "HD_ObjStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
-                                                                                     //Console.WriteLine("第"+IntToString(lv_a) +"个元素：" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号：" + IntToString(lv_tagStr));
+                                                                                     //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号:" + IntToString(lv_tagStr));
                 if (lv_a != lv_b)
                 {
-                    //Console.WriteLine("lv_a："+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
+                    //Console.WriteLine("lv_a:"+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
                     DataTableIntSave1(true, (lp_key + "HD_ObjectTag"), lv_a, lv_tag); //lv_tag放入新序号
                                                                                       //Console.WriteLine("元素"+IntToString(lv_tagStr) +"放入lv_b=" + IntToString(lv_b)+"位置");
                 }
@@ -15719,7 +15720,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_设定Object的Object组专用状态。给Object组的Object设定一个状态值（字符串），之后可用"互动O_返回Object、互动OG_返回Object组的Object状态"。状态值"true"和"false"是Object的Object组专用状态值，用于内部函数筛选字符状态（相当于单位组单位索引是否有效），而本函数可以重设干预，影响函数"互动OG_返回Object组元素数量（仅检索XX状态）"。与"互动O_设定Object状态"功能相同，只是状态参数在Object组中被固定为"Object组变量的内部ID"。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_设定Object的Object组专用状态.给Object组的Object设定一个状态值(字符串),之后可用"互动O_返回Object、互动OG_返回Object组的Object状态".状态值"true"和"false"是Object的Object组专用状态值,用于内部函数筛选字符状态(相当于单位组单位索引是否有效),而本函数可以重设干预,影响函数"互动OG_返回Object组元素数量(仅检索XX状态)".与"互动O_设定Object状态"功能相同,只是状态参数在Object组中被固定为"Object组变量的内部ID".Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_object"></param>
         /// <param name="lp_objectGroup"></param>
@@ -15730,7 +15731,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_返回Object的Object组专用状态。使用"互动O_设定Object、互动OG_设定Object组的Object状态"后可使用本函数。与"互动O_返回Object状态"功能相同，只是状态参数在Object组中被固定为"Object组变量的内部ID"。状态值"true"和"false"是Object的Object组专用状态值，用于内部函数筛选字符状态（相当于单位组单位索引是否有效）。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_返回Object的Object组专用状态.使用"互动O_设定Object、互动OG_设定Object组的Object状态"后可使用本函数.与"互动O_返回Object状态"功能相同,只是状态参数在Object组中被固定为"Object组变量的内部ID".状态值"true"和"false"是Object的Object组专用状态值,用于内部函数筛选字符状态(相当于单位组单位索引是否有效).Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_object"></param>
         /// <param name="lp_objectGroup"></param>
@@ -15740,10 +15741,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_返回Object组元素序号对应元素。返回Object组元素序号指定Object。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_返回Object组元素序号对应元素.返回Object组元素序号指定Object.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_regNum">注册序号</param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static object HD_ReturnObjectFromObjectGFunc(int lp_regNum, string lp_gs)
         {
@@ -15751,9 +15752,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_返回Object组元素总数。返回指定Object组的元素数量。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_返回Object组元素总数.返回指定Object组的元素数量.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns>错误时返回0</returns>
         public static int HD_ReturnObjectGNumMax(string lp_gs)
         {
@@ -15761,9 +15762,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_返回Object组元素总数（仅检测Object组专用状态="true"）。返回指定Object组的元素数量。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_返回Object组元素总数(仅检测Object组专用状态="true").返回指定Object组的元素数量.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnObjectGNumMax_StateTrueFunc(string lp_gs)
         {
@@ -15793,9 +15794,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_返回Object组元素总数（仅检测Object组专用状态="false"）。返回指定Object组的元素数量。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_返回Object组元素总数(仅检测Object组专用状态="false").返回指定Object组的元素数量.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnObjectGNumMax_StateFalseFunc(string lp_gs)
         {
@@ -15825,9 +15826,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_返回Object组元素总数（仅检测Object组无效专用状态："false"或""）。返回指定Object组的元素数量（false、""、null）。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_返回Object组元素总数(仅检测Object组无效专用状态:"false"或"").返回指定Object组的元素数量(false、""、null).Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnObjectGNumMax_StateUselessFunc(string lp_gs)
         {
@@ -15857,9 +15858,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_返回Object组元素总数（仅检测Object组指定专用状态）。返回指定Object组的元素数量。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_返回Object组元素总数(仅检测Object组指定专用状态).返回指定Object组的元素数量.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <param name="lp_State">Object组专用状态</param>
         /// <returns></returns>
         public static int HD_ReturnObjectGNumMax_StateFunc_Specify(string lp_gs, string lp_State)
@@ -15890,10 +15891,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_添加Object到Object组。相同Object被认为是同一个，非高级功能不提供专用状态检查，如果Object没有设置过Object组专用状态，那么首次添加到Object组不会赋予"true"（之后可通过"互动O_设定Object状态"、"互动OG_设定Object组的Object状态"修改）。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_添加Object到Object组.相同Object被认为是同一个,非高级功能不提供专用状态检查,如果Object没有设置过Object组专用状态,那么首次添加到Object组不会赋予"true"(之后可通过"互动O_设定Object状态"、"互动OG_设定Object组的Object状态"修改).Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         public static void HD_AddObjectToGroup_Simple(object lp_object, string lp_gs)
         {
             HD_RegObject_Simple(lp_object, lp_gs);
@@ -15901,13 +15902,13 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_添加Object到Object组（高级）。相同Object被认为是同一个，高级功能提供专用状态检查，如果Object没有设置过Object组专用状态，那么首次添加到Object组会赋予"true"（之后可通过"互动O_设定Object状态"、"互动OG_设定Object组的Object状态"修改）。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_添加Object到Object组(高级).相同Object被认为是同一个,高级功能提供专用状态检查,如果Object没有设置过Object组专用状态,那么首次添加到Object组会赋予"true"(之后可通过"互动O_设定Object状态"、"互动OG_设定Object组的Object状态"修改).Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         public static void HD_AddObjectToGroup(object lp_object, string lp_gs)
         {
-            //组中添加对象，不对其固有状态和固有自定义值进行任何修改，所以使用Simple
+            //组中添加对象,不对其固有状态和固有自定义值进行任何修改,所以使用Simple
             HD_RegObject_Simple(lp_object, lp_gs);
             //高级方法设置组专用状态
             if (DataTableStringKeyExists(true, ("State" + lp_gs + "HD_Object_" + HD_RegObjectTagAndReturnStr(lp_object))) == false)
@@ -15918,29 +15919,29 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_移除Object组中的元素。使用"互动OG_添加Object到Object组"后可使用本函数进行移除元素。移除使用了"互动O_移除Object"，同一个存储区（Object组ID）序号重排，移除时该存储区如有其他操作会排队等待。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_移除Object组中的元素.使用"互动OG_添加Object到Object组"后可使用本函数进行移除元素.移除使用了"互动O_移除Object",同一个存储区(Object组ID)序号重排,移除时该存储区如有其他操作会排队等待.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_object"></param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         public static void HD_RemoveObjectFromGroup(object lp_object, string lp_gs)
         {
             HD_RemoveObject(lp_object, lp_gs);
         }
 
         //互动OG_为Object组中的每个序号
-        //GE（星际2的Galaxy Editor）的宏让编辑器保存时自动生成脚本并整合进脚本进行格式调整，C#仅参考需自行编写
-        //#AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称，宏去声明string类型名为“Auto随机编号_vs”的自动变量，然后=右侧字符
-        //#AUTOVAR(ae) = HD_ReturnObjectNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量，然后=右侧字符
-        //#INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量，用于下面for循环增量（increment是传入参数）
-        //#PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数，用作“当前被挑选到的元素”（任意变量-整数 lp_var）， #PARAM(s)是传进来的参数用作"开始"（int lp_s）
+        //GE(星际2的Galaxy Editor)的宏让编辑器保存时自动生成脚本并整合进脚本进行格式调整,C#仅参考需自行编写
+        //#AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称,宏去声明string类型名为“Auto随机编号_vs”的自动变量,然后=右侧字符
+        //#AUTOVAR(ae) = HD_ReturnObjectNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量,然后=右侧字符
+        //#INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量,用于下面for循环增量(increment是传入参数)
+        //#PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数,用作“当前被挑选到的元素”(任意变量-整数 lp_var), #PARAM(s)是传进来的参数用作"开始"(int lp_s)
         //for ( ; ( (#AUTOVAR(ai) >= 0 && #PARAM(var) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #PARAM(var) >= #AUTOVAR(ae)) ) ; #PARAM(var) += #AUTOVAR(ai) ) {
         //    #SUBFUNCS(actions)//代表用户GUI填写的所有动作
         //}
 
         /// <summary>
-        /// 互动OG_为Object组中的每个序号。每次挑选的元素序号会自行在动作组（委托函数）中使用，委托函数特征：void SubActionTest(int lp_var)，参数lp_var即每次遍历到的元素序号，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_为Object组中的每个序号.每次挑选的元素序号会自行在动作组(委托函数)中使用,委托函数特征:void SubActionTest(int lp_var),参数lp_var即每次遍历到的元素序号,请自行组织它在委托函数内如何使用,SubActionTest可直接作为本函数最后一个参数填入,填入多个动作范例:SubVActionEventFuncref Actions += SubActionTest,然后Actions作为参数填入.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <param name="lp_start">开始</param>
         /// <param name="lp_increment">增量</param>
         /// <param name="lp_funcref">委托类型变量或函数引用</param>
@@ -15970,9 +15971,9 @@ namespace MetalMaxSystem
         //}
 
         /// <summary>
-        /// 互动OG_为Object组中的每个元素。每次挑选的元素会自行在动作组（委托函数）中使用，委托函数特征：void SubOActionEventFuncref(object lv_object)，参数lv_object即每次遍历到的元素，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_为Object组中的每个元素.每次挑选的元素会自行在动作组(委托函数)中使用,委托函数特征:void SubOActionEventFuncref(object lv_object),参数lv_object即每次遍历到的元素,请自行组织它在委托函数内如何使用,SubActionTest可直接作为本函数最后一个参数填入,填入多个动作范例:SubVActionEventFuncref Actions += SubActionTest,然后Actions作为参数填入.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <param name="lp_start">开始</param>
         /// <param name="lp_increment">增量</param>
         /// <param name="lp_funcref">委托类型变量或函数引用</param>
@@ -15996,9 +15997,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_返回Object组中随机元素。返回指定Object组中的随机Object。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_返回Object组中随机元素.返回指定Object组中的随机Object.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static object HD_ReturnRandomObjectFromObjectGFunc(string lp_gs)
         {
@@ -16030,7 +16031,7 @@ namespace MetalMaxSystem
         //}
 
         /// <summary>
-        /// 互动OG_添加Object组到Object组。添加一个Object组A的元素到另一个Object组B，相同Object被认为是同一个。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_添加Object组到Object组.添加一个Object组A的元素到另一个Object组B,相同Object被认为是同一个.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_groupA"></param>
         /// <param name="lp_groupB"></param>
@@ -16062,7 +16063,7 @@ namespace MetalMaxSystem
         //}
 
         /// <summary>
-        /// 互动OG_从Object组移除Object组。将Object组A的元素从Object组B中移除，相同Object被认为是同一个。移除使用了"互动O_移除Object"，同一个存储区（Object组ID）序号重排，移除时该存储区如有其他操作会排队等待。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_从Object组移除Object组.将Object组A的元素从Object组B中移除,相同Object被认为是同一个.移除使用了"互动O_移除Object",同一个存储区(Object组ID)序号重排,移除时该存储区如有其他操作会排队等待.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_groupA"></param>
         /// <param name="lp_groupB"></param>
@@ -16082,9 +16083,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动OG_移除Object组全部元素。将Object组（Key区）存储的元素全部移除，相同Object被认为是同一个。移除时同一个存储区（Object组ID）序号不进行重排，但该存储区如有其他操作会排队等待。Object组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Object组到Object组"函数来完成赋值需求
+        /// 互动OG_移除Object组全部元素.将Object组(Key区)存储的元素全部移除,相同Object被认为是同一个.移除时同一个存储区(Object组ID)序号不进行重排,但该存储区如有其他操作会排队等待.Object组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Object组到Object组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_key">存储键区，默认填Object组名称</param>
+        /// <param name="lp_key">存储键区,默认填Object组名称</param>
         public static void HD_RemoveObjectGAll(string lp_key)
         {
             //Variable Declarations
@@ -16118,18 +16119,18 @@ namespace MetalMaxSystem
 
         #region 字符串
 
-        //提示：尽可能使用对口类型，以防值类型与引用类型发生转换时拆装箱降低性能
+        //提示:尽可能使用对口类型,以防值类型与引用类型发生转换时拆装箱降低性能
 
         //--------------------------------------------------------------------------------------------------
         //字符串组Start
         //--------------------------------------------------------------------------------------------------
-        //设计方案：字符串的句柄就是它自己
+        //设计方案:字符串的句柄就是它自己
 
         /// <summary>
-        /// 互动S_注册String(高级)。在指定Key存入String，固有状态、固有自定义值是String独一无二的标志（本函数重复注册会刷新），之后可用互动S_"返回String注册总数"、"返回String序号"、"返回序号对应String"、"返回序号对应String标签"、"返回String自定义值"。String组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将String组转为Key。首次注册时固有状态为true（相当于单位组单位活体），如需另外设置多个标记可使用"互动S_设定String状态/自定义值"
+        /// 互动S_注册String(高级).在指定Key存入String,固有状态、固有自定义值是String独一无二的标志(本函数重复注册会刷新),之后可用互动S_"返回String注册总数"、"返回String序号"、"返回序号对应String"、"返回序号对应String标签"、"返回String自定义值".String组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将String组转为Key.首次注册时固有状态为true(相当于单位组单位活体),如需另外设置多个标记可使用"互动S_设定String状态/自定义值"
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_key">存储键区，默认值"_String"</param>
+        /// <param name="lp_key">存储键区,默认值"_String"</param>
         /// <param name="lp_inherentStats">固有状态</param>
         /// <param name="lp_inherentCustomValue">固有自定义值</param>
         public static void HD_RegString(string lp_string, string lp_key, string lp_inherentStats = "true", string lp_inherentCustomValue = "")
@@ -16193,10 +16194,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_注册String。在指定Key存入String，固有状态、固有自定义值是String独一无二的标志（本函数重复注册不会刷新），之后可用互动S_"返回String注册总数"、"返回String序号"、"返回序号对应String"、"返回String自定义值"。String组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将String组转为Key。首次注册时固有状态为true（相当于单位组单位活体），之后只能通过"互动S_注册String（高级）"改写，如需另外设置多个标记可使用"互动S_设定String状态/自定义值"
+        /// 互动S_注册String.在指定Key存入String,固有状态、固有自定义值是String独一无二的标志(本函数重复注册不会刷新),之后可用互动S_"返回String注册总数"、"返回String序号"、"返回序号对应String"、"返回String自定义值".String组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将String组转为Key.首次注册时固有状态为true(相当于单位组单位活体),之后只能通过"互动S_注册String(高级)"改写,如需另外设置多个标记可使用"互动S_设定String状态/自定义值"
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_key">存储键区，默认值"_String"</param>
+        /// <param name="lp_key">存储键区,默认值"_String"</param>
         public static void HD_RegString_Simple(string lp_string, string lp_key)
         {
             //Variable Declarations
@@ -16260,10 +16261,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_注销String。用"互动S_注册String"到Key，之后可用本函数彻底摧毁注册信息并将序号重排（包括String标签有效状态、固有状态及自定义值）。注册注销同时进行会排队等待0.0625s直到没有注销动作，注销并不提升多少内存只是变量内容清空并序号重利用，非特殊要求一般不注销，而是用"互动S_设定String状态"让String状态失效（类似单位组的单位活体状态）。String组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将String组转为Key。本函数无法摧毁用"互动S_设定String状态/自定义值"创建的状态和自定义值，需手工填入""来排泄（非大量注销则提升内存量极小，可不管）。本函数参数Key若填String组变量ID时会清空String组专用状态
+        /// 互动S_注销String.用"互动S_注册String"到Key,之后可用本函数彻底摧毁注册信息并将序号重排(包括String标签有效状态、固有状态及自定义值).注册注销同时进行会排队等待0.0625s直到没有注销动作,注销并不提升多少内存只是变量内容清空并序号重利用,非特殊要求一般不注销,而是用"互动S_设定String状态"让String状态失效(类似单位组的单位活体状态).String组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将String组转为Key.本函数无法摧毁用"互动S_设定String状态/自定义值"创建的状态和自定义值,需手工填入""来排泄(非大量注销则提升内存量极小,可不管).本函数参数Key若填String组变量ID时会清空String组专用状态
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_key">存储键区，默认值"_String"</param>
+        /// <param name="lp_key">存储键区,默认值"_String"</param>
         public static void HD_DestroyString(string lp_string, string lp_key)
         {
             //Variable Declarations
@@ -16299,7 +16300,7 @@ namespace MetalMaxSystem
                             lv_c = DataTableStringLoad1(true, (lp_key + "HD_StringTag"), lv_b + 1);
                             DataTableStringSave1(true, (lp_key + "HD_StringTag"), lv_b, lv_c);
                         }
-                        //注销后触发序号重列，这里-1可以让挑选回滚，以再次检查重排后的当前挑选序号
+                        //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                         lv_a -= 1;
                     }
                 }
@@ -16308,10 +16309,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_移除String。用"互动S_注册String"到Key，之后可用本函数仅摧毁Key区注册的信息并将序号重排，用于String组或多个键区仅移除String（保留String标签有效状态、固有值）。注册注销同时进行会排队等待0.0625s直到没有注销动作，注销并不提升多少内存只是变量内容清空并序号重利用，非特殊要求一般不注销，而是用"互动S_设定String状态"让String状态失效（类似单位组的单位活体状态）。String组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将String组转为Key。本函数无法摧毁用"互动S_设定String状态/自定义值"创建的状态和自定义值，需手工填入""来排泄（非大量注销则提升内存量极小，可不管）。本函数参数Key若填String组变量ID时会清空String组专用状态
+        /// 互动S_移除String.用"互动S_注册String"到Key,之后可用本函数仅摧毁Key区注册的信息并将序号重排,用于String组或多个键区仅移除String(保留String标签有效状态、固有值).注册注销同时进行会排队等待0.0625s直到没有注销动作,注销并不提升多少内存只是变量内容清空并序号重利用,非特殊要求一般不注销,而是用"互动S_设定String状态"让String状态失效(类似单位组的单位活体状态).String组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将String组转为Key.本函数无法摧毁用"互动S_设定String状态/自定义值"创建的状态和自定义值,需手工填入""来排泄(非大量注销则提升内存量极小,可不管).本函数参数Key若填String组变量ID时会清空String组专用状态
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_key">存储键区，默认值"_String"</param>
+        /// <param name="lp_key">存储键区,默认值"_String"</param>
         public static void HD_RemoveString(string lp_string, string lp_key)
         {
             //Variable Declarations
@@ -16344,7 +16345,7 @@ namespace MetalMaxSystem
                         lv_c = DataTableStringLoad1(true, (lp_key + "HD_StringTag"), lv_b + 1);
                         DataTableStringSave1(true, (lp_key + "HD_StringTag"), lv_b, lv_c);
                     }
-                    //注销后触发序号重列，这里-1可以让挑选回滚，以再次检查重排后的当前挑选序号
+                    //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                     lv_a -= 1;
                 }
             }
@@ -16352,9 +16353,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_返回String注册总数。必须先使用"互动S_注册String"才能返回指定Key里的注册总数。String组使用时，可用"获取变量的内部名称"将String组转为Key。
+        /// 互动S_返回String注册总数.必须先使用"互动S_注册String"才能返回指定Key里的注册总数.String组使用时,可用"获取变量的内部名称"将String组转为Key.
         /// </summary>
-        /// <param name="lp_key">存储键区，默认值"_String"</param>
+        /// <param name="lp_key">存储键区,默认值"_String"</param>
         /// <returns></returns>
         public static int HD_ReturnStringNumMax(string lp_key)
         {
@@ -16362,11 +16363,11 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_返回String序号。使用"互动S_注册String"后使用本函数可返回Key里的注册序号，Key无元素返回0，Key有元素但对象不在里面则返回-1，String标签尚未注册则返回-2。String组使用时，可用"获取变量的内部名称"将String组转为Key
+        /// 互动S_返回String序号.使用"互动S_注册String"后使用本函数可返回Key里的注册序号,Key无元素返回0,Key有元素但对象不在里面则返回-1,String标签尚未注册则返回-2.String组使用时,可用"获取变量的内部名称"将String组转为Key
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_key">存储键区，默认值"_String"</param>
-        /// <returns>若返回成功将得到≥1的数，返回失败则为0</returns>
+        /// <param name="lp_key">存储键区,默认值"_String"</param>
+        /// <returns>若返回成功将得到≥1的数,返回失败则为0</returns>
         public static int HD_ReturnStringNum(string lp_string, string lp_key)
         {
             //Variable Declarations
@@ -16415,10 +16416,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_返回序号对应String。使用"互动S_注册String"后，在参数填入注册序号可返回String。String组使用时，可用"获取变量的内部名称"将String组转为Key
+        /// 互动S_返回序号对应String.使用"互动S_注册String"后,在参数填入注册序号可返回String.String组使用时,可用"获取变量的内部名称"将String组转为Key
         /// </summary>
         /// <param name="lp_regNum"></param>
-        /// <param name="lp_key">存储键区，默认值"_String"</param>
+        /// <param name="lp_key">存储键区,默认值"_String"</param>
         /// <returns></returns>
         public static string HD_ReturnStringFromRegNum(int lp_regNum, string lp_key)
         {
@@ -16429,10 +16430,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_设置String状态。必须先"注册"获得功能库内部句柄，再使用本函数给String设定一个状态值，之后可用"互动S_返回String状态"。类型参数用以记录多个不同状态，仅当"类型"参数填String组ID转的String串时，状态值"true"和"false"是String的String组专用状态值，用于内部函数筛选String状态（相当于单位组单位索引是否有效），其他类型不会干扰系统内部，可随意填写。虽然注销时反向清空注册信息，但用"互动S_设定String状态/自定义值"创建的值需要手工填入""来排泄（非大量注销则提升内存量极小，可不管）。注：固有状态值是注册函数赋予的系统内部变量（相当于单位组单位是否活体），只能通过"互动S_注册String（高级）"函数或将本函数参数"类型"设为空时改写
+        /// 互动S_设置String状态.必须先"注册"获得功能库内部句柄,再使用本函数给String设定一个状态值,之后可用"互动S_返回String状态".类型参数用以记录多个不同状态,仅当"类型"参数填String组ID转的String串时,状态值"true"和"false"是String的String组专用状态值,用于内部函数筛选String状态(相当于单位组单位索引是否有效),其他类型不会干扰系统内部,可随意填写.虽然注销时反向清空注册信息,但用"互动S_设定String状态/自定义值"创建的值需要手工填入""来排泄(非大量注销则提升内存量极小,可不管).注:固有状态值是注册函数赋予的系统内部变量(相当于单位组单位是否活体),只能通过"互动S_注册String(高级)"函数或将本函数参数"类型"设为空时改写
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_key">存储类型，默认值"State"</param>
+        /// <param name="lp_key">存储类型,默认值"State"</param>
         /// <param name="lp_stats">状态</param>
         public static void HD_SetStringState(string lp_string, string lp_key, string lp_stats)
         {
@@ -16441,10 +16442,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_返回String状态。使用"互动S_设定String状态"后可使用本函数，将本函数参数"类型"设为空时返回固有值。类型参数用以记录多个不同状态，仅当"类型"参数为String组ID转的字符串时，返回的状态值"true"和"false"是String的String组专用状态值，用于内部函数筛选String状态（相当于单位组单位索引是否有效）
+        /// 互动S_返回String状态.使用"互动S_设定String状态"后可使用本函数,将本函数参数"类型"设为空时返回固有值.类型参数用以记录多个不同状态,仅当"类型"参数为String组ID转的字符串时,返回的状态值"true"和"false"是String的String组专用状态值,用于内部函数筛选String状态(相当于单位组单位索引是否有效)
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_key">存储类型，默认值"State"</param>
+        /// <param name="lp_key">存储类型,默认值"State"</param>
         /// <returns></returns>
         public static string HD_ReturnStringState(string lp_string, string lp_key)
         {
@@ -16453,10 +16454,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_设置String自定义值。必须先"注册"获得功能库内部句柄，再使用本函数设定String的自定义值，之后可使用"互动S_返回String自定义值"，类型参数用以记录多个不同自定义值。注：固有自定义值是注册函数赋予的系统内部变量，只能通过"互动S_注册String（高级）"函数或将本函数参数"类型"设为空时改写
+        /// 互动S_设置String自定义值.必须先"注册"获得功能库内部句柄,再使用本函数设定String的自定义值,之后可使用"互动S_返回String自定义值",类型参数用以记录多个不同自定义值.注:固有自定义值是注册函数赋予的系统内部变量,只能通过"互动S_注册String(高级)"函数或将本函数参数"类型"设为空时改写
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_key">存储类型，默认值"A"</param>
+        /// <param name="lp_key">存储类型,默认值"A"</param>
         /// <param name="lp_customValue">自定义值</param>
         public static void HD_SetStringCV(string lp_string, string lp_key, string lp_customValue)
         {
@@ -16465,10 +16466,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_返回String自定义值。使用"互动S_设定String自定义值"后可使用本函数，将本函数参数"类型"设为空时返回固有值，该参数用以记录多个不同自定义值
+        /// 互动S_返回String自定义值.使用"互动S_设定String自定义值"后可使用本函数,将本函数参数"类型"设为空时返回固有值,该参数用以记录多个不同自定义值
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_key">存储类型，默认值"A"</param>
+        /// <param name="lp_key">存储类型,默认值"A"</param>
         /// <returns></returns>
         public static string HD_ReturnStringCV(string lp_string, string lp_key)
         {
@@ -16477,7 +16478,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_返回String固有状态。必须先使用"互动S_注册String"才能返回到该值，固有状态是独一无二的标记（相当于单位组单位是否活体）
+        /// 互动S_返回String固有状态.必须先使用"互动S_注册String"才能返回到该值,固有状态是独一无二的标记(相当于单位组单位是否活体)
         /// </summary>
         /// <param name="lp_string"></param>
         /// <returns></returns>
@@ -16487,7 +16488,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_返回String固有自定义值。必须先使用"互动S_注册String"才能返回到该值，固有值是独一无二的标记
+        /// 互动S_返回String固有自定义值.必须先使用"互动S_注册String"才能返回到该值,固有值是独一无二的标记
         /// </summary>
         /// <param name="lp_string"></param>
         /// <returns></returns>
@@ -16497,7 +16498,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_设置String的实数标记。必须先"注册"获得功能库内部句柄，再使用本函数让String携带一个实数值，之后可使用"互动S_返回String的实数标记"。String组使用时，可用"获取变量的内部名称"将String组转为Key
+        /// 互动S_设置String的实数标记.必须先"注册"获得功能库内部句柄,再使用本函数让String携带一个实数值,之后可使用"互动S_返回String的实数标记".String组使用时,可用"获取变量的内部名称"将String组转为Key
         /// </summary>
         /// <param name="lp_string"></param>
         /// <param name="lp_realNumTag">实数标记</param>
@@ -16507,7 +16508,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_返回String的实数标记。使用"互动S_设定String的实数标记"后可使用本函数。String组使用时，可用"获取变量的内部名称"将String组转为Key
+        /// 互动S_返回String的实数标记.使用"互动S_设定String的实数标记"后可使用本函数.String组使用时,可用"获取变量的内部名称"将String组转为Key
         /// </summary>
         /// <param name="lp_string"></param>
         /// <returns></returns>
@@ -16517,7 +16518,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_返回String标签句柄有效状态。将String视作独一无二的个体，标签是它本身，有效状态则类似"单位是否有效"，当使用"互动S_注册String"或"互动SG_添加String到String组"后激活String有效状态（值为"true"），除非使用"互动S_注册String（高级）"改写，否则直到注销才会摧毁
+        /// 互动S_返回String标签句柄有效状态.将String视作独一无二的个体,标签是它本身,有效状态则类似"单位是否有效",当使用"互动S_注册String"或"互动SG_添加String到String组"后激活String有效状态(值为"true"),除非使用"互动S_注册String(高级)"改写,否则直到注销才会摧毁
         /// </summary>
         /// <param name="lp_string"></param>
         /// <returns></returns>
@@ -16527,10 +16528,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动S_返回String注册状态。使用"互动S_注册String"或"互动SG_添加String到String组"后可使用本函数获取注册String在Key中的注册状态，该状态只能注销或从String组中移除时清空。String组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将String组转为Key
+        /// 互动S_返回String注册状态.使用"互动S_注册String"或"互动SG_添加String到String组"后可使用本函数获取注册String在Key中的注册状态,该状态只能注销或从String组中移除时清空.String组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将String组转为Key
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_key">存储键区，默认值"_String"</param>
+        /// <param name="lp_key">存储键区,默认值"_String"</param>
         /// <returns></returns>
         public static bool HD_ReturnIfStringTagKey(string lp_string, string lp_key)
         {
@@ -16539,7 +16540,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_设定String的String组专用状态。给String组的String设定一个状态值（字符串），之后可用"互动S_返回String、互动SG_返回String组的String状态"。状态值"true"和"false"是String的String组专用状态值，用于内部函数筛选字符状态（相当于单位组单位索引是否有效），而本函数可以重设干预，影响函数"互动SG_返回String组元素数量（仅检索XX状态）"。与"互动S_设定String状态"功能相同，只是状态参数在String组中被固定为"String组变量的内部ID"。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_设定String的String组专用状态.给String组的String设定一个状态值(字符串),之后可用"互动S_返回String、互动SG_返回String组的String状态".状态值"true"和"false"是String的String组专用状态值,用于内部函数筛选字符状态(相当于单位组单位索引是否有效),而本函数可以重设干预,影响函数"互动SG_返回String组元素数量(仅检索XX状态)".与"互动S_设定String状态"功能相同,只是状态参数在String组中被固定为"String组变量的内部ID".String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_string"></param>
         /// <param name="lp_stringGroup"></param>
@@ -16550,7 +16551,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_返回String的String组专用状态。使用"互动S_设定String、互动SG_设定String组的String状态"后可使用本函数。与"互动S_返回String状态"功能相同，只是状态参数在String组中被固定为"String组变量的内部ID"。状态值"true"和"false"是String的String组专用状态值，用于内部函数筛选字符状态（相当于单位组单位索引是否有效）。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_返回String的String组专用状态.使用"互动S_设定String、互动SG_设定String组的String状态"后可使用本函数.与"互动S_返回String状态"功能相同,只是状态参数在String组中被固定为"String组变量的内部ID".状态值"true"和"false"是String的String组专用状态值,用于内部函数筛选字符状态(相当于单位组单位索引是否有效).String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_string"></param>
         /// <param name="lp_stringGroup"></param>
@@ -16560,10 +16561,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_返回String组元素序号对应元素。返回String组元素序号指定String。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_返回String组元素序号对应元素.返回String组元素序号指定String.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_regNum">注册序号</param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static string HD_ReturnStringFromStringGFunc(int lp_regNum, string lp_gs)
         {
@@ -16571,9 +16572,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_返回String组元素总数。返回指定String组的元素数量。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_返回String组元素总数.返回指定String组的元素数量.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnStringGNumMax(string lp_gs)
         {
@@ -16581,9 +16582,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_返回String组元素总数（仅检测String组专用状态="true"）。返回指定String组的元素数量。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_返回String组元素总数(仅检测String组专用状态="true").返回指定String组的元素数量.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnStringGNumMax_StateTrueFunc(string lp_gs)
         {
@@ -16611,9 +16612,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_返回String组元素总数（仅检测String组专用状态="false"）。返回指定String组的元素数量。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_返回String组元素总数(仅检测String组专用状态="false").返回指定String组的元素数量.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnStringGNumMax_StateFalseFunc(string lp_gs)
         {
@@ -16641,9 +16642,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_返回String组元素总数（仅检测String组无效专用状态："false"或""）。返回指定String组的元素数量（false、""、null）。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_返回String组元素总数(仅检测String组无效专用状态:"false"或"").返回指定String组的元素数量(false、""、null).String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnStringGNumMax_StateUselessFunc(string lp_gs)
         {
@@ -16671,9 +16672,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_返回String组元素总数（仅检测String组指定专用状态）。返回指定String组的元素数量。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_返回String组元素总数(仅检测String组指定专用状态).返回指定String组的元素数量.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <param name="lp_State">String组专用状态</param>
         /// <returns></returns>
         public static int HD_ReturnStringGNumMax_StateFunc_Specify(string lp_gs, string lp_State)
@@ -16702,23 +16703,23 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_添加String到String组。相同String被认为是同一个，非高级功能不提供专用状态检查，如果String没有设置过String组专用状态，那么首次添加到String组不会赋予"true"（之后可通过"互动S_设定String状态"、"互动SG_设定String组的String状态"修改）。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_添加String到String组.相同String被认为是同一个,非高级功能不提供专用状态检查,如果String没有设置过String组专用状态,那么首次添加到String组不会赋予"true"(之后可通过"互动S_设定String状态"、"互动SG_设定String组的String状态"修改).String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         public static void HD_AddStringToGroup_Simple(string lp_string, string lp_gs)
         {
             HD_RegString_Simple(lp_string, lp_gs);
         }
 
         /// <summary>
-        /// 互动SG_添加String到String组（高级）。相同String被认为是同一个，高级功能提供专用状态检查，如果String没有设置过String组专用状态，那么首次添加到String组会赋予"true"（之后可通过"互动S_设定String状态"、"互动SG_设定String组的String状态"修改）。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_添加String到String组(高级).相同String被认为是同一个,高级功能提供专用状态检查,如果String没有设置过String组专用状态,那么首次添加到String组会赋予"true"(之后可通过"互动S_设定String状态"、"互动SG_设定String组的String状态"修改).String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         public static void HD_AddStringToGroup(string lp_string, string lp_gs)
         {
-            //组中添加对象，不对其固有状态和固有自定义值进行任何修改，所以使用Simple
+            //组中添加对象,不对其固有状态和固有自定义值进行任何修改,所以使用Simple
             HD_RegString_Simple(lp_string, lp_gs);
             if (DataTableStringKeyExists(true, ("State" + lp_gs + "HD_String_" + lp_string)) == false)
             {
@@ -16728,29 +16729,29 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_移除String组中的元素。使用"互动SG_添加String到String组"后可使用本函数进行移除元素。移除使用了"互动S_移除String"，同一个存储区（String组ID）序号重排，移除时该存储区如有其他操作会排队等待。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_移除String组中的元素.使用"互动SG_添加String到String组"后可使用本函数进行移除元素.移除使用了"互动S_移除String",同一个存储区(String组ID)序号重排,移除时该存储区如有其他操作会排队等待.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_string"></param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         public static void HD_RemoveStringFromGroup(string lp_string, string lp_gs)
         {
             HD_RemoveString(lp_string, lp_gs);
         }
 
         //互动SG_为String组中的每个序号
-        //GE（星际2的Galaxy Editor）的宏让编辑器保存时自动生成脚本并整合进脚本进行格式调整，C#仅参考需自行编写
-        //#AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称，宏去声明string类型名为“Auto随机编号_vs”的自动变量，然后=右侧字符
-        //#AUTOVAR(ae) = HD_ReturnStringNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量，然后=右侧字符
-        //#INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量，用于下面for循环增量（increment是传入参数）
-        //#PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数，用作“当前被挑选到的元素”（任意变量-整数 lp_var）， #PARAM(s)是传进来的参数用作"开始"（int lp_s）
+        //GE(星际2的Galaxy Editor)的宏让编辑器保存时自动生成脚本并整合进脚本进行格式调整,C#仅参考需自行编写
+        //#AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称,宏去声明string类型名为“Auto随机编号_vs”的自动变量,然后=右侧字符
+        //#AUTOVAR(ae) = HD_ReturnStringNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量,然后=右侧字符
+        //#INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量,用于下面for循环增量(increment是传入参数)
+        //#PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数,用作“当前被挑选到的元素”(任意变量-整数 lp_var), #PARAM(s)是传进来的参数用作"开始"(int lp_s)
         //for ( ; ( (#AUTOVAR(ai) >= 0 && #PARAM(var) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #PARAM(var) >= #AUTOVAR(ae)) ) ; #PARAM(var) += #AUTOVAR(ai) ) {
         //    #SUBFUNCS(actions)//代表用户GUI填写的所有动作
         //}
 
         /// <summary>
-        /// 互动SG_为String组中的每个序号。每次挑选的元素序号会自行在动作组（委托函数）中使用，委托函数特征：void SubActionTest(int lp_var)，参数lp_var即每次遍历到的元素序号，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_为String组中的每个序号.每次挑选的元素序号会自行在动作组(委托函数)中使用,委托函数特征:void SubActionTest(int lp_var),参数lp_var即每次遍历到的元素序号,请自行组织它在委托函数内如何使用,SubActionTest可直接作为本函数最后一个参数填入,填入多个动作范例:SubVActionEventFuncref Actions += SubActionTest,然后Actions作为参数填入.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <param name="lp_start">开始</param>
         /// <param name="lp_increment">增量</param>
         /// <param name="lp_funcref">委托类型变量或函数引用</param>
@@ -16780,9 +16781,9 @@ namespace MetalMaxSystem
         //}
 
         /// <summary>
-        /// 互动SG_为String组中的每个元素。每次挑选的元素会自行在动作组（委托函数）中使用，委托函数特征：void SubSActionEventFuncref(string lp_str)，参数lv_str即每次遍历到的元素，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_为String组中的每个元素.每次挑选的元素会自行在动作组(委托函数)中使用,委托函数特征:void SubSActionEventFuncref(string lp_str),参数lv_str即每次遍历到的元素,请自行组织它在委托函数内如何使用,SubActionTest可直接作为本函数最后一个参数填入,填入多个动作范例:SubVActionEventFuncref Actions += SubActionTest,然后Actions作为参数填入.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <param name="lp_start">开始</param>
         /// <param name="lp_increment">增量</param>
         /// <param name="lp_funcref">委托类型变量或函数引用</param>
@@ -16806,9 +16807,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_返回String组中随机元素。返回指定String组中的随机String。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_返回String组中随机元素.返回指定String组中的随机String.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static string HD_ReturnRandomStringFromStringGFunc(string lp_gs)
         {
@@ -16841,7 +16842,7 @@ namespace MetalMaxSystem
 
 
         /// <summary>
-        /// 互动SG_添加String组到String组。添加一个String组A的元素到另一个String组B，相同String被认为是同一个。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_添加String组到String组.添加一个String组A的元素到另一个String组B,相同String被认为是同一个.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_groupA"></param>
         /// <param name="lp_groupB"></param>
@@ -16873,7 +16874,7 @@ namespace MetalMaxSystem
         //}
 
         /// <summary>
-        /// 互动SG_从String组移除String组。将String组A的元素从String组B中移除，相同String被认为是同一个。移除使用了"互动S_移除String"，同一个存储区（String组ID）序号重排，移除时该存储区如有其他操作会排队等待。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_从String组移除String组.将String组A的元素从String组B中移除,相同String被认为是同一个.移除使用了"互动S_移除String",同一个存储区(String组ID)序号重排,移除时该存储区如有其他操作会排队等待.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_groupA"></param>
         /// <param name="lp_groupB"></param>
@@ -16893,9 +16894,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动SG_移除String组全部元素。将String组（Key区）存储的元素全部移除，相同String被认为是同一个。移除时同一个存储区（String组ID）序号不进行重排，但该存储区如有其他操作会排队等待。String组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加String组到String组"函数来完成赋值需求
+        /// 互动SG_移除String组全部元素.将String组(Key区)存储的元素全部移除,相同String被认为是同一个.移除时同一个存储区(String组ID)序号不进行重排,但该存储区如有其他操作会排队等待.String组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加String组到String组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_key">存储键区，默认填String组名称</param>
+        /// <param name="lp_key">存储键区,默认填String组名称</param>
         public static void HD_RemoveStringGAll(string lp_key)
         {
             //Variable Declarations
@@ -16929,17 +16930,17 @@ namespace MetalMaxSystem
 
         #region 数字
 
-        //提示：尽可能使用对口类型，以防值类型与引用类型发生转换时拆装箱降低性能
+        //提示:尽可能使用对口类型,以防值类型与引用类型发生转换时拆装箱降低性能
 
         //--------------------------------------------------------------------------------------------------
         //数字组Start
         //--------------------------------------------------------------------------------------------------
 
         /// <summary>
-        /// 互动I_注册Int(高级)。在指定Key存入Int，固有状态、固有自定义值是Int独一无二的标志（本函数重复注册会刷新），之后可用互动I_"返回Int注册总数"、"返回Int序号"、"返回序号对应Int"、"返回序号对应Int标签"、"返回Int自定义值"。Int组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将Int组转为Key。首次注册时固有状态为true（相当于单位组单位活体），如需另外设置多个标记可使用"互动I_设定Int状态/自定义值"
+        /// 互动I_注册Int(高级).在指定Key存入Int,固有状态、固有自定义值是Int独一无二的标志(本函数重复注册会刷新),之后可用互动I_"返回Int注册总数"、"返回Int序号"、"返回序号对应Int"、"返回序号对应Int标签"、"返回Int自定义值".Int组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将Int组转为Key.首次注册时固有状态为true(相当于单位组单位活体),如需另外设置多个标记可使用"互动I_设定Int状态/自定义值"
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_key">存储键区，默认值"_Int"</param>
+        /// <param name="lp_key">存储键区,默认值"_Int"</param>
         /// <param name="lp_inherentStats">固有状态</param>
         /// <param name="lp_inherentCustomValue">固有自定义值</param>
         public static void HD_RegInt(int lp_integer, string lp_key, string lp_inherentStats = "true", string lp_inherentCustomValue = "")
@@ -17003,10 +17004,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_注册Int。在指定Key存入Int，固有状态、固有自定义值是Int独一无二的标志（本函数重复注册不会刷新），之后可用互动I_"返回Int注册总数"、"返回Int序号"、"返回序号对应Int"、"返回Int自定义值"。Int组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将Int组转为Key。首次注册时固有状态为true（相当于单位组单位活体），之后只能通过"互动I_注册Int（高级）"改写，如需另外设置多个标记可使用"互动I_设定Int状态/自定义值"
+        /// 互动I_注册Int.在指定Key存入Int,固有状态、固有自定义值是Int独一无二的标志(本函数重复注册不会刷新),之后可用互动I_"返回Int注册总数"、"返回Int序号"、"返回序号对应Int"、"返回Int自定义值".Int组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将Int组转为Key.首次注册时固有状态为true(相当于单位组单位活体),之后只能通过"互动I_注册Int(高级)"改写,如需另外设置多个标记可使用"互动I_设定Int状态/自定义值"
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_key">存储键区，默认值"_Int"</param>
+        /// <param name="lp_key">存储键区,默认值"_Int"</param>
         public static void HD_RegInt_Simple(int lp_integer, string lp_key)
         {
             //Variable Declarations
@@ -17071,10 +17072,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_注销Int。用"互动I_注册Int"到Key，之后可用本函数彻底摧毁注册信息并将序号重排（包括Int标签有效状态、固有状态及自定义值）。注册注销同时进行会排队等待0.0625s直到没有注销动作，注销并不提升多少内存只是变量内容清空并序号重利用，非特殊要求一般不注销，而是用"互动I_设定Int状态"让Int状态失效（类似单位组的单位活体状态）。Int组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将Int组转为Key。本函数无法摧毁用"互动I_设定Int状态/自定义值"创建的状态和自定义值，需手工填入""来排泄（非大量注销则提升内存量极小，可不管）。本函数参数Key若填Int组变量ID时会清空Int组专用状态
+        /// 互动I_注销Int.用"互动I_注册Int"到Key,之后可用本函数彻底摧毁注册信息并将序号重排(包括Int标签有效状态、固有状态及自定义值).注册注销同时进行会排队等待0.0625s直到没有注销动作,注销并不提升多少内存只是变量内容清空并序号重利用,非特殊要求一般不注销,而是用"互动I_设定Int状态"让Int状态失效(类似单位组的单位活体状态).Int组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将Int组转为Key.本函数无法摧毁用"互动I_设定Int状态/自定义值"创建的状态和自定义值,需手工填入""来排泄(非大量注销则提升内存量极小,可不管).本函数参数Key若填Int组变量ID时会清空Int组专用状态
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_key">存储键区，默认值"_Int"</param>
+        /// <param name="lp_key">存储键区,默认值"_Int"</param>
         public static void HD_DestroyInt(int lp_integer, string lp_key)
         {
             //Variable Declarations
@@ -17111,7 +17112,7 @@ namespace MetalMaxSystem
                         lv_c = DataTableIntLoad1(true, (lp_key + "HD_IntTag"), lv_b + 1);
                         DataTableIntSave1(true, (lp_key + "HD_IntTag"), lv_b, lv_c);
                     }
-                    //注销后触发序号重列，这里-1可以让挑选回滚，以再次检查重排后的当前挑选序号
+                    //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                     lv_a -= 1;
                 }
             }
@@ -17119,10 +17120,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_移除Int。用"互动I_注册Int"到Key，之后可用本函数仅摧毁Key区注册的信息并将序号重排，用于Int组或多个键区仅移除Int（保留Int标签有效状态、固有值）。注册注销同时进行会排队等待0.0625s直到没有注销动作，注销并不提升多少内存只是变量内容清空并序号重利用，非特殊要求一般不注销，而是用"互动I_设定Int状态"让Int状态失效（类似单位组的单位活体状态）。Int组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将Int组转为Key。本函数无法摧毁用"互动I_设定Int状态/自定义值"创建的状态和自定义值，需手工填入""来排泄（非大量注销则提升内存量极小，可不管）。本函数参数Key若填Int组变量ID时会清空Int组专用状态
+        /// 互动I_移除Int.用"互动I_注册Int"到Key,之后可用本函数仅摧毁Key区注册的信息并将序号重排,用于Int组或多个键区仅移除Int(保留Int标签有效状态、固有值).注册注销同时进行会排队等待0.0625s直到没有注销动作,注销并不提升多少内存只是变量内容清空并序号重利用,非特殊要求一般不注销,而是用"互动I_设定Int状态"让Int状态失效(类似单位组的单位活体状态).Int组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将Int组转为Key.本函数无法摧毁用"互动I_设定Int状态/自定义值"创建的状态和自定义值,需手工填入""来排泄(非大量注销则提升内存量极小,可不管).本函数参数Key若填Int组变量ID时会清空Int组专用状态
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_key">存储键区，默认值"_Int"</param>
+        /// <param name="lp_key">存储键区,默认值"_Int"</param>
         public static void HD_RemoveInt(int lp_integer, string lp_key)
         {
             //Variable Declarations
@@ -17156,7 +17157,7 @@ namespace MetalMaxSystem
                         lv_c = DataTableIntLoad1(true, (lp_key + "HD_IntTag"), lv_b + 1);
                         DataTableIntSave1(true, (lp_key + "HD_IntTag"), lv_b, lv_c);
                     }
-                    //注销后触发序号重列，这里-1可以让挑选回滚，以再次检查重排后的当前挑选序号
+                    //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                     lv_a -= 1;
                 }
             }
@@ -17164,9 +17165,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_返回Int注册总数。必须先使用"互动I_注册Int"才能返回指定Key里的注册总数。Int组使用时，可用"获取变量的内部名称"将Int组转为Key。
+        /// 互动I_返回Int注册总数.必须先使用"互动I_注册Int"才能返回指定Key里的注册总数.Int组使用时,可用"获取变量的内部名称"将Int组转为Key.
         /// </summary>
-        /// <param name="lp_key">存储键区，默认值"_Int"</param>
+        /// <param name="lp_key">存储键区,默认值"_Int"</param>
         /// <returns></returns>
         public static int HD_ReturnIntNumMax(string lp_key)
         {
@@ -17175,10 +17176,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_返回Int序号。使用"互动I_注册Int"后使用本函数可返回Key里的注册序号，Key无元素返回0，Key有元素但对象不在里面则返回-1，Int标签尚未注册则返回-2。Int组使用时，可用"获取变量的内部名称"将Int组转为Key
+        /// 互动I_返回Int序号.使用"互动I_注册Int"后使用本函数可返回Key里的注册序号,Key无元素返回0,Key有元素但对象不在里面则返回-1,Int标签尚未注册则返回-2.Int组使用时,可用"获取变量的内部名称"将Int组转为Key
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_key">存储键区，默认值"_Int"</param>
+        /// <param name="lp_key">存储键区,默认值"_Int"</param>
         /// <returns></returns>
         public static int HD_ReturnIntNum(int lp_integer, string lp_key)
         {
@@ -17227,10 +17228,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_返回序号对应Int。使用"互动I_注册Int"后，在参数填入注册序号可返回Int。Int组使用时，可用"获取变量的内部名称"将Int组转为Key
+        /// 互动I_返回序号对应Int.使用"互动I_注册Int"后,在参数填入注册序号可返回Int.Int组使用时,可用"获取变量的内部名称"将Int组转为Key
         /// </summary>
         /// <param name="lp_regNum"></param>
-        /// <param name="lp_key">存储键区，默认值"_Int"</param>
+        /// <param name="lp_key">存储键区,默认值"_Int"</param>
         /// <returns></returns>
         public static int HD_ReturnIntFromRegNum(int lp_regNum, string lp_key)
         {
@@ -17245,10 +17246,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_设置Int状态。必须先"注册"获得功能库内部句柄，再使用本函数给Int设定一个状态值，之后可用"互动I_返回Int状态"。类型参数用以记录多个不同状态，仅当"类型"参数填Int组ID转的Int串时，状态值"true"和"false"是Int的Int组专用状态值，用于内部函数筛选Int状态（相当于单位组单位索引是否有效），其他类型不会干扰系统内部，可随意填写。虽然注销时反向清空注册信息，但用"互动I_设定Int状态/自定义值"创建的值需要手工填入""来排泄（非大量注销则提升内存量极小，可不管）。注：固有状态值是注册函数赋予的系统内部变量（相当于单位组单位是否活体），只能通过"互动I_注册Int（高级）"函数或将本函数参数"类型"设为空时改写
+        /// 互动I_设置Int状态.必须先"注册"获得功能库内部句柄,再使用本函数给Int设定一个状态值,之后可用"互动I_返回Int状态".类型参数用以记录多个不同状态,仅当"类型"参数填Int组ID转的Int串时,状态值"true"和"false"是Int的Int组专用状态值,用于内部函数筛选Int状态(相当于单位组单位索引是否有效),其他类型不会干扰系统内部,可随意填写.虽然注销时反向清空注册信息,但用"互动I_设定Int状态/自定义值"创建的值需要手工填入""来排泄(非大量注销则提升内存量极小,可不管).注:固有状态值是注册函数赋予的系统内部变量(相当于单位组单位是否活体),只能通过"互动I_注册Int(高级)"函数或将本函数参数"类型"设为空时改写
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_key">存储类型，默认值"State"</param>
+        /// <param name="lp_key">存储类型,默认值"State"</param>
         /// <param name="lp_stats">状态</param>
         public static void HD_SetIntState(int lp_integer, string lp_key, string lp_stats)
         {
@@ -17263,10 +17264,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_返回Int状态。使用"互动I_设定Int状态"后可使用本函数，将本函数参数"类型"设为空时返回固有值。类型参数用以记录多个不同状态，仅当"类型"参数为Int组ID转的字符串时，返回的状态值"true"和"false"是Int的Int组专用状态值，用于内部函数筛选Int状态（相当于单位组单位索引是否有效）
+        /// 互动I_返回Int状态.使用"互动I_设定Int状态"后可使用本函数,将本函数参数"类型"设为空时返回固有值.类型参数用以记录多个不同状态,仅当"类型"参数为Int组ID转的字符串时,返回的状态值"true"和"false"是Int的Int组专用状态值,用于内部函数筛选Int状态(相当于单位组单位索引是否有效)
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_key">存储类型，默认值"State"</param>
+        /// <param name="lp_key">存储类型,默认值"State"</param>
         /// <returns></returns>
         public static string HD_ReturnIntState(int lp_integer, string lp_key)
         {
@@ -17285,10 +17286,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_设置Int自定义值。必须先"注册"获得功能库内部句柄，再使用本函数设定Int的自定义值，之后可使用"互动I_返回Int自定义值"，类型参数用以记录多个不同自定义值。注：固有自定义值是注册函数赋予的系统内部变量，只能通过"互动I_注册Int（高级）"函数或将本函数参数"类型"设为空时改写
+        /// 互动I_设置Int自定义值.必须先"注册"获得功能库内部句柄,再使用本函数设定Int的自定义值,之后可使用"互动I_返回Int自定义值",类型参数用以记录多个不同自定义值.注:固有自定义值是注册函数赋予的系统内部变量,只能通过"互动I_注册Int(高级)"函数或将本函数参数"类型"设为空时改写
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_key">存储类型，默认值"A"</param>
+        /// <param name="lp_key">存储类型,默认值"A"</param>
         /// <param name="lp_customValue">自定义值</param>
         public static void HD_SetIntCV(int lp_integer, string lp_key, string lp_customValue)
         {
@@ -17303,10 +17304,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_返回Int自定义值。使用"互动I_设定Int自定义值"后可使用本函数，将本函数参数"类型"设为空时返回固有值，该参数用以记录多个不同自定义值
+        /// 互动I_返回Int自定义值.使用"互动I_设定Int自定义值"后可使用本函数,将本函数参数"类型"设为空时返回固有值,该参数用以记录多个不同自定义值
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_key">存储类型，默认值"A"</param>
+        /// <param name="lp_key">存储类型,默认值"A"</param>
         /// <returns></returns>
         public static string HD_ReturnIntCV(int lp_integer, string lp_key)
         {
@@ -17323,7 +17324,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_返回Int固有状态。必须先使用"互动I_注册Int"才能返回到该值，固有状态是独一无二的标记（相当于单位组单位是否活体）
+        /// 互动I_返回Int固有状态.必须先使用"互动I_注册Int"才能返回到该值,固有状态是独一无二的标记(相当于单位组单位是否活体)
         /// </summary>
         /// <param name="lp_integer"></param>
         /// <returns></returns>
@@ -17340,7 +17341,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_返回Int固有自定义值。必须先使用"互动I_注册Int"才能返回到该值，固有值是独一无二的标记
+        /// 互动I_返回Int固有自定义值.必须先使用"互动I_注册Int"才能返回到该值,固有值是独一无二的标记
         /// </summary>
         /// <param name="lp_integer"></param>
         /// <returns></returns>
@@ -17357,7 +17358,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_设置Int的实数标记。必须先"注册"获得功能库内部句柄，再使用本函数让Int携带一个实数值，之后可使用"互动I_返回Int的实数标记"。Int组使用时，可用"获取变量的内部名称"将Int组转为Key
+        /// 互动I_设置Int的实数标记.必须先"注册"获得功能库内部句柄,再使用本函数让Int携带一个实数值,之后可使用"互动I_返回Int的实数标记".Int组使用时,可用"获取变量的内部名称"将Int组转为Key
         /// </summary>
         /// <param name="lp_integer"></param>
         /// <param name="lp_realNumTag">实数标记</param>
@@ -17367,7 +17368,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_返回Int的实数标记。使用"互动I_设定Int的实数标记"后可使用本函数。Int组使用时，可用"获取变量的内部名称"将Int组转为Key
+        /// 互动I_返回Int的实数标记.使用"互动I_设定Int的实数标记"后可使用本函数.Int组使用时,可用"获取变量的内部名称"将Int组转为Key
         /// </summary>
         /// <param name="lp_integer"></param>
         /// <returns></returns>
@@ -17377,7 +17378,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_返回Int标签句柄有效状态。将Int视作独一无二的个体，标签是它本身，有效状态则类似"单位是否有效"，当使用"互动I_注册Int"或"互动IG_添加Int到Int组"后激活Int有效状态（值为"true"），除非使用"互动I_注册Int（高级）"改写，否则直到注销才会摧毁
+        /// 互动I_返回Int标签句柄有效状态.将Int视作独一无二的个体,标签是它本身,有效状态则类似"单位是否有效",当使用"互动I_注册Int"或"互动IG_添加Int到Int组"后激活Int有效状态(值为"true"),除非使用"互动I_注册Int(高级)"改写,否则直到注销才会摧毁
         /// </summary>
         /// <param name="lp_integer"></param>
         /// <returns></returns>
@@ -17387,10 +17388,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动I_返回Int注册状态。使用"互动I_注册Int"或"互动IG_添加Int到Int组"后可使用本函数获取注册Int在Key中的注册状态，该状态只能注销或从Int组中移除时清空。Int组使用时，Key被强制为变量ID，可用"获取变量的内部名称"将Int组转为Key
+        /// 互动I_返回Int注册状态.使用"互动I_注册Int"或"互动IG_添加Int到Int组"后可使用本函数获取注册Int在Key中的注册状态,该状态只能注销或从Int组中移除时清空.Int组使用时,Key被强制为变量ID,可用"获取变量的内部名称"将Int组转为Key
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_key">存储键区，默认值"_Int"</param>
+        /// <param name="lp_key">存储键区,默认值"_Int"</param>
         /// <returns></returns>
         public static bool HD_ReturnIfIntTagKey(int lp_integer, string lp_key)
         {
@@ -17398,9 +17399,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_根据自定义值类型将Int组排序。根据Int携带的自定义值类型，对指定的Int组元素进行冒泡排序。Int组变量字符可通过"转换变量内部名称"获得
+        /// 互动IG_根据自定义值类型将Int组排序.根据Int携带的自定义值类型,对指定的Int组元素进行冒泡排序.Int组变量字符可通过"转换变量内部名称"获得
         /// </summary>
-        /// <param name="lp_key">存储键区，默认填Int组名称</param>
+        /// <param name="lp_key">存储键区,默认填Int组名称</param>
         /// <param name="lp_cVStr">自定义值类型</param>
         /// <param name="lp_big">是否大值靠前</param>
         public static void HD_IntGSortCV(string lp_key, string lp_cVStr, bool lp_big)
@@ -17446,7 +17447,7 @@ namespace MetalMaxSystem
                     DataTableIntSave1(false, "HD_IntStackOutTag", 1, lv_tag);
                     DataTableIntSave1(false, "HD_IntStackOutTagValue", 1, lv_tagValue);
                     DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", 1, lv_a);
-                    //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+"，IteraOrig="+IntToString(lv_a));
+                    //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+",IteraOrig="+IntToString(lv_a));
                 }
                 else
                 {
@@ -17479,17 +17480,17 @@ namespace MetalMaxSystem
                         }
                         else
                         {
-                            //Console.WriteLine("大值靠前"+"，当前lv_b=" +IntToString(lv_b));
+                            //Console.WriteLine("大值靠前"+",当前lv_b=" +IntToString(lv_b));
                             if (lv_tagValue > DataTableIntLoad1(false, "HD_IntStackOutTagValue", lv_b))
                             {
                                 //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnIntTagFromRegNum(lv_b, lp_key))+"值"+IntToString(DataTableIntLoad1(false, "IntStackOutTagValue", lv_b)));
-                                //Console.WriteLine("生效的lv_b：" + IntToString(lv_b));
+                                //Console.WriteLine("生效的lv_b:" + IntToString(lv_b));
                                 lv_intStackOutSize += 1;
-                                //Console.WriteLine("lv_intStackOutSize：" + IntToString(lv_intStackOutSize));
+                                //Console.WriteLine("lv_intStackOutSize:" + IntToString(lv_intStackOutSize));
                                 autoHD_ae = (lv_b + 1);
-                                //Console.WriteLine("autoHD_ae：" + IntToString(autoHD_ae));
+                                //Console.WriteLine("autoHD_ae:" + IntToString(autoHD_ae));
                                 lv_c = lv_intStackOutSize;
-                                //Console.WriteLine("lv_c：" + IntToString(lv_c));
+                                //Console.WriteLine("lv_c:" + IntToString(lv_c));
                                 //Console.WriteLine("递减For lv_c=" + IntToString(lv_c) +"≥"+IntToString(autoHD_ae));
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
@@ -17528,17 +17529,17 @@ namespace MetalMaxSystem
             //Console.WriteLine("最终处理For 1~" + IntToString(lv_num));
             for (; ((autoE_ai >= 0 && lv_a <= autoE_ae) || (autoE_ai < 0 && lv_a >= autoE_ae)); lv_a += autoE_ai)
             {
-                //从序号里取出元素Tag、自定义值、新老句柄，让元素交换
+                //从序号里取出元素Tag、自定义值、新老句柄,让元素交换
                 //lv_tagStr = DataTableIntLoad1(true, (lp_key + "IntTag"), lv_a).ToString(); //原始序号元素
                 lv_tag = DataTableIntLoad1(false, "HD_IntStackOutTag", lv_a);
                 lv_tagValuestr = HD_ReturnIntCV(lv_tag, lp_cVStr);
                 lv_tagValue = Convert.ToInt32(lv_tagValuestr);
-                //Console.WriteLine("第"+IntToString(lv_a) +"个元素：" + IntToString(lv_tagStr));
+                //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr));
                 lv_b = DataTableIntLoad1(false, "HD_IntStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
-                                                                                     //Console.WriteLine("第"+IntToString(lv_a) +"个元素：" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号：" + IntToString(lv_tagStr));
+                                                                                     //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号:" + IntToString(lv_tagStr));
                 if (lv_a != lv_b)
                 {
-                    //Console.WriteLine("lv_a："+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
+                    //Console.WriteLine("lv_a:"+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
                     DataTableIntSave1(true, (lp_key + "HD_IntTag"), lv_a, lv_tag); //lv_tag放入新序号
                                                                                    //Console.WriteLine("元素"+IntToString(lv_tagStr) +"放入lv_b=" + IntToString(lv_b)+"位置");
                 }
@@ -17547,9 +17548,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_Int组排序。对指定的Int组元素进行冒泡排序（根据元素句柄）。Int组变量字符可通过"转换变量内部名称"获得
+        /// 互动IG_Int组排序.对指定的Int组元素进行冒泡排序(根据元素句柄).Int组变量字符可通过"转换变量内部名称"获得
         /// </summary>
-        /// <param name="lp_key">存储键区，默认填Int组名称</param>
+        /// <param name="lp_key">存储键区,默认填Int组名称</param>
         /// <param name="lp_big">是否大值靠前</param>
         public static void HD_IntGSort(string lp_key, bool lp_big)
         {
@@ -17594,7 +17595,7 @@ namespace MetalMaxSystem
                     DataTableIntSave1(false, "HD_IntStackOutTag", 1, lv_tag);
                     DataTableIntSave1(false, "HD_IntStackOutTagValue", 1, lv_tagValue);
                     DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", 1, lv_a);
-                    //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+"，IteraOrig="+IntToString(lv_a));
+                    //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+",IteraOrig="+IntToString(lv_a));
                 }
                 else
                 {
@@ -17627,17 +17628,17 @@ namespace MetalMaxSystem
                         }
                         else
                         {
-                            //Console.WriteLine("大值靠前"+"，当前lv_b=" +IntToString(lv_b));
+                            //Console.WriteLine("大值靠前"+",当前lv_b=" +IntToString(lv_b));
                             if (lv_tagValue > DataTableIntLoad1(false, "HD_IntStackOutTagValue", lv_b))
                             {
                                 //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnIntTagFromRegNum(lv_b, lp_key))+"值"+IntToString(DataTableIntLoad1(false, "IntStackOutTagValue", lv_b)));
-                                //Console.WriteLine("生效的lv_b：" + IntToString(lv_b));
+                                //Console.WriteLine("生效的lv_b:" + IntToString(lv_b));
                                 lv_intStackOutSize += 1;
-                                //Console.WriteLine("lv_intStackOutSize：" + IntToString(lv_intStackOutSize));
+                                //Console.WriteLine("lv_intStackOutSize:" + IntToString(lv_intStackOutSize));
                                 autoHD_ae = (lv_b + 1);
-                                //Console.WriteLine("autoHD_ae：" + IntToString(autoHD_ae));
+                                //Console.WriteLine("autoHD_ae:" + IntToString(autoHD_ae));
                                 lv_c = lv_intStackOutSize;
-                                //Console.WriteLine("lv_c：" + IntToString(lv_c));
+                                //Console.WriteLine("lv_c:" + IntToString(lv_c));
                                 //Console.WriteLine("递减For lv_c=" + IntToString(lv_c) +"≥"+IntToString(autoHD_ae));
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
@@ -17676,16 +17677,16 @@ namespace MetalMaxSystem
             //Console.WriteLine("最终处理For 1~" + IntToString(lv_num));
             for (; ((autoE_ai >= 0 && lv_a <= autoE_ae) || (autoE_ai < 0 && lv_a >= autoE_ae)); lv_a += autoE_ai)
             {
-                //从序号里取出元素Tag、自定义值、新老句柄，让元素交换
+                //从序号里取出元素Tag、自定义值、新老句柄,让元素交换
                 //lv_tagStr = DataTableIntLoad1(true, (lp_key + "IntTag"), lv_a).ToString(); //原始序号元素
                 lv_tag = DataTableIntLoad1(false, "HD_IntStackOutTag", lv_a);
                 lv_tagValue = lv_tag;
-                //Console.WriteLine("第"+IntToString(lv_a) +"个元素：" + IntToString(lv_tagStr));
+                //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr));
                 lv_b = DataTableIntLoad1(false, "HD_IntStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
-                                                                                     //Console.WriteLine("第"+IntToString(lv_a) +"个元素：" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号：" + IntToString(lv_tagStr));
+                                                                                     //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号:" + IntToString(lv_tagStr));
                 if (lv_a != lv_b)
                 {
-                    //Console.WriteLine("lv_a："+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
+                    //Console.WriteLine("lv_a:"+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
                     DataTableIntSave1(true, (lp_key + "HD_IntTag"), lv_a, lv_tag); //lv_tag放入新序号
                                                                                    //Console.WriteLine("元素"+IntToString(lv_tagStr) +"放入lv_b=" + IntToString(lv_b)+"位置");
                 }
@@ -17694,7 +17695,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_设定Int的Int组专用状态。给Int组的Int设定一个状态值（字符串），之后可用"互动I_返回Int、互动IG_返回Int组的Int状态"。状态值"true"和"false"是Int的Int组专用状态值，用于内部函数筛选字符状态（相当于单位组单位索引是否有效），而本函数可以重设干预，影响函数"互动IG_返回Int组元素数量（仅检索XX状态）"。与"互动I_设定Int状态"功能相同，只是状态参数在Int组中被固定为"Int组变量的内部ID"。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_设定Int的Int组专用状态.给Int组的Int设定一个状态值(字符串),之后可用"互动I_返回Int、互动IG_返回Int组的Int状态".状态值"true"和"false"是Int的Int组专用状态值,用于内部函数筛选字符状态(相当于单位组单位索引是否有效),而本函数可以重设干预,影响函数"互动IG_返回Int组元素数量(仅检索XX状态)".与"互动I_设定Int状态"功能相同,只是状态参数在Int组中被固定为"Int组变量的内部ID".Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_integer"></param>
         /// <param name="lp_integerGroup"></param>
@@ -17705,7 +17706,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_返回Int的Int组专用状态。使用"互动I_设定Int、互动IG_设定Int组的Int状态"后可使用本函数。与"互动I_返回Int状态"功能相同，只是状态参数在Int组中被固定为"Int组变量的内部ID"。状态值"true"和"false"是Int的Int组专用状态值，用于内部函数筛选字符状态（相当于单位组单位索引是否有效）。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_返回Int的Int组专用状态.使用"互动I_设定Int、互动IG_设定Int组的Int状态"后可使用本函数.与"互动I_返回Int状态"功能相同,只是状态参数在Int组中被固定为"Int组变量的内部ID".状态值"true"和"false"是Int的Int组专用状态值,用于内部函数筛选字符状态(相当于单位组单位索引是否有效).Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_integer"></param>
         /// <param name="lp_integerGroup"></param>
@@ -17715,10 +17716,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_返回Int组元素序号对应元素。返回Int组元素序号指定Int。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_返回Int组元素序号对应元素.返回Int组元素序号指定Int.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_regNum">注册序号</param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnIntFromIntGFunc(int lp_regNum, string lp_gs)
         {
@@ -17726,9 +17727,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_返回Int组元素总数。返回指定Int组的元素数量。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_返回Int组元素总数.返回指定Int组的元素数量.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnIntGNumMax(string lp_gs)
         {
@@ -17736,9 +17737,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_返回Int组元素总数（仅检测Int组专用状态="true"）。返回指定Int组的元素数量。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_返回Int组元素总数(仅检测Int组专用状态="true").返回指定Int组的元素数量.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnIntGNumMax_StateTrueFunc(string lp_gs)
         {
@@ -17768,9 +17769,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_返回Int组元素总数（仅检测Int组专用状态="false"）。返回指定Int组的元素数量。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_返回Int组元素总数(仅检测Int组专用状态="false").返回指定Int组的元素数量.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnIntGNumMax_StateFalseFunc(string lp_gs)
         {
@@ -17800,9 +17801,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_返回Int组元素总数（仅检测Int组无效专用状态："false"或""）。返回指定Int组的元素数量（false、""、null）。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_返回Int组元素总数(仅检测Int组无效专用状态:"false"或"").返回指定Int组的元素数量(false、""、null).Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnIntGNumMax_StateUselessFunc(string lp_gs)
         {
@@ -17832,9 +17833,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_返回Int组元素总数（仅检测Int组指定专用状态）。返回指定Int组的元素数量。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_返回Int组元素总数(仅检测Int组指定专用状态).返回指定Int组的元素数量.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <param name="lp_State">Int组专用状态</param>
         /// <returns></returns>
         public static int HD_ReturnIntGNumMax_StateFunc_Specify(string lp_gs, string lp_State)
@@ -17865,23 +17866,23 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_添加Int到Int组。相同Int被认为是同一个，非高级功能不提供专用状态检查，如果Int没有设置过Int组专用状态，那么首次添加到Int组不会赋予"true"（之后可通过"互动I_设定Int状态"、"互动IG_设定Int组的Int状态"修改）。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_添加Int到Int组.相同Int被认为是同一个,非高级功能不提供专用状态检查,如果Int没有设置过Int组专用状态,那么首次添加到Int组不会赋予"true"(之后可通过"互动I_设定Int状态"、"互动IG_设定Int组的Int状态"修改).Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         public static void HD_AddIntToGroup_Simple(int lp_integer, string lp_gs)
         {
             HD_RegInt_Simple(lp_integer, lp_gs);
         }
 
         /// <summary>
-        /// 互动IG_添加Int到Int组（高级）。相同Int被认为是同一个，高级功能提供专用状态检查，如果Int没有设置过Int组专用状态，那么首次添加到Int组会赋予"true"（之后可通过"互动I_设定Int状态"、"互动IG_设定Int组的Int状态"修改）。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_添加Int到Int组(高级).相同Int被认为是同一个,高级功能提供专用状态检查,如果Int没有设置过Int组专用状态,那么首次添加到Int组会赋予"true"(之后可通过"互动I_设定Int状态"、"互动IG_设定Int组的Int状态"修改).Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         public static void HD_AddIntToGroup(int lp_integer, string lp_gs)
         {
-            //组中添加对象，不对其固有状态和固有自定义值进行任何修改，所以使用Simple
+            //组中添加对象,不对其固有状态和固有自定义值进行任何修改,所以使用Simple
             HD_RegInt_Simple(lp_integer, lp_gs);
             if (DataTableStringKeyExists(true, ("HD_IntState" + lp_gs + "HD_Int_" + lp_integer.ToString())) == false)
             {
@@ -17891,29 +17892,29 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_移除Int组中的元素。使用"互动IG_添加Int到Int组"后可使用本函数进行移除元素。移除使用了"互动I_移除Int"，同一个存储区（Int组ID）序号重排，移除时该存储区如有其他操作会排队等待。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_移除Int组中的元素.使用"互动IG_添加Int到Int组"后可使用本函数进行移除元素.移除使用了"互动I_移除Int",同一个存储区(Int组ID)序号重排,移除时该存储区如有其他操作会排队等待.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_integer"></param>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         public static void HD_RemoveIntFromGroup(int lp_integer, string lp_gs)
         {
             HD_RemoveInt(lp_integer, lp_gs);
         }
 
         //互动IG_为Int组中的每个序号
-        //GE（星际2的Galaxy Editor）的宏让编辑器保存时自动生成脚本并整合进脚本进行格式调整，C#仅参考需自行编写
-        //#AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称，宏去声明string类型名为“Auto随机编号_vs”的自动变量，然后=右侧字符
-        //#AUTOVAR(ae) = HD_ReturnIntNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量，然后=右侧字符
-        //#INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量，用于下面for循环增量（increment是传入参数）
-        //#PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数，用作“当前被挑选到的元素”（任意变量-整数 lp_var）， #PARAM(s)是传进来的参数用作"开始"（int lp_s）
+        //GE(星际2的Galaxy Editor)的宏让编辑器保存时自动生成脚本并整合进脚本进行格式调整,C#仅参考需自行编写
+        //#AUTOVAR(vs, string) = "#PARAM(group)";//"#PARAM(group)"是与字段、变量名一致的元素组名称,宏去声明string类型名为“Auto随机编号_vs”的自动变量,然后=右侧字符
+        //#AUTOVAR(ae) = HD_ReturnIntNumMax(#AUTOVAR(vs));//宏去声明默认int类型名为“Auto随机编号_ae”的自动变量,然后=右侧字符
+        //#INITAUTOVAR(ai,increment)//宏去声明int类型名为“Auto随机编号_ai”的自动变量,用于下面for循环增量(increment是传入参数)
+        //#PARAM(var) = #PARAM(s);//#PARAM(var)是传进来的参数,用作“当前被挑选到的元素”(任意变量-整数 lp_var), #PARAM(s)是传进来的参数用作"开始"(int lp_s)
         //for ( ; ( (#AUTOVAR(ai) >= 0 && #PARAM(var) <= #AUTOVAR(ae)) || (#AUTOVAR(ai) < 0 && #PARAM(var) >= #AUTOVAR(ae)) ) ; #PARAM(var) += #AUTOVAR(ai) ) {
         //    #SUBFUNCS(actions)//代表用户GUI填写的所有动作
         //}
 
         /// <summary>
-        /// 互动IG_为Int组中的每个序号。每次挑选的元素序号会自行在动作组（委托函数）中使用，委托函数特征：void SubActionTest(int lp_var)，参数lp_var即每次遍历到的元素序号，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_为Int组中的每个序号.每次挑选的元素序号会自行在动作组(委托函数)中使用,委托函数特征:void SubActionTest(int lp_var),参数lp_var即每次遍历到的元素序号,请自行组织它在委托函数内如何使用,SubActionTest可直接作为本函数最后一个参数填入,填入多个动作范例:SubVActionEventFuncref Actions += SubActionTest,然后Actions作为参数填入.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <param name="lp_start">开始</param>
         /// <param name="lp_increment">增量</param>
         /// <param name="lp_funcref">委托类型变量或函数引用</param>
@@ -17943,9 +17944,9 @@ namespace MetalMaxSystem
         //}
 
         /// <summary>
-        /// 互动IG_为Int组中的每个元素。每次挑选的元素会自行在动作组（委托函数）中使用，委托函数特征：void SubActionTest(int lp_var)，参数lp_var即每次遍历到的元素，请自行组织它在委托函数内如何使用，SubActionTest可直接作为本函数最后一个参数填入，填入多个动作范例：SubVActionEventFuncref Actions += SubActionTest，然后Actions作为参数填入。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_为Int组中的每个元素.每次挑选的元素会自行在动作组(委托函数)中使用,委托函数特征:void SubActionTest(int lp_var),参数lp_var即每次遍历到的元素,请自行组织它在委托函数内如何使用,SubActionTest可直接作为本函数最后一个参数填入,填入多个动作范例:SubVActionEventFuncref Actions += SubActionTest,然后Actions作为参数填入.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <param name="lp_start">开始</param>
         /// <param name="lp_increment">增量</param>
         /// <param name="lp_funcref">委托类型变量或函数引用</param>
@@ -17969,9 +17970,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_返回Int组中随机元素。返回指定Int组中的随机Int。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_返回Int组中随机元素.返回指定Int组中的随机Int.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_gs">元素组的名称，建议与字段、变量名一致，数组使用时字符应写成：组[一维][二维]...以此类推</param>
+        /// <param name="lp_gs">元素组的名称,建议与字段、变量名一致,数组使用时字符应写成:组[一维][二维]...以此类推</param>
         /// <returns></returns>
         public static int HD_ReturnRandomIntFromIntGFunc(string lp_gs)
         {
@@ -18004,7 +18005,7 @@ namespace MetalMaxSystem
 
 
         /// <summary>
-        /// 互动IG_添加Int组到Int组。添加一个Int组A的元素到另一个Int组B，相同Int被认为是同一个。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_添加Int组到Int组.添加一个Int组A的元素到另一个Int组B,相同Int被认为是同一个.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_groupA"></param>
         /// <param name="lp_groupB"></param>
@@ -18036,7 +18037,7 @@ namespace MetalMaxSystem
         //}
 
         /// <summary>
-        /// 互动IG_从Int组移除Int组。将Int组A的元素从Int组B中移除，相同Int被认为是同一个。移除使用了"互动I_移除Int"，同一个存储区（Int组ID）序号重排，移除时该存储区如有其他操作会排队等待。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_从Int组移除Int组.将Int组A的元素从Int组B中移除,相同Int被认为是同一个.移除使用了"互动I_移除Int",同一个存储区(Int组ID)序号重排,移除时该存储区如有其他操作会排队等待.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
         /// <param name="lp_groupA"></param>
         /// <param name="lp_groupB"></param>
@@ -18056,9 +18057,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 互动IG_移除Int组全部元素。将Int组（Key区）存储的元素全部移除，相同Int被认为是同一个。移除时同一个存储区（Int组ID）序号不进行重排，但该存储区如有其他操作会排队等待。Int组目前不支持赋值其他变量，绝对ID对应绝对Key，可使用"添加Int组到Int组"函数来完成赋值需求
+        /// 互动IG_移除Int组全部元素.将Int组(Key区)存储的元素全部移除,相同Int被认为是同一个.移除时同一个存储区(Int组ID)序号不进行重排,但该存储区如有其他操作会排队等待.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
-        /// <param name="lp_key">存储键区，默认填Int组名称</param>
+        /// <param name="lp_key">存储键区,默认填Int组名称</param>
         public static void HD_RemoveIntGAll(string lp_key)
         {
             //Variable Declarations
@@ -18099,9 +18100,9 @@ namespace MetalMaxSystem
         //加入按键监听并传参执行
 
         /// <summary>
-        /// 注册键鼠总控预制事件。通过本函数可快捷将RecordService类实例中5个预制事件KeyDown、KeyUp、MouseMove、MouseDown、MouseUp注册给库内预制函数引用，从而使用按键总控管理衍生的所有功能（比如将“移动”、“发射火箭”等函数动作注册给Q键）
+        /// 注册键鼠总控预制事件.通过本函数可快捷将RecordService类实例中5个预制事件KeyDown、KeyUp、MouseMove、MouseDown、MouseUp注册给库内预制函数引用,从而使用按键总控管理衍生的所有功能(比如将“移动”、“发射火箭”等函数动作注册给Q键)
         /// </summary>
-        /// <param name="cover">true：覆盖注册，false：追加注册</param>
+        /// <param name="cover">true:覆盖注册,false:追加注册</param>
         public static void AddKeyMouseEvent(RecordService keyMouseRecordService, bool cover)
         {
             if (cover)
@@ -18128,7 +18129,7 @@ namespace MetalMaxSystem
         /// <summary>
         /// 注销键鼠总控预制事件
         /// </summary>
-        /// <param name="lp_null">true注销全部，否则仅注销预制事件</param>
+        /// <param name="lp_null">true注销全部,否则仅注销预制事件</param>
         public static void DelKeyMouseEvent(RecordService keyMouseRecordService, bool lp_null)
         {
             if (lp_null)
@@ -18153,7 +18154,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 键盘按下事件主要动作（加入按键监听并传参执行）
+        /// 键盘按下事件主要动作(加入按键监听并传参执行)
         /// </summary>
         /// <param name="player"></param>
         /// <param name="key"></param>
@@ -18178,7 +18179,7 @@ namespace MetalMaxSystem
                 //if (ShuangJiGuanLi == true){
                 //    lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(player, key);
                 //    if ((0.0 < lv_a) && (lv_a <= ShuangJiShiXian)){
-                //        //符合双击标准，发送事件
+                //        //符合双击标准,发送事件
                 //        libBC0D3AAD_gf_Send_KeyDoubleClicked(player, key, ShuangJiShiXian - lv_a);
                 //    } 
                 //    else {   
@@ -18193,7 +18194,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 键盘弹起事件主要动作（加入按键监听并传参执行）
+        /// 键盘弹起事件主要动作(加入按键监听并传参执行)
         /// </summary>
         /// <param name="player"></param>
         /// <param name="key"></param>
@@ -18201,7 +18202,7 @@ namespace MetalMaxSystem
         internal static bool KeyUp(int player, int key)
         {
             bool torf = !StopKeyMouseEvent[player];
-            Player.KeyDownState[player, key] = false;  //当前按键状态值，本事件始终为false
+            Player.KeyDownState[player, key] = false;  //当前按键状态值,本事件始终为false
             Player.KeyDown[player, key] = false;  //当前按键值
 
             if (StopKeyMouseEvent[player] == false)
@@ -18209,12 +18210,12 @@ namespace MetalMaxSystem
                 //直接执行动作或通知延迟弹起函数去执行动作
                 if ((bool)HashTableLoad2(true, "KeyDownLoopOneBitKey", player, key) == false)
                 {
-                    //弹起时无该键动作队列（由延迟弹起执行完），则直接执行本次事件动作
+                    //弹起时无该键动作队列(由延迟弹起执行完),则直接执行本次事件动作
                     KeyUpFunc(player, key);
                 }
                 else
                 {
-                    //弹起时有该键动作队列，通知延迟弹起函数运行（按键队列>0时，清空一次队列并执行它们的动作）
+                    //弹起时有该键动作队列,通知延迟弹起函数运行(按键队列>0时,清空一次队列并执行它们的动作)
                     HashTableSave2(true, "KeyDownLoopOneBitEnd", player, key, true);
                 }
             }
@@ -18242,7 +18243,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 鼠标移动事件主要动作（加入按键监听并传参执行）
+        /// 鼠标移动事件主要动作(加入按键监听并传参执行)
         /// </summary>
         /// <param name="player"></param>
         /// <param name="lp_mouseVector3F"></param>
@@ -18269,18 +18270,18 @@ namespace MetalMaxSystem
 
                 Player.MouseVector3FFixed[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, Player.MouseVectorZFixed[player]);
                 Player.MouseVector3F[player] = lp_mouseVector3F;
-                //下面2个动作应该要从二维点读取单位（可多个），将最高的单位的头顶坐标填入以修正鼠标Z点
+                //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
                 Player.MouseVector3FUnitTerrain[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, lp_mouseVector3F.z - unitTerrainHeight);
                 Player.MouseVector3FTerrain[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, lp_mouseVector3F.z - unitTerrainHeight - unitHeight);
 
-                //玩家控制单位存在时，计算鼠标距离控制单位的2D角度和3D距离
+                //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
                 if (Player.UnitControl[player] != null)
                 {
-                    //计算鼠标与控制单位的2D角度，用于调整角色在二维坐标系四象限内的的朝向
+                    //计算鼠标与控制单位的2D角度,用于调整角色在二维坐标系四象限内的的朝向
                     Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的2D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
+                    //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的3D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
+                    //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
                 }
             }
@@ -18303,18 +18304,18 @@ namespace MetalMaxSystem
 
                 Player.MouseVector3FFixed[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, Player.MouseVectorZFixed[player]);
                 Player.MouseVector3F[player] = lp_mouseVector3F;
-                //下面2个动作应该要从二维点读取单位（可多个），将最高的单位的头顶坐标填入以修正鼠标Z点
+                //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
                 Player.MouseVector3FUnitTerrain[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, lp_mouseVector3F.Z - unitTerrainHeight);
                 Player.MouseVector3FTerrain[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, lp_mouseVector3F.Z - unitTerrainHeight - unitHeight);
 
-                //玩家控制单位存在时，计算鼠标距离控制单位的2D角度和3D距离
+                //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
                 if (Player.UnitControl[player] != null)
                 {
-                    //计算鼠标与控制单位的2D角度，用于调整角色在二维坐标系四象限内的的朝向
+                    //计算鼠标与控制单位的2D角度,用于调整角色在二维坐标系四象限内的的朝向
                     Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的2D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
+                    //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的3D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
+                    //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
                 }
             }
@@ -18322,7 +18323,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 鼠标按下事件主要动作（加入按键监听并传参执行）
+        /// 鼠标按下事件主要动作(加入按键监听并传参执行)
         /// </summary>
         /// <param name="player"></param>
         /// <param name="key"></param>
@@ -18366,18 +18367,18 @@ namespace MetalMaxSystem
 
                 Player.MouseVector3FFixed[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, Player.MouseVectorZFixed[player]);
                 Player.MouseVector3F[player] = lp_mouseVector3F;
-                //下面2个动作应该要从二维点读取单位（可多个），将最高的单位的头顶坐标填入以修正鼠标Z点
+                //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
                 Player.MouseVector3FUnitTerrain[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, lp_mouseVector3F.z - unitTerrainHeight);
                 Player.MouseVector3FTerrain[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, lp_mouseVector3F.z - unitTerrainHeight - unitHeight);
 
-                //玩家控制单位存在时，计算鼠标距离控制单位的2D角度和3D距离
+                //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
                 if (Player.UnitControl[player] != null)
                 {
-                    //计算鼠标与控制单位的2D角度，用于调整角色在二维坐标系四象限内的的朝向
+                    //计算鼠标与控制单位的2D角度,用于调整角色在二维坐标系四象限内的的朝向
                     Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的2D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
+                    //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的3D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
+                    //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
                 }
 
@@ -18398,7 +18399,7 @@ namespace MetalMaxSystem
                 //   lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(lv_player, lv_mouseButton);
                 //   if ((0.0 < lv_a) && (lv_a <= libBC0D3AAD_gv_ShuangJiShiXian) && libBC0D3AAD_gf_HD_PTwoRangeTrue("DoubleClicked_PTwo_" + IntToString(lv_player)))
                 //   {
-                //       //符合双击标准（鼠标双击多个2点验证），发送事件
+                //       //符合双击标准(鼠标双击多个2点验证),发送事件
                 //       libBC0D3AAD_gf_Send_MouseDoubleClicked(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian - lv_a, lv_point0, lv_uiX, lv_uiY);
                 //   }
                 //   else
@@ -18429,18 +18430,18 @@ namespace MetalMaxSystem
 
                 Player.MouseVector3FFixed[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, Player.MouseVectorZFixed[player]);
                 Player.MouseVector3F[player] = lp_mouseVector3F;
-                //下面2个动作应该要从二维点读取单位（可多个），将最高的单位的头顶坐标填入以修正鼠标Z点
+                //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
                 Player.MouseVector3FUnitTerrain[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, lp_mouseVector3F.Z - unitTerrainHeight);
                 Player.MouseVector3FTerrain[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, lp_mouseVector3F.Z - unitTerrainHeight - unitHeight);
 
-                //玩家控制单位存在时，计算鼠标距离控制单位的2D角度和3D距离
+                //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
                 if (Player.UnitControl[player] != null)
                 {
-                    //计算鼠标与控制单位的2D角度，用于调整角色在二维坐标系四象限内的的朝向
+                    //计算鼠标与控制单位的2D角度,用于调整角色在二维坐标系四象限内的的朝向
                     Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的2D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
+                    //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的3D距离（由于点击的位置是单位头顶位置，2个单位重叠则返回最高位的，所以玩家会点到最高位单位）
+                    //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
                 }
 
@@ -18461,7 +18462,7 @@ namespace MetalMaxSystem
                 //   lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(lv_player, lv_mouseButton);
                 //   if ((0.0 < lv_a) && (lv_a <= libBC0D3AAD_gv_ShuangJiShiXian) && libBC0D3AAD_gf_HD_PTwoRangeTrue("DoubleClicked_PTwo_" + IntToString(lv_player)))
                 //   {
-                //       //符合双击标准（鼠标双击多个2点验证），发送事件
+                //       //符合双击标准(鼠标双击多个2点验证),发送事件
                 //       libBC0D3AAD_gf_Send_MouseDoubleClicked(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian - lv_a, lv_point0, lv_uiX, lv_uiY);
                 //   }
                 //   else
@@ -18518,7 +18519,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 鼠标弹起事件主要动作（加入按键监听并传参执行）
+        /// 鼠标弹起事件主要动作(加入按键监听并传参执行)
         /// </summary>
         /// <param name="player"></param>
         /// <param name="key"></param>
@@ -18528,7 +18529,7 @@ namespace MetalMaxSystem
         internal static bool MouseUp(int player, int key, Vector3F lp_mouseVector3F, int uiX, int uiY)
         {
             bool torf = !StopKeyMouseEvent[player];
-            Player.MouseDownState[player, key] = false;  //当前按键状态值，本事件始终为false
+            Player.MouseDownState[player, key] = false;  //当前按键状态值,本事件始终为false
             Player.MouseDown[player, key] = false;  //当前按键值
             if (key == c_mouseButtonLeft)
             {
@@ -18548,12 +18549,12 @@ namespace MetalMaxSystem
                 //直接执行动作或通知延迟弹起函数去执行动作
                 if ((bool)HashTableLoad2(true, "MouseDownLoopOneBitKey", player, key) == false)
                 {
-                    //弹起时无该键动作队列（由延迟弹起执行完），则直接执行本次事件动作
+                    //弹起时无该键动作队列(由延迟弹起执行完),则直接执行本次事件动作
                     MouseUpFunc(player, key);
                 }
                 else
                 {
-                    //弹起时有该键动作队列，通知延迟弹起函数运行（按键队列>0时，清空一次队列并执行它们的动作）
+                    //弹起时有该键动作队列,通知延迟弹起函数运行(按键队列>0时,清空一次队列并执行它们的动作)
                     HashTableSave2(true, "MouseDownLoopOneBitEnd", player, key, true);
                 }
             }
@@ -18580,7 +18581,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 键鼠弹起事件延迟执行函数，会按序执行键鼠事件动作队列，需加入到每帧执行（并遍历全部玩家）
+        /// 键鼠弹起事件延迟执行函数,会按序执行键鼠事件动作队列,需加入到每帧执行(并遍历全部玩家)
         /// </summary>
         /// <param name="player"></param>
         /// <param name="key"></param>
@@ -18601,7 +18602,7 @@ namespace MetalMaxSystem
                     key = (int)HashTableLoad2(true, "MouseDownLoopOneBit", player, a);//读取玩家指定动作队列按键
                     if ((bool)HashTableLoad2(true, "MouseDownLoopOneBitEnd", player, key) == true)//判断玩家指定按键的动作队列是否结束
                     {
-                        //如果该键的动作队列结束，重置按键状态
+                        //如果该键的动作队列结束,重置按键状态
                         if (key == c_mouseButtonLeft)
                         {
                             Player.MouseDown[player, c_mouseButtonLeft] = false;
@@ -18621,7 +18622,7 @@ namespace MetalMaxSystem
                     HashTableClear2(true, "MouseDownLoopOneBitKey", player, key);
                     HashTableClear2(true, "MouseDownLoopOneBitEnd", player, key);
                 }
-                Player.MouseDownLoopOneBitNum[player] = 0; //动作全部执行，全队列清空
+                Player.MouseDownLoopOneBitNum[player] = 0; //动作全部执行,全队列清空
             }
             //玩家有键盘按键事件动作队列时
             if (Player.KeyDownLoopOneBitNum[player] > 0)//获取动作队列数量
@@ -18633,7 +18634,7 @@ namespace MetalMaxSystem
                     key = (int)HashTableLoad2(true, "KeyDownLoopOneBit", player, a);//读取玩家指定动作队列按键
                     if ((bool)HashTableLoad2(true, "KeyDownLoopOneBitEnd", player, key) == true)//判断玩家指定按键的动作队列是否结束
                     {
-                        //如果该键的动作队列结束，重置按键状态
+                        //如果该键的动作队列结束,重置按键状态
                         Player.KeyDown[player, key] = false;
                         KeyUpFunc(player, key);
                     }
@@ -18654,8 +18655,8 @@ namespace MetalMaxSystem
         //------------------------------------↓KeyDownEventStart↓-----------------------------------------
 
         /// <summary>
-        /// 将（1个或多个）委托函数注册到键盘按键事件（或者说给委托函数添加指定事件，完成事件注册）。
-        /// 注册指定键盘按键的委托函数，每个键盘按键最大注册数量限制（8），超过则什么也不做
+        /// 将(1个或多个)委托函数注册到键盘按键事件(或者说给委托函数添加指定事件,完成事件注册).
+        /// 注册指定键盘按键的委托函数,每个键盘按键最大注册数量限制(8),超过则什么也不做
         /// </summary>
         /// <param name="key"></param>
         /// <param name="funcref"></param>
@@ -18668,14 +18669,14 @@ namespace MetalMaxSystem
                 return;
             }
             keyEventFuncrefGroupNum[key] += 1;//注册成功记录+1
-            keyEventFuncrefGroup[key, keyEventFuncrefGroupNum[key]] = funcref;//这里采用等于，设计为覆盖
+            keyEventFuncrefGroup[key, keyEventFuncrefGroupNum[key]] = funcref;//这里采用等于,设计为覆盖
             ThreadWaitSet("MMCore_KeyEventFuncref_", false);
         }
         /// <summary>
-        /// 注册指定键盘按键的委托函数（登录在指定注册序号num位置）
+        /// 注册指定键盘按键的委托函数(登录在指定注册序号num位置)
         /// </summary>
         /// <param name="key"></param>
-        /// <param name="num">不能超过最大注册数量限制（8）</param>
+        /// <param name="num">不能超过最大注册数量限制(8)</param>
         /// <param name="funcref"></param>
         public static void RegistKeyEventFuncref(int key, int num, KeyMouseEventFuncref funcref)
         {
@@ -18686,7 +18687,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 注销指定键盘按键的委托函数（发生序号重排）
+        /// 注销指定键盘按键的委托函数(发生序号重排)
         /// </summary>
         /// <param name="key"></param>
         /// <param name="funcref"></param>
@@ -18703,10 +18704,10 @@ namespace MetalMaxSystem
                     keyEventFuncrefGroupNum[key] -= 1;
                     for (int b = a; b <= keyEventFuncrefGroupNum[key]; b += 1)
                     {
-                        //将后序有效函数（如有）按序重排
+                        //将后序有效函数(如有)按序重排
                         keyEventFuncrefGroup[key, b] = keyEventFuncrefGroup[key, b];
                     }
-                    //新的序号下从可疑序号重新开始检查，确保该函数在键位中彻底消失
+                    //新的序号下从可疑序号重新开始检查,确保该函数在键位中彻底消失
                     a -= 1;
                 }
             }
@@ -18736,7 +18737,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 返回指定键盘按键指定函数的注册数量（>1则注册了多个同样的函数）
+        /// 返回指定键盘按键指定函数的注册数量(>1则注册了多个同样的函数)
         /// </summary>
         /// <param name="key"></param>
         /// <param name="funcref"></param>
@@ -18757,7 +18758,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 归并键盘按键指定函数（如存在则移除该函数注册并序号重排，之后重新注册1次）
+        /// 归并键盘按键指定函数(如存在则移除该函数注册并序号重排,之后重新注册1次)
         /// </summary>
         /// <param name="key"></param>
         /// <param name="funcref"></param>
@@ -18771,7 +18772,7 @@ namespace MetalMaxSystem
             if (num > 1)
             {
                 result = true;
-                //发现重复函数，移除后重新注册
+                //发现重复函数,移除后重新注册
                 RemoveKeyEventFuncref(key, funcref);
                 RegistKeyEventFuncref(key, funcref);
             }
@@ -18780,7 +18781,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 全局键盘按键事件，对指定键盘按键执行委托函数动作集合
+        /// 全局键盘按键事件,对指定键盘按键执行委托函数动作集合
         /// </summary>
         /// <param name="key"></param>
         /// <param name="keydown"></param>
@@ -18789,7 +18790,7 @@ namespace MetalMaxSystem
         {
             for (int a = 1; a <= keyEventFuncrefGroupNum[key]; a += 1)
             {
-                //这里不开新线程，是否另开线程运行宜由委托函数去写
+                //这里不开新线程,是否另开线程运行宜由委托函数去写
                 keyEventFuncrefGroup[key, a](keydown, player);//执行键盘按键委托
             }
         }
@@ -18799,8 +18800,8 @@ namespace MetalMaxSystem
         //------------------------------------↓MouseDownEventStart↓---------------------------------------
 
         /// <summary>
-        /// 将（1个或多个）委托函数注册到鼠标按键事件（或者说给委托函数添加指定事件，完成事件注册）。
-        /// 注册指定鼠标键位的委托函数，每个鼠标按键最大注册数量限制（24），超过则什么也不做
+        /// 将(1个或多个)委托函数注册到鼠标按键事件(或者说给委托函数添加指定事件,完成事件注册).
+        /// 注册指定鼠标键位的委托函数,每个鼠标按键最大注册数量限制(24),超过则什么也不做
         /// </summary>
         /// <param name="key"></param>
         /// <param name="funcref"></param>
@@ -18813,15 +18814,15 @@ namespace MetalMaxSystem
                 return;
             }
             mouseEventFuncrefGroupNum[key] += 1;//注册成功记录+1
-            mouseEventFuncrefGroup[key, mouseEventFuncrefGroupNum[key]] = funcref;//这里采用等于，设计为覆盖
+            mouseEventFuncrefGroup[key, mouseEventFuncrefGroupNum[key]] = funcref;//这里采用等于,设计为覆盖
             ThreadWaitSet("MouseEventFuncref", false);
         }
 
         /// <summary>
-        /// 注册指定鼠标键位的委托函数（登录在指定注册序号num位置）
+        /// 注册指定鼠标键位的委托函数(登录在指定注册序号num位置)
         /// </summary>
         /// <param name="key"></param>
-        /// <param name="num">不能超过最大注册数量限制（24）</param>
+        /// <param name="num">不能超过最大注册数量限制(24)</param>
         /// <param name="funcref"></param>
         public static void RegistMouseEventFuncref(int key, int num, KeyMouseEventFuncref funcref)
         {
@@ -18832,7 +18833,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 注销指定鼠标键位的委托函数（发生序号重排）
+        /// 注销指定鼠标键位的委托函数(发生序号重排)
         /// </summary>
         /// <param name="key"></param>
         /// <param name="funcref"></param>
@@ -18878,7 +18879,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 返回指定鼠标键位指定注册函数的数量（>1则注册了多个同样的函数）
+        /// 返回指定鼠标键位指定注册函数的数量(>1则注册了多个同样的函数)
         /// </summary>
         /// <param name="key"></param>
         /// <param name="funcref"></param>
@@ -18898,7 +18899,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 归并鼠标按键指定函数（如存在则移除该函数注册并序号重排，之后重新注册1次）
+        /// 归并鼠标按键指定函数(如存在则移除该函数注册并序号重排,之后重新注册1次)
         /// </summary>
         /// <param name="key"></param>
         /// <param name="funcref"></param>
@@ -18910,7 +18911,7 @@ namespace MetalMaxSystem
             if (num > 1)
             {
                 torf = true;
-                //发现重复函数，移除后重新注册
+                //发现重复函数,移除后重新注册
                 RemoveMouseEventFuncref(key, funcref);
                 RegistMouseEventFuncref(key, funcref);
             }
@@ -18918,7 +18919,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 全局鼠标按键事件，对指定鼠标按键执行委托函数动作集合
+        /// 全局鼠标按键事件,对指定鼠标按键执行委托函数动作集合
         /// </summary>
         /// <param name="key"></param>
         /// <param name="keydown"></param>
@@ -18928,7 +18929,7 @@ namespace MetalMaxSystem
             int a = 1;
             for (; a <= mouseEventFuncrefGroupNum[key]; a += 1)
             {
-                //这里不开新线程，是否另开线程运行宜由委托函数去写
+                //这里不开新线程,是否另开线程运行宜由委托函数去写
                 mouseEventFuncrefGroup[key, a](keydown, player);//执行鼠标按键委托
             }
         }
@@ -18944,8 +18945,8 @@ namespace MetalMaxSystem
         //------------------------------------↓EntryFuncStart↓-----------------------------------------
 
         /// <summary>
-        /// 将（1个或多个）委托函数注册到主副循环入口事件（或者说给委托函数添加指定事件，完成事件注册）。
-        /// 注册指定主副循环入口的委托函数，每个入口最大注册数量限制（1），超过则什么也不做
+        /// 将(1个或多个)委托函数注册到主副循环入口事件(或者说给委托函数添加指定事件,完成事件注册).
+        /// 注册指定主副循环入口的委托函数,每个入口最大注册数量限制(1),超过则什么也不做
         /// </summary>
         /// <param name="entry"></param>
         /// <param name="funcref"></param>
@@ -18958,15 +18959,15 @@ namespace MetalMaxSystem
                 return;
             }
             entryEventFuncrefGroupNum[(int)entry] += 1;//注册成功记录+1
-            entryEventFuncrefGroup[(int)entry, entryEventFuncrefGroupNum[(int)entry]] = funcref;//这里采用等于，设计为覆盖
+            entryEventFuncrefGroup[(int)entry, entryEventFuncrefGroupNum[(int)entry]] = funcref;//这里采用等于,设计为覆盖
             ThreadWaitSet("EntryEventFuncref", false);
         }
 
         /// <summary>
-        /// 注册指定主副循环入口的委托函数（登录在指定注册序号num位置）
+        /// 注册指定主副循环入口的委托函数(登录在指定注册序号num位置)
         /// </summary>
         /// <param name="entry"></param>
-        /// <param name="num">不能超过最大注册数量限制（8）</param>
+        /// <param name="num">不能超过最大注册数量限制(8)</param>
         /// <param name="funcref"></param>
         public static void RegistEntryEventFuncref(Entry entry, int num, EntryEventFuncref funcref)
         {
@@ -18977,7 +18978,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 注销指定主副循环入口的委托函数（发生序号重排）
+        /// 注销指定主副循环入口的委托函数(发生序号重排)
         /// </summary>
         /// <param name="entry"></param>
         /// <param name="funcref"></param>
@@ -18994,10 +18995,10 @@ namespace MetalMaxSystem
                     entryEventFuncrefGroupNum[(int)entry] -= 1;
                     for (int b = a; b <= entryEventFuncrefGroupNum[(int)entry]; b += 1)
                     {
-                        //将后序有效函数（如有）按序重排
+                        //将后序有效函数(如有)按序重排
                         entryEventFuncrefGroup[(int)entry, b] = entryEventFuncrefGroup[(int)entry, b];
                     }
-                    //新的序号下从可疑序号重新开始检查，确保该函数在键位中彻底消失
+                    //新的序号下从可疑序号重新开始检查,确保该函数在键位中彻底消失
                     a -= 1;
                 }
             }
@@ -19027,7 +19028,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 返回指定主副循环入口指定函数的注册数量（>1则注册了多个同样的函数）
+        /// 返回指定主副循环入口指定函数的注册数量(>1则注册了多个同样的函数)
         /// </summary>
         /// <param name="entry"></param>
         /// <param name="funcref"></param>
@@ -19048,7 +19049,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 归并主副循环入口指定函数（如存在则移除该函数注册并序号重排，之后重新注册1次）
+        /// 归并主副循环入口指定函数(如存在则移除该函数注册并序号重排,之后重新注册1次)
         /// </summary>
         /// <param name="entry"></param>
         /// <param name="funcref"></param>
@@ -19060,7 +19061,7 @@ namespace MetalMaxSystem
             if (num > 1)
             {
                 result = true;
-                //发现重复函数，移除后重新注册
+                //发现重复函数,移除后重新注册
                 RemoveEntryEventFuncref(entry, funcref);
                 RegistEntryEventFuncref(entry, funcref);
             }
@@ -19068,7 +19069,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 全局主副循环入口事件，对指定入口执行委托函数动作集合
+        /// 全局主副循环入口事件,对指定入口执行委托函数动作集合
         /// </summary>
         /// <param name="entry"></param>
         public static void EntryGlobalEvent(Entry entry)
@@ -19087,48 +19088,48 @@ namespace MetalMaxSystem
 }
 
 #region 小记
-//本库由PC加载时推荐UTF-8（带BOM）编码以及CRLF尾行格式
+//本库由PC加载时推荐UTF-8(带BOM)编码以及CRLF尾行格式
 
-//C#中实例方法与静态方法在内存都只存储一份，实例方法可使用this等指向实例，若明确不依赖实例则写静态方法为宜（减少以下性能开销）
+//C#中实例方法与静态方法在内存都只存储一份,实例方法可使用this等指向实例,若明确不依赖实例则写静态方法为宜(减少以下性能开销)
 //1.每次调用实例方法时都需要在调用栈上分配一定的空间来保存方法的局部变量和参数
-//2.调用实例方法时会隐式地传递一个this引用指向调用该方法的对象实例（该引用在方法内部可用来访问对象的字段和方法）
+//2.调用实例方法时会隐式地传递一个this引用指向调用该方法的对象实例(该引用在方法内部可用来访问对象的字段和方法)
 
-//常量（const关键字修饰的字段）不会每次创建类的实例而重新分配内存，编译时就已确定其值并在程序整个生命周期都不会改变
-//委托类型是顶级类型，故不支持Static修饰，用其声明的委托变量可被正常修饰
+//常量(const关键字修饰的字段)不会每次创建类的实例而重新分配内存,编译时就已确定其值并在程序整个生命周期都不会改变
+//委托类型是顶级类型,故不支持Static修饰,用其声明的委托变量可被正常修饰
 
-//对于类中字段，显式指定访问修饰符为宜，因为对于顶级类型（非嵌套），编译器并不会为它们设定默认的访问级别
-//在结构体中，若未指定字段的访问修饰符，则这些字段会默认为public，其余一般会默认为private，对于顶级类型（非嵌套）一般会默认同类
+//对于类中字段,显式指定访问修饰符为宜,因为对于顶级类型(非嵌套),编译器并不会为它们设定默认的访问级别
+//在结构体中,若未指定字段的访问修饰符,则这些字段会默认为public,其余一般会默认为private,对于顶级类型(非嵌套)一般会默认同类
 
 // C#默认修饰符
 // 类、结构体的默认修饰符是internal
 // 类、结构体中所有成员默认修饰符是private
 // 接口默认修饰符是internal
 // 接口成员默认修饰符是public
-// 枚举类型及成员默认修饰符是public，并且不允许显式指定其他访问修饰符（因为枚举的设计初衷就是为了提供一组可访问的常量集，如果允许设置其他访问修饰符将违背这一初衷）
+// 枚举类型及成员默认修饰符是public,并且不允许显式指定其他访问修饰符(因为枚举的设计初衷就是为了提供一组可访问的常量集,如果允许设置其他访问修饰符将违背这一初衷)
 // 委托的默认修饰符是internal
-// 允许不同程序集访问的只有protected、protected internal和public，但前2者仅可访问不同程序集内的派生类
-// protected可前插private（提高private访问权限，仅允许访问相同程序集内的派生类，不可跨程序集）
-// protected可后跟internal（提高internal访问权限，允许访问不同程序集内的派生类）
-// 静态构造函数不允许访问修饰符且不能带有任何参数（默认访问级别是私有的）
+// 允许不同程序集访问的只有protected、protected internal和public,但前2者仅可访问不同程序集内的派生类
+// protected可前插private(提高private访问权限,仅允许访问相同程序集内的派生类,不可跨程序集)
+// protected可后跟internal(提高internal访问权限,允许访问不同程序集内的派生类)
+// 静态构造函数不允许访问修饰符且不能带有任何参数(默认访问级别是私有的)
 
-//‌Finalize方法：虽然C#允许定义Finalize方法来执行对象销毁前的清理工作，但这种方法通常不推荐使用
-//因为它会增加垃圾回收的复杂性和开销，而且无法保证在何时被调用
+//‌Finalize方法:虽然C#允许定义Finalize方法来执行对象销毁前的清理工作,但这种方法通常不推荐使用
+//因为它会增加垃圾回收的复杂性和开销,而且无法保证在何时被调用
 //在现代C#编程中更推荐使用IDisposable接口和using语句来管理资源
 
-//当类的实例被某个活动对象或静态字段引用，它就不会被垃圾回收，反之引用不存在时进行类的回收（逐步清理）
-//‌逐步清理‌：垃圾回收器会递归地检查每个对象的引用情况，并回收整个不可达对象图（所有不再被程序中任何活动对象或静态字段引用的对象组成的集合）所占用的内存
-//如果X类实例引用了其他对象，而这些对象又引用了其他对象，那么整个引用链上的对象都会被逐步清理掉
-//所以C#中的自定义类哪怕没有制作Dispose方法，只需将引用=null即可，但写代码过程依然要尽量避免产生大量GC而降低性能
-//当编写的类使用了非托管资源如文件流、数据库连接、图形对象等，应手动实现IDisposable接口并提供Dispose方法
-//非托管资源是由操作系统直接管理的资源，不是.NET运行时的一部分，因此.NET垃圾回收器无法自动回收
-//StringBuilder是托管类型，但Stream文件流对象（如StreamWriter）使用了非托管资源（如文件句柄）需要手动调用其Dispose或使用using块
-//using块：动作末尾当Stream文件流对象被销毁时，Dispose会检查是否已调用Flush，如果没有它会自动调用Flush确保所有缓冲数据都被写入到文件或其他Stream文件流中
+//当类的实例被某个活动对象或静态字段引用,它就不会被垃圾回收,反之引用不存在时进行类的回收(逐步清理)
+//‌逐步清理‌:垃圾回收器会递归地检查每个对象的引用情况,并回收整个不可达对象图(所有不再被程序中任何活动对象或静态字段引用的对象组成的集合)所占用的内存
+//如果X类实例引用了其他对象,而这些对象又引用了其他对象,那么整个引用链上的对象都会被逐步清理掉
+//所以C#中的自定义类哪怕没有制作Dispose方法,只需将引用=null即可,但写代码过程依然要尽量避免产生大量GC而降低性能
+//当编写的类使用了非托管资源如文件流、数据库连接、图形对象等,应手动实现IDisposable接口并提供Dispose方法
+//非托管资源是由操作系统直接管理的资源,不是.NET运行时的一部分,因此.NET垃圾回收器无法自动回收
+//StringBuilder是托管类型,但Stream文件流对象(如StreamWriter)使用了非托管资源(如文件句柄)需要手动调用其Dispose或使用using块
+//using块:动作末尾当Stream文件流对象被销毁时,Dispose会检查是否已调用Flush,如果没有它会自动调用Flush确保所有缓冲数据都被写入到文件或其他Stream文件流中
 
-//静态类的成员（如字段、方法）必须是静态的，但静态字段可被赋值为实例对象的引用，静态方法内部也可创建类的实例
-//静态字段在默认情况下会被初始化为它们的默认值（没赋值直接获取则返回该默认值），对于引用类型默认值是null
+//静态类的成员(如字段、方法)必须是静态的,但静态字段可被赋值为实例对象的引用,静态方法内部也可创建类的实例
+//静态字段在默认情况下会被初始化为它们的默认值(没赋值直接获取则返回该默认值),对于引用类型默认值是null
 
-//DllImportAttribute常用于从非托管代码中导入函数，这是平台调用（P/Invoke）的一种常见方式
-//LibraryImportAttribute是较新特性，在.NET 5及更高版本中引入，用于在编译时生成P/Invoke封送代码而不是在运行时（这可提高性能并减少启动延迟，因为不再需要在运行时解析DLL和函数）
+//DllImportAttribute常用于从非托管代码中导入函数,这是平台调用(P/Invoke)的一种常见方式
+//LibraryImportAttribute是较新特性,在.NET 5及更高版本中引入,用于在编译时生成P/Invoke封送代码而不是在运行时(这可提高性能并减少启动延迟,因为不再需要在运行时解析DLL和函数)
 
-//await关键字只能在async声明的异步函数内用，作用是等待一个异步操作的完成，并且不会阻塞调用线程
+//await关键字只能在async声明的异步函数内用,作用是等待一个异步操作的完成,并且不会阻塞调用线程
 #endregion

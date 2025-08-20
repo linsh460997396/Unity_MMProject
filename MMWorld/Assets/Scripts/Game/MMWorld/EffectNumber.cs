@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace MMWorld
 {
@@ -16,19 +16,19 @@ namespace MMWorld
         /// </summary>
         public Stage stage;
         /// <summary>
-        /// 12个元素的对象池结构体（数字特效尺寸不会超过1.234e56789总长度即12位足够）
+        /// 12个元素的对象池结构体(数字特效尺寸不会超过1.234e56789总长度即12位足够)
         /// </summary>
         public GO[] gos = new GO[12];
         /// <summary>
-        /// 字符长度（特效数字char数量或精灵数量）
+        /// 字符长度(特效数字char数量或精灵数量)
         /// </summary>
         public int size;
         /// <summary>
-        /// [逻辑坐标]每帧在Y轴上的增量，它用于控制特效在垂直方向上的移动速度
+        /// [逻辑坐标]每帧在Y轴上的增量,它用于控制特效在垂直方向上的移动速度
         /// </summary>
         public const float incY = Scene.gridSize / 120 * Scene.fps;
         /// <summary>
-        /// 生命周期（以帧数为单位），决定了特效显示多久
+        /// 生命周期(以帧数为单位),决定了特效显示多久
         /// </summary>
         public const int life = (int)(Scene.fps * 0.5);
         /// <summary>
@@ -40,7 +40,7 @@ namespace MMWorld
         /// </summary>
         public float scale;
         /// <summary>
-        /// 结束帧（以帧数为单位的剩余生命时间）,用于跟踪效特效还有多少帧才会消失或结束
+        /// 结束帧(以帧数为单位的剩余生命时间),用于跟踪效特效还有多少帧才会消失或结束
         /// </summary>
         public int endLifeTime;
 
@@ -70,23 +70,23 @@ namespace MMWorld
             for (int i = 0; i < size; i++)
             {
                 var o = new GO();
-                //从对象池分配对象，层0，设置精灵渲染器排序图层名称为FG2（Foreground是前景图层，通常指那些位于画面最前、离观众最近的元素部分）
+                //从对象池分配对象,层0,设置精灵渲染器排序图层名称为FG2(Foreground是前景图层,通常指那些位于画面最前、离观众最近的元素部分)
                 GO.Pop(ref o, 0, "FG2");
-                o.spriteRenderer.sprite = scene.sprites_font_outline[sb[i] - 32];//char可直接与数字加减，如sb[i]='2'，结果是(int)'2' -32=50=32=18，对应精灵数组索引[18]，即2的精灵图片
+                o.spriteRenderer.sprite = scene.sprites_font_outline[sb[i] - 32];//char可直接与数字加减,如sb[i]='2',结果是(int)'2' -32=50=32=18,对应精灵数组索引[18],即2的精灵图片
                 o.transform.localScale = new Vector3(scale, scale, scale);
                 if (lv_criticalHit)
                 {
                     //如果是暴击则设置红色
                     o.spriteRenderer.color = Color.red;
                 }
-                gos[i] = o;//最长数字特效是12个对象元素（不会超界）
+                gos[i] = o;//最长数字特效是12个对象元素(不会超界)
             }
         }
 
         /// <summary>
-        /// 数字特效更新，每帧操作一次数字的Y轴垂直上移（修改逻辑坐标值）
+        /// 数字特效更新,每帧操作一次数字的Y轴垂直上移(修改逻辑坐标值)
         /// </summary>
-        /// <returns>当结束帧=当前帧返回真，否则返回假</returns>
+        /// <returns>当结束帧=当前帧返回真,否则返回假</returns>
         public bool Update()
         {
             pixelY += incY;
@@ -94,7 +94,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// [虚函数]绘制数字特效，当达到参数所填逻辑坐标值时消失
+        /// [虚函数]绘制数字特效,当达到参数所填逻辑坐标值时消失
         /// </summary>
         /// <param name="cx">玩家逻辑位置</param>
         /// <param name="cy">玩家逻辑位置</param>
@@ -103,7 +103,7 @@ namespace MMWorld
             if (pixelX < cx - Scene.designWidth_2 || pixelX > cx + Scene.designWidth_2 || pixelY < cy - Scene.designHeight_2 || pixelY > cy + Scene.designHeight_2)
             {//数字特效的逻辑坐标达到参数值时进行对象禁用
                 for (int i = 0; i < size; ++i)
-                {//遍历特效数字长度，禁用每个精灵图片的游戏物体
+                {//遍历特效数字长度,禁用每个精灵图片的游戏物体
                     gos[i].Disable();
                 }
             }
@@ -113,14 +113,14 @@ namespace MMWorld
                 {
                     //启用对象
                     gos[i].Enable();
-                    //绘制数字特效，以xy为原点往右列出全部长度的数字（精灵图片）
+                    //绘制数字特效,以xy为原点往右列出全部长度的数字(精灵图片)
                     gos[i].transform.position = new Vector3((pixelX + i * 8 * scale) / Scene.gridSize, pixelY / Scene.gridSize, 0);
                 }
             }
         }
 
         /// <summary>
-        /// 数字特效摧毁（退回gos对象池）
+        /// 数字特效摧毁(退回gos对象池)
         /// </summary>
         public void Destroy()
         {

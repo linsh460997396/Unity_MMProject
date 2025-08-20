@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using UnityEditor.PackageManager.UI;
@@ -51,9 +51,14 @@ namespace CellSpace
                 if (FindEngine() == false)
                 {
                     EditorGUILayout.LabelField("Cannot find an CPEngine game object in the scene!");
-                    //EditorUtility.DisplayDialog("提示", "未找到CPEngine组件，请确保场景中至少存在一个CPEngine组件。", "确定");
+                    //EditorUtility.DisplayDialog("提示", "未找到CPEngine组件,请确保场景中至少存在一个CPEngine组件.", "确定");
                     return;
                 }
+            }
+            if (CPEngine.unityEditorInteraction == false)
+            {
+                EditorGUILayout.LabelField("CPEngine.unityEditorInteraction == false!");
+                return;
             }
             if (!BlocksGotten)
             {
@@ -61,7 +66,7 @@ namespace CellSpace
             }
             GUILayout.Space(10);
             CPEngine engine = EngineInstance.GetComponent<CPEngine>();
-            engine.lBlocksPath = EditorGUILayout.TextField("Cell 预制体路径", engine.lBlocksPath);
+            CPEngine.lBlocksPath = EditorGUILayout.TextField("Cell 预制体路径", CPEngine.lBlocksPath);
             //engine.lBlocksPath = @"Assets\CellSpace\Res\Cells\";
             if (GUI.changed)
             {
@@ -182,7 +187,7 @@ namespace CellSpace
 
                 // material index
                 selectedCell.VSubmeshIndex = EditorGUILayout.IntField("Material Index", selectedCell.VSubmeshIndex);
-                //如果一个团块预制网格渲染器组件有>1个材质，那么Cell预制体可以使用索引1或2的材质上面的纹理，如果<0则索引为0
+                //如果一个团块预制网格渲染器组件有>1个材质,那么Cell预制体可以使用索引1或2的材质上面的纹理,如果<0则索引为0
                 if (selectedCell.VSubmeshIndex < 0) selectedCell.VSubmeshIndex = 0;
 
                 // transparency
@@ -285,16 +290,15 @@ namespace CellSpace
 
         private void UpdateBlock()
         { // replaces selected block prefab with the scene instance (also sets the prefab name)
-
+            //选中预制体块时执行场景实例更新
             SelectedBlock.name = "cell_" + SelectedBlock.GetComponent<Cell>().GetID();
             GameObject newPrefab = PrefabUtility.CreatePrefab(GetPrefabPath(SelectedBlock), SelectedBlock);
             SelectedPrefab = newPrefab;
-
         }
 
         void Update()
         {
-            if (Input.GetKeyDown("gameObject"))
+            if (Input.GetMouseButtonDown(0))
             {
                 CreateBlock();
                 UpdateBlock();
@@ -308,7 +312,7 @@ namespace CellSpace
         {
             try
             {
-                return EngineInstance.GetComponent<CPEngine>().lBlocksPath;
+                return CPEngine.lBlocksPath;
             }
             catch (System.Exception)
             {
@@ -326,7 +330,7 @@ namespace CellSpace
         }
 
         private void GetBlocks()
-        { // populates the Blocks array		
+        { // populates the blocks array		
 
             Blocks = new GameObject[ushort.MaxValue];
             for (ushort i = 0; i < ushort.MaxValue; i++)
@@ -345,7 +349,7 @@ namespace CellSpace
         private GameObject GetBlock(ushort data)
         { // returns the prefab of the block with a given index
 
-            Object blockObject = AssetDatabase.LoadAssetAtPath(GetBlockPath(data), typeof(Object)); //typeof(Object)表示加载的资源可以是任何类型（因为Object是Unity中所有对象的基类）
+            Object blockObject = AssetDatabase.LoadAssetAtPath(GetBlockPath(data), typeof(Object)); //typeof(Object)表示加载的资源可以是任何类型（因为Object是Unity中所有对象的基类)
             GameObject block = null;
 
             if (blockObject != null)
@@ -394,7 +398,7 @@ namespace CellSpace
             }
 
             CPEngine engine = EngineInstance.GetComponent<CPEngine>();
-            engine.lBlocks = voxels.ToArray();
+            CPEngine.lBlocks = voxels.ToArray();
             PrefabUtility.ReplacePrefab(engine.gameObject, PrefabUtility.GetPrefabParent(engine.gameObject), ReplacePrefabOptions.ConnectToPrefab);
         }
 

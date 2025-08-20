@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace MMWorld
 {
@@ -30,7 +30,7 @@ namespace MMWorld
         /// </summary>
         public float progress = 1;
         /// <summary>
-        /// [逻辑坐标]子弹发射时与身体的最大距离（默认是Scene.gridSize/2）
+        /// [逻辑坐标]子弹发射时与身体的最大距离(默认是Scene.gridSize/2)
         /// </summary>
         public const float maxShootDistance = Scene.gridSize / 2;
         /// <summary>
@@ -42,7 +42,7 @@ namespace MMWorld
         /// </summary>
         public int castCount = 1;
         /// <summary>
-        /// 下一次施展的时间点（单位：帧）
+        /// 下一次施展的时间点(单位:帧)
         /// </summary>
         public int nextCastTime = 0;
 
@@ -61,7 +61,7 @@ namespace MMWorld
         /// </summary>
         public float moveSpeed = 25;
         /// <summary>
-        /// 子弹存在时长(帧)：fps * 秒
+        /// 子弹存在时长(帧):fps * 秒
         /// </summary>
         public int life = Scene.fps * 1;
 

@@ -4,7 +4,7 @@ using System.Text;
 namespace MetalMaxSystem
 {
     /// <summary>
-    /// 文件写入器（处理文件写入的类）。平时在StringBuilder中积累字符，最后将StringBuilder中的字符写入文件。
+    /// 文件写入器(处理文件写入的类).平时在StringBuilder中积累字符,最后将StringBuilder中的字符写入文件.
     /// </summary>
     public class FileWriter
     {
@@ -17,7 +17,7 @@ namespace MetalMaxSystem
         /// </summary>
         private string _path;
         /// <summary>
-        /// false覆盖文件，true向文件末尾追加文本
+        /// false覆盖文件,true向文件末尾追加文本
         /// </summary>
         private bool _fileAppend;
         /// <summary>
@@ -25,11 +25,11 @@ namespace MetalMaxSystem
         /// </summary>
         private Encoding _encode;
         /// <summary>
-        /// StreamWriter缓冲区大小（若填-1或不设置则默认8192个字节，满时自动写入文件）
+        /// StreamWriter缓冲区大小(若填-1或不设置则默认8192个字节,满时自动写入文件)
         /// </summary>
         private int _bufferSize;
         /// <summary>
-        /// false是StreamWriter，true是File.WriteAllText，默认为true
+        /// false是StreamWriter,true是File.WriteAllText,默认为true
         /// </summary>
         private bool _writeStyle = true;
 
@@ -41,10 +41,10 @@ namespace MetalMaxSystem
         public bool WriteStyle { get => _writeStyle; set => _writeStyle = value; }
 
         /// <summary>
-        /// 在StringBuilder中写入字符每行。函数在行尾自动添加一个换行符（通常是\n，但在Windows上可能是\r\n，即回车加换行）。
+        /// 在StringBuilder中写入字符每行.函数在行尾自动添加一个换行符(通常是\n,但在Windows上可能是\r\n,即回车加换行).
         /// </summary>
         /// <param name="value">字符每行</param>
-        /// <param name="cover">是否覆盖缓冲区（即写入前是否清理StringBuilder）</param>
+        /// <param name="cover">是否覆盖缓冲区(即写入前是否清理StringBuilder)</param>
         public void WriteLine(string value, bool cover = false)
         {
             if (cover) Buffer.Clear();
@@ -52,10 +52,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 在StringBuilder中写入字符。
+        /// 在StringBuilder中写入字符.
         /// </summary>
         /// <param name="value">字符</param>
-        /// <param name="cover">是否覆盖缓冲区（即写入前是否清理StringBuilder）</param>
+        /// <param name="cover">是否覆盖缓冲区(即写入前是否清理StringBuilder)</param>
         public void Write(string value, bool cover = false)
         {
             if (cover) Buffer.Clear();
@@ -66,7 +66,7 @@ namespace MetalMaxSystem
         /// 若StringBuilder有内容则立即将其全部写入文件
         /// </summary>
         /// <param name="path"></param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
         /// <param name="encoding"></param>
         /// <param name="clean">最后是否清理StringBuilder缓冲区</param>
         /// <param name="writeStyle"></param>
@@ -85,7 +85,7 @@ namespace MetalMaxSystem
                 if (WriteStyle)
                 {
                     if (FileAppend)
-                    {//追加（不会自动换行，需自行处理添加内容）
+                    {//追加(不会自动换行,需自行处理添加内容)
                         File.AppendAllText(Path, Buffer.ToString(), Encode);
                     }
                     else
@@ -96,10 +96,10 @@ namespace MetalMaxSystem
                 else
                 {
                     using (StreamWriter sw = new StreamWriter(Path, FileAppend, Encode, BufferSize))
-                    {//不会自动换行，需自行处理添加内容
+                    {//不会自动换行,需自行处理添加内容
                         sw.Write(Buffer.ToString());
-                        //using块：动作末尾当Stream文件流对象被销毁时，Dispose会检查是否已调用Flush，如果没有它会自动调用Flush确保所有缓冲数据都被写入到文件或其他Stream文件流中
-                        //如果不写using块，那么本类需要实现IDisposable接口方法来手动Dispose
+                        //using块:动作末尾当Stream文件流对象被销毁时,Dispose会检查是否已调用Flush,如果没有它会自动调用Flush确保所有缓冲数据都被写入到文件或其他Stream文件流中
+                        //如果不写using块,那么本类需要实现IDisposable接口方法来手动Dispose
                     }
 
                 }
@@ -112,10 +112,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 强制将缓冲区内容写入文件，不清理StringBuilder缓冲区
+        /// 强制将缓冲区内容写入文件,不清理StringBuilder缓冲区
         /// </summary>
         /// <param name="path"></param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
         /// <param name="encoding"></param>
         /// <param name="writeStyle"></param>
         /// <param name="bufferSize"></param>
@@ -125,10 +125,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 强制将缓冲区内容写入文件，最后清理StringBuilder缓冲区
+        /// 强制将缓冲区内容写入文件,最后清理StringBuilder缓冲区
         /// </summary>
         /// <param name="path"></param>
-        /// <param name="fileAppend">false覆盖文件，true向文件末尾追加文本</param>
+        /// <param name="fileAppend">false覆盖文件,true向文件末尾追加文本</param>
         /// <param name="encoding"></param>
         /// <param name="writeStyle"></param>
         /// <param name="bufferSize"></param>

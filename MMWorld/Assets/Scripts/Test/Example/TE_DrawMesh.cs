@@ -1,4 +1,4 @@
-//using System.Collections.Generic;
+﻿//using System.Collections.Generic;
 //using UnityEngine;
 
 //namespace Test.Example
@@ -44,11 +44,11 @@
 
 //            if (isDraw)
 //            {
-//                // 判断两帧手柄的距离，超过一定阈值再添加线段
+//                // 判断两帧手柄的距离,超过一定阈值再添加线段
 //                if (Vector3.Distance(lastPos, handle.position) > 0.03f)
 //                {
 //                    RealTimeDrawLine(handle.position);
-//                    // 更新上一个位置为新的线段结束点，防止断节
+//                    // 更新上一个位置为新的线段结束点,防止断节
 //                    lastPos = handle.position;
 //                }
 //            }
@@ -66,7 +66,7 @@
 //            Vector3 normal = Vector3.Cross(Vector3.up, direction).normalized;
 //            if (normal == Vector3.zero)
 //            {
-//                //如果垂直运动的话，换个法向量
+//                //如果垂直运动的话,换个法向量
 //                GameObject mainPlayer = GameObject.Find("Player");
 //                if (mainPlayer != null)
 //                {
@@ -93,7 +93,7 @@
 //            vertices.Add(currentSideRight);
 //            vertices.Add(lastPosRight);
 
-//            // 添加新的三角形索引到列表，每个线段由两个三角形组成
+//            // 添加新的三角形索引到列表,每个线段由两个三角形组成
 //            int startIndex = vertices.Count - 4; // 四个顶点对应的索引头
 
 //            triangles.Add(startIndex);
@@ -108,14 +108,14 @@
 //            mesh.vertices = vertices.ToArray();
 //            mesh.triangles = triangles.ToArray();
 
-//            // 可选的UV坐标（如果不需要纹理，这些可以随意设置）
+//            // 可选的UV坐标(如果不需要纹理,这些可以随意设置)
 //            // mesh.uv = ...;
 
-//            // 可选的法线计算（对于光照效果）
+//            // 可选的法线计算(对于光照效果)
 //            mesh.RecalculateNormals();
 
 //            // 应用更改到Mesh
-//            mesh.UploadMeshData(false); // 上传Mesh数据并标记为非动态（不经常更改）
+//            mesh.UploadMeshData(false); // 上传Mesh数据并标记为非动态(不经常更改)
 
 //            meshFilter.mesh = mesh;
 

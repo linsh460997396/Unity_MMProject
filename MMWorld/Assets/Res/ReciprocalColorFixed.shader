@@ -1,4 +1,4 @@
-Shader "Custom/ReciprocalColorFixed" // copy from urp/2d/lit default. change vert color to (1/color)
+﻿Shader "Custom/ReciprocalColorFixed" // copy from urp/2d/lit default. change vert color to (1/color)
 {
     Properties
     {

@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace CellSpace.Examples
 {
@@ -35,7 +35,7 @@ namespace CellSpace.Examples
     }
 }
 
-////↓该编译器参数启用严格模式，强制执行某些编译错误，例如未使用的变量、空的脚本方法等。这个指令可以帮助开发者发现并修复代码中的潜在问题
+////↓该编译器参数启用严格模式,强制执行某些编译错误,例如未使用的变量、空的脚本方法等.这个指令可以帮助开发者发现并修复代码中的潜在问题
 //#pragma strict
 
 //// switches between fast and slow movement when "spriteRenderer" is pressed

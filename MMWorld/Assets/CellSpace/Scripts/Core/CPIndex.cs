@@ -1,13 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 // a Vector3F using ints instead of floats, for storing indexes and stuff
 
 namespace CellSpace
 {
     /// <summary>
-    /// 索引（存储体素块在团块中的位置信息或团块在世界中的位置信息），可理解为参数为整数的坐标节点。
-    /// 它是一种仅包含x、y和z整数值的数据结构，就像Vector的等效物但不代表绝对世界坐标，只是它用整型而不是浮点数（以避免精确转换发生错误）。
-    /// 2D横版模式（HorizontalMode为真）时采用XY平面（禁用Z轴，Z值默认为0）
+    /// 索引(存储体素块在团块中的位置信息或团块在世界中的位置信息),可理解为参数为整数的坐标节点.
+    /// 它是一种仅包含x、y和z整数值的数据结构,就像Vector的等效物但不代表绝对世界坐标,只是它用整型而不是浮点数(以避免精确转换发生错误).
+    /// 2D横版模式(HorizontalMode为真)时采用XY平面(禁用Z轴,Z值默认为0)
     /// </summary>
     public class CPIndex
     {
@@ -15,6 +15,15 @@ namespace CellSpace
         /// 索引的字段值
         /// </summary>
         public int x, y, z;
+
+        /// <summary>
+        /// 静态只读的零值实例字段
+        /// </summary>
+        private static readonly CPIndex _zero = new CPIndex(0,0,0);
+        /// <summary>
+        /// 静态只读的零值实例属性
+        /// </summary>
+        public static CPIndex Zero => _zero;
 
         /// <summary>
         /// 用给定的x,pixelY,z值创建一个新的索引
@@ -26,7 +35,7 @@ namespace CellSpace
         {
             this.x = setX;
             this.y = setY;
-            if (!CPEngine.HorizontalMode)
+            if (!CPEngine.horizontalMode)
             {
                 this.z = setZ;
             }
@@ -50,7 +59,7 @@ namespace CellSpace
         {
             this.x = (int)setIndex.x;
             this.y = (int)setIndex.y;
-            if (!CPEngine.HorizontalMode)
+            if (!CPEngine.horizontalMode)
             {
                 this.z = (int)setIndex.z;
             }
@@ -66,7 +75,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 使用索引的x,pixelY,z值返回一个Vector3。
+        /// 使用索引的x,pixelY,z值返回一个Vector3.
         /// </summary>
         /// <returns></returns>
         public Vector3 ToVector3()
@@ -74,7 +83,7 @@ namespace CellSpace
             return new Vector3(x, y, z);
         }
         /// <summary>
-        /// 使用索引的x,y值返回一个Vector2。
+        /// 使用索引的x,y值返回一个Vector2.
         /// </summary>
         /// <returns></returns>
         public Vector2 ToVector2()
@@ -83,7 +92,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 以" pixelX,pixelY,z "的形式返回索引字符串。
+        /// 以" pixelX,pixelY,z "的形式返回索引字符串.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
@@ -102,7 +111,7 @@ namespace CellSpace
             {
                 return false;
             }
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 if (this.x == to.x && this.y == to.y)
                 {
@@ -121,13 +130,13 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 返回与给定方向上的index相邻的新索引。
+        /// 返回与给定方向上的index相邻的新索引.
         /// </summary>
         /// <param name="direction"></param>
         /// <returns></returns>
         public CPIndex GetAdjacentIndex(Direction direction)
         {
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 if (direction == Direction.down) return new CPIndex(x, y - 1);
                 else if (direction == Direction.up) return new CPIndex(x, y + 1);
@@ -159,7 +168,7 @@ namespace CellSpace
             {
                 return false;
             }
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 if (a.x == b.x && a.y == b.y)
                 {
@@ -178,14 +187,14 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 返回从“pixelX,pixelY,z”、“pixelX,pixelY”格式的字符串转换而来的新索引。如“5,2,0”返回(5,2,0)、“5,2”返回(5,2)。
+        /// 返回从“pixelX,pixelY,z”、“pixelX,pixelY”格式的字符串转换而来的新索引.如“5,2,0”返回(5,2,0)、“5,2”返回(5,2).
         /// </summary>
         /// <param name="indexString"></param>
         /// <returns></returns>
         public static CPIndex FromString(string indexString)
         {
             string[] splitString = indexString.Split(',');
-            if (CPEngine.HorizontalMode)
+            if (CPEngine.horizontalMode)
             {
                 try
                 {
@@ -193,7 +202,7 @@ namespace CellSpace
                 }
                 catch (System.Exception)
                 {
-                    //CellSpace:从字符串转换成索引用的格式无效，字符串必须是\"pixelX,pixelY\"格式
+                    //CellSpace:从字符串转换成索引用的格式无效,字符串必须是\"pixelX,pixelY\"格式
                     Debug.LogError("CellSpace: CPIndex.FromString: Invalid format. String must be in \"pixelX,pixelY\" format.");
                     return null;
                 }
@@ -206,7 +215,7 @@ namespace CellSpace
                 }
                 catch (System.Exception)
                 {
-                    //CellSpace:从字符串转换成索引用的格式无效，字符串必须是\"pixelX,pixelY,z\"格式
+                    //CellSpace:从字符串转换成索引用的格式无效,字符串必须是\"pixelX,pixelY,z\"格式
                     Debug.LogError("CellSpace: CPIndex.FromString: Invalid format. String must be in \"pixelX,pixelY,z\" format.");
                     return null;
                 }

@@ -1,4 +1,4 @@
-namespace MMWorld
+﻿namespace MMWorld
 {
     /// <summary>
     /// 怪物生成器
@@ -18,19 +18,19 @@ namespace MMWorld
         /// </summary>
         public Stage stage;
         /// <summary>
-        /// 激活时间（帧）
+        /// 激活时间(帧)
         /// </summary>
         public int activeTime;
         /// <summary>
-        /// 摧毁时间（帧）
+        /// 摧毁时间(帧)
         /// </summary>
         public int destroyTime;
         /// <summary>
-        /// 生成间隔（帧）
+        /// 生成间隔(帧)
         /// </summary>
         public int generateDelay;
         /// <summary>
-        /// 下次生成时间（帧）
+        /// 下次生成时间(帧)
         /// </summary>
         public int nextGenerateTime;
 
@@ -39,9 +39,9 @@ namespace MMWorld
         /// </summary>
         /// <param name="name_">名字</param>
         /// <param name="stage_">关卡</param>
-        /// <param name="activeTime_">激活时间（帧）</param>
-        /// <param name="destroyTime_">摧毁时间（帧）</param>
-        /// <param name="generateDelay_">生成间隔（帧）</param>
+        /// <param name="activeTime_">激活时间(帧)</param>
+        /// <param name="destroyTime_">摧毁时间(帧)</param>
+        /// <param name="generateDelay_">生成间隔(帧)</param>
         protected MonsterGenerator(string name_, Stage stage_, int activeTime_, int destroyTime_, int generateDelay_)
         {
             name = name_;

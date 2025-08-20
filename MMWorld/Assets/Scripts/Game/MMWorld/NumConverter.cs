@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text;
 
 namespace MMWorld
@@ -9,7 +9,7 @@ namespace MMWorld
         public static StringBuilder ToStringResult = new();
 
         /// <summary>
-        /// 以10^4为量级的中文符号（往后没有依据请自行发明）
+        /// 以10^4为量级的中文符号(往后没有依据请自行发明)
         /// </summary>
         public static string[] NumNames = new string[] {
         "",

@@ -17,15 +17,15 @@ namespace MMWorld
         /// </summary>
         public Stage stage;
         /// <summary>
-        /// 保存底层游戏物体相关资源，内含静态对象池Stack<GO>
+        /// 保存底层游戏物体相关资源,内含静态对象池Stack<GO>
         /// </summary>
         public GO go;
         /// <summary>
-        /// 保存底层游戏物体相关资源（minimap用到的那份），内含静态对象池Stack<GO>
+        /// 保存底层游戏物体相关资源(minimap用到的那份),内含静态对象池Stack<GO>
         /// </summary>
         public GO mgo;
         /// <summary>
-        /// 原始动画帧播放速度（Value = 4.5f * Scene.gridSize / Scene.fps），大约每秒移动4.5格（如果设计一格一帧那就要播放4.5帧动画）
+        /// 原始动画帧播放速度(Value = 4.5f * Scene.gridSize / Scene.fps),大约每秒移动4.5格(如果设计一格一帧那就要播放4.5帧动画)
         /// </summary>
         public const float defaultMoveSpeed = (int)(4.5f * Scene.gridSize / Scene.fps);
         /// <summary>
@@ -33,7 +33,7 @@ namespace MMWorld
         /// </summary>
         public const float _1_defaultMoveSpeed = 1f / defaultMoveSpeed;
         /// <summary>
-        /// 帧动画前进速度（针对defaultMoveSpeed）
+        /// 帧动画前进速度(针对defaultMoveSpeed)
         /// </summary>
         public const float frameAnimIncrease = _1_defaultMoveSpeed;
         /// <summary>
@@ -41,7 +41,7 @@ namespace MMWorld
         /// </summary>
         public const float displayScale = 1f;
         /// <summary>
-        /// [逻辑坐标]原始半径（数字越大则实际采用越小），默认是Scene.gridSize/2大小
+        /// [逻辑坐标]原始半径(数字越大则实际采用越小),默认是Scene.gridSize/2大小
         /// </summary>
         public const float defaultRadius = Scene.gridSize / 2;
         /// <summary>
@@ -57,13 +57,13 @@ namespace MMWorld
         /// </summary>
         public float radius = defaultRadius;
         /// <summary>
-        /// 逻辑坐标（gridChunk内左下原点，大Y向上）
+        /// 逻辑坐标(gridChunk内左下原点,大Y向上)
         /// </summary>
         public float pixelX, pixelY;
         /// <summary>
-        /// [逻辑坐标]玩家历史位置数组（用来追击以显得怪笨）
+        /// [逻辑坐标]玩家历史位置数组(用来追击以显得怪笨)
         /// </summary>
-        public List<Vector2> positionHistory = new();                       //todo：需要自己实现一个 ring buffer 避免 move
+        public List<Vector2> positionHistory = new();                       //todo:需要自己实现一个 ring buffer 避免 move
         /// <summary>
         /// 俯视角下的角色前进方向弧度值(可理解为朝向)
         /// </summary>
@@ -72,7 +72,7 @@ namespace MMWorld
             get { return Mathf.Atan2(scene.playerDirection.y, scene.playerDirection.x); }
         }
         /// <summary>
-        /// 退出无敌状态的时间点（单位：帧）
+        /// 退出无敌状态的时间点(单位:帧)
         /// </summary>
         public int quitInvincibleTime;
         /// <summary>
@@ -84,7 +84,7 @@ namespace MMWorld
         /// </summary>
         public int maxHp = 100;
         /// <summary>
-        /// 当前基础伤害倍率(技能上的为实际伤害值，此值可作各种倍率如暴击)
+        /// 当前基础伤害倍率(技能上的为实际伤害值,此值可作各种倍率如暴击)
         /// </summary>
         public int damage = 10;
         /// <summary>
@@ -104,7 +104,7 @@ namespace MMWorld
         /// </summary>
         public float dodgeRate = 0.05f;
         /// <summary>
-        /// [逻辑坐标]移动速度（当前每帧移动距离），默认值=0.2f* Scene.gridSize
+        /// [逻辑坐标]移动速度(当前每帧移动距离),默认值=0.2f* Scene.gridSize
         /// </summary>
         public float moveSpeed = 0.2f * Scene.gridSize;
         /// <summary>
@@ -126,7 +126,7 @@ namespace MMWorld
             GO.Pop(ref go);//取出结构体
             go.Enable();//激活游戏物体
                         //小地图的
-            GO.Pop(ref mgo, 3);//取出小地图专用结构体，游戏物体所在层设为3
+            GO.Pop(ref mgo, 3);//取出小地图专用结构体,游戏物体所在层设为3
             mgo.Enable();//激活游戏物体
             mgo.spriteRenderer.sprite = scene.sprites_player[0];//初始化玩家精灵
             mgo.spriteRenderer.material = scene.minimapMaterial;//初始化材质
@@ -145,7 +145,7 @@ namespace MMWorld
             pixelX = lv_pixelX;
             pixelY = lv_pixelY;
 
-            //预填充一些玩家历史（逻辑）坐标数据防越界
+            //预填充一些玩家历史(逻辑)坐标数据防越界
             positionHistory.Clear();
             var p = new Vector2(pixelX, pixelY);
             for (int i = 0; i < Scene.fps; i++)
@@ -164,7 +164,7 @@ namespace MMWorld
             pixelX = lv_pixelX;
             pixelY = lv_pixelY;
 
-            //预填充一些玩家历史（逻辑）坐标数据防越界
+            //预填充一些玩家历史(逻辑)坐标数据防越界
             positionHistory.Clear();
             var p = new Vector2(pixelX, pixelY);
             for (int i = 0; i < Scene.fps; i++)
@@ -179,7 +179,7 @@ namespace MMWorld
         /// <returns></returns>
         public bool Update()
         {
-            // 玩家控制移动(条件：还活着)
+            // 玩家控制移动(条件:还活着)
             if (hp > 0 && scene.playerMoving)
             {
                 var mv = scene.playerMoveValue;//得到方向向量
@@ -203,7 +203,7 @@ namespace MMWorld
                     frameIndex -= len;
                 }
 
-                //强行修正移动范围(理论上讲也可设计一些临时限制，比如boss禁锢)
+                //强行修正移动范围(理论上讲也可设计一些临时限制,比如boss禁锢)
                 if (pixelX < 0)
                 {
                     pixelX = 0;
@@ -225,7 +225,7 @@ namespace MMWorld
                     //Debug.Log("pixelY >=" + Scene.gridChunkWidth.ToString() + " (" + pixelX + "," + pixelY + ")");
                 }
             }
-            //将（逻辑）坐标写入历史记录( 限定长度 )
+            //将(逻辑)坐标写入历史记录( 限定长度 )
             positionHistory.Insert(0, new Vector2(pixelX, pixelY));
             if (positionHistory.Count > Scene.fps)
             {
@@ -272,7 +272,7 @@ namespace MMWorld
         /// </summary>
         public void DrawGizmos()
         {
-            //绘制实际位置和大小的球形物时，需把逻辑值转为本地值（除以Scene.gridSize）
+            //绘制实际位置和大小的球形物时,需把逻辑值转为本地值(除以Scene.gridSize)
             Gizmos.DrawWireSphere(new Vector3(pixelX / Scene.gridSize, pixelY / Scene.gridSize, 0), radius / Scene.gridSize);
         }
         /// <summary>
@@ -313,13 +313,13 @@ namespace MMWorld
             if (hp <= d)
             {
                 hp = 0;//玩家死亡
-                       //todo：播死亡特效
+                       //todo:播死亡特效
             }
             else
             {
                 hp -= monsterDamage;//玩家减血
                 quitInvincibleTime = scene.time + getHurtInvincibleTimeSpan;
-                //todo：播受伤特效
+                //todo:播受伤特效
             }
         }
     }

@@ -1,38 +1,41 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 //sends CellEvents such as OnLook, OnMouseDown, etc.发送体素事件如OnLook、 OnMouseDown等
 namespace CellSpace
 {
     /// <summary>
-    /// 利用主摄像机镜头注视（含鼠标指针）事件发送功能增删体素块，也管理着选择框的实时位置更新。
-    /// 组件用法：Unity中随便新建一个空对象“Manager”，把脚本拖到组件位置即挂载（Unity要求一个cs文件只能一个类，且类名须与文件名一致）
+    /// 利用主摄像机镜头注视(含鼠标指针)事件发送功能增删体素块,也管理着选择框的实时位置更新.
+    /// 组件用法:Unity中随便新建一个空对象“Manager”,把脚本拖到组件位置即挂载(Unity要求一个cs文件只能一个类,且类名须与文件名一致)
     /// </summary>
     public class CPCameraEventsSender : MonoBehaviour
     {
-        //Unity对公开字段会默认序列化，显示在挂载游戏物体的GUI界面（可在该界面输入来完成初始赋值）
+        //Unity对公开字段会默认序列化,显示在挂载游戏物体的GUI界面(可在该界面输入来完成初始赋值)
         public float CameraLookRange;
         private GameObject SelectedBlockGraphics;
 
         public void Awake()
         {
-            if (CameraLookRange <= 0)
+            if (CellSpacePrefab.initialized == true)
             {
-                Debug.LogWarning("CellSpace: CameraEventSender.CameraLookRange must be greater than 0. Setting CameraLookRange to 5." +
-                    "Range必须大于0，将默认设置5");
-                CameraLookRange = 5.0f;
-            }
+                if (CameraLookRange <= 0)
+                {
+                    Debug.LogWarning("CellSpace: CameraEventSender.CameraLookRange must be greater than 0. Setting CameraLookRange to 5." +
+                        "Range必须大于0,将默认设置5");
+                    CameraLookRange = 5.0f;
+                }
 
-            SelectedBlockGraphics = GameObject.Find("SelectedBox");
+                SelectedBlockGraphics = GameObject.Find("SelectedBox");
+            }
         }
 
         public void Update()
         {
 
-            if (CPEngine.SendCameraLookEvents)
+            if (CPEngine.sendCameraLookEvents)
             {
                 CameraLookEvents();
             }
-            if (CPEngine.SendCursorEvents)
+            if (CPEngine.sendCursorEvents)
             {
                 MouseCursorEvents();
             }

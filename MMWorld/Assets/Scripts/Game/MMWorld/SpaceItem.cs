@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace MMWorld
 {
     /// <summary>
-    /// 空间物体（一种网格容器）
+    /// 空间物体(一种网格容器)
     /// </summary>
     public class SpaceItem
     {
@@ -14,11 +14,11 @@ namespace MMWorld
         /// </summary>
         public SpaceContainer spaceContainer;
         /// <summary>
-        /// 链表邻居：前驱节点对应的网格容器
+        /// 链表邻居:前驱节点对应的网格容器
         /// </summary>
         public SpaceItem spacePrev;
         /// <summary>
-        /// 链表邻居：后继节点对应的网格容器
+        /// 链表邻居:后继节点对应的网格容器
         /// </summary>
         public SpaceItem spaceNext;
         /// <summary>
@@ -36,7 +36,7 @@ namespace MMWorld
     }
 
     /// <summary>
-    /// 空间容器（双向链表）
+    /// 空间容器(双向链表)
     /// </summary>
     public class SpaceContainer
     {
@@ -53,25 +53,25 @@ namespace MMWorld
         /// </summary>
         public float gridSize;
         /// <summary>
-        /// 空间内网格尺寸的倒数（_1_gridSize = 1 / gridSize）
+        /// 空间内网格尺寸的倒数(_1_gridSize = 1 / gridSize)
         /// </summary>
         public float _1_gridSize;
         /// <summary>
-        /// 空间最大边界尺寸（网格尺寸*各方向网格数量）
+        /// 空间最大边界尺寸(网格尺寸*各方向网格数量)
         /// </summary>
         public float gridChunkY, gridChunkX;
         /// <summary>
-        /// 空间内物体数量（尽管没固定最大容量，但可用于状态检查物体是否为空或已满）
+        /// 空间内物体数量(尽管没固定最大容量,但可用于状态检查物体是否为空或已满)
         /// </summary>
         public int numItems;
         /// <summary>
-        /// 存放空间物体的数组(容量gridChunkNumRows * gridChunkNumCols)，是个链表池（其元素节点的字段中存着前驱节点和后驱节点）
+        /// 存放空间物体的数组(容量gridChunkNumRows * gridChunkNumCols),是个链表池(其元素节点的字段中存着前驱节点和后驱节点)
         /// </summary>
         public SpaceItem[] Items;
 
-        //双向链表和链表池的运用主要提升数据结构灵活性（操作效率）和内存管理的性能
-        //‌双向链表‌：每个节点包含两个指针，分别指向前驱和后继节点，这使得从任意节点出发都能方便地访问前驱和后继节点，提高了操作的灵活性。双向链表适用于需要频繁进行前后遍历、插入和删除操作的场景，如各种不需要排序的数据列表管理‌
-        //‌链表池‌：通过维护一个空闲节点池来减少内存分配和释放的次数，提高内存使用效率。在链表频繁进行插入和删除操作时，链表池能够复用已删除的节点，避免内存碎片的产生，从而提升性能。链表池的实现通常涉及节点池的初始化、节点的分配与回收等步骤‌。
+        //双向链表和链表池的运用主要提升数据结构灵活性(操作效率)和内存管理的性能
+        //‌双向链表‌:每个节点包含两个指针,分别指向前驱和后继节点,这使得从任意节点出发都能方便地访问前驱和后继节点,提高了操作的灵活性.双向链表适用于需要频繁进行前后遍历、插入和删除操作的场景,如各种不需要排序的数据列表管理‌
+        //‌链表池‌:通过维护一个空闲节点池来减少内存分配和释放的次数,提高内存使用效率.在链表频繁进行插入和删除操作时,链表池能够复用已删除的节点,避免内存碎片的产生,从而提升性能.链表池的实现通常涉及节点池的初始化、节点的分配与回收等步骤‌.
 
         /// <summary>
         /// [构造函数]空间容器
@@ -100,19 +100,19 @@ namespace MMWorld
             }
             else
             {
-                // 使用null填充数组Items，这通常是在构造函数中初始化数组时使用的操作。
-                // 假设Items已经被声明为一个数组变量，这一步将确保数组中的每个元素都被设置为null
+                // 使用null填充数组Items,这通常是在构造函数中初始化数组时使用的操作.
+                // 假设Items已经被声明为一个数组变量,这一步将确保数组中的每个元素都被设置为null
                 Array.Fill(Items, null); //物体数组充满
 
-                // 重新调整数组Items的大小，新的大小为gridNumRows * gridChunkNumCols，并将调整后的数组重新赋值给Items。
-                // 这一步可能会创建一个新的数组，如果原数组大小与新的大小不同，原数组的内容将被复制到新数组中（或部分复制，取决于大小变化）。
-                // 如果新大小大于原大小，新元素将被设置为默认值（对于引用类型是null，对于值类型是零或相应的默认值）。
+                // 重新调整数组Items的大小,新的大小为gridNumRows * gridChunkNumCols,并将调整后的数组重新赋值给Items.
+                // 这一步可能会创建一个新的数组,如果原数组大小与新的大小不同,原数组的内容将被复制到新数组中(或部分复制,取决于大小变化).
+                // 如果新大小大于原大小,新元素将被设置为默认值(对于引用类型是null,对于值类型是零或相应的默认值).
                 Array.Resize(ref Items, gridNumRows * gridNumCols);
             }
         }
 
         /// <summary>
-        /// 为空间物体数组（双向链表）添加节点物体
+        /// 为空间物体数组(双向链表)添加节点物体
         /// </summary>
         /// <param name="c">空间物体</param>
         public void Add(SpaceItem c)
@@ -136,14 +136,14 @@ namespace MMWorld
             //进行Link
             if (Items[idx] != null)
             {
-                //如果空间索引对应物体存在，将新物体作为该物体的前驱节点
+                //如果空间索引对应物体存在,将新物体作为该物体的前驱节点
                 Items[idx].spacePrev = c;
             }
-            //将空间索引对应物体作为新物体的后驱节点（可为null）
+            //将空间索引对应物体作为新物体的后驱节点(可为null)
             c.spaceNext = Items[idx];
             c.spaceIndex = idx; //刷新新物体的空间索引为idx
             Items[idx] = c; //新单元作为空间索引对应单元
-                            //如果只有1个节点，作为头部节点呈现：【Prev=null】【C】【Next=null】
+                            //如果只有1个节点,作为头部节点呈现:【Prev=null】【C】【Next=null】
 #if UNITY_EDITOR
             Debug.Assert(Items[idx].spacePrev == null);
             Debug.Assert(c.spaceNext != c);
@@ -169,15 +169,15 @@ namespace MMWorld
 
             //unlink
             if (c.spacePrev != null)
-            {  //如果目标物体有前驱节点（说明它不是头部节点）
+            {  //如果目标物体有前驱节点(说明它不是头部节点)
 #if UNITY_EDITOR
                 Debug.Assert(Items[c.spaceIndex] != c);
 #endif
-                //将目标物体前驱节点（对应物体）的后驱节点更换为目标物体的后驱节点（目标物体被移除，所以前后节点相连）
+                //将目标物体前驱节点(对应物体)的后驱节点更换为目标物体的后驱节点(目标物体被移除,所以前后节点相连)
                 c.spacePrev.spaceNext = c.spaceNext;
                 if (c.spaceNext != null)
                 {
-                    //如果目标物体的后驱节点不为空（不是最后一个），将后驱节点的前驱节点设置为要移除目标物体的前驱节点（目标物体被移除，所以前后节点相连）
+                    //如果目标物体的后驱节点不为空(不是最后一个),将后驱节点的前驱节点设置为要移除目标物体的前驱节点(目标物体被移除,所以前后节点相连)
                     c.spaceNext.spacePrev = c.spacePrev;
                     c.spaceNext = null; //清空要删除的目标物体的后驱节点
                 }
@@ -185,15 +185,15 @@ namespace MMWorld
             }
             else
             {
-                //如果目标物体无前驱节点（说明它是头部节点）
+                //如果目标物体无前驱节点(说明它是头部节点)
 #if UNITY_EDITOR
                 Debug.Assert(Items[c.spaceIndex] == c);
 #endif
-                //目标位置的空间物体被后驱节点替换（目标物体作为头部节点被移除，所以后驱节点占位）
+                //目标位置的空间物体被后驱节点替换(目标物体作为头部节点被移除,所以后驱节点占位)
                 Items[c.spaceIndex] = c.spaceNext;
                 if (c.spaceNext != null)
                 {
-                    //如果目标物体的后驱节点不为null，该后驱节点的前驱节点设置为null（后驱节点作为头部节点了）
+                    //如果目标物体的后驱节点不为null,该后驱节点的前驱节点设置为null(后驱节点作为头部节点了)
                     c.spaceNext.spacePrev = null;
                     c.spaceNext = null; //清空要删除的目标物体的后驱节点
                 }
@@ -237,7 +237,7 @@ namespace MMWorld
             Debug.Assert(idx <= Items.Length);
 #endif
 
-            if (idx == c.spaceIndex) return;  //无改变，直接返回
+            if (idx == c.spaceIndex) return;  //无改变,直接返回
 
             //unlink
             if (c.spacePrev != null)
@@ -463,7 +463,7 @@ namespace MMWorld
         /// </summary>
         /// <param name="x">逻辑坐标</param>
         /// <param name="y">逻辑坐标</param>
-        /// <param name="handler">返回true结束遍历(Func可能产生gc，但这种应该是无所谓的，里面只要不含Unity引擎对象)</param>
+        /// <param name="handler">返回true结束遍历(Func可能产生gc,但这种应该是无所谓的,里面只要不含Unity引擎对象)</param>
         public void Foreach9All(float x, float y, Func<SpaceItem, bool> handler)
         {
             // 5
@@ -567,7 +567,7 @@ namespace MMWorld
         /// <param name="d">SpaceRingDiffuseData对象</param>
         /// <param name="x">逻辑坐标</param>
         /// <param name="y">逻辑坐标</param>
-        /// <param name="maxDistance">限制结果集的最大边距（逻辑坐标）</param>
+        /// <param name="maxDistance">限制结果集的最大边距(逻辑坐标)</param>
         /// <returns></returns>
         public SpaceItem FindNearestByRange(SpaceRingDiffuseData d, float x, float y, float maxDistance)
         {
@@ -629,7 +629,7 @@ namespace MMWorld
         /// <param name="d">SpaceRingDiffuseData对象</param>
         /// <param name="x">逻辑坐标</param>
         /// <param name="y">逻辑坐标</param>
-        /// <param name="maxDistance">限制结果集的最大边距（逻辑坐标）</param>
+        /// <param name="maxDistance">限制结果集的最大边距(逻辑坐标)</param>
         /// <param name="n"></param>
         /// <returns>返回找到的实际物体个数</returns>
         public int FindNearestNByRange(SpaceRingDiffuseData d, float x, float y, float maxDistance, int n)
@@ -696,7 +696,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// 排序result_FindNearestN，注：若改用.Sort(); 函数会造成 128 byte GC
+        /// 排序result_FindNearestN,注:若改用.Sort(); 函数会造成 128 byte GC
         /// </summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
@@ -717,7 +717,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// 快速排序左右2个result_FindNearestN数组元素，如果存在相同距离则结束并返回右侧距离结果，否则进行交换将较小的距离放在左边数组
+        /// 快速排序左右2个result_FindNearestN数组元素,如果存在相同距离则结束并返回右侧距离结果,否则进行交换将较小的距离放在左边数组
         /// </summary>
         /// <param name="left"></param>
         /// <param name="right"></param>
@@ -765,7 +765,7 @@ namespace MMWorld
     }
 
     /// <summary>
-    /// 空间容器内的物体距离结构体，可以进行距离的比较
+    /// 空间容器内的物体距离结构体,可以进行距离的比较
     /// </summary>
     public struct DistanceSpaceItem : IComparable<DistanceSpaceItem>
     {
@@ -779,14 +779,14 @@ namespace MMWorld
     }
 
     /// <summary>
-    /// 填充圆形扩散的（逻辑坐标划分的）格子的偏移量数组，主用于更高效的范围内找最近
+    /// 填充圆形扩散的(逻辑坐标划分的)格子的偏移量数组,主用于更高效的范围内找最近
     /// </summary>
     public class SpaceRingDiffuseData
     {
         public List<SpaceCountRadius> lens = new();
         public List<SpaceXYi> idxs = new();
         /// <summary>
-        /// [构造函数]填充圆形扩散的（逻辑坐标划分的）格子的偏移量数组，主用于更高效的范围内找最近
+        /// [构造函数]填充圆形扩散的(逻辑坐标划分的)格子的偏移量数组,主用于更高效的范围内找最近
         /// </summary>
         /// <param name="gridNumRows">网格列数量</param>
         /// <param name="cellSize">单元格尺寸</param>

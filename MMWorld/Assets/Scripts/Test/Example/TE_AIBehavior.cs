@@ -1,9 +1,9 @@
-//using System.Runtime.InteropServices;
+﻿//using System.Runtime.InteropServices;
 //using System.Text;
 //using UnityEngine;
 //using Debug = UnityEngine.Debug;
 
-//// 模拟 1只怪 不断移动，每隔 几帧 会 晕几帧
+//// 模拟 1只怪 不断移动,每隔 几帧 会 晕几帧
 
 //namespace Test.Example
 //{

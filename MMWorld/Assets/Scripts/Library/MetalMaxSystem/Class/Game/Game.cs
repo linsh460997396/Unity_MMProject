@@ -1,5 +1,5 @@
 ﻿#if UNITY_EDITOR || UNITY_STANDALONE
-//Unity编辑器、独立应用程序（不包括Web播放器）
+//Unity编辑器、独立应用程序(不包括Web播放器)
 using Vector2F = UnityEngine.Vector2;
 #elif MonoGame
 //使用VS2022的MonoGame插件框架
@@ -245,12 +245,12 @@ namespace MetalMaxSystem
         private static float[,] _terrainHeight = new float[2560 + 1, 2560 + 1];
 
         /// <summary>
-        /// 地图首个纹理图层顶面高度，默认值=8（m），亦称地面高度或地图高度
+        /// 地图首个纹理图层顶面高度,默认值=8(m),亦称地面高度或地图高度
         /// </summary>
         public static float MapHeight { get; set; }
 
         /// <summary>
-        /// 地面上附加的悬崖、地形物件的高度，二维坐标数组元素[2560+1,2560+1]（设计精度0.1m，按256m计）
+        /// 地面上附加的悬崖、地形物件的高度,二维坐标数组元素[2560+1,2560+1](设计精度0.1m,按256m计)
         /// </summary>
         public static float[,] TerrainHeight
         {
@@ -266,7 +266,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 土、矿、水、气等空间内每个点的属性类型和数量（密度），数组元素[2560+1,2560+1,2560+1]，设计精度0.1m，小数点左侧表示土的类型，右侧为数值（密度）
+        /// 土、矿、水、气等空间内每个点的属性类型和数量(密度),数组元素[2560+1,2560+1,2560+1],设计精度0.1m,小数点左侧表示土的类型,右侧为数值(密度)
         /// </summary>
         public static float[,,] TerrainType { get; set; }
 
@@ -280,12 +280,12 @@ namespace MetalMaxSystem
         public const int c_vehicleTypeMax = 200;
 
         /// <summary>
-        /// 任意玩家编号（玩家编号从0-15共16个，16是上帝由系统执行，某些函数中也作"任意玩家"参数）
+        /// 任意玩家编号(玩家编号从0-15共16个,16是上帝由系统执行,某些函数中也作"任意玩家"参数)
         /// </summary>
         public const int c_playerAny = 16;
 
         /// <summary>
-        /// 玩家编号上限（限制最大玩家数）
+        /// 玩家编号上限(限制最大玩家数)
         /// </summary>
         public const int c_maxPlayers = 16;
 

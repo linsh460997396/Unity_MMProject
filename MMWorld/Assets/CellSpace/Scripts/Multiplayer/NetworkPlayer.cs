@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;
@@ -206,7 +206,7 @@ public sealed class Network
 
     //
     // 摘要:
-    //     Get the local NetworkPlayer instance.
+    //     Get the local NetworkPlayer _instance.
     public static NetworkPlayer player
     {
         get
@@ -250,7 +250,7 @@ public sealed class Network
 
     //
     // 摘要:
-    //     The default send rate of network updates for all Network Views.
+    //     The default send rate of network updates for all network Views.
     public static extern float sendRate
     {
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -339,7 +339,7 @@ public sealed class Network
 
     //
     // 摘要:
-    //     The IP address of the connection tester used in Network.TestConnection.
+    //     The IP address of the connection tester used in network.TestConnection.
     public static extern string connectionTesterIP
     {
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -352,7 +352,7 @@ public sealed class Network
 
     //
     // 摘要:
-    //     The port of the connection tester used in Network.TestConnection.
+    //     The port of the connection tester used in network.TestConnection.
     public static extern int connectionTesterPort
     {
         [MethodImpl(MethodImplOptions.InternalCall)]
@@ -530,7 +530,7 @@ public sealed class Network
 
     //
     // 摘要:
-    //     This function is exactly like Network.Connect but can accept an array of IP addresses.
+    //     This function is exactly like network.Connect but can accept an array of IP addresses.
     //
     //
     // 参数:
@@ -548,7 +548,7 @@ public sealed class Network
 
     //
     // 摘要:
-    //     This function is exactly like Network.Connect but can accept an array of IP addresses.
+    //     This function is exactly like network.Connect but can accept an array of IP addresses.
     //
     //
     // 参数:
@@ -683,7 +683,7 @@ public sealed class Network
 
     //
     // 摘要:
-    //     Network instantiate a prefab.
+    //     network instantiate a prefab.
     //
     // 参数:
     //   prefab:
@@ -1188,7 +1188,7 @@ public sealed class HostData
 }
 
 /// <summary>
-/// Possible status messages returned by Network.Connect and in MonoBehaviour.OnFailedToConnect|OnFailedToConnect in case the error was not immediate.
+/// Possible status messages returned by network.Connect and in MonoBehaviour.OnFailedToConnect|OnFailedToConnect in case the error was not immediate.
 /// </summary>
 public enum NetworkConnectionError
 {
@@ -1280,7 +1280,7 @@ public enum NetworkLogLevel
 }
 
 /// <summary>
-/// Describes the status of the network interface peer type as returned by Network.peerType.
+/// Describes the status of the network interface peer type as returned by network.peerType.
 /// </summary>
 public enum NetworkPeerType
 {
@@ -1381,7 +1381,7 @@ public enum RPCMode
 }
 
 /// <summary>
-/// The NetworkViewID is a unique identifier for a network view instance in a multiplayer game.
+/// The NetworkViewID is a unique identifier for a network view _instance in a multiplayer game.
 /// </summary>
 [RequiredByNativeCode(Optional = true)]
 public struct NetworkViewID

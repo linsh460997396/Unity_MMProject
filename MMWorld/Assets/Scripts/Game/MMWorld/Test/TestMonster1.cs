@@ -1,4 +1,4 @@
-//namespace MMWorld.Test
+﻿//namespace MMWorld.Test
 //{
 //    public class TestMonster1 : Monster
 //    {
@@ -9,7 +9,7 @@
 //        public TestMonster1(Stage stage_) : base(stage_) { }
 
 //        /// <summary>
-//        /// 测试怪物1的初始化方法，供MonsterGenerator调用
+//        /// 测试怪物1的初始化方法,供MonsterGenerator调用
 //        /// </summary>
 //        /// <param name="x">逻辑坐标</param>
 //        /// <param name="y">逻辑坐标</param>
