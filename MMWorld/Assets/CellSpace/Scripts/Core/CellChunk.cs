@@ -269,12 +269,7 @@ namespace CellSpace
         /// </summary>
         private void OnDestroy()
         {
-            //在运行时预制体中由纯代码制作并存储游戏物体然后添加组件,组件会正常激活并调用Awake,对于不在场景的游戏物体,会运行组件实例上的OnDestroy
-            //应从根源上对CellChunk组件的预制体进行保护而不是在这里
-            if (CellSpacePrefab.initialized == true && CellSpacePrefab.awakeEnable.ContainsKey("CellChunk") && this != CellSpacePrefab.CellChunk.GetComponent<CellChunk>())
-            {
-                CellChunkManager.UnRegisterChunk(this);
-            }
+            CellChunkManager.UnRegisterChunk(this);
         }
 
         // ==== data =======================================================================================
