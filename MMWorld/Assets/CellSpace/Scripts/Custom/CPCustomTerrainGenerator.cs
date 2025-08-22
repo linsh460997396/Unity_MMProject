@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MetalMaxSystem;
+using UnityEngine;
 
 
 namespace CellSpace
@@ -51,7 +52,8 @@ namespace CellSpace
                             {
                                 //未启用单一空间复用模式,每个团块(空间)都刷一个自动计算索引对应的场景.
                                 Debug.Log("CPEngine.OneSapceMode == false");
-                                Load3DMap();
+                                //Load3DMap();
+                                LoadUniverse();
                             }
                             else
                             {
@@ -243,7 +245,7 @@ namespace CellSpace
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        void AddTree(int x, int y){ }
+        void AddTree(int x, int y) { }
 
         /// <summary>
         /// [2D横版模式专用]mapID=0为大地图,小地图从1~239开始(1是拉多镇),240是龙珠大地图
@@ -428,6 +430,40 @@ namespace CellSpace
                         chunk.SetCellSimple(x, y, z, (ushort)(CPEngine.mapIDs[mapID][i] + 1522));//龙珠大地图第一个纹理编号从1523开始
                     }
                 }
+            }
+        }
+
+        public void LoadUniverse()
+        {
+            int height = 1;
+            //获取团块索引值
+            int chunkx = chunk.ChunkIndex.x;
+            int chunky = chunk.ChunkIndex.y;
+            int chunkz = chunk.ChunkIndex.z;
+            //计算要刷的地图ID
+            int mapID = chunkx + chunky * 10 + chunkz * 100;
+
+            //获取团块的长度
+            int SideLength = CPEngine.chunkSideLength;
+
+            if (CPEngine.keepSingleChunkTerrainHeight)
+            {
+                height = CPEngine.SingleChunkTerrainHeight;//默认高度是0
+            }
+            int y = height - 1;
+            MMCore.Tell($"LoadUniverse: chunkx={chunkx}, chunky={chunky}, chunkz={chunkz}, mapID={mapID}, height={height}, y={y}");
+
+            //遍历团块长度内所有体素块的索引(进入布置前团块里的单元都是空块)
+            if (mapID == 0)
+            {//刷原点空间
+
+                chunk.SetCellSimple(8, 8, 8, 8);//所在空间放一土球
+
+            }
+            else if (mapID > 0 && mapID < 241)
+            {
+
+                chunk.SetCellSimple(8, 8, 8, 8);//所在空间放一土球
             }
         }
     }

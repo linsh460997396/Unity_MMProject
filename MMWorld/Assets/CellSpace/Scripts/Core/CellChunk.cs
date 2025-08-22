@@ -141,6 +141,7 @@ namespace CellSpace
                 ChunkIndex = new CPIndex(transform.position);
                 //读取团块预设边长
                 SideLength = CPEngine.chunkSideLength;
+                Debug.Log($"CellChunk: ChunkIndex={ChunkIndex}, SideLength={SideLength}");
                 //确定团块预设边长的平方
                 SquaredSideLength = SideLength * SideLength;
                 //建立当前团块的相邻团块组(防止遍历时超限,数组上限+1)

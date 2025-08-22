@@ -365,23 +365,23 @@ namespace CellSpace
         /// (从GUI界面、配置文件输入)高度范围.
         /// 控制团块(空间)能够创建的最大正负Y索引范围(以团块为单位),即团块自动创建时高度范围限值(如果是3,表示原始团块上下还可以产生3个团块).
         /// </summary>
-        public static int lHeightRange;
+        public static int lHeightRange = 0;
         /// <summary>
         /// (从GUI界面、配置文件输入)创建距离.
         /// 控制团块(空间)诞生的水平距离(以团块为单位),是团块自动创建时的距离限制(如果是8,则始终在玩家原始团块周围保证有额外8范围的团块).
         /// 高度方向受heightRange限制.
         /// </summary>
-        public static int lChunkSpawnDistance;
+        public static int lChunkSpawnDistance = 0;
         /// <summary>
         /// (从GUI界面、配置文件输入)团块边长(以单元为单位).
         /// </summary>
-        public static int lChunkSideLength = 256;
+        public static int lChunkSideLength = 16;
         /// <summary>
         /// (从GUI界面、配置文件输入)团块自动摧毁时的判断距离.
         /// 如果是3,则团块会在距离玩家ChunkSpawnDistance+3个团块距离时进行摧毁.
         /// 摧毁时如启用存档,会从内存转硬盘,当玩家再次靠近会读取硬盘存档重新加载.
         /// </summary>
-        public static int lChunkDespawnDistance;
+        public static int lChunkDespawnDistance = 0;
 
         // 纹理设置
 
@@ -1186,14 +1186,16 @@ namespace CellSpace
             cell.VSubmeshIndex = 0;
             cell.VRotation = MeshRotation.none;
             blocks[7].AddComponent<DefaultCellEvents>();
-            //填充第9个元素为空块
+            //填充第9个元素为球体
             blocks[8] = new GameObject("cell_8");
             cell = blocks[8].AddComponent<Cell>();
             cell.VName = "cell_8";
             cell.VTexture = new Vector2[6];
             cell.VTransparency = Transparency.semiTransparent;
-            cell.VColliderType = ColliderType.none;
-            cell.VSubmeshIndex = 0;
+            cell.VColliderType = ColliderType.mesh;
+            cell.VCustomMesh = true; //使用自定义网格
+            cell.VMesh = CellSpacePrefab.GetSphereMeshWithUV(false,10,32); //使用球体网格
+            cell.VSubmeshIndex = 3;
             cell.VRotation = MeshRotation.none;
             //填充第10个元素为空块
             blocks[9] = new GameObject("cell_9");

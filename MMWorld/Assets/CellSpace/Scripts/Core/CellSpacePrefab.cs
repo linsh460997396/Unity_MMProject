@@ -124,7 +124,7 @@ namespace CellSpace
                     CPMat("CPMat", externalTexturePath+@"/CPTextureSheet.png"), //第1个材质
                     CPMat("CPMat1", externalTexturePath+@"/CPTextureSheet1.png"), //第2个材质
                     CPMat("CPMat2", externalTexturePath+@"/CPTextureSheet2.png"), //第3个材质
-                    CPMat("CPMat3", externalTexturePath+@"/CPTextureSheet1.png")  //第4个材质
+                    CPMat("CPMat3", externalTexturePath+@"/CPTextureSheet3.png")  //第4个材质
                     };
                     tempGameObject.AddComponent<MeshCollider>();
                     tempGameObject.AddComponent<CellChunk>();
@@ -167,7 +167,7 @@ namespace CellSpace
                     CPMat("CPMat", externalTexturePath+@"/CPTextureSheet.png"), //第1个材质
                     CPMat("CPMat1", externalTexturePath+@"/CPTextureSheet1.png"), //第2个材质
                     CPMat("CPMat2", externalTexturePath+@"/CPTextureSheet2.png"), //第3个材质
-                    CPMat("CPMat3", externalTexturePath+@"/CPTextureSheet1.png")  //第4个材质
+                    CPMat("CPMat3", externalTexturePath+@"/CPTextureSheet3.png")  //第4个材质
                     };
                     tempGameObject.AddComponent<MeshCollider>();
                     tempGameObject.AddComponent<CellChunkExtension>();
@@ -316,6 +316,197 @@ namespace CellSpace
             dynamicMesh.RecalculateBounds();
 
             return dynamicMesh;
+        }
+
+        /// <summary>
+        /// 获取支持uv的球体网格（优先查找内置资源,不存在则动态生成）.
+        /// </summary>
+        /// <param name="radius">半径</param>
+        /// <param name="segments">分段数,越多越像球</param>
+        /// <param name="torf">为true时查找内置资源来生成球体(注意内置资源不支持后面2个参数且大小固定)</param>
+        /// <returns></returns>
+        public static Mesh GetSphereMeshWithUV(bool torf = false, float radius = 1.0f, int segments = 32)
+        {
+            if (torf)
+            {
+                Mesh builtinMesh = Resources.GetBuiltinResource<Mesh>("Sphere.fbx");
+                if (builtinMesh != null)
+                {
+                    return builtinMesh;
+                }
+            }
+
+            // 动态创建球体网格
+            Mesh dynamicMesh = new Mesh();
+            dynamicMesh.name = $"DynamicSphere_{radius}";
+
+            // 生成顶点数据
+            List<Vector3> vertices = new List<Vector3>();
+            List<Vector2> uvs = new List<Vector2>();
+            List<int> triangles = new List<int>();
+
+            float pi = Mathf.PI;
+            float deltaPhi = pi / segments;
+            float deltaTheta = 2f * pi / segments;
+
+            // 生成顶点和UV坐标
+            for (int i = 0; i <= segments; i++)
+            {
+                float phi = i * deltaPhi;
+                float sinPhi = Mathf.Sin(phi);
+                float cosPhi = Mathf.Cos(phi);
+
+                for (int j = 0; j <= segments; j++)
+                {
+                    float theta = j * deltaTheta;
+                    float sinTheta = Mathf.Sin(theta);
+                    float cosTheta = Mathf.Cos(theta);
+
+                    // 球面坐标转笛卡尔坐标
+                    Vector3 vertex = new Vector3(
+                        radius * sinPhi * cosTheta,
+                        radius * cosPhi,
+                        radius * sinPhi * sinTheta
+                    );
+                    vertices.Add(vertex);
+
+                    // 等距柱状投影UV映射
+                    uvs.Add(new Vector2(
+                        theta / (2f * pi) + 0.5f,  // 经度(0-1)
+                        1 - phi / pi               // 纬度(0-1)
+                    ));
+                }
+            }
+
+            // 生成三角面
+            for (int i = 0; i < segments; i++)
+            {
+                for (int j = 0; j < segments; j++)
+                {
+                    int v1 = i * (segments + 1) + j;
+                    int v2 = v1 + segments + 1;
+                    int v3 = v1 + 1;
+                    int v4 = v2 + 1;
+
+                    // 添加两个三角形组成四边形
+                    triangles.Add(v1);
+                    triangles.Add(v2);
+                    triangles.Add(v3);
+
+                    triangles.Add(v3);
+                    triangles.Add(v2);
+                    triangles.Add(v4);
+                }
+            }
+
+            // 应用网格数据
+            dynamicMesh.vertices = vertices.ToArray();
+            dynamicMesh.uv = uvs.ToArray();
+            dynamicMesh.triangles = triangles.ToArray();
+            dynamicMesh.RecalculateNormals();
+            dynamicMesh.RecalculateBounds();
+
+            return dynamicMesh;
+        }
+        /// <summary>
+        /// 获取纯色球体.
+        /// </summary>
+        /// <param name="radius">半径</param>
+        /// <param name="segments">分段数,越多越像球</param>
+        /// <returns></returns>
+        public static Mesh GetSphereMesh(float radius = 1.0f, int segments = 32)
+        {
+            // 动态生成球体网格
+            Mesh dynamicMesh = new Mesh();
+            dynamicMesh.name = $"DynamicSphere_{radius}";
+
+            // 定义球体顶点（极角/方位角分段）
+            List<Vector3> vertices = new List<Vector3>();
+            List<int> triangles = new List<int>();
+
+            float pi = Mathf.PI;
+            float deltaPhi = pi / segments;
+            float deltaTheta = 2f * pi / segments;
+
+            for (int i = 0; i <= segments; i++)
+            {
+                float phi = i * deltaPhi;
+                float sinPhi = Mathf.Sin(phi);
+                float cosPhi = Mathf.Cos(phi);
+
+                for (int j = 0; j <= segments; j++)
+                {
+                    float theta = j * deltaTheta;
+                    float sinTheta = Mathf.Sin(theta);
+                    float cosTheta = Mathf.Cos(theta);
+
+                    // 球面坐标转笛卡尔坐标
+                    Vector3 vertex = new Vector3(
+                        radius * sinPhi * cosTheta,
+                        radius * cosPhi,
+                        radius * sinPhi * sinTheta
+                    );
+                    vertices.Add(vertex);
+                }
+            }
+
+            // 生成三角面（四边形剖分）
+            for (int i = 0; i < segments; i++)
+            {
+                for (int j = 0; j < segments; j++)
+                {
+                    int v1 = i * (segments + 1) + j;
+                    int v2 = v1 + segments + 1;
+                    int v3 = v1 + 1;
+                    int v4 = v2 + 1;
+
+                    // 添加两个三角形组成四边形
+                    triangles.Add(v1);
+                    triangles.Add(v2);
+                    triangles.Add(v3);
+
+                    triangles.Add(v3);
+                    triangles.Add(v2);
+                    triangles.Add(v4);
+                }
+            }
+
+            // 应用几何数据
+            dynamicMesh.vertices = vertices.ToArray();
+            dynamicMesh.triangles = triangles.ToArray();
+            dynamicMesh.RecalculateNormals();
+            dynamicMesh.RecalculateBounds();
+
+            return dynamicMesh;
+        }
+        /// <summary>
+        /// 创建指定缩放因子的球体网格,如果内置资源不存在则使用GetSphereMeshWithUV默认参数方法生成.
+        /// </summary>
+        /// <param name="scaleFactor"></param>
+        /// <returns></returns>
+        public static Mesh GetScaledSphereMeshWithUV(float scaleFactor = 1f)
+        {
+            Mesh builtinMesh = Resources.GetBuiltinResource<Mesh>("Sphere.fbx");
+            if (builtinMesh == null)
+            {
+                builtinMesh = GetSphereMeshWithUV();
+            }
+
+            //创建缩放后的网格副本
+            Mesh scaledMesh = Object.Instantiate(builtinMesh);
+            Vector3[] vertices = builtinMesh.vertices;
+
+            // 应用缩放
+            for (int i = 0; i < vertices.Length; i++)
+            {
+                vertices[i] *= scaleFactor;
+            }
+
+            scaledMesh.vertices = vertices;
+            scaledMesh.RecalculateBounds();
+            scaledMesh.RecalculateNormals();
+
+            return scaledMesh;
         }
     }
 }
