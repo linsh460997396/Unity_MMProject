@@ -1,0 +1,18 @@
+﻿Credit for Demo Chacter Model, Melee Animations, Unarmed Animations, and Sorceress Animations:
+Explosive
+https://assetstore.unity.com/publishers/3415
+
+Credit for Villager Animations (as well as tool and ore models):
+Kevin Iglesias
+https://assetstore.unity.com/publishers/36307
+
+Credit for Block Idle, Block Impact, and Dodge Animations:
+Jose (Dogzerx) Diaz
+https://assetstore.unity.com/publishers/650
+
+Ellen, Ellen Turn Animations, footstep sounds, sword swing, and bullet fire sounds:
+Unity Technologies from The 3D Game Kit
+These are purely used for demonstration purposes. Permission to use said assets is stated here: https://support.unity.com/hc/en-us/articles/206336915-Can-I-submit-an-asset-that-uses-Unity-Standard-Assets-
+
+Editor Icons:
+https://game-icons.net/

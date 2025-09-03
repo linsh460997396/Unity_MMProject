@@ -1,0 +1,73 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe42a88d76ed5f349bdb72cee4b18b62, type: 3}
+  m_Name: Grenade Ability
+  m_EditorClassIdentifier: 
+  AbilityName: Grenade
+  AbilityDescription: Ability Description
+  AbilityIcon: {fileID: 2800000, guid: 225c0664134d17744b824ae6e345d539, type: 3}
+  InfoSettingsFoldout: 1
+  DerivedSettingsFoldout: 1
+  ModularSettingsFoldout: 0
+  HideSettingsFoldout: 0
+  CooldownSettings:
+    Enabled: 0
+    CooldownLength: 1
+  ConditionSettings:
+    Enabled: 0
+    ConditionType: 0
+    OutnumberedThreshold: 3
+  GrenadeSettings:
+    Enabled: 1
+    GrenadeObject: {fileID: 7592352235661436699, guid: e933d192bfb4f7d48bcd2e850d0e4396, type: 3}
+    GrenadeLayer: 2
+    ThrowHeight: 5
+    ThrowSound: {fileID: 8300000, guid: 6324ff6d91776544581caacbfe9923b1, type: 3}
+    RotateOnThrow: 1
+    ImpactSoundsList:
+    - {fileID: 8300000, guid: d5c64e194a7802941b2bb381f6f828fd, type: 3}
+    RigidbodyLayers:
+      serializedVersion: 2
+      m_Bits: 2
+    ExplosionRadius: 4
+    ExplosionTime: 2
+    ExplosionEffect: {fileID: 8695401051225182231, guid: 044755114a5c22e4595ff21885d2ff2a, type: 3}
+    ExplosionTimeoutSeconds: 3
+    CanDamageFriendlies: 0
+    ExplosionSoundsList:
+    - {fileID: 8300000, guid: f099f463b44bcc145b078ca020a1fe11, type: 3}
+  StunnedSettings:
+    Enabled: 0
+    OddsToStun: 50
+    StunLength: 3
+  DamageSettings:
+    Foldout: 1
+    Enabled: 1
+    UseCriticalHits: 0
+    UseDamageOverTime: 0
+    BaseDamageSettings:
+      UseRandomAmounts: 0
+      BaseAmount: 200
+      MinAmount: 5
+      MaxAmount: 10
+      RagdollForce: 150
+    CriticalHitSettings:
+      CriticalHitOdds: 6.25
+      CriticalHitMultiplier: 1.1
+      CriticalHitSounds: []
+    DamageOverTimeSettings:
+      DamageOverTimeEffect: {fileID: 0}
+      OverTimeEffectTimeOutSeconds: 1.5
+      TickRate: 1
+      DamagePerTick: 1
+      DamageOverTimeLength: 3
+      OverTimeSounds: []

@@ -36,7 +36,4 @@
 
 ![项目自带工具-图片分析器（TextureAnalyzer.cs）分割识别+重新融合纹理集](https://github.com/linsh460997396/Unity_MMProject/blob/main/GamePic/T0.png)
 
-# 完整项目下载（1.28GB）
-
-天翼网盘
-https://cloud.189.cn/t/yqErAjvmQBfy（访问码：hd2s）
+# 完整项目下载（1.28GB）:见“FuncWorld_Unity2022.3.50f1c1_v0.5.44_幸存者框架升级”

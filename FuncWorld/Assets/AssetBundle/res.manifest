@@ -1,0 +1,539 @@
+ManifestFileVersion: 0
+CRC: 3703664728
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 629871bf07a2bc44b567990224287ebb
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 3e051c0615ee0f95a491053b7197d60a
+  IncrementalBuildHash:
+    serializedVersion: 2
+    Hash: 629871bf07a2bc44b567990224287ebb
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 21
+  Script: {instanceID: 0}
+- Class: 23
+  Script: {instanceID: 0}
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 33
+  Script: {instanceID: 0}
+- Class: 43
+  Script: {instanceID: 0}
+- Class: 48
+  Script: {instanceID: 0}
+- Class: 49
+  Script: {instanceID: 0}
+- Class: 64
+  Script: {instanceID: 0}
+- Class: 114
+  Script: {fileID: 11500000, guid: 416936281e43d7e43a57ecc8858ac3f1, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 8fed1205ba9de8d46968b01b87824429, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 85850e5f981ca3241abc24f310ea1ad1, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 74851790065536e4ba173d4ed2ab0c94, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 0602c23224f567b49be992f8bb5adfb0, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 0656988ac60fc4749af3a2fcdfefef83, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: c41602e0ed355eb43ba1fdd79eaacfe4, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: fa897f77b843f8c4b9603c71f8ba1798, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 86feac72772265545b77ecdf811cf022, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 112bba79371d69548aaeb88cb7b90063, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 378e08dd83531f946b8cd5fa87bf0322, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: cbb284f8cbce66f479eca9186ca2f39a, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 8fffd023b4f86aa4d9cfcbdec33fd7e2, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 0990ad78bed94ae419b0a1ff3a352a72, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/CellSpace/Res/Resources/MapIndex/224.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5F02\u578B\u9C7C.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S04_\u5316\u5B66\u70AE.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5E73\u6C11\u59734.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T02_ATM\u6218\u8F66.png"
+- Assets/CellSpace/Res/Resources/MapIndex/129.txt
+- Assets/CellSpace/Res/Resources/MapIndex/131.txt
+- Assets/CellSpace/Res/Resources/MapIndex/63.txt
+- Assets/CellSpace/Res/Resources/MapIndex/135.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T05_\u566A\u97F3\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u6B7B\u4EBA.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S05_\u72D9\u51FB\u9E1F.png"
+- Assets/CellSpace/Res/Resources/MapIndex/211.txt
+- Assets/CellSpace/Res/Resources/MapIndex/125.txt
+- Assets/CellSpace/Res/Resources/MapIndex/195.txt
+- Assets/CellSpace/Res/TexturesAndMaterials/CPTextureSheet.png
+- Assets/CellSpace/Res/Engine/CPEngine.prefab
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T09_AT\u5766\u514BR.png"
+- Assets/CellSpace/Res/Cells/cell_7.prefab
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u660E\u5947\u535A\u58EB.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S01_\u7AE0\u9C7C\u5766\u514B.png"
+- Assets/CellSpace/Res/Resources/MapIndex/103.txt
+- Assets/CellSpace/Res/Resources/MapIndex/65.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L21_\u6218\u72D7.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T03_\u6293\u540A.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T01_\u5766\u514B.png"
+- Assets/CellSpace/Res/Resources/MapIndex/36.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S09_\u5BFC\u5F39\u86D9.png"
+- Assets/CellSpace/Res/Resources/MapIndex/215.txt
+- Assets/CellSpace/Res/Resources/MapIndex/179.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T14_\u795E\u6B66\u70AE.png"
+- Assets/CellSpace/Res/TexturesAndMaterials/CPTextureSheet2.png
+- Assets/CellSpace/Res/Resources/MapIndex/3.txt
+- Assets/CellSpace/Res/Resources/MapIndex/10.txt
+- Assets/CellSpace/Res/Resources/MapIndex/142.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T16_\u4FA6\u67E5\u789F.png"
+- Assets/CellSpace/Res/Resources/MapIndex/155.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u884C\u4EBA4.png"
+- Assets/CellSpace/Res/Resources/MapIndex/162.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E02_\u52A0\u519C\u70AE.png"
+- Assets/CellSpace/Res/Resources/MapIndex/102.txt
+- Assets/CellSpace/Res/Resources/MapIndex/115.txt
+- Assets/CellSpace/Res/Resources/MapIndex/104.txt
+- Assets/CellSpace/Res/Resources/MapIndex/203.txt
+- Assets/CellSpace/Res/Resources/MapIndex/107.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/X03_\u9B3C\u624B.png"
+- "Assets/CellSpace/Res/Resources/Textures/Vehicle/6\u53F7\u6218\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Vehicle/3\u53F7\u6218\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E09_\u5149\u9632\u5FA1\u5668.png"
+- Assets/CellSpace/Res/Resources/MapIndex/212.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S11_\u5DE8\u578B\u6CB3\u9A6C.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L20_\u98DF\u4EBA\u82B1.png"
+- Assets/CellSpace/Res/ChunkObjects/CellChunk.prefab
+- Assets/CellSpace/Res/Resources/MapIndex/145.txt
+- Assets/CellSpace/Res/Resources/MapIndex/38.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L13_\u6C34\u602A.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L18_\u98DF\u4EBA\u8681.png"
+- Assets/CellSpace/Res/Resources/MapIndex/160.txt
+- "Assets/CellSpace/Res/Resources/Textures/Vehicle/\u8239.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L01_\u5DE8\u8681.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L08_\u9A6C\u6B47\u5C14.png"
+- Assets/CellSpace/Res/Resources/MapIndex/77.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5546\u5E97\u54583.png"
+- Assets/CellSpace/Res/Resources/MapIndex/204.txt
+- Assets/CellSpace/Res/Resources/MapIndex/181.txt
+- Assets/CellSpace/Res/Resources/MapIndex/49.txt
+- Assets/CellSpace/Res/Resources/MapIndex/175.txt
+- Assets/CellSpace/Res/Resources/MapIndex/166.txt
+- Assets/CellSpace/Res/Resources/MapIndex/78.txt
+- Assets/CellSpace/Res/TexturesAndMaterials/CPSelected.png
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L11_\u79BB\u5B50\u866B.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S03_\u673A\u68B0\u866B.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T02_\u6307\u6325\u8F66.png"
+- Assets/CellSpace/Res/Resources/MapIndex/28.txt
+- "Assets/CellSpace/Res/Resources/Textures/Vehicle/1\u53F7\u6218\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E07_\u795E\u98CE\u5F39.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L20_\u7535\u78C1\u82B1.png"
+- Assets/CellSpace/Res/Cells/cell_2.prefab
+- Assets/CellSpace/Res/Resources/MapIndex/130.txt
+- Assets/CellSpace/Res/Resources/MapIndex/World.txt
+- Assets/CellSpace/Res/Resources/MapIndex/111.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u4FEE\u7406\u5E08\u5085.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E01_\u706B\u7130\u67AA.png"
+- Assets/CellSpace/Res/Resources/MapIndex/53.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u673A\u5668\u4EBA.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E01_\u706B\u7130\u70AE.png"
+- "Assets/CellSpace/Res/Resources/Textures/Vehicle/7\u53F7\u6218\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E14_\u667A\u80FD\u4EBA.png"
+- Assets/CellSpace/Res/Resources/MapIndex/151.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L21_\u53CD\u5766\u514B\u70AEH.png"
+- Assets/CellSpace/Res/Resources/MapIndex/56.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S08_\u5730\u72F1.png"
+- Assets/CellSpace/Res/Resources/MapIndex/174.txt
+- Assets/CellSpace/Res/Resources/MapIndex/217.txt
+- Assets/CellSpace/Res/Resources/MapIndex/96.txt
+- Assets/CellSpace/Res/Resources/MapIndex/147.txt
+- Assets/CellSpace/Res/Multiplayer/CPNetwork.prefab
+- Assets/CellSpace/Res/Resources/MapIndex/216.txt
+- Assets/CellSpace/Res/Resources/MapIndex/114.txt
+- Assets/CellSpace/Res/Resources/MapIndex/186.txt
+- Assets/CellSpace/Res/Resources/MapIndex/118.txt
+- Assets/CellSpace/Res/Resources/MapIndex/58.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u65C5\u884C\u8005.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u666E\u901A\u52C7\u58EB.png"
+- Assets/CellSpace/Res/Resources/MapIndex/Width.txt
+- Assets/CellSpace/Res/Resources/MapIndex/27.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/X01_\u7535\u8111\u5899.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5E73\u6C11\u75373.png"
+- Assets/CellSpace/Res/Cells/cell_5.prefab
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S01_\u7AE0\u9C7C\u70AE.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T05_\u94F2\u8F66.png"
+- Assets/CellSpace/Res/Resources/MapIndex/105.txt
+- Assets/CellSpace/Res/Resources/MapIndex/197.txt
+- Assets/CellSpace/Res/Resources/MapIndex/153.txt
+- Assets/CellSpace/Res/Resources/MapIndex/238.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L06_\u5F02\u5F62\u9C7C.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u884C\u4EBA3.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T14_\u53E4\u70AE.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E12_\u50F5\u5C38.png"
+- Assets/CellSpace/Res/Resources/MapIndex/66.txt
+- Assets/CellSpace/Res/Resources/MapIndex/187.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S10_\u5DE8\u87F9.png"
+- Assets/CellSpace/Res/Resources/MapIndex/25.txt
+- Assets/CellSpace/Res/Resources/MapIndex/196.txt
+- Assets/CellSpace/Res/Resources/MapIndex/223.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u65C5\u9986\u670D\u52A1\u5458.png"
+- Assets/CellSpace/Res/Resources/MapIndex/84.txt
+- Assets/CellSpace/Res/TexturesAndMaterials/CPMat3.mat
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E04_\u50AC\u7720\u5668.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L18_\u91D1\u8681.png"
+- Assets/CellSpace/Res/Resources/MapIndex/177.txt
+- Assets/CellSpace/Res/TexturesAndMaterials/CPTextureSheet1.png
+- Assets/CellSpace/Res/Resources/MapIndex/46.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S12_\u94C1\u7532\u70AE.png"
+- Assets/CellSpace/Res/Resources/MapIndex/143.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T13_\u653B\u51FB\u673A.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T07_\u72D9\u51FB\u8F66.png"
+- Assets/CellSpace/Res/Resources/MapIndex/99.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E07_\u795E\u79D8\u4EBA.png"
+- Assets/CellSpace/Res/Resources/MapIndex/170.txt
+- Assets/CellSpace/Res/Resources/MapIndex/219.txt
+- Assets/CellSpace/Res/Resources/MapIndex/31.txt
+- Assets/CellSpace/Res/Resources/MapIndex/81.txt
+- Assets/CellSpace/Res/Resources/MapIndex/218.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u4F5B\u50CF.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/X02_\u751F\u7269\u67AA.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T10_\u6C99\u6F20\u4E4B\u821F.png"
+- Assets/CellSpace/Res/Resources/MapIndex/230.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5E73\u6C11\u59732.png"
+- Assets/CellSpace/Res/Resources/MapIndex/24.txt
+- Assets/CellSpace/Res/Resources/MapIndex/93.txt
+- Assets/CellSpace/Res/Resources/MapIndex/37.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/X04_\u5DE8\u578B\u70AE.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L06_\u55B7\u706B\u9CC4.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5934.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/X02_\u6BD2\u6DB2\u67AA.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u673A\u5668\u4EBA4.png"
+- Assets/CellSpace/Res/Resources/MapIndex/69.txt
+- Assets/CellSpace/Res/Resources/MapIndex/110.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u52C7\u58EB.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L20_\u9B54\u9B3C\u82B1.png"
+- Assets/CellSpace/Res/Resources/MapIndex/94.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S06_\u4FA6\u67E5\u8702.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L02_\u8D85\u5BFC\u866B.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5973\u5B692.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E11_\u8FFD\u8E2A\u5F39.png"
+- Assets/CellSpace/Res/Resources/MapIndex/44.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L17_\u91D1\u8681\u6BEF.png"
+- Assets/CellSpace/Res/Resources/MapIndex/57.txt
+- Assets/CellSpace/Res/Resources/MapIndex/122.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u8239\u592B.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u4E3B\u89D23.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T02_\u9AD8\u901F\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E10_\u78C1\u94C1.png"
+- Assets/CellSpace/Res/Resources/MapIndex/237.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u666E\u901A\u7684\u5C38\u4F53.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L07_\u74E6\u9C81\u90E8\u4E0B.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S10_\u673A\u68B0\u87F9.png"
+- Assets/CellSpace/Res/Resources/MapIndex/40.txt
+- Assets/CellSpace/Res/Resources/MapIndex/113.txt
+- Assets/CellSpace/Res/Resources/MapIndex/59.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T06_\u5BFC\u5F39\u5361\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u7EA2\u72FC.png"
+- Assets/CellSpace/Res/Resources/MapIndex/190.txt
+- Assets/CellSpace/Res/Resources/MapIndex/199.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T12_\u9F9F\u5F0F\u6218\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L03_\u6BD2\u8717\u725B.png"
+- "Assets/CellSpace/Res/Resources/Textures/Vehicle/2\u53F7\u6218\u8F66.png"
+- Assets/CellSpace/Res/Cells/cell_9.prefab
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S03_\u6FC0\u5149\u8693.png"
+- Assets/CellSpace/Res/Resources/MapIndex/202.txt
+- Assets/CellSpace/Res/Resources/MapIndex/80.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T15_\u88C5\u7532\u8F66.png"
+- Assets/CellSpace/Res/Resources/MapIndex/165.txt
+- Assets/CellSpace/Res/Resources/MapIndex/119.txt
+- Assets/CellSpace/Res/Resources/MapIndex/87.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L02_\u6740\u4EBA\u866B.png"
+- Assets/CellSpace/Res/Resources/MapIndex/18.txt
+- Assets/CellSpace/Res/Resources/MapIndex/43.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u8001\u8005.png"
+- Assets/CellSpace/Res/Resources/MapIndex/8.txt
+- Assets/CellSpace/Res/Resources/MapIndex/52.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L19_\u6C34\u9B3C.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L09_\u53CD\u5766\u514B\u5175G.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T07_\u65E0\u5750\u529B\u70AE.png"
+- "Assets/CellSpace/Res/Resources/Textures/Vehicle/8\u53F7\u6218\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L10_\u5F02\u5F62.png"
+- Assets/CellSpace/Res/Resources/MapIndex/71.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L04_\u70B8\u5F39\u9F9F.png"
+- Assets/CellSpace/Res/Resources/MapIndex/12.txt
+- Assets/CellSpace/Res/Resources/MapIndex/47.txt
+- Assets/CellSpace/Res/Cells/cell_3.prefab
+- Assets/CellSpace/Res/Resources/MapIndex/76.txt
+- Assets/CellSpace/Res/Resources/MapIndex/229.txt
+- Assets/CellSpace/Res/Resources/MapIndex/108.txt
+- Assets/CellSpace/Res/Resources/MapIndex/126.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L14_\u96F7\u8FBE\u82B1.png"
+- Assets/CellSpace/Res/Resources/MapIndex/2.txt
+- Assets/CellSpace/Res/ChunkObjects/CellChunkAdditionalMesh.prefab
+- Assets/CellSpace/Res/Resources/MapIndex/22.txt
+- Assets/CellSpace/Res/Resources/MapIndex/167.txt
+- Assets/CellSpace/Res/Resources/MapIndex/206.txt
+- Assets/CellSpace/Res/Resources/MapIndex/92.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E12_\u5F17\u6717.png"
+- Assets/CellSpace/Res/Resources/MapIndex/154.txt
+- "Assets/CellSpace/Res/Resources/Textures/Vehicle/5\u53F7\u6218\u8F66.png"
+- Assets/CellSpace/Res/Resources/MapIndex/90.txt
+- Assets/CellSpace/Res/Resources/MapIndex/182.txt
+- Assets/CellSpace/Res/Resources/MapIndex/205.txt
+- Assets/CellSpace/Res/Resources/MapIndex/11.txt
+- Assets/CellSpace/Res/Resources/MapIndex/231.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u8BB0\u5F55\u5458.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u52C7\u58EB3.png"
+- Assets/CellSpace/Res/Resources/MapIndex/101.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L15_\u5E15\u9C81.png"
+- Assets/CellSpace/Res/Resources/MapIndex/220.txt
+- Assets/CellSpace/Res/Resources/MapIndex/171.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L07_\u6D41\u6C13.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L02_\u53D8\u5F62\u866B.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L21_\u53CD\u5766\u514B\u70AER.png"
+- Assets/CellSpace/Res/Resources/MapIndex/178.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S07_\u6BD2\u8759\u8760.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u8001\u5E74\u4EBA.png"
+- Assets/CellSpace/Res/ChunkObjects/CellChunkTriggerCollider.prefab
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E02_\u91CE\u6218\u70AE.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S02_\u98DE\u72D7.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L19_\u6C34\u9B3CH.png"
+- Assets/CellSpace/Res/Resources/MapIndex/193.txt
+- Assets/CellSpace/Res/Meshes/doorCP.obj
+- Assets/CellSpace/Res/Meshes/grassMeshCP.obj
+- Assets/CellSpace/Res/Resources/MapIndex/60.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5987\u5973.png"
+- Assets/CellSpace/Res/Resources/MapIndex/30.txt
+- Assets/CellSpace/Res/Resources/MapIndex/132.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u72FC.png"
+- Assets/CellSpace/Res/Resources/MapIndex/140.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u6218\u72D7.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E05_\u6B7C\u706D\u8005.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T03_\u8D77\u91CD\u673A.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E03_\u626B\u63CF\u4EEA.png"
+- Assets/CellSpace/Res/Resources/MapIndex/13.txt
+- Assets/CellSpace/Res/Resources/MapIndex/164.txt
+- Assets/CellSpace/Res/Resources/MapIndex/26.txt
+- Assets/CellSpace/Res/Resources/MapIndex/100.txt
+- Assets/CellSpace/Res/Resources/MapIndex/67.txt
+- Assets/CellSpace/Res/Cells/cell_6.prefab
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/X01_\u8BFA\u4E9Av2.png"
+- Assets/CellSpace/Res/Resources/MapIndex/123.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L03_\u5F77\u751F\u8717\u725B.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T05_\u58F0\u6CE2\u70AE.png"
+- Assets/CellSpace/Res/Resources/MapIndex/106.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T08_\u6C99\u6F20\u8F66.png"
+- Assets/CellSpace/Res/Resources/MapIndex/45.txt
+- Assets/CellSpace/Res/Resources/MapIndex/194.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E08_\u673A\u5668\u9E1F.png"
+- Assets/CellSpace/Res/Resources/MapIndex/209.txt
+- Assets/CellSpace/Res/Resources/MapIndex/4.txt
+- Assets/CellSpace/Res/Resources/MapIndex/184.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5C0F\u5B69.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5E73\u6C11\u59733.png"
+- Assets/CellSpace/Res/TexturesAndMaterials/CPSkybox.mat
+- Assets/CellSpace/Res/Resources/MapIndex/213.txt
+- Assets/CellSpace/Res/Resources/MapIndex/23.txt
+- Assets/CellSpace/Res/Resources/MapIndex/169.txt
+- Assets/CellSpace/Res/Resources/MapIndex/35.txt
+- Assets/CellSpace/Res/TexturesAndMaterials/CPMat.mat
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u673A\u5668\u4EBA3.png"
+- Assets/CellSpace/Res/Cells/cell_10.prefab
+- Assets/CellSpace/Res/Resources/MapIndex/200.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E08_\u5408\u91D1\u9E1F.png"
+- Assets/CellSpace/Res/Resources/MapIndex/17.txt
+- Assets/CellSpace/Res/Resources/MapIndex/55.txt
+- Assets/CellSpace/Res/Resources/MapIndex/201.txt
+- Assets/CellSpace/Res/Resources/MapIndex/188.txt
+- Assets/CellSpace/Res/Resources/MapIndex/183.txt
+- Assets/CellSpace/Res/Resources/MapIndex/152.txt
+- Assets/CellSpace/Res/Resources/MapIndex/61.txt
+- Assets/CellSpace/Res/Cells/cell_8.prefab
+- Assets/CellSpace/Res/Resources/MapIndex/72.txt
+- Assets/CellSpace/Res/Resources/MapIndex/138.txt
+- Assets/CellSpace/Res/Resources/MapIndex/120.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S08_\u8708\u86A3.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T04_\u6025\u6551\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T11_\u79BB\u5B50\u5766\u514B.png"
+- Assets/CellSpace/Res/Resources/MapIndex/7.txt
+- Assets/CellSpace/Res/Resources/MapIndex/232.txt
+- Assets/CellSpace/Res/Resources/MapIndex/117.txt
+- Assets/CellSpace/Res/Resources/MapIndex/127.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S02_\u6B65\u67AA\u9E1F.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u4E3B\u89D22.png"
+- Assets/CellSpace/Res/Resources/MapIndex/185.txt
+- Assets/CellSpace/Res/Resources/MapIndex/157.txt
+- Assets/CellSpace/Res/Resources/MapIndex/189.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T09_AT\u5766\u514BB.png"
+- Assets/CellSpace/Res/Resources/MapIndex/109.txt
+- Assets/CellSpace/Res/Resources/MapIndex/20.txt
+- Assets/CellSpace/Res/Resources/MapIndex/173.txt
+- Assets/CellSpace/Res/Meshes/doorOpenCP.obj
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T13_\u9632\u5FA1\u673A\u5668.png"
+- Assets/CellSpace/Res/Resources/MapIndex/180.txt
+- Assets/CellSpace/Res/Resources/MapIndex/85.txt
+- Assets/CellSpace/Res/Resources/MapIndex/236.txt
+- Assets/CellSpace/Res/Cells/cell_4.prefab
+- Assets/CellSpace/Res/Resources/MapIndex/0.txt
+- Assets/CellSpace/Res/Resources/MapIndex/74.txt
+- Assets/CellSpace/Res/Resources/MapIndex/73.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5546\u5E97\u54582.png"
+- Assets/CellSpace/Res/Resources/MapIndex/16.txt
+- Assets/CellSpace/Res/Resources/MapIndex/62.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5973\u5B69.png"
+- Assets/CellSpace/Res/TexturesAndMaterials/CPMat2.mat
+- Assets/CellSpace/Res/Resources/MapIndex/158.txt
+- Assets/CellSpace/Res/Resources/MapIndex/98.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u6309\u6469\u5E08.png"
+- Assets/CellSpace/Res/Meshes/Materials/DefaultMatCP.mat
+- Assets/CellSpace/Res/Resources/MapIndex/156.txt
+- Assets/CellSpace/Res/Resources/MapIndex/15.txt
+- Assets/CellSpace/Res/Resources/MapIndex/124.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u6C14\u529F\u5E08.png"
+- Assets/CellSpace/Res/Resources/MapIndex/227.txt
+- Assets/CellSpace/Res/Resources/MapIndex/75.txt
+- Assets/CellSpace/Res/Resources/MapIndex/41.txt
+- Assets/CellSpace/Res/Resources/MapIndex/79.txt
+- Assets/CellSpace/Res/Resources/MapIndex/1.txt
+- Assets/CellSpace/Res/Resources/MapIndex/50.txt
+- Assets/CellSpace/Res/Resources/MapIndex/139.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S04_\u751F\u7269\u70AE.png"
+- Assets/CellSpace/Res/Resources/MapIndex/95.txt
+- Assets/CellSpace/Res/Resources/MapIndex/148.txt
+- Assets/CellSpace/Res/Resources/MapIndex/208.txt
+- Assets/CellSpace/Res/Resources/MapIndex/54.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5E73\u6C11\u75374.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5927\u8C61.png"
+- Assets/CellSpace/Res/Resources/MapIndex/192.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T12_\u4E24\u6816\u8F66.png"
+- Assets/CellSpace/Res/Resources/MapIndex/112.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E15_\u673A\u5668\u4EBA.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/X01_\u8BFA\u4E9Av1.png"
+- Assets/CellSpace/Res/Resources/MapIndex/234.txt
+- Assets/CellSpace/Res/TexturesAndMaterials/CPSelectedBlock.mat
+- Assets/CellSpace/Res/Resources/ColliderFiles/MapCollider.txt
+- Assets/CellSpace/Res/Resources/MapIndex/68.txt
+- Assets/CellSpace/Res/Resources/MapIndex/82.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L05_\u6BD2\u8718\u86DB.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u884C\u4EBA.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E05_\u9632\u5FA1\u5668.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u9A6C\u6B47\u5C14.png"
+- Assets/CellSpace/Res/Resources/MapIndex/34.txt
+- Assets/CellSpace/Res/Resources/MapIndex/233.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5E73\u6C11\u7537.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T01_85\u81EA\u884C\u70AE.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E13_\u6FC0\u5149\u7CFB\u7EDF.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T01_\u5BFC\u5F39\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u6C14\u529F\u5E082.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L12_\u58F0\u6CE2\u86C7.png"
+- Assets/CellSpace/Res/TexturesAndMaterials/CPMat1.mat
+- Assets/CellSpace/Res/Resources/MapIndex/33.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E06_\u7889\u5821.png"
+- Assets/CellSpace/Res/Resources/MapIndex/9.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L12_\u58F0\u7EB3\u86C7.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S08_\u5927\u8C61.png"
+- Assets/CellSpace/Res/Resources/MapIndex/29.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L09_\u53CD\u5766\u514B\u5175O.png"
+- Assets/CellSpace/Res/Resources/MapIndex/191.txt
+- Assets/CellSpace/Res/Resources/MapIndex/121.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L10_\u4FA6\u67E5\u8005.png"
+- Assets/CellSpace/Res/Resources/MapIndex/89.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5E73\u6C11\u5973.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S11_\u673A\u68B0\u6CB3\u9A6C.png"
+- Assets/CellSpace/Res/Resources/MapIndex/134.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S06_\u6BD2\u8702.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T16_\u62E6\u622A\u789F.png"
+- Assets/CellSpace/Res/Resources/MapIndex/235.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u884C\u4EBA2.png"
+- Assets/CellSpace/Res/Resources/MapIndex/97.txt
+- Assets/CellSpace/Res/Resources/MapIndex/214.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T10_\u730E\u6740\u8005.png"
+- Assets/CellSpace/Res/Cells/cell_0.prefab
+- "Assets/CellSpace/Res/Resources/Textures/Vehicle/4\u53F7\u6218\u8F66.png"
+- Assets/CellSpace/Res/Resources/MapIndex/48.txt
+- Assets/CellSpace/Res/Resources/MapIndex/228.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/S05_\u540E\u5907\u8F66.png"
+- Assets/CellSpace/Res/Resources/MapIndex/91.txt
+- Assets/CellSpace/Res/Resources/MapIndex/83.txt
+- Assets/CellSpace/Res/Resources/MapIndex/172.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T01_\u97F3\u901F\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5546\u5E97\u5458.png"
+- Assets/CellSpace/Res/Resources/MapIndex/70.txt
+- Assets/CellSpace/Res/Resources/MapIndex/176.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L13_\u55B7\u706B\u602A.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u52C7\u58EB2.png"
+- Assets/CellSpace/Res/Resources/MapIndex/64.txt
+- Assets/CellSpace/Res/Resources/MapIndex/207.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/X01_\u8BFA\u4E9Av3.png"
+- Assets/CellSpace/Res/Resources/MapIndex/141.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T02_\u74E6\u9C81.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L04_\u5730\u96F7\u9F9F.png"
+- Assets/CellSpace/Res/Cells/cell_1.prefab
+- Assets/CellSpace/Res/Resources/MapIndex/39.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T11_\u6208\u65AF\u6218\u8F66.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u70E7\u7126\u7684\u5C38\u4F53.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T15_\u8F66\u8F7D\u70AE.png"
+- Assets/CellSpace/Res/Resources/MapIndex/86.txt
+- Assets/CellSpace/Res/Resources/MapIndex/137.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E03_\u76D1\u89C6\u5668.png"
+- Assets/CellSpace/Res/Resources/MapIndex/168.txt
+- Assets/CellSpace/Res/Meshes/Materials/MaterialCP_NONE.mat
+- Assets/CellSpace/Res/TexturesAndMaterials/CPTextureSheetPSD.psd
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T03_\u7C89\u788E\u673A.png"
+- Assets/CellSpace/Res/Resources/MapIndex/42.txt
+- Assets/CellSpace/Res/Resources/MapIndex/210.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L01_\u9178\u8681.png"
+- Assets/CellSpace/Res/Meshes/Materials/MaterialCP.mat
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L11_\u6FC0\u5149\u866B.png"
+- Assets/CellSpace/Res/Resources/MapIndex/221.txt
+- Assets/CellSpace/Res/Resources/MapIndex/144.txt
+- Assets/CellSpace/Res/Resources/MapIndex/14.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/T08_\u6C99\u6F20\u864E.png"
+- Assets/CellSpace/Res/Resources/MapIndex/6.txt
+- Assets/CellSpace/Res/Resources/MapIndex/146.txt
+- Assets/CellSpace/Res/Resources/MapIndex/128.txt
+- Assets/CellSpace/Res/Resources/MapIndex/149.txt
+- Assets/CellSpace/Res/Resources/MapIndex/32.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L17_\u519B\u8681.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u673A\u5668\u4EBA2.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u4E3B\u89D2.png"
+- Assets/CellSpace/Res/Resources/MapIndex/198.txt
+- Assets/CellSpace/Res/Resources/MapIndex/88.txt
+- Assets/CellSpace/Res/Resources/MapIndex/226.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L13_\u6CE2\u7279.png"
+- Assets/CellSpace/Res/Resources/MapIndex/159.txt
+- Assets/CellSpace/Res/Resources/MapIndex/163.txt
+- Assets/CellSpace/Res/Resources/MapIndex/136.txt
+- Assets/CellSpace/Res/Resources/MapIndex/116.txt
+- Assets/CellSpace/Res/Resources/MapIndex/5.txt
+- Assets/CellSpace/Res/Resources/MapIndex/161.txt
+- Assets/CellSpace/Res/Resources/MapIndex/133.txt
+- Assets/CellSpace/Res/Resources/MapIndex/51.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E04_\u58F0\u7EB3\u8F66.png"
+- Assets/CellSpace/Res/Resources/MapIndex/150.txt
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5E73\u6C11\u75372.png"
+- Assets/CellSpace/Res/Resources/MapIndex/21.txt
+- Assets/CellSpace/Res/Resources/MapIndex/19.txt
+- Assets/CellSpace/Res/Resources/MapIndex/225.txt
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L19_\u86D9\u4EBA.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u6D41\u6C13.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/L16_\u6208\u9EA6\u65AF.png"
+- "Assets/CellSpace/Res/Resources/Textures/Monsters/E06_\u6697\u5821.png"
+- "Assets/CellSpace/Res/Resources/Textures/Characters/\u5546\u4EBA.png"
+- Assets/CellSpace/Res/Resources/MapIndex/222.txt
+Dependencies: []

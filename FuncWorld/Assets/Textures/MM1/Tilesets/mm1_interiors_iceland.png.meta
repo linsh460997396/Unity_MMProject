@@ -1,0 +1,2165 @@
+fileFormatVersion: 2
+guid: cbfba3d3fa722c0469c92adf375a6cbd
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 21300000
+    second: mm1_interiors_iceland_0
+  - first:
+      213: 21300002
+    second: mm1_interiors_iceland_1
+  - first:
+      213: 21300004
+    second: mm1_interiors_iceland_2
+  - first:
+      213: 21300006
+    second: mm1_interiors_iceland_3
+  - first:
+      213: 21300008
+    second: mm1_interiors_iceland_4
+  - first:
+      213: 21300010
+    second: mm1_interiors_iceland_5
+  - first:
+      213: 21300012
+    second: mm1_interiors_iceland_6
+  - first:
+      213: 21300014
+    second: mm1_interiors_iceland_7
+  - first:
+      213: 21300016
+    second: mm1_interiors_iceland_8
+  - first:
+      213: 21300018
+    second: mm1_interiors_iceland_9
+  - first:
+      213: 21300020
+    second: mm1_interiors_iceland_10
+  - first:
+      213: 21300022
+    second: mm1_interiors_iceland_11
+  - first:
+      213: 21300024
+    second: mm1_interiors_iceland_12
+  - first:
+      213: 21300026
+    second: mm1_interiors_iceland_13
+  - first:
+      213: 21300028
+    second: mm1_interiors_iceland_14
+  - first:
+      213: 21300030
+    second: mm1_interiors_iceland_15
+  - first:
+      213: 21300032
+    second: mm1_interiors_iceland_16
+  - first:
+      213: 21300034
+    second: mm1_interiors_iceland_17
+  - first:
+      213: 21300036
+    second: mm1_interiors_iceland_18
+  - first:
+      213: 21300038
+    second: mm1_interiors_iceland_19
+  - first:
+      213: 21300040
+    second: mm1_interiors_iceland_20
+  - first:
+      213: 21300042
+    second: mm1_interiors_iceland_21
+  - first:
+      213: 21300044
+    second: mm1_interiors_iceland_22
+  - first:
+      213: 21300046
+    second: mm1_interiors_iceland_23
+  - first:
+      213: 21300048
+    second: mm1_interiors_iceland_24
+  - first:
+      213: 21300050
+    second: mm1_interiors_iceland_25
+  - first:
+      213: 21300052
+    second: mm1_interiors_iceland_26
+  - first:
+      213: 21300054
+    second: mm1_interiors_iceland_27
+  - first:
+      213: 21300056
+    second: mm1_interiors_iceland_28
+  - first:
+      213: 21300058
+    second: mm1_interiors_iceland_29
+  - first:
+      213: 21300060
+    second: mm1_interiors_iceland_30
+  - first:
+      213: 21300062
+    second: mm1_interiors_iceland_31
+  - first:
+      213: 21300064
+    second: mm1_interiors_iceland_32
+  - first:
+      213: 21300066
+    second: mm1_interiors_iceland_33
+  - first:
+      213: 21300068
+    second: mm1_interiors_iceland_34
+  - first:
+      213: 21300070
+    second: mm1_interiors_iceland_35
+  - first:
+      213: 21300072
+    second: mm1_interiors_iceland_36
+  - first:
+      213: 21300074
+    second: mm1_interiors_iceland_37
+  - first:
+      213: 21300076
+    second: mm1_interiors_iceland_38
+  - first:
+      213: 21300078
+    second: mm1_interiors_iceland_39
+  - first:
+      213: 21300080
+    second: mm1_interiors_iceland_40
+  - first:
+      213: 21300082
+    second: mm1_interiors_iceland_41
+  - first:
+      213: 21300084
+    second: mm1_interiors_iceland_42
+  - first:
+      213: 21300086
+    second: mm1_interiors_iceland_43
+  - first:
+      213: 21300088
+    second: mm1_interiors_iceland_44
+  - first:
+      213: 21300090
+    second: mm1_interiors_iceland_45
+  - first:
+      213: 21300092
+    second: mm1_interiors_iceland_46
+  - first:
+      213: 21300094
+    second: mm1_interiors_iceland_47
+  - first:
+      213: 21300096
+    second: mm1_interiors_iceland_48
+  - first:
+      213: 21300098
+    second: mm1_interiors_iceland_49
+  - first:
+      213: 21300100
+    second: mm1_interiors_iceland_50
+  - first:
+      213: 21300102
+    second: mm1_interiors_iceland_51
+  - first:
+      213: 21300104
+    second: mm1_interiors_iceland_52
+  - first:
+      213: 21300106
+    second: mm1_interiors_iceland_53
+  - first:
+      213: 21300108
+    second: mm1_interiors_iceland_54
+  - first:
+      213: 21300110
+    second: mm1_interiors_iceland_55
+  - first:
+      213: 21300112
+    second: mm1_interiors_iceland_56
+  - first:
+      213: 21300114
+    second: mm1_interiors_iceland_57
+  - first:
+      213: 21300116
+    second: mm1_interiors_iceland_58
+  - first:
+      213: 21300118
+    second: mm1_interiors_iceland_59
+  - first:
+      213: 21300120
+    second: mm1_interiors_iceland_60
+  - first:
+      213: 21300122
+    second: mm1_interiors_iceland_61
+  - first:
+      213: 21300124
+    second: mm1_interiors_iceland_62
+  - first:
+      213: 21300126
+    second: mm1_interiors_iceland_63
+  - first:
+      213: 21300128
+    second: mm1_interiors_iceland_64
+  - first:
+      213: 21300130
+    second: mm1_interiors_iceland_65
+  - first:
+      213: 21300132
+    second: mm1_interiors_iceland_66
+  - first:
+      213: 21300134
+    second: mm1_interiors_iceland_67
+  - first:
+      213: 21300136
+    second: mm1_interiors_iceland_68
+  - first:
+      213: 21300138
+    second: mm1_interiors_iceland_69
+  - first:
+      213: 21300140
+    second: mm1_interiors_iceland_70
+  - first:
+      213: 21300142
+    second: mm1_interiors_iceland_71
+  - first:
+      213: 21300144
+    second: mm1_interiors_iceland_72
+  - first:
+      213: 21300146
+    second: mm1_interiors_iceland_73
+  - first:
+      213: 21300148
+    second: mm1_interiors_iceland_74
+  - first:
+      213: 21300150
+    second: mm1_interiors_iceland_75
+  - first:
+      213: 21300152
+    second: mm1_interiors_iceland_76
+  - first:
+      213: 21300154
+    second: mm1_interiors_iceland_77
+  - first:
+      213: 21300156
+    second: mm1_interiors_iceland_78
+  - first:
+      213: 21300158
+    second: mm1_interiors_iceland_79
+  - first:
+      213: 21300160
+    second: mm1_interiors_iceland_80
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 1
+  swizzle: 50462976
+  cookieLightType: 1
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 512
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 1
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 512
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 1
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 512
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 1
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 512
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 1
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 385.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4c66cd5a7c41a4d4293691c041be4738
+      internalID: 21300000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_1
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 385.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 14a78c5f5f15bb14e95dc75940f815fe
+      internalID: 21300002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_2
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 385.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9ec39698a9b5ed54b9f29b5ac7b2ab6f
+      internalID: 21300004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_3
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 385.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c8806d0886cf21048a8a1b821e65fe63
+      internalID: 21300006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_4
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 385.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4824e063b5c2e114ca8baba3415f0893
+      internalID: 21300008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_5
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 385.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e626c0d7523624441b41cc36c871a0d6
+      internalID: 21300010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_6
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 385.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 862cef51c1ecf7f4e9a00e1bc1edd621
+      internalID: 21300012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_7
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 385.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6e418b5b49e64ba438a61955d7dc5d82
+      internalID: 21300014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 353.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: fb5df4c174c8e9c4ebc61dd0d88f6469
+      internalID: 21300016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_9
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 353.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 582f7de8d1e8c874383ee2308c5d22d7
+      internalID: 21300018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_10
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 353.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 17d995bf4bb663c4baeb08143aefbaf7
+      internalID: 21300020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_11
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 353.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9adca346e2f383b4194c4f4eb4f6865e
+      internalID: 21300022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_12
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 353.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 84a542973a5a5c74bad9d964ec30ca56
+      internalID: 21300024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_13
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 353.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7ceae0baed51c2c4ba935ed213ef0872
+      internalID: 21300026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_14
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 353.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 992a398ab431a5a49bb7dc7ce01b59e8
+      internalID: 21300028
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_15
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 353.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3bec4d8e5ab45f14e8f68b9a10796bc6
+      internalID: 21300030
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_16
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 321.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 261f67487c3645443ab07ffb4c8cdbef
+      internalID: 21300032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_17
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 321.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cf5fe574781af0e40ad624f5572fb725
+      internalID: 21300034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_18
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 321.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 64abc6454901dcf4281a77a7a763f0d7
+      internalID: 21300036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_19
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 321.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 635e669a9d5ee3c4fba1774a9f1e7849
+      internalID: 21300038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_20
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 321.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e0d22209be881f947b1da068a2100ee5
+      internalID: 21300040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_21
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 321.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 296ae30a8c4dfe24991e80d5cb76abdb
+      internalID: 21300042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_22
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 321.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b6d1558444c30a24f9d17cb2eabf97b6
+      internalID: 21300044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_23
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 321.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 697ffeaf8ec3d04489478d926ae8b7d2
+      internalID: 21300046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_24
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 289.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 968a72bdb1076dd4791ec849456a1c70
+      internalID: 21300048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_25
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 289.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1b17813717edea44294127a3c68292f4
+      internalID: 21300050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_26
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 289.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e7c11f6a6cb28fe4da09bc989217a1fb
+      internalID: 21300052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_27
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 289.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f3898e0c8fe3af94b84db3ec13bacf53
+      internalID: 21300054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_28
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 289.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 96f0e318271aead4089c66e10f65db06
+      internalID: 21300056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_29
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 289.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e746f93d89d87e347b645e2b0ca8ff58
+      internalID: 21300058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_30
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 289.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 71fdde446b292ef4ca850cf240f147a0
+      internalID: 21300060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_31
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 289.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 076bd8fc134a1a542a8e0e7a2dd67727
+      internalID: 21300062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_32
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 257.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b29230b9e67e1154bb144ab697146170
+      internalID: 21300064
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_33
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 257.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 154f83ab9e9c95047a7007fad68044ba
+      internalID: 21300066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_34
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 257.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d305bc54094421c46b602bf5a6845501
+      internalID: 21300068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_35
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 257.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4924b3ddf32614e4ab55d186058e7c36
+      internalID: 21300070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_36
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 257.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a846923deff3cca4db40e642a17c3d6d
+      internalID: 21300072
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_37
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 257.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 580962e11b809de4f8ab35e4246e0b5b
+      internalID: 21300074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_38
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 257.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2f34301b789db9a469ebda5cb1c7c907
+      internalID: 21300076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_39
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 257.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c33f503143e1d7b45b788aea0b5f84fa
+      internalID: 21300078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_40
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 225.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 32d3cef3f8539d946aa3fdbf304bbcc1
+      internalID: 21300080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_41
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 225.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 59e37a07f4840d640a6299a4fb657d6f
+      internalID: 21300082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_42
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 225.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 149c99f2a73380b44ab81671e6c90a98
+      internalID: 21300084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_43
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 225.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c5db57fa41fdbfa4a9b1a850da252a31
+      internalID: 21300086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_44
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 225.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c3fb0be2393b3cf4d92f877444e58bfc
+      internalID: 21300088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_45
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 225.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: af29ffab02340c142b6250f0e31c3f55
+      internalID: 21300090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_46
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 225.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4c9f761f3e2a3a64598be8a72f2419b1
+      internalID: 21300092
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_47
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 193.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 511b5c18e0659c941993e58908e377e5
+      internalID: 21300094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_48
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 193.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 35c1bbef07c894143a5355b2696ea076
+      internalID: 21300096
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_49
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 193.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f10cb2110298ea948adfc5b3e8634757
+      internalID: 21300098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_50
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 193.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3bed006b97bfed6478c0489ca5009f55
+      internalID: 21300100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_51
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 193.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9a13165318dc56c449de646216496328
+      internalID: 21300102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_52
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 193.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2c20f8feb2a54df41baa10d022d5c1df
+      internalID: 21300104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_53
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 193.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5cdd4c256e075c74492640873f50c72f
+      internalID: 21300106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_54
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 161.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b6a204a8461f605408c4c96eb04325c5
+      internalID: 21300108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_55
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 161.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f972aae41b7eddf4195cdea1b28d7c00
+      internalID: 21300110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_56
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 161.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 318c1281eba41514eb5f8574be4c4dd0
+      internalID: 21300112
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_57
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 161.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bda89ec1bfa63b344876086895c8afc9
+      internalID: 21300114
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_58
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 161.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: de0e6b26e522c2541856e36080f027fa
+      internalID: 21300116
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_59
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 129.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 181a080d04c144d4ab866134878cdda5
+      internalID: 21300118
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_60
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 129.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 23ae2cf3cd42d2a43b203a93bf191521
+      internalID: 21300120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_61
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 129.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6c5d606c9bb231748a3a644ab500b3b8
+      internalID: 21300122
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_62
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 129.84616
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b390a580a866358488c5554225e33d1a
+      internalID: 21300124
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_63
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 97.84615
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: cfcf3f72a393cc3429918cb2272d01cd
+      internalID: 21300126
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_64
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 97.84615
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bc67bf77391bf2f409bc2ab759dd42a9
+      internalID: 21300128
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_65
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 97.84615
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 90c16148d4302684c88ae275c318748f
+      internalID: 21300130
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_66
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 97.84615
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d7a307d3790133c45a9843dd45e1e6f7
+      internalID: 21300132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_67
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 97.84615
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9118a52cfb5a4e74b856645d8b1aa885
+      internalID: 21300134
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_68
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 65.84615
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8f2adc4dffd6af7428041e189af60be8
+      internalID: 21300136
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_69
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 65.84615
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dde7f2e00e5b4e943bf73d1c1a3cd660
+      internalID: 21300138
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_70
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 65.84615
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9fbfc38c0223d8d4fb81f8101a3dba06
+      internalID: 21300140
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_71
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 65.84615
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6232f42ac253ce446ab405c562b9c91c
+      internalID: 21300142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_72
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 65.84615
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d6645c654c2c140448785a30e9deb013
+      internalID: 21300144
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_73
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 33.846153
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a85d168d70702014abd0c6e41987061d
+      internalID: 21300146
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_74
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 33.846153
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ddd8a4cf63a63874697f7c26934dfcc4
+      internalID: 21300148
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_75
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 33.846153
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e30edb52f5ae1f1449166ac6e2681415
+      internalID: 21300150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_76
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 33.846153
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 03c3cc81f905f494b95edd2668660ac1
+      internalID: 21300152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_77
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 33.846153
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6770d9acf0a6934458dde8d585fe9653
+      internalID: 21300154
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_78
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1.8461533
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 08e80578e7d4d4f45805c0b18eb76824
+      internalID: 21300156
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_79
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 1.8461533
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5ab6fdb76720e8c4cacb6a8761d123f7
+      internalID: 21300158
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_interiors_iceland_80
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 1.8461533
+        width: 32
+        height: 32.153847
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2e155a299952ef64594b32da8d300850
+      internalID: 21300160
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 6d8915685040cef4aad6b98f0a0d63e5
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      mm1_interiors_iceland_0: 21300000
+      mm1_interiors_iceland_1: 21300002
+      mm1_interiors_iceland_10: 21300020
+      mm1_interiors_iceland_11: 21300022
+      mm1_interiors_iceland_12: 21300024
+      mm1_interiors_iceland_13: 21300026
+      mm1_interiors_iceland_14: 21300028
+      mm1_interiors_iceland_15: 21300030
+      mm1_interiors_iceland_16: 21300032
+      mm1_interiors_iceland_17: 21300034
+      mm1_interiors_iceland_18: 21300036
+      mm1_interiors_iceland_19: 21300038
+      mm1_interiors_iceland_2: 21300004
+      mm1_interiors_iceland_20: 21300040
+      mm1_interiors_iceland_21: 21300042
+      mm1_interiors_iceland_22: 21300044
+      mm1_interiors_iceland_23: 21300046
+      mm1_interiors_iceland_24: 21300048
+      mm1_interiors_iceland_25: 21300050
+      mm1_interiors_iceland_26: 21300052
+      mm1_interiors_iceland_27: 21300054
+      mm1_interiors_iceland_28: 21300056
+      mm1_interiors_iceland_29: 21300058
+      mm1_interiors_iceland_3: 21300006
+      mm1_interiors_iceland_30: 21300060
+      mm1_interiors_iceland_31: 21300062
+      mm1_interiors_iceland_32: 21300064
+      mm1_interiors_iceland_33: 21300066
+      mm1_interiors_iceland_34: 21300068
+      mm1_interiors_iceland_35: 21300070
+      mm1_interiors_iceland_36: 21300072
+      mm1_interiors_iceland_37: 21300074
+      mm1_interiors_iceland_38: 21300076
+      mm1_interiors_iceland_39: 21300078
+      mm1_interiors_iceland_4: 21300008
+      mm1_interiors_iceland_40: 21300080
+      mm1_interiors_iceland_41: 21300082
+      mm1_interiors_iceland_42: 21300084
+      mm1_interiors_iceland_43: 21300086
+      mm1_interiors_iceland_44: 21300088
+      mm1_interiors_iceland_45: 21300090
+      mm1_interiors_iceland_46: 21300092
+      mm1_interiors_iceland_47: 21300094
+      mm1_interiors_iceland_48: 21300096
+      mm1_interiors_iceland_49: 21300098
+      mm1_interiors_iceland_5: 21300010
+      mm1_interiors_iceland_50: 21300100
+      mm1_interiors_iceland_51: 21300102
+      mm1_interiors_iceland_52: 21300104
+      mm1_interiors_iceland_53: 21300106
+      mm1_interiors_iceland_54: 21300108
+      mm1_interiors_iceland_55: 21300110
+      mm1_interiors_iceland_56: 21300112
+      mm1_interiors_iceland_57: 21300114
+      mm1_interiors_iceland_58: 21300116
+      mm1_interiors_iceland_59: 21300118
+      mm1_interiors_iceland_6: 21300012
+      mm1_interiors_iceland_60: 21300120
+      mm1_interiors_iceland_61: 21300122
+      mm1_interiors_iceland_62: 21300124
+      mm1_interiors_iceland_63: 21300126
+      mm1_interiors_iceland_64: 21300128
+      mm1_interiors_iceland_65: 21300130
+      mm1_interiors_iceland_66: 21300132
+      mm1_interiors_iceland_67: 21300134
+      mm1_interiors_iceland_68: 21300136
+      mm1_interiors_iceland_69: 21300138
+      mm1_interiors_iceland_7: 21300014
+      mm1_interiors_iceland_70: 21300140
+      mm1_interiors_iceland_71: 21300142
+      mm1_interiors_iceland_72: 21300144
+      mm1_interiors_iceland_73: 21300146
+      mm1_interiors_iceland_74: 21300148
+      mm1_interiors_iceland_75: 21300150
+      mm1_interiors_iceland_76: 21300152
+      mm1_interiors_iceland_77: 21300154
+      mm1_interiors_iceland_78: 21300156
+      mm1_interiors_iceland_79: 21300158
+      mm1_interiors_iceland_8: 21300016
+      mm1_interiors_iceland_80: 21300160
+      mm1_interiors_iceland_9: 21300018
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

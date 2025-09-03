@@ -1,0 +1,49 @@
+﻿//模拟Destroy()方法确保资源在使用完毕后被正确释放
+public class CustomResource : IDisposable 
+{ 
+    private bool disposed = false; 
+    //假设这是一个需要释放的资源 
+    private IntPtr unmanagedResource; 
+    public CustomResource() 
+    { 
+        unmanagedResource = IntPtr.Zero; //初始化资源 
+    } 
+    public void Dispose() 
+    {//实现IDisposable接口
+        Dispose(true); 
+        GC.SuppressFinalize(this); // 阻止垃圾回收器调用终结器 
+    } 
+    protected virtual void Dispose(bool disposing) 
+    { 
+        if (!disposed) 
+        { 
+            if (disposing) 
+            { 
+                //释放托管资源 
+                //这里可以添加释放托管资源的代码 
+            } 
+            if (unmanagedResource != IntPtr.Zero) 
+            {// 释放非托管资源 
+                //这里可以添加释放非托管资源的代码 
+                unmanagedResource = IntPtr.Zero; 
+            } 
+            disposed = true; 
+        } 
+    } 
+    ~CustomResource() 
+    {//析构函数 
+        Dispose(false); 
+    } 
+} 
+class Program 
+{ 
+    static void Main() 
+    { 
+        //使用using语句确保Dispose方法被调用 
+        using (var resource = new CustomResource()) 
+        { 
+            //使用资源 
+        } 
+        //当using语句块结束时Dispose方法会被自动调用了
+    } 
+} 

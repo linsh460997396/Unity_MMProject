@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a935740a62e270749bc63b5d2a643bc4, type: 3}
+  m_Name: Heal Ally Ability
+  m_EditorClassIdentifier: 
+  AbilityName: Heal Ally
+  AbilityDescription: Heals a nearby ally that has low health.
+  AbilityIcon: {fileID: 2800000, guid: 4908cc2201e02904195241efb88b71d5, type: 3}
+  InfoSettingsFoldout: 1
+  DerivedSettingsFoldout: 1
+  ModularSettingsFoldout: 0
+  HideSettingsFoldout: 0
+  CooldownSettings:
+    Enabled: 1
+    CooldownLength: 10
+  ConditionSettings:
+    Foldout: 1
+    Enabled: 1
+    ConditionType: 1
+    ValueCompareType: 1
+    HighPriority: 1
+    DistanceFromTarget: 3
+    LowHealthPercentage: 60
+  ChargeSettings:
+    Enabled: 0
+    ChargeEffect: {fileID: 0}
+    ChargeLength: 2
+    ChargeSoundsList: []
+  CreateSettings:
+    Enabled: 0
+    CreateEffect: {fileID: 0}
+    CreateEffectTimeout: 2
+    CreateSoundsList: []
+  HealingSettings:
+    Foldout: 1
+    Enabled: 1
+    HealingEffect: {fileID: 0}
+    HealingEffectTimeoutSeconds: 3
+    TargetType: 1
+    HealingType: 1
+    BaseHealAmount: 15
+    TickRate: 1
+    HealsPerTick: 10
+    HealOverTimeLength: 5
+    HealTickSounds:
+    - {fileID: 8300000, guid: 9d9298add3d804049b1af23575ab6f41, type: 3}
+    EffectHeightOffset: 0.75
+    Radius: 10
+    Delay: 0
+    HealTargetEffect: {fileID: 8695401051225182231, guid: 9a3a20dd6fac00241a0341508917bdfb, type: 3}
+    HealTargetEffectTimeoutSeconds: 3
+    HealingSoundsList:
+    - {fileID: 8300000, guid: 9d9298add3d804049b1af23575ab6f41, type: 3}

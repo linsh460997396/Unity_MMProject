@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3b9b762de4bd6f48a5082d3a9149350, type: 3}
+  m_Name: Strafe Action
+  m_EditorClassIdentifier: 
+  EnterConditions: 6
+  ExitConditions: 64256
+  CooldownConditions: 118
+  CooldownLength: 2.5
+  UseCooldown: 1
+  HideSettingsFoldout: 0
+  DefaultSettingsFoldout: 1
+  CustomSettingsFoldout: 1
+  InfoSettingsFoldout: 0
+  ActionName: Strafe
+  ActionDescription: Gives AI the ability to strafe around their current target.
+  StrafingLengthMin: 0.5
+  StrafingLengthMax: 3
+  OddsToStrafe: 0.82

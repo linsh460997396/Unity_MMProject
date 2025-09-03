@@ -1,0 +1,1515 @@
+fileFormatVersion: 2
+guid: 0420965c6b9116f4bb978d01c9781974
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 21300000
+    second: mm1_locate_ruinsbuilding_n_sewer_0
+  - first:
+      213: 21300002
+    second: mm1_locate_ruinsbuilding_n_sewer_1
+  - first:
+      213: 21300004
+    second: mm1_locate_ruinsbuilding_n_sewer_2
+  - first:
+      213: 21300006
+    second: mm1_locate_ruinsbuilding_n_sewer_3
+  - first:
+      213: 21300008
+    second: mm1_locate_ruinsbuilding_n_sewer_4
+  - first:
+      213: 21300010
+    second: mm1_locate_ruinsbuilding_n_sewer_5
+  - first:
+      213: 21300012
+    second: mm1_locate_ruinsbuilding_n_sewer_6
+  - first:
+      213: 21300014
+    second: mm1_locate_ruinsbuilding_n_sewer_7
+  - first:
+      213: 21300016
+    second: mm1_locate_ruinsbuilding_n_sewer_8
+  - first:
+      213: 21300018
+    second: mm1_locate_ruinsbuilding_n_sewer_9
+  - first:
+      213: 21300020
+    second: mm1_locate_ruinsbuilding_n_sewer_10
+  - first:
+      213: 21300022
+    second: mm1_locate_ruinsbuilding_n_sewer_11
+  - first:
+      213: 21300024
+    second: mm1_locate_ruinsbuilding_n_sewer_12
+  - first:
+      213: 21300026
+    second: mm1_locate_ruinsbuilding_n_sewer_13
+  - first:
+      213: 21300028
+    second: mm1_locate_ruinsbuilding_n_sewer_14
+  - first:
+      213: 21300030
+    second: mm1_locate_ruinsbuilding_n_sewer_15
+  - first:
+      213: 21300032
+    second: mm1_locate_ruinsbuilding_n_sewer_16
+  - first:
+      213: 21300034
+    second: mm1_locate_ruinsbuilding_n_sewer_17
+  - first:
+      213: 21300036
+    second: mm1_locate_ruinsbuilding_n_sewer_18
+  - first:
+      213: 21300038
+    second: mm1_locate_ruinsbuilding_n_sewer_19
+  - first:
+      213: 21300040
+    second: mm1_locate_ruinsbuilding_n_sewer_20
+  - first:
+      213: 21300042
+    second: mm1_locate_ruinsbuilding_n_sewer_21
+  - first:
+      213: 21300044
+    second: mm1_locate_ruinsbuilding_n_sewer_22
+  - first:
+      213: 21300046
+    second: mm1_locate_ruinsbuilding_n_sewer_23
+  - first:
+      213: 21300048
+    second: mm1_locate_ruinsbuilding_n_sewer_24
+  - first:
+      213: 21300050
+    second: mm1_locate_ruinsbuilding_n_sewer_25
+  - first:
+      213: 21300052
+    second: mm1_locate_ruinsbuilding_n_sewer_26
+  - first:
+      213: 21300054
+    second: mm1_locate_ruinsbuilding_n_sewer_27
+  - first:
+      213: 21300056
+    second: mm1_locate_ruinsbuilding_n_sewer_28
+  - first:
+      213: 21300058
+    second: mm1_locate_ruinsbuilding_n_sewer_29
+  - first:
+      213: 21300060
+    second: mm1_locate_ruinsbuilding_n_sewer_30
+  - first:
+      213: 21300062
+    second: mm1_locate_ruinsbuilding_n_sewer_31
+  - first:
+      213: 21300064
+    second: mm1_locate_ruinsbuilding_n_sewer_32
+  - first:
+      213: 21300066
+    second: mm1_locate_ruinsbuilding_n_sewer_33
+  - first:
+      213: 21300068
+    second: mm1_locate_ruinsbuilding_n_sewer_34
+  - first:
+      213: 21300070
+    second: mm1_locate_ruinsbuilding_n_sewer_35
+  - first:
+      213: 21300072
+    second: mm1_locate_ruinsbuilding_n_sewer_36
+  - first:
+      213: 21300074
+    second: mm1_locate_ruinsbuilding_n_sewer_37
+  - first:
+      213: 21300076
+    second: mm1_locate_ruinsbuilding_n_sewer_38
+  - first:
+      213: 21300078
+    second: mm1_locate_ruinsbuilding_n_sewer_39
+  - first:
+      213: 21300080
+    second: mm1_locate_ruinsbuilding_n_sewer_40
+  - first:
+      213: 21300082
+    second: mm1_locate_ruinsbuilding_n_sewer_41
+  - first:
+      213: 21300084
+    second: mm1_locate_ruinsbuilding_n_sewer_42
+  - first:
+      213: 21300086
+    second: mm1_locate_ruinsbuilding_n_sewer_43
+  - first:
+      213: 21300088
+    second: mm1_locate_ruinsbuilding_n_sewer_44
+  - first:
+      213: 21300090
+    second: mm1_locate_ruinsbuilding_n_sewer_45
+  - first:
+      213: 21300092
+    second: mm1_locate_ruinsbuilding_n_sewer_46
+  - first:
+      213: 21300094
+    second: mm1_locate_ruinsbuilding_n_sewer_47
+  - first:
+      213: 21300096
+    second: mm1_locate_ruinsbuilding_n_sewer_48
+  - first:
+      213: 21300098
+    second: mm1_locate_ruinsbuilding_n_sewer_49
+  - first:
+      213: 21300100
+    second: mm1_locate_ruinsbuilding_n_sewer_50
+  - first:
+      213: 21300102
+    second: mm1_locate_ruinsbuilding_n_sewer_51
+  - first:
+      213: 21300104
+    second: mm1_locate_ruinsbuilding_n_sewer_52
+  - first:
+      213: 21300106
+    second: mm1_locate_ruinsbuilding_n_sewer_53
+  - first:
+      213: 21300108
+    second: mm1_locate_ruinsbuilding_n_sewer_54
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 32
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 1
+  swizzle: 50462976
+  cookieLightType: 1
+  platformSettings:
+  - serializedVersion: 3
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 256
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 1
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Standalone
+    maxTextureSize: 256
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 1
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 256
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 1
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 256
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 1
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 1
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e11d6040874dd684f9513308e0949fa0
+      internalID: 21300000
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_1
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 68775d1015c8543488b808dad5fd4798
+      internalID: 21300002
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_2
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ec63fd83b8584e046b66aa8c3528f4f5
+      internalID: 21300004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_3
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a14da4fdd1d361241be30b28f3cc4c2f
+      internalID: 21300006
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_4
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d3cf7e547b03b1347be8fea24febc37c
+      internalID: 21300008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_5
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8e94dbfdbb50e8a4d9549611cee9ca0f
+      internalID: 21300010
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_6
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 80cfa78d969456c4ca3a1f2257722584
+      internalID: 21300012
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_7
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 192
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7bf764ebec996c44c93e854774305373
+      internalID: 21300014
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 160
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 98b1672b1c0a6b144b4470e96de76996
+      internalID: 21300016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_9
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 160
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2d2dbf5411d5e5e4b96ba918e69dbde6
+      internalID: 21300018
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_10
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 160
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3b23b32d7f388a94e8ffc47d4f898edf
+      internalID: 21300020
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_11
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 160
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4100301c4c8159c4c8415f8a184e349d
+      internalID: 21300022
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_12
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 160
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c7b704fbf3b93e418c297c206f14702
+      internalID: 21300024
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_13
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 160
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 920e637ef6b96b940bb36c43be8666d7
+      internalID: 21300026
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_14
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 160
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4f5c5eae724085041830ea1740817cda
+      internalID: 21300028
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_15
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a859ca31bc4dd6438564cd983b41d42
+      internalID: 21300030
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_16
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f48e23a302fa74043b7be00e4d1c0510
+      internalID: 21300032
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_17
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dd140a421d06c24449d20582ecc91d65
+      internalID: 21300034
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_18
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b44a563b007397144a88557763d73a34
+      internalID: 21300036
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_19
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d7a35d5776418ba42ba78559730b5755
+      internalID: 21300038
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_20
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 19a1ce8aa4143da4e922bac626e4f9df
+      internalID: 21300040
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_21
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c10e90a07cfe38049bfb7915e99295ee
+      internalID: 21300042
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_22
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 128
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 91cdc3c61c00e6d46bd56d4cbd3a0f5e
+      internalID: 21300044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_23
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 96
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: aedfdb9814bfb9d4698f0f222d7ffef1
+      internalID: 21300046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_24
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 96
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0284f95c47a34514b9ea8513b1ddc68a
+      internalID: 21300048
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_25
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 96
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0cb7a64ee4e646243a5764b5b6dfa6a3
+      internalID: 21300050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_26
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 96
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f463fa265d55ce54e9cf8265527dceb0
+      internalID: 21300052
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_27
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 96
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2d78b99aa5012454799917cc3a71d5ff
+      internalID: 21300054
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_28
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 96
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 377f7e41d6d60f947aa0863f9cb6e30a
+      internalID: 21300056
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_29
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 96
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d95c4abe9fbaed446aeb3b33153aedfd
+      internalID: 21300058
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_30
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 96
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 00512deddca05b444bc6dcd278b209df
+      internalID: 21300060
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_31
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 64
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c53e3750d9c44b5488f2f065aaf82c5b
+      internalID: 21300062
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_32
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 64
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dc9e084c7257d524f83ad383e2e70dac
+      internalID: 21300064
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_33
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 64
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2d5b48bc0f0e4854cb3bd516360d54cc
+      internalID: 21300066
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_34
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 64
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0d93416cd4e16234490023756f4024a1
+      internalID: 21300068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_35
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 64
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 574109f35ca4fb64f93c278b9522824b
+      internalID: 21300070
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_36
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 64
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d79ec6f2d7a8fd540bb90c29e76c856a
+      internalID: 21300072
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_37
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 64
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 07274611c93f7944a8389e1b79fe79d8
+      internalID: 21300074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_38
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 64
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 254fd2134f506e841944428554ee060b
+      internalID: 21300076
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_39
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c933bd61e237814d87446d2f4691cd2
+      internalID: 21300078
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_40
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 414b3b84a60c31b408b2df3d78324cba
+      internalID: 21300080
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_41
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 7143aedaf27bf0b4b804cba25df21188
+      internalID: 21300082
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_42
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d1f02cd8d3ca77446ba8c4d3cc9c7dae
+      internalID: 21300084
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_43
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c30da02a717ff4b46abf57e84f0b6c75
+      internalID: 21300086
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_44
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 503d9588e0c42da41903e2c46627dab0
+      internalID: 21300088
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_45
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2fd80bb71653c554a86cf68bf77adb2e
+      internalID: 21300090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_46
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5af3c3b39ee14fb46b99c30666e74995
+      internalID: 21300092
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_47
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 777314a9d62429643808ad6d2127155d
+      internalID: 21300094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_48
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bbd94b68e91d99543bfe1eb1f4603c87
+      internalID: 21300096
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_49
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9ce209474649ee045b44909055c552fd
+      internalID: 21300098
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_50
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a375d44cec4cad14198b75f8b93cf36e
+      internalID: 21300100
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_51
+      rect:
+        serializedVersion: 2
+        x: 128
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 64b7b70bdc205f4469dc21fe3f804690
+      internalID: 21300102
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_52
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d1bd951f5f0d12347a773a2c1226872b
+      internalID: 21300104
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_53
+      rect:
+        serializedVersion: 2
+        x: 192
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1c9e973ea27f11048b83ab54e2eab832
+      internalID: 21300106
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mm1_locate_ruinsbuilding_n_sewer_54
+      rect:
+        serializedVersion: 2
+        x: 224
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 234efeef50b48ec4d8ddab8806879b30
+      internalID: 21300108
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    physicsShape: []
+    bones: []
+    spriteID: 442e220126470c04bbd235fcaf742fcb
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    nameFileIdTable:
+      mm1_locate_ruinsbuilding_n_sewer_0: 21300000
+      mm1_locate_ruinsbuilding_n_sewer_1: 21300002
+      mm1_locate_ruinsbuilding_n_sewer_10: 21300020
+      mm1_locate_ruinsbuilding_n_sewer_11: 21300022
+      mm1_locate_ruinsbuilding_n_sewer_12: 21300024
+      mm1_locate_ruinsbuilding_n_sewer_13: 21300026
+      mm1_locate_ruinsbuilding_n_sewer_14: 21300028
+      mm1_locate_ruinsbuilding_n_sewer_15: 21300030
+      mm1_locate_ruinsbuilding_n_sewer_16: 21300032
+      mm1_locate_ruinsbuilding_n_sewer_17: 21300034
+      mm1_locate_ruinsbuilding_n_sewer_18: 21300036
+      mm1_locate_ruinsbuilding_n_sewer_19: 21300038
+      mm1_locate_ruinsbuilding_n_sewer_2: 21300004
+      mm1_locate_ruinsbuilding_n_sewer_20: 21300040
+      mm1_locate_ruinsbuilding_n_sewer_21: 21300042
+      mm1_locate_ruinsbuilding_n_sewer_22: 21300044
+      mm1_locate_ruinsbuilding_n_sewer_23: 21300046
+      mm1_locate_ruinsbuilding_n_sewer_24: 21300048
+      mm1_locate_ruinsbuilding_n_sewer_25: 21300050
+      mm1_locate_ruinsbuilding_n_sewer_26: 21300052
+      mm1_locate_ruinsbuilding_n_sewer_27: 21300054
+      mm1_locate_ruinsbuilding_n_sewer_28: 21300056
+      mm1_locate_ruinsbuilding_n_sewer_29: 21300058
+      mm1_locate_ruinsbuilding_n_sewer_3: 21300006
+      mm1_locate_ruinsbuilding_n_sewer_30: 21300060
+      mm1_locate_ruinsbuilding_n_sewer_31: 21300062
+      mm1_locate_ruinsbuilding_n_sewer_32: 21300064
+      mm1_locate_ruinsbuilding_n_sewer_33: 21300066
+      mm1_locate_ruinsbuilding_n_sewer_34: 21300068
+      mm1_locate_ruinsbuilding_n_sewer_35: 21300070
+      mm1_locate_ruinsbuilding_n_sewer_36: 21300072
+      mm1_locate_ruinsbuilding_n_sewer_37: 21300074
+      mm1_locate_ruinsbuilding_n_sewer_38: 21300076
+      mm1_locate_ruinsbuilding_n_sewer_39: 21300078
+      mm1_locate_ruinsbuilding_n_sewer_4: 21300008
+      mm1_locate_ruinsbuilding_n_sewer_40: 21300080
+      mm1_locate_ruinsbuilding_n_sewer_41: 21300082
+      mm1_locate_ruinsbuilding_n_sewer_42: 21300084
+      mm1_locate_ruinsbuilding_n_sewer_43: 21300086
+      mm1_locate_ruinsbuilding_n_sewer_44: 21300088
+      mm1_locate_ruinsbuilding_n_sewer_45: 21300090
+      mm1_locate_ruinsbuilding_n_sewer_46: 21300092
+      mm1_locate_ruinsbuilding_n_sewer_47: 21300094
+      mm1_locate_ruinsbuilding_n_sewer_48: 21300096
+      mm1_locate_ruinsbuilding_n_sewer_49: 21300098
+      mm1_locate_ruinsbuilding_n_sewer_5: 21300010
+      mm1_locate_ruinsbuilding_n_sewer_50: 21300100
+      mm1_locate_ruinsbuilding_n_sewer_51: 21300102
+      mm1_locate_ruinsbuilding_n_sewer_52: 21300104
+      mm1_locate_ruinsbuilding_n_sewer_53: 21300106
+      mm1_locate_ruinsbuilding_n_sewer_54: 21300108
+      mm1_locate_ruinsbuilding_n_sewer_6: 21300012
+      mm1_locate_ruinsbuilding_n_sewer_7: 21300014
+      mm1_locate_ruinsbuilding_n_sewer_8: 21300016
+      mm1_locate_ruinsbuilding_n_sewer_9: 21300018
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

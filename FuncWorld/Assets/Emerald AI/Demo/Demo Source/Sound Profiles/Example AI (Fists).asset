@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55a67ba0da1c9f644a2a3734305677bf, type: 3}
+  m_Name: Example AI (Fists)
+  m_EditorClassIdentifier: 
+  IdleSoundsFoldout: 0
+  FootstepSoundsFoldout: 1
+  InteractSoundsFoldout: 0
+  EquipAndUnequipSoundsFoldout: 0
+  AttackSoundsFoldout: 0
+  InjuredSoundsFoldout: 0
+  BlockSoundsFoldout: 0
+  DeathSoundsFoldout: 0
+  WarningSoundsFoldout: 0
+  IdleSoundsSeconds: 0
+  IdleSoundsSecondsMin: 5
+  IdleSoundsSecondsMax: 10
+  IdleSoundsTimer: 0
+  SheatheWeapon: {fileID: 0}
+  UnsheatheWeapon: {fileID: 0}
+  RangedSheatheWeapon: {fileID: 0}
+  RangedUnsheatheWeapon: {fileID: 0}
+  IdleSounds: []
+  AttackSounds:
+  - {fileID: 8300000, guid: 4599631ade924b14aae7ec6c20a8b8ad, type: 3}
+  InjuredSounds: []
+  WarningSounds: []
+  DeathSounds: []
+  FootStepSounds:
+  - {fileID: 8300000, guid: b6a15c3505177de4e8e8b1e159e205dc, type: 3}
+  - {fileID: 8300000, guid: 61b10e914178adb4a8d78224afbd8c30, type: 3}
+  - {fileID: 8300000, guid: 68f1842d2505ac443b156c2fff1a307a, type: 3}
+  - {fileID: 8300000, guid: 85a3907d08add554d89b9326b6f3a83a, type: 3}
+  - {fileID: 8300000, guid: 3d14c8586c50f3f4dbcb8d923e57b76c, type: 3}
+  BlockingSounds: []
+  IdleVolume: 1
+  WalkFootstepVolume: 0.25
+  RunFootstepVolume: 0.5
+  BlockVolume: 1
+  InjuredSoundOdds: 100
+  InjuredVolume: 1
+  AttackVolume: 0.2
+  WarningVolume: 1
+  DeathVolume: 0.7
+  EquipVolume: 1
+  UnequipVolume: 1
+  RangedEquipVolume: 1
+  RangedUnequipVolume: 1
+  InteractSounds: []

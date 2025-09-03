@@ -1,0 +1,533 @@
+﻿‌Windows‌系统下Application.persistentDataPath指向%userprofile%\AppData\LocalLow\
+System.AppDomain.CurrentDomain.BaseDirectory 返回调试目录(如bin\Debug或bin\Release),在Unity编辑器运行时返回编辑器安装目录\Editor,Unity进行打包并选择直接运行时返回项目目录\,仅单独打包后返回exe目录
+string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;// 返回exe所在路径
+string exeDirectory = System.IO.Path.GetDirectoryName(exePath);// 返回exe所在目录
+Application.dataPath打包前是Assets文件夹下的路径,打包后是识别exe程序名称_Data文件夹下的路径(末尾没有\),用法:Application.dataPath + "/Resources/Textures/WorldSP.png"
+
+//下面StreamingAssets目录内的资源会原样复制到打包后的固定位置且不会压缩,适合外部资源直接互动(做Mod).
+string streamingPath = Application.streamingAssetsPath;//返回<项目根目录>/Assets/StreamingAssets(绝对路径)‌,打包后返回<应用安装目录>/<应用名>(或带Win64)_Data/StreamingAssets‌
+Debug.Log("StreamingAssets路径: " + streamingPath);
+//以下是桌面路径
+string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+string inputFile = Path.Combine(desktopPath, "T.xml");
+string outputFile = Path.Combine(desktopPath, "output.xml");
+
+使用读写流时
+Flush()会强制将缓冲区数据立即写入目标,但保持流处于打开状态
+Close()内部会自动调用Flush()后再释放资源,流将不可再用
+在C#中连续调用Flush()和Close()方法时,会导致两次缓冲区刷新操作产生额外开销(虽然通常可忽略不计)
+需要确保关键数据立即持久化时(如日志写入),可单独调用Flush()
+使用using语句可自动调用Dispose(),其内部会处理刷新和关闭
+
+// 字符流(需要手动关闭Close()或用using自动关闭)
+using (StreamWriter writer = new StreamWriter("output.txt"))
+{
+    writer.WriteLine("Critical data that needs to be saved immediately.");
+    writer.Flush(); // 清空所占缓冲区内存,缓冲区中的数据被立即写入到文件(即使程序在后续发生异常或崩溃,只要‌Windows‌系统正常,数据从内存陆续写到文件中途不会丢失)
+}
+
+File用于字节流是一个静态类提供了对文件的基本操作如创建、复制、移动、删除和打开文件等
+File主要提供与文件相关的方法,基于文件路径(path)进行操作
+FileStream是.NET Framework中System.IO命名空间下用于文件读写操作的流类
+FileStream主要提供了对文件同异步读写操作,可处理任何数据文件而不仅仅是文本,它读写的是原始字节数据因此需要进行编码转换才能处理文本数据
+StreamReader是一个用于读取字符流的类(位于System.IO命名空间)
+StreamReader的主要作用是将字节流转换为字符流
+
+StringBuilder用于高效处理字符串拼接修改,与普通的字符串(string类型)不同,string是不可变的,每次对string进行操作(如连接、替换等)都会创建一个新的字符串对象,这在频繁操作字符串时会导致性能开销,尤其是在循环中进行大量字符串拼接操作时,而StringBuilder是可变的,它可以在同一个对象上进行多次修改操作从而提高性能
+
+// 获取文件夹中所有子文件夹的名称
+string[] folders = Directory. GetDirectories (path);
+// 输出每个子文件夹的名称
+foreach (string folder in folders){}
+
+// 获取文件夹中所有文件的完整路径
+string[] files = Directory.GetFiles(path);
+// 输出每个文件的名称
+foreach (string file in files){}
+
+// ISet是一个包含集合方法的接口类,微软已在.Net框架实现了一次接口方法,可直接使用
+ISet<string> names = new HashSet<string>();
+
+
+// 使用Convert.ToString 转换为十六进制字符串,但不保证长度
+string hexString1 = Convert.ToString(number, 16);
+Console.WriteLine(hexString1); // 输出 "f"
+
+// 使用 ToString 和 PadLeft 来确保最小长度
+string hexString2 = number.ToString("X").PadLeft(desiredLength, '0');
+Console.WriteLine(hexString2); // 输出 "000f"
+stringBuilder.Append(@"\x" + ((int)c).ToString("x2"));
+
+// 转义序列和进制表示
+八进制识别3位,\0101和\101是同一个(前导0无关紧要),但\128 在ASCII码表中是超出范围的因为ASCII码只定义了0到127的字符；
+十六进制最多识别2位(不含前导),在大多数情况下,\x000f 和 \x0f是等价的,因为它们都表示相同的十六进制值 0F,对应ASCII码表中的“换行”(Line Feed, LF)字符(尽管在现代系统中,换行通常表示为 \n,即ASCII码10,而 \x0F 实际上是一个不太常用的控制字符,称为“换页”或“新页”(Form Feed, FF)),实际意义取决于它们被用在什么上下文中.
+//算法混淆时的进制数值表示
+0x0f:0x前缀通常用于表示一个十六进制数值,而不是一个字符的转义序列,所以它表示十六进制数值0F,等于十进制的15；
+return "0X" + Convert.ToString(number, 16);//静态方法
+return "0X" + number.ToString("x");//实例方法不限长度,过亿数字设置x8则不足自动用0填充
+用number.ToString("x2")来尝试将一个很大的整数(如21亿)转换为十六进制字符串,并且指定了"x2"格式说明符,‌C#不会报错,‌但也不会给完整的十六进制表示只会返回该整数十六进制表示的前两位.
+// 星际2的Galaxy代码里十六进制只允许\x11x12x13或\x11\x12\x13(不含前导0的话x后面最大跟俩位),八进制不含前导0的话后面最大三位
+
+// C#的switch语句中每个case块若没有使用break、return、throw等语句来显式地跳出那么程序会继续执行下一个case块,即使下一个case的条件并不满足,这种行为称为“fall-through”,会导致意外的结果或逻辑错误,为避免这种情况,你需要在每个case块的末尾添加break语句,以显式地跳出switch语句.
+switch (num)
+{
+    case 0:
+        // 这里缺少break语句
+    case 1:
+        // 处理num为1的情况,但由于上面case 0缺少break,这里的代码也会被执行
+        // 正确的做法是在这里添加break语句
+        // break;
+    case 2:
+        // 处理num为2的情况,但由于上面case 1也缺少break,这里的代码同样会被执行
+        break;
+}
+
+@tempStr中的@符号在这里的作用是允许使用tempStr作为变量名,如单个tempStr是关键字就可以这样使用
+GameObject.Find只能找激活的物体,若要找不激活的物体需用transform.Find(前提是transform所在的根节点必须可见)
+
+// 静态字段的初始化仅发生在类首次被访问时(无论是通过实例化还是直接访问静态成员),后续操作不会重复初始化.
+// 如下字段所在类实例化多个,字段赋值中的new Dictionary<int, CelestialBody>()只在类模板内存中创建一次,此后其他实例类创建时共享该字段.
+// public static Dictionary<int, CelestialBody> CelestialBodyDictionary { get; private set; } = new Dictionary<int, CelestialBody>();
+// 静态构造函数里这样写,则跟静态字段声明时的赋值效果一样,不管实例类被实例化多少次,静态构造函数在模板内存首次添加的时候调用一次.
+static YourClass() {
+    CelestialBodyDictionary = new Dictionary<int, CelestialBody>();
+}
+// 但若赋值动作是写在实例类的实例方法中,则会在每次调用该方法时都创建一个新的字典实例去赋值,这种写法破坏了静态字段的单次初始化特性.
+public void InstanceMethod() {
+    CelestialBodyDictionary = new Dictionary<int, CelestialBody>(); // 每次调用都会新建字典去赋值
+}
+// 普通静态方法中这样写,每次调用依然会new多个,虽然都是方法,但与静态构造函数不同,不再像静态构造函数那样作为模板内存首次添加时自动调用一次,而是接受外部反复调用.
+public static void StaticMethod() {
+    CelestialBodyDictionary = new Dictionary<int, CelestialBody>(); // 仅执行一次(首次调用时)
+}
+
+// Unity脚本生命周期和组件
+// 继承MonoBehaviour的类必须设计成实例类,可作为Unity组件挂载到游戏物体上,并在Unity编辑器中显示其公共非静态字段和属性(可通过Inspector面板编辑).
+// MonoBehaviour的子类不能直接使用new来创建实例,否则Unity会抛出MissingComponentException异常.
+// 组件用法:Unity中随便新建一个空对象,Inspector面板把脚本拖到组件位置即挂载(自定义类要作为组件挂载必须一个cs文件一个类,且类名须与文件名一致).或代码直接给游戏物体添加组件.
+// 私有或静态字段不被自动序列化到Inspetor,想要强制被序列化请使用[SerializeField]特性,想不被序列化请使用[NonSerialized]特性,
+// [SerializeReference]标记接口或抽象类字段支持多态对象管理和动态类型切换.
+// Start、Update等生命周期方法是Unity控制脚本执行的关键,即使存在Awake但上述方法不存在时在编辑器界面不提供组件启禁用选项.
+// AddComponent时,Awake方法会在添加的那一帧立即执行,但Start方法则在下一帧的Update之前执行‌.
+
+/// <summary>
+/// 挂上组件时运行(无论是否激活,仅自动运行1次)
+/// </summary>
+void Awake(){}
+
+/// <summary>
+/// 组件激活时运行一次(反复激活反复运行)
+/// </summary>
+void OnEnable(){}
+
+/// <summary>
+/// OnEnable后运行一次(仅自动运行1次,反复激活无效)
+/// </summary>
+void Start(){}
+
+/// <summary>
+/// 每帧运行
+/// </summary>
+void Update(){}
+
+// 反射能绕过可见性设置,就是效率比直接调用慢.创建对象时反射比new慢15-20倍(未缓存反射结果时),方法调用中反射比直接调用慢约10-30倍).
+// 枚举本质上是隐式静态的,成员默认int类型常量(可改为继承ushort),不需也不允许额外添加 static 关键字
+
+在Unity引擎中,MonoBehaviour组件通常必须附加到GameObject上才能正常工作,但通过特殊技术手段可以实现孤立实例的创建:
+1)反射创建实例‌
+使用C#反射机制可以创建MonoBehaviour子类的孤立实例,但这类实例无法接入Unity生命周期:
+var instance = Activator.CreateInstance(typeof(YourMonoBehaviour)) as MonoBehaviour;
+这种实例不会触发Start/Update等生命周期方法,且无法通过GetComponent获取‌
+2)编辑器扩展方案‌
+在Editor脚本中创建的特殊实例可以临时存在:
+// 在Editor脚本中
+var scriptableObj = ScriptableObject.CreateInstance<YourMonoBehaviour>();
+这类实例可用于数据预处理但无法参与运行时逻辑‌
+3)内存驻留技术‌(本质上仍是依附于隐藏GameObject‌)
+通过保留组件引用防止被销毁:
+DontDestroyOnLoad(gameObject);
+// 创建隐藏载体对象
+var holder = new GameObject("MemoryHolder");
+DontDestroyOnLoad(holder);
+// 添加需驻留的组件并保留引用
+var keeper = holder.AddComponent<DataKeeper>(); 
+// 移除组件关联但保留实例引用
+Destroy(keeper); 
+// 此时keeper变量仍持有实例引用
+注:孤立实例无法接收Unity事件(如碰撞检测),不能通过标准方式访问Transform等依赖组件,也可能引起内存泄漏需手动管理生命周期‌
+
+
+Unity组件实例本身无法直接转移到其他GameObject上‌,但可通过以下方法实现组件配置或功能的迁移:
+ 一、组件配置复制粘贴(编辑器/运行时)
+‌编辑器操作‌
+使用EditorUtility.CopyComponent复制组件配置,再通过EditorUtility.PasteComponentValues粘贴到目标对象的同类型组件上,实现属性值迁移.
+需组织脚本过滤无需复制的组件(如忽略Transform核心组件).
+二、运行时复制组件字段(通过反射遍历源组件的序列化字段,将属性值复制到目标GameObject新建的同类型组件中)
+Component sourceComp = sourceObj.GetComponent<YourComponent>();
+Component targetComp = targetObj.AddComponent<YourComponent>();
+foreach (var field in sourceComp.GetType().GetFields()) {
+    field.SetValue(targetComp, field.GetValue(sourceComp));
+}
+
+组件摧毁相关
+调用 Destroy(component) 后,组件立即被标记为"待销毁"‌
+当前帧结束前‌:组件仍可被代码访问(但实际已失效)‌
+帧结束后‌:Unity 引擎从内存中移除组件实例,GetComponent<>() 将返回 null‌
+// 移除刚体组件示例
+Destroy(GetComponent<Rigidbody>());  // 帧结束后刚体功能失效
+编辑器有个特殊情况:在编辑器模式下用 DestroyImmediate() 可强制立即销毁,但‌运行时禁止使用‌(会导致引用错误)‌
+移除前的安全检查‌
+Rigidbody rb = GetComponent<Rigidbody>();
+if(rb != null) Destroy(rb);  // 避免移除不存在的组件‌
+批量移除技巧‌
+foreach(var comp in GetComponentsInChildren<AudioSource>()) {
+    Destroy(comp);  // 移除所有子物体的音频组件‌
+}
+
+针对多 Mod 共用框架时处理重复引擎实例的问题,建议采用以下方案:
+1)实例接管机制‌
+新实例应继承旧实例的关键状态(如场景引用、资源句柄等)‌
+通过 ScriptableObject 或静态类存储共享参数,确保新旧实例数据同步‌
+2)安全销毁流程‌
+// 先转移旧实例功能再销毁
+if (engineInstance != null) {
+    CPEngine oldEngine = engineInstance.GetComponent<CPEngine>();
+    oldEngine.TransferStateTo(this); // 自定义状态转移方法
+    DestroyImmediate(oldEngine);
+}
+3)Mod冲突预防‌
+使用 [DisallowMultipleComponent] 特性禁止同一物体挂载多个引擎组件‌
+在框架文档中明确要求 Mod 作者检查 CPEngine.Instance 静态引用‌
+4)调试辅助‌
+Debug.LogWarning($"Engine instance overwritten. " +
+    $"Old: {oldEngine.GetInstanceID()}, New: {this.GetInstanceID()}");
+关键点在于通过状态转移实现无缝切换,同时为 Mod 作者提供明确的冲突处理规范.
+
+一个组件只有静态方法,在Awake初始化之后就没其他动作(也无实例字段引用动作),那么这种情况摧毁都没事
+摧毁游戏物体,其上的组件也会摧毁
+
+//InvokeRepeating用于特定时间间隔内执行与游戏自动更新频率不同步的情况,如在游戏开始后1秒执行操作来让主要组件充分调度完毕,然后每隔指定秒执行一次
+//不会新开线程,它是在Unity主线程中间隔执行所以引擎对象不需回调,但第三个参数在运行过程修改无效(类似GE的周期触发器但有办法重写其调用的内部方法来支持变量)
+InvokeRepeating(nameof(CPEngine.Tick), 0f, 0.0625f);//作为MonoBehaviour类的实例方法必须通过具体实例调用,此外该方法需通过字符串指定目标方法名并在运行时绑定到具体实例,因此静态方法中是无法直接调用该方法的.
+CancelInvoke(nameof(CPEngine.Tick));// 取消InvokeRepeating的调用,若没有指定方法名则取消当前MonoBehaviour实例上所有通过Invoke()或InvokeRepeating()启动的方法的延迟/重复调用.
+
+实例方法跟静态一样永远只有1份模板内存,只有实例字段才会每次实例化去分配新的内存空间.区别只是调用方式.能从静态模板找方法调用,最为直接.
+不过像是协程启动,这些方法做不了静态.协程方法体（枚举器）倒是可以做成静态.回调函数更要封装为静态才能去子线程调用.
+
+凡是IEnumerator带static修饰的,方法里面基本都是去new另一个IEnumerator类的实例,然后通过该实例的方法遍历集合之用.
+在C#中‌IEnumerator接口的实现类通常不能声明为static‌,原因如下:
+迭代器本质要求实例化‌
+IEnumerator的核心功能是通过MoveNext()和Current属性遍历集合,这些操作需要维护迭代状态(如当前位置),而静态成员无法保存实例状态.
+语言规范限制‌
+本地函数(含迭代器方法)默认不允许添加static修饰符,直接声明会导致编译器错误CS0106.例如:
+// 错误示例:静态迭代器
+static IEnumerator StaticCo() { yield return null; } // 编译错误
+替代方案‌
+若需全局访问迭代逻辑,可通过静态方法返回非静态迭代器实例:
+public static IEnumerator GetEnumeratorInstance() {
+    return new CustomEnumerator(); // 返回实例化的迭代器
+}
+这里static仅用于方法本身,而方法内部通过new创建了‌非静态的迭代器实例‌.静态方法只是作为工厂模式提供全局访问入口,实际迭代逻辑仍由实例化的CustomEnumerator完成
+public class CustomEnumerator : IEnumerator
+{
+    private int[] _data;  // 待迭代的数据集合
+    private int _position = -1;  // 当前迭代位置(初始为-1)
+
+    public CustomEnumerator(int[] data)
+    {
+        _data = data;
+    }
+
+    public object Current
+    {
+        get
+        {
+            // 返回当前元素,需检查位置有效性
+            if (_position < 0 || _position >= _data.Length)
+                throw new InvalidOperationException();
+            return _data[_position];
+        }
+    }
+
+    public bool MoveNext()
+    {
+        // 移动位置并返回是否有效
+        _position++;
+        return _position < _data.Length;
+    }
+
+    public void Reset()
+    {
+        _position = -1;  // 重置迭代位置
+    }
+}
+例外情况仅出现在extern标记的本地函数中,但这类场景与常规IEnumerator实现无关.
+
+obj.GetComponents<Component>(); // 该方法与GetComponent<T>()的区别在于返回全部组件而非单个实例,使用时需注意处理可能存在的null元素以避免运行时异常
+具体特性如下:
+组件类型范围‌
+包含所有继承自Component的实例,如Transform、MeshRenderer等内置组件
+包含用户自定义的MonoBehaviour脚本
+若组件引用丢失(如脚本被删除),数组中对应元素为null
+数组顺序特性‌
+组件排列顺序与Inspector面板显示顺序一致
+Transform组件始终位于数组首位(因所有GameObject必备)
+典型应用场景‌
+检测特定组件是否存在(如接口实现组件)
+批量操作组件(如禁用所有渲染组件)
+清理空引用或无效组件
+
+当组件在Awake()阶段调用Destroy(this)时,会立即标记组件为待销毁状态,但当前帧仍会完成Awake()剩余代码的执行
+Type.Name //不包括任何命名空间信息‌
+Type.FullName //包括命名空间信息‌
+
+Addressables 插件要求 ‌Unity 2018.3 或更高版本
+Addressables.LoadAssetAsync<TextAsset>("MapCollider.txt").Completed += handle => {
+                if (handle.Status == AsyncOperationStatus.Succeeded)
+                {
+                    Debug.Log(handle.Result.text); // 输出文件内容
+                }
+            };
+
+gameObj.AddComponent<CPEngine>(); // 若目标对象上‌已存在‌同类型组件‌不会报错‌,会返回已存在的组件实例而非新建一个
+
+GameObject.Find("CPEngine").transform; // 找不到会报错
+//应改为如下
+GameObject obj = GameObject.Find("CPEngine");
+if (obj != null) {
+    Transform targetTransform = obj.transform;
+}
+
+GetKey 在按键持续按住期间每帧返回 true‌
+GetKeyDown 仅在按键按下瞬间的第一帧返回 true‌
+
+在Unity中,将预制体拖拽到GameObject字段仅代表该字段引用了预制体资源文件,并不会在场景中创建实际物体(即便该GameObject字段显示非null)
+预制体(Prefab)作为资源模板,必须通过Instantiate()方法实例化才能在场景中生成可见对象
+一、预制体资源的内存占用
+当预制体资源被加载到脚本字段时(如public GameObject prefab;),它仅作为‌资源引用‌存在,此时占用的是‌Native内存‌(存储资源数据)和少量‌托管内存‌(存储引用指针)
+删除或覆盖字段引用(如prefab = null)不会自动释放Native内存,资源会持续占用内存直到被显式卸载
+内存结构:A[脚本字段] --> B[预制体资源指针] B --> C[Native内存-预制体数据] B --> D[托管内存-引用对象]
+释放预制体资源的正确方式:
+public class PrefabUnloader : MonoBehaviour 
+{
+    public GameObject prefab; // Inspector拖拽赋值的预制体
+    void UnloadPrefab() 
+    {
+        if(prefab != null) 
+        {
+            // 1. 销毁已实例化关联预制体的场景中的GameObject(托管内存的引用对象)
+            foreach(var instance in FindObjectsOfType<GameObject>()) 
+            {
+                if(PrefabUtility.GetPrefabInstanceStatus(instance) == PrefabInstanceStatus.Connected 
+                   && PrefabUtility.GetCorrespondingObjectFromSource(instance) == prefab)
+                {
+                    Destroy(instance);
+                }
+            }
+            // 2. 释放资源(摧毁不在场景但加载到Native内存的GameObject预制体)
+            Resources.UnloadAsset(prefab);
+            prefab = null;
+            // 3. 强制内存清理
+            System.GC.Collect(); //GC优先原则,必须先执行System.GC.Collect()清理托管堆引用,否则未被回收的托管对象会阻止关联的Native资源释放
+            //托管堆清理会标记并回收无引用的C#对象,只有托管引用被清除后,UnloadUnusedAssets才能识别出可释放的Native资源
+            Resources.UnloadUnusedAssets();
+        }
+    }
+}
+二、AB包资源的内存机制
+加载AB包时:资源数据进入‌Native内存‌,引用信息进入‌托管内存‌,所有加载的资源(纹理/模型/预制体等)均会持续占用内存
+内存释放策略如下:‌
+          方式	                    托管内存	Native内存	使用场景
+AssetBundle.Unload(false)	        保留引用	  释放	  需复用资源时
+AssetBundle.Unload(true)	        释放引用	  释放	  完全废弃资源
+Resources.UnloadUnusedAssets()	 释放无引用资源	同步释放	通用清理
+‌典型内存泄漏场景‌:‌静态字段持有资源引用、未正确卸载AB包(尤其忘记调用Unload(true))、未销毁的组件间接持有资源引用
+三、关键结论
+‌预制体内存‌:未实例化的预制体若不显式卸载,会持续占用Native内存
+‌AB包内存‌:所有加载的资源均占内存,必须通过Unload或Resources.UnloadUnusedAssets释放
+‌排泄必要性‌:Unity‌不会自动释放‌Native内存资源,开发者必须主动管理,否则会导致:移动端内存溢出崩溃、PC端内存持续增长、资源引用残留引发NullReferenceException
+标准清理代码模板:
+// 1. 强制托管堆GC(优先执行)
+System.GC.Collect();
+System.GC.WaitForPendingFinalizers(); //确保终结器执行完毕
+// 2. 释放Native资源
+Resources.UnloadUnusedAssets();
+// 3. 可选:二次GC确保彻底清理
+System.GC.Collect(); 
+
+在Unity打包AssetBundle时,除了为每个AB包生成对应的.manifest文件(如res.manifest),还会生成一个名为AssetBundle.manifest的全局清单文件.两者的核心区别如下:
+res.manifest‌
+↑这是针对res包的独立清单,记录该包内资源的详细信息和本地依赖关系(如资源类型、CRC校验值等).
+AssetBundle.manifest‌
+↑这是全局清单文件,由Unity自动生成,包含所有AB包的依赖关系图和哈希值.它的作用包括:
+管理跨AB包的依赖链,避免重复加载资源；
+提供热更新所需的版本校验信息(如文件哈希值)；
+运行时通过AssetBundleManifest类加载,用于解析依赖关系.
+典型场景示例‌:若res包依赖另一个textures包的贴图,加载res时需先通过AssetBundle.manifest检查并加载textures包,否则会出现资源丢失.
+AssetBundle‌同名素材冲突通过以下设计规避:
+1. ‌基于完整路径的唯一标识‌
+Unity在打包时会将资源的‌完整项目路径‌(如Assets/res/UI/icon.png)作为唯一标识,而非仅文件名.即使不同子目录下有同名文件(如res/A/icon.png和res/B/icon.png),它们的完整路径不同,因此不会冲突.
+2. ‌运行时加载逻辑‌
+加载资源时必须使用‌原始相对路径‌(如LoadAsset<Texture>("UI/icon.png")),Unity会根据路径定位到正确的资源.
+若强行仅用文件名加载(如LoadAsset<Texture>("icon.png")),Unity会抛出异常或返回第一个匹配项(行为不确定).
+3. ‌开发者需注意的例外情况‌
+手动指定AB包名称‌,若为不同子目录的素材分配了相同的AB包名(如UI和Characters都标记为ui包),同名文件会被覆盖,导致资源丢失.
+解决方案: 确保每个独立目录使用唯一的AB包名.
+资源迁移或复制‌
+若在项目中直接复制文件(如icon.png复制到多个目录),需在Unity编辑器内操作,否则可能导致Meta文件丢失,路径标识失效.
+4. ‌最佳实践建议‌
+保持路径唯一性‌,即使Unity支持同名文件,建议通过命名规范(如ui_icon.png、char_icon.png)提升可维护性.
+分目录打包‌,对高频更新的资源按子目录单独打包(如UI、Models),减少热更新时的AB包体积.
+总结:Unity通过路径标识解决同名问题,但开发者仍需合理规划资源结构和AB包分配.
+若res包‌无外部依赖‌(即不引用其他AB包)且无需热更新功能可删除主清单文件(不影响res包内资源的直接加载),但需确保res包自身.manifest文件保留否则无法通过路径加载资源.
+GC仅回收‌托管内存中的引用‌,无法释放Native内存的.GameObject继承自UnityEngine.Object,其生命周期需通过Destroy()显式销毁,也不会自动回收,但其上的组件一旦孤立会被回收.
+AssetBundle.LoadFromFileAsync(path)是Unity中异步加载AssetBundle的核心API,对未压缩或LZ4压缩的AB包直接映射文件到内存地址空间,减少内存拷贝开销,而LZMA压缩包需全量解压到内存,峰值内存占用较高.
+AB包的LoadFromFile‌方法直接通过文件系统API读取AB包,利用操作系统级缓存优化,减少内存拷贝次数,适用于‌未压缩‌或LZ4压缩的AB包,加载时自动处理压缩头信息,适用于‌AssetBundle较小或需快速访问AssetBundle中的所有资产.
+LoadFromStream‌需手动创建FileStream传递数据流,增加一层托管代码到Native代码的转换开销,灵活性更高可自定义流来源(如加密流、网络流)及控制每次读取量,但需自行处理流生命周期.
+所以常规使用LoadFromFile即可,比流‌更快(直接映射文件内存).
+
+//手动让没完成的协程实例继续往下跑(不建议催促):
+ if (testResource.currentIEnumerator != null)
+{
+    testResource.currentIEnumerator.MoveNext();
+    //检查协程是否完成
+    if (testResource.currentIEnumerator == null)
+    {
+        //完成则手动停止
+        StopCoroutine(testResource.currentIEnumerator);
+    }
+}
+
+在C#中,IEnumerator接口的函数成员及其返回值规则如下：
+Current：默认返回object类型的只读属性,获取当前元素
+MoveNext()：返回bool类型,指示是否成功移动到下一个元素
+Reset()：无返回值(void),重置枚举器状态
+仅泛型版本‌IEnumerator<T>的Current属性返回泛型类型T
+
+子类方法用new修饰则创建的是与基类无关的新方法,此时编译器不会要求override
+
+AB包预制体带自定义组件脚本的,需在AB包加载前先加载带该脚本的dll,注意命名空间和脚本类名字段均要一致,这样预制体组件上的脚本才能被成功识别.
+在dll中可预留AB包加载方法,但dll自身不能用来加载AB包,需另外开一个dll(比如环世界的Mod),引用之前带脚本的dll(如MC框架库)后,再调用方法加载AB包(MC框架用到的素材、预制体).
+当然,MC框架不做dll也有办法,就是预制体麻烦些要自己纯代码读取图片等素材进行组装.
+//从外部路径加载Shader文本并创建材质
+IEnumerator LoadExternalShader() {
+    string path = Path.Combine(Application.streamingAssetsPath, "shader.bytes");
+    UnityWebRequest request = UnityWebRequest.Get(path);
+    yield return request.SendWebRequest();
+    
+    if (request.result == UnityWebRequest.Result.Success) {
+        string shaderCode = System.Text.Encoding.UTF8.GetString(request.downloadHandler.data);
+        Material mat = new Material(Shader.Find("Standard")); // 临时载体
+        mat.shader = ShaderUtil.CreateShaderAsset(shaderCode); // Editor专用API
+    }
+}
+//从AB包加载Shader并创建材质
+AssetBundle ab = AssetBundle.LoadFromFile("abPath");
+Shader shader = ab.LoadAsset<Shader>("ShaderName");
+Material mat = new Material(shader); // 转为材质实例
+Unity的Standard Shader属于引擎‌内置核心资源,就跟官方组件一样不用打包进来.
+
+创建100万次Vector2结构体比同规模类实例快3-5倍,但包含复杂方法调用的场景类可能反超10-15%
+readonly字段只能在声明时或构造函数中被赋值，之后在任何地方（包括本类其他方法）都不能再修改其值。
+
+blender制作obj是Wavefront开发的通用3D模型格式，以ASCII文本存储顶点、法线和面片数据，但不包含动画、骨骼或材质路径信息
+其结构包括：
+v 1.0 0.0 0.0  # 顶点坐标
+vt 0.5 1.0     # 纹理坐标
+vn 0.0 0.0 1.0 # 法线向量
+f 1/1/1 2/2/2 3/3/3 # 面片定义
+mtl则是obj用到的材质文件
+
+使用[RuntimeInitializeOnLoadMethod]属性（针对整个游戏）
+[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+private static void OnBeforeSceneLoad()
+{
+    // 在场景加载前执行代码，适用于全局控制初始化逻辑的场景。
+}
+
+组件用法:Unity中随便新建一个空的游戏物体,用AddComponent<组件类名>()进行添加,或GUI界面拖上去.
+自定义类要作Unity组件除继承MonoBehaviour还要求一个cs文件只能一个类且类名须与文件名一致,如非要同一文件多个类就只有文件名那个类启动生命周期.
+
+何时不用new:对继承MonoBehaviour的脚本用new将返回null引用，须通过AddComponent或Instantiate创建‌(后者会生成整个GameObject并返回组件实例)
+注意通过new GameObject()创建的游戏对象会持续存在哪怕引用=null,但切换场景时未标记DontDestroyOnLoad的对象会被自动清理
+
+var obj1 = new GameObject("DynamicObj"); //会立即出现在Hierarchy
+// 特殊用法：创建对象不显示在Hierarchy
+var obj2 = new GameObject("HiddenObj");
+obj2.hideFlags = HideFlags.HideAndDontSave;
+GameObject.CreatePrimitive可创建预制类型游戏物体如Cube,Sphere,Plane,Quad,Cylinder,Capsule
+(GameObject)runtimePrefab.template["Test"]类型转换不是实例化,该操作不会创建新的GameObject实例
+if (CPEngine.network == null) CPEngine.network = this.gameObject; //在C#中if语句后可跟单语句或用大括号{}包含的代码块‌
+
+创建GameObject动作不允许在MonoBehaviour的构造函数（或实例字段初始化器）中调用,应在Awake或Start方法中进行,因Unity在其构造函数阶段尚未完成GameObject初始化和生命周期管理.
+
+//私有化构造函数.确保外部无法通过new实例化本类.
+private CPEngine() {}
+//静态构造函数.在类模板首次被访问时,在静态字段初始化赋值后补充执行.前面不能加修饰符如public或private且不能有参数也不能被调用.
+static CPEngine()
+
+//Windows下使用System.Drawing.Bitmap
+var bitmap = new Bitmap("path/to/image.png");
+Texture2D texture = new Texture2D(bitmap.Width, bitmap.Height);
+for (int y = 0; y < bitmap.Height; y++)
+{
+    for (int x = 0; x < bitmap.Width; x++)
+    {
+        System.Drawing.Color pixel = bitmap.GetPixel(x, y);
+        texture.SetPixel(x, y, new Color32(pixel.R, pixel.G, pixel.B, pixel.A));
+    }
+}
+texture.Apply();
+GetComponent<Renderer>().material.mainTexture = texture;
+
+
+//URP兼容的纹理操作示例
+Texture2D texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+Color32[] pixels = texture.GetPixels32();
+//修改pixels数组
+texture.SetPixels32(pixels);
+texture.Apply();
+//平时创建Texture2D时，不填格式参数，默认会使用TextureFormat.RGBA32
+
+//在C#中，通过反射获取方法后转换为委托是优化反射性能的常见手段
+public class DemoClass
+{
+    private int Add(int a, int b) => a + b;
+}
+
+public class Program
+{
+    // 定义匹配方法的委托类型
+    private delegate int AddDelegate(DemoClass instance, int a, int b);
+
+    public static void Main()
+    {
+        // 1. 反射获取方法信息
+        MethodInfo method = typeof(DemoClass).GetMethod("Add", 
+            BindingFlags.NonPublic | BindingFlags.Instance);
+
+        // 2. 转换为委托并缓存
+        AddDelegate addDelegate = (AddDelegate)Delegate.CreateDelegate(
+            typeof(AddDelegate), null, method);
+
+        // 3. 重复调用时直接使用委托
+        DemoClass instance = new DemoClass();
+        for (int i = 0; i < 10; i++)
+        {
+            int result = addDelegate(instance, i, i * 2);
+            Console.WriteLine($"Result {i}: {result}");
+        }
+    }
+}
+
+go.transform.localScale = new Vector3(displayScale, displayScale, displayScale); //每帧这样会产生大量GC
+//优化措施为复用一个Vector3实例
+private Vector3 _scaleCache = Vector3.one;
+void Update() {
+    _scaleCache.Set(displayScale, displayScale, displayScale);
+    transform.localScale = _scaleCache;
+}
+
+静态字段上的数据会在模板类内存一直存在,函数内的静态变量也是如此，彻底不用时自己置null
+C#内置封装的委托类型Func<>必须有返回值,Action<>无返回值,有时不是官方封的有限制,跟引擎一样至少封几个通用,特殊用法的要自己编织
+Task基于Thread封装做了线程池复用,避免频繁创建/销毁

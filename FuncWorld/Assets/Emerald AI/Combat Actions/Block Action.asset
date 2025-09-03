@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42e67c9438eee2e4cae1199e275d0ee3, type: 3}
+  m_Name: Block Action
+  m_EditorClassIdentifier: 
+  EnterConditions: 190
+  ExitConditions: 32768
+  CooldownConditions: 3326
+  CooldownLength: 0.3
+  UseCooldown: 1
+  HideSettingsFoldout: 0
+  DefaultSettingsFoldout: 1
+  CustomSettingsFoldout: 1
+  InfoSettingsFoldout: 0
+  ActionName: Block
+  ActionDescription: Gives AI the ability to detect and block incoming projectiles
+    and melee attacks.
+  BlockLength: 1
+  MeleeDetectionRadius: 4.5
+  MaxBlockAngle: 90
+  MitigationAmount: 50
+  ProjectileDetectionRadius: 4
+  ProjectileLayers:
+    serializedVersion: 2
+    m_Bits: 4
+  OddsToBlock: 0.5
