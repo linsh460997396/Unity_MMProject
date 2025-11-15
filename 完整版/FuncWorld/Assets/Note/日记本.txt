@@ -531,3 +531,78 @@ void Update() {
 静态字段上的数据会在模板类内存一直存在,函数内的静态变量也是如此，彻底不用时自己置null
 C#内置封装的委托类型Func<>必须有返回值,Action<>无返回值,有时不是官方封的有限制,跟引擎一样至少封几个通用,特殊用法的要自己编织
 Task基于Thread封装做了线程池复用,避免频繁创建/销毁
+
+/// <summary>
+/// 读取图片并转Texture2D,仅支持png和jpg
+/// </summary>
+/// <param name="filePath">完整的图片文件路径</param>
+/// <returns></returns>
+public static Texture2D LoadImageAndConvertToTexture2D(string filePath)
+{
+    if (!File.Exists(filePath))
+    {
+        Debug.LogWarning(filePath);
+        return null;
+    }
+    byte[] fileData = File.ReadAllBytes(filePath); //打包后的程序中运行,路径不对的话会卡在这里
+    Texture2D texture = new Texture2D(2, 2); //随便定义初始尺寸但不可为null
+
+    //使用UnityEngine.CoreModule.dll
+    //texture.LoadRawTextureData(fileData);
+    //texture.Apply(); //需要手动调用Apply来应用更改
+
+    //新版使用UnityEngine.ImageConversionModule.dll (Unity2022支持)
+    bool success = texture.LoadImage(fileData); //加载图片Unity会自动调整尺寸
+    if (success)
+    {
+        //图片加载成功
+        Debug.Log("Image loaded successfully with width: " + texture.width + " and height: " + texture.height);
+    }
+    else
+    {
+        //图片加载失败,可能需要检查字节数组是否有效或图片格式是否支持
+        Debug.LogError("Failed to load image.");
+    }
+    return texture;
+}
+
+if (Camera.main == null)
+{
+    Debug.LogError("Camera.main == null. Create a new one.");
+    m_Camera = CreatePerspectiveCamera("MCMainCamera", new Vector3(0, 20, 0));
+    m_Camera.tag = "MainCamera";
+
+}
+else
+{
+    m_Camera = Camera.main;//获取主摄像机
+}
+
+//利用反射来读取怪物配置
+//var st = typeof(Scene); //获取类型信息
+//获取私有方法,指定BindingFlags
+//MethodInfo privateMethod = type.GetMethod("方法名",BindingFlags.NonPublic | BindingFlags.Instance);
+//设置方法可访问（如需）
+//privateMethod?.SetAccessible(true);
+
+//var fs = st.GetFields(BindingFlags.Public | BindingFlags.Instance); //如果要获取私有字段则换成BindingFlags.NonPublic
+//foreach (var f in fs) {
+//    if (f.FieldType.Name == "Sprite[]") {
+//        if (f.Name.StartsWith("sprites_monster")) {
+//            var ss = f.GetValue(scene) as Sprite[];
+//            if (ss.Length > 0) {
+//                spritess.Add(ss);
+//            }
+//        }
+//    }
+//}
+//用反射获取MethodInfo后可将其转换为一个类型明确的委托
+//之后调用该方法时直接使用缓存的委托即可避免后续重复反射开销
+
+mesh返回当前网格实例的副本，对该副本进行的任何修改都只会影响当前游戏对象
+sharedMesh返回网格资源本身的引用，修改它会影响到场景中所有使用该共享网格的对象
+sharedMesh主要用于读取网格数据，不建议用于写入操作，因为对它的修改会直接影响导入的原始资源，且这种修改无法撤销
+Mesh是一个数据结构，记录了组成3D模型的所有三角形面数据，而MeshFilter则是引用该Mesh数据的组件
+在边界计算方面，MeshFilter的mesh.bounds表示模型本身的大小，忽略缩放变换，而MeshRenderer的bounds则考虑缩放变换
+
+OnValidate()可以在Awake()之前发生

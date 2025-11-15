@@ -70,8 +70,7 @@ namespace BattleTest
             int autoA_var;
 
             // Implementation
-            autoA_var = 9;
-            for (; autoA_var <= autoA_ae; autoA_var += 1)
+            for (autoA_var = 9; autoA_var <= autoA_ae; autoA_var += 1)
             {
 
                 if (autoA_var == 12)
@@ -89,18 +88,22 @@ namespace BattleTest
                 if (autoA_var == 9)
                 {
                     Game.UnitCreate("OrbitalCommand", 0, lv_p, new Vector2F(10.0f, 10.0f));
+                    MMCore.Tell("创建了玩家9的 OrbitalCommand");
                 }
                 else if (autoA_var == 10)
                 {
                     Game.UnitCreate("OrbitalCommand", 0, lv_p, new Vector2F(246.0f, 10.0f));
+                    MMCore.Tell("创建了玩家10的 OrbitalCommand");
                 }
                 else if (autoA_var == 11)
                 {
                     Game.UnitCreate("OrbitalCommand", 0, lv_p, new Vector2F(10.0f, 246.0f));
+                    MMCore.Tell("创建了玩家11的 OrbitalCommand");
                 }
                 else
                 {
                     Game.UnitCreate("OrbitalCommand", 0, lv_p, new Vector2F(246.0f, 246.0f));
+                    MMCore.Tell("创建了异形玩家的 OrbitalCommand");
                 }
                 //把上面创建的4个阵营主基地存入到gv_campBase,势力玩家开局默认只能有1个主基地(可发展为超大球),后期考虑添加分支基地亦可以发展为超大球
                 gv_campBase[lv_p] = Game.UnitLastCreated;
@@ -134,13 +137,13 @@ namespace BattleTest
             Unit autoD_var;
 
             // Conditions
-            if (!(Game.Initialization == 1))
+            if (Game.Initialization != 1)
             {
                 return;
             }
 
-            autoA_var = 9;//4个开局AI阵营,在周围随机产兵
-            for (; autoA_var <= autoA_ae; autoA_var += 1)
+            //4个开局AI阵营在周围随机产兵
+            for (autoA_var = 9; autoA_var <= autoA_ae; autoA_var += 1)
             {
                 autoB_val = autoA_var;
                 if (autoB_val == 12)
@@ -152,11 +155,15 @@ namespace BattleTest
                 {
                     lv_p = autoA_var;
                 }
+
                 //当前的玩家主基地
                 lv_base = gv_campBase[lv_p];
                 if (lv_base.Alive) //单位刚创建时Alive默认为true,这里主基地没死亡且玩家军队计数小于阀值时产兵
                 {
-                    lv_randomNum = MMCore.RandomInt(1, 50);
+                    lv_randomNum = MMCore.RandomInt(1, 51);
+                    MMCore.Tell("randomNum = " + lv_randomNum);
+                    MMCore.Tell("armyGroup.Count[" + lv_p + "] = " + gv_armyGroup[lv_p].Count());
+                    MMCore.Tell("campForceLimit[" + lv_p + "] = " + gv_campForceLimit[lv_p]);
                     if (lv_randomNum >= 1 && lv_randomNum <= 25 && gv_armyGroup[lv_p].Count() < gv_campForceLimit[lv_p])
                     {
                         autoC_val = lv_randomNum;
@@ -164,27 +171,31 @@ namespace BattleTest
                         {
                             //2%概率诞生一个特殊兵种
                             Game.UnitCreate("UnitType", 0, lv_p, lv_base.Vector2F);
+                            MMCore.Tell("诞生了特殊兵种 名为UnitType");
                         }
                         else if (autoC_val >= 2 && autoC_val <= 25)
                         {
                             //48%诞生一个基础兵种
                             Game.UnitCreate("Any", 0, lv_p, lv_base.Vector2F);
+                            MMCore.Tell("诞生了基础兵种 名为Any");
                         }
                         else
                         {
                             //50%概率什么也不做
+                            MMCore.Tell("什么也不做");
                         }
                         if (autoC_val <= 25)
                         {
                             //新诞生的兵种加入玩家军队数组
                             gv_armyGroup[lv_p].Add(Game.UnitLastCreated);
+                            MMCore.Tell("新诞生的兵种加入玩家" + lv_p + "的军队");
                         }
                     }
-
                 }
+                else { MMCore.Tell("玩家" + lv_p + "的基地已死亡"); }
 
                 //随机进行操作
-                lv_randomNum = MMCore.RandomInt(9, 12);
+                lv_randomNum = MMCore.RandomInt(9, 13);
                 if (lv_randomNum == 12)
                 {
                     //挑选到12时切换到异形阵营
@@ -205,6 +216,7 @@ namespace BattleTest
                         if (autoD_var == null) { break; } //若返回不到则打断循环体
                                                           //对有效单位发布指令
                         autoD_var.IssueOrder(Game.OrderTargetingPoint(Game.AbilityCommand("attack", 0), lv_targetBase.Vector2F), (int)OrderQueue.Replace);
+                        MMCore.Tell("单位命令进攻lv_targetBase");
                     }
                 }
 

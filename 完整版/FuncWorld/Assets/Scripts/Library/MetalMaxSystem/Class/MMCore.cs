@@ -2538,10 +2538,66 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
+        /// 复制目录及其内容到新位置.
+        /// </summary>
+        /// <param name="sourceDir"></param>
+        /// <param name="targetDir"></param>
+        /// <param name="overwrite">重名时覆盖,默认true</param>
+        /// <param name="random">重名不覆盖时随机命名,默认false(按序起名)</param>
+        public static void CopyDirectory(string sourceDir, string targetDir, bool overwrite = true, bool random = false)
+        {
+            string targetFilePath, baseName, tempDirName, extension;
+            CreateDirectory(targetDir);
+
+            //处理文件
+            foreach (string file in Directory.GetFiles(sourceDir))
+            {
+                targetFilePath = Path.Combine(targetDir, Path.GetFileName(file));
+
+                if (overwrite || !(File.Exists(targetFilePath) || Directory.Exists(targetFilePath)))
+                {
+                    File.Copy(file, targetFilePath, overwrite);
+                }
+                else if (random)
+                {
+                    //随机8位
+                    baseName = Path.GetFileNameWithoutExtension(targetFilePath);
+                    extension = Path.GetExtension(targetFilePath);
+                    tempDirName = Path.GetDirectoryName(targetFilePath);
+                    while (File.Exists(targetFilePath) || Directory.Exists(targetFilePath))
+                    {
+                        targetFilePath = Path.Combine(tempDirName, $"{baseName}_{Guid.NewGuid().ToString().Substring(0, 8)}{extension}");
+                    }
+                    File.Copy(file, targetFilePath);
+                }
+                else
+                {
+                    //按序重命名
+                    baseName = Path.GetFileNameWithoutExtension(targetFilePath);
+                    extension = Path.GetExtension(targetFilePath);
+                    tempDirName = Path.GetDirectoryName(targetFilePath);
+                    int counter = 2;
+                    while (File.Exists(targetFilePath) || Directory.Exists(targetFilePath))
+                    {
+                        targetFilePath = Path.Combine(tempDirName, $"{baseName}({counter}){extension}"
+                        );
+                        counter++;
+                    }
+                    File.Copy(file, targetFilePath);
+                }
+            }
+            //递归复制子目录
+            foreach (string subDir in Directory.GetDirectories(sourceDir))
+            {
+                CopyDirectory(subDir, Path.Combine(targetDir, Path.GetFileName(subDir)), overwrite, random);
+            }
+        }
+
+        /// <summary>
         /// 创建目录,若已存在则什么也不干
         /// </summary>
         /// <param name="path"></param>
-        public static void CreatDirectory(string path)
+        public static void CreateDirectory(string path)
         {
             if (!Directory.Exists(path))
             {
@@ -2554,7 +2610,7 @@ namespace MetalMaxSystem
         /// 创建文件,若已存在则什么也不干
         /// </summary>
         /// <param name="filepath"></param>
-        public static void CreatFile(string filepath)
+        public static void CreateFile(string filepath)
         {
             if (!File.Exists(filepath))
             {

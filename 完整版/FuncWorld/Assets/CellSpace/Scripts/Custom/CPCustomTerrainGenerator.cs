@@ -464,8 +464,8 @@ namespace CellSpace
             }
             else if (mapID > 0 && mapID < 241)
             {
-
                 chunk.SetCellSimple(8, 8, 8, 8);//所在空间放一土球
+                //chunk.SetCell(2125551, 225555, 14556554, 8,true);//所在空间放一土球
             }
         }
     }

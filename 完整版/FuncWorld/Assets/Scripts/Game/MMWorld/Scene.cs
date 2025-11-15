@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using CellSpace;
+﻿using CellSpace;
+using UnityEngine;
 
 namespace MMWorld
 {
@@ -339,11 +339,11 @@ namespace MMWorld
                     //正常3D模式的镜头应另行支持鼠标旋转屏
                     Camera.main.gameObject.transform.rotation = Quaternion.Euler(90, 0, 0);
                     Camera.main.orthographic = false;
-                    if (designWidthToCameraRatio != 1f)
-                    {
-                        //3D透视投影用到的是视野大小,若设计分辨率到摄像头坐标的转换系数不为1则调整摄像机的视野大小
-                        Camera.main.fieldOfView = Camera.main.fieldOfView * designWidthToCameraRatio;
-                    }
+                    //if (designWidthToCameraRatio != 1f)
+                    //{
+                    //    //3D透视投影用到的是视野大小,若设计分辨率到摄像头坐标的转换系数不为1则调整摄像机的视野大小
+                    //    Camera.main.fieldOfView = Camera.main.fieldOfView * designWidthToCameraRatio;
+                    //}
                     Debug.Log("透视镜头:摄像机默认视野大小=" + Camera.main.fieldOfView);
                 }
                 Camera.main.gameObject.transform.position = new Vector3(0, 20, 0);
@@ -560,9 +560,14 @@ namespace MMWorld
     }
 }
 
-////利用反射来读取怪物配置
-//var st = typeof(Scene);
-//var fs = st.GetFields(BindingFlags.Public | BindingFlags.Instance);
+//利用反射来读取怪物配置
+//var st = typeof(Scene); //获取类型信息
+//获取私有方法,指定BindingFlags
+//MethodInfo privateMethod = type.GetMethod("方法名",BindingFlags.NonPublic | BindingFlags.Instance);
+//设置方法可访问（如需）
+//privateMethod?.SetAccessible(true);
+
+//var fs = st.GetFields(BindingFlags.Public | BindingFlags.Instance); //如果要获取私有字段则换成BindingFlags.NonPublic
 //foreach (var f in fs) {
 //    if (f.FieldType.Name == "Sprite[]") {
 //        if (f.Name.StartsWith("sprites_monster")) {
@@ -573,3 +578,6 @@ namespace MMWorld
 //        }
 //    }
 //}
+
+//用反射获取MethodInfo后可将其转换为一个类型明确的委托
+//之后调用该方法时直接使用缓存的委托即可避免后续重复反射开销

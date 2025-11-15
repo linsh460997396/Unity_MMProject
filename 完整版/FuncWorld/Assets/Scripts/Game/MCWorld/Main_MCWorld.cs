@@ -441,7 +441,7 @@ namespace MCWorld
             GameObject platform = GameObject.Find("PlatformForBirth");
             if (platform)
             {
-                Destroy(platform, 10f); // 定时摧毁游戏对象
+                Destroy(platform, 60f); // 定时摧毁游戏对象
             }
         }
 

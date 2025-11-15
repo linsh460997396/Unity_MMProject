@@ -352,6 +352,7 @@ namespace MetalMaxSystem
         public static Unit UnitCreate(string unitType, UnitCreateTag unitCreateTag, int player, Vector2F vector)
         {
             Unit unit = new Unit(unitType);
+            unit.Alive = true;
             unit.Owner = player;
             unit.Vector2F = vector;
             if (unit.Hp <= 0.0) { unit.Hp = 1.0; }
