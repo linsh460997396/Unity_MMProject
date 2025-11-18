@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
+using System;
 using UnityEngine;
 
 namespace MetalMaxSystem.Unity
@@ -154,3 +155,5 @@ namespace MetalMaxSystem.Unity
 // 若lockCursor为false,则将鼠标光标的锁定状态设置为CursorLockMode.None,并显示鼠标光标.
 
 // 这个类通常用于第一人称或第三人称射击游戏中,玩家可以使用鼠标来自由地旋转视角和角色.通过调整类的成员变量,开发者可以定制旋转行为,以满足游戏的需求.
+
+#endif

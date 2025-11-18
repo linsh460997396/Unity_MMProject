@@ -639,7 +639,6 @@ namespace MetalMaxSystem.Unity
         #endregion
     }
 }
-#endif
 
 // 在Unity中,Coroutine 和 IEnumerator 是两个不同的概念,但它们紧密相关,通常一起使用来实现协程的功能.
 // 理解它们的区别和用途对于正确使用协程是非常重要.
@@ -775,3 +774,4 @@ namespace MetalMaxSystem.Unity
 //这是因为 StopCoroutine 方法会根据提供的 IEnumerator 实例来查找和停止所有相关的协程.
 //(这在实践中是不常见的,每个协程实例都应设计成同一时刻有其自己的 IEnumerator 实现)
 
+#endif

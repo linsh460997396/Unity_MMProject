@@ -1,9 +1,10 @@
-﻿using UnityEngine;
-using UnityEngine.AddressableAssets;
-using UnityEngine.ResourceManagement.AsyncOperations;
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 namespace MetalMaxSystem.Unity
 {
@@ -235,6 +236,7 @@ namespace MetalMaxSystem.Unity
         }
     }
 }
+
 //// 初始化资源系统,在游戏启动时调用
 //await AddressableManager.Initialize();
 
@@ -268,3 +270,4 @@ namespace MetalMaxSystem.Unity
 //        await Addressables.UpdateCatalogs(catalogs).Task;
 //    }
 //}
+#endif

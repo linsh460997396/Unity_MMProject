@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Numerics;
 using System.Windows;
-#if NET8_0
+#if NET8_0_OR_GREATER
 using System.Drawing;
 using System.Collections.Generic;
 using System.Threading.Tasks;

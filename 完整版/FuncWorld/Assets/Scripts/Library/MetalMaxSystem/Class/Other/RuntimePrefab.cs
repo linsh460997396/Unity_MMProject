@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MetalMaxSystem.Unity
@@ -52,3 +53,5 @@ namespace MetalMaxSystem.Unity
 
 //new GameObject()+Instance做预制体（不从AB包加载的）
 //new的对象在场景托管内存,模拟预制体得失活,在Instance后激活,否则默认激活出现在场景还会运行组件
+
+#endif

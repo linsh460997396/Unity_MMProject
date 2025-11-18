@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
+using System;
 using UnityEngine;
 
 namespace MetalMaxSystem.Unity
@@ -67,3 +68,4 @@ namespace MetalMaxSystem.Unity
         }
     }
 }
+#endif

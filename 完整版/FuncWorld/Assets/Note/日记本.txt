@@ -606,3 +606,21 @@ Mesh是一个数据结构，记录了组成3D模型的所有三角形面数据�
 在边界计算方面，MeshFilter的mesh.bounds表示模型本身的大小，忽略缩放变换，而MeshRenderer的bounds则考虑缩放变换
 
 OnValidate()可以在Awake()之前发生
+
+//戴森球的上万太阳帆动画实现
+void ProcessWithArray() {
+        // 将数组传入Shader
+        ComputeBuffer buffer = new ComputeBuffer(inputArray.Length, sizeof(int));
+        buffer.SetData(inputArray);
+        processingMaterial.SetBuffer("_InputArray", buffer);
+        processingMaterial.SetInt("_ArraySize", inputArray.Length);
+        
+        Graphics.Blit(null, outputRT, processingMaterial);
+        buffer.Release();
+        TransferToCPU();
+    } //这个是提交一组数组信息，让GPU处理
+
+void ProcessWithTexture() {
+        Graphics.Blit(inputTexture, outputRT, processingMaterial);
+        TransferToCPU();
+    }  //这是Unity中提交图片纹理，让GPU处理，返回结果

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
+using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace MetalMaxSystem.Unity
@@ -404,3 +405,5 @@ namespace MetalMaxSystem.Unity
 // m_StepCycle 和 m_NextStep：用于处理步伐周期的变量.
 // m_Jumping：一个标记,表示玩家当前是否在跳跃.
 // m_AudioSource：音频源组件,用于播放声音.
+
+#endif

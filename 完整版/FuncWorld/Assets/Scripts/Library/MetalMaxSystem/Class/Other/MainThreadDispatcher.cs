@@ -99,7 +99,6 @@ namespace MetalMaxSystem.Unity
         }
     }
 }
-#endif
 
 //示范操作
 //private void TodoOnMainThread(var sprite)
@@ -152,3 +151,5 @@ namespace MetalMaxSystem.Unity
 // TrimExcess(): 设置队列的容量为其当前大小,释放多余的存储空间.
 // TryDequeue(out T result): 尝试移除并返回队列的第一个元素,若队列为空,则返回 false 并将 result 设置为默认值.
 // TryPeek(out T result): 尝试返回队列的第一个元素但不移除它,若队列为空,则返回 false 并将 result 设置为默认值.
+
+#endif
