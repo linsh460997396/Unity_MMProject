@@ -1023,7 +1023,9 @@ namespace MetalMaxSystem
         #region Functions 通用功能
 
         /// <summary>
-        /// 若是Unity引擎则使用Debug.Log(contents),其他情况切换至.NET下的Debug.WriteLine(contents)
+        /// 调试输出(封装版).
+        /// Unity环境调用Debug.Log(contents),其他情况使用.NET下的Debug.WriteLine(contents).
+        /// 本方法仅推荐在快速测试结果时使用,调试情况请用未封装的原方法以便IDE识别跳转.
         /// </summary>
         /// <param name="contents">内容</param>
         /// <returns></returns>
@@ -1037,7 +1039,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 若是Unity引擎则使用Debug.Log(contents),其他情况切换至.NET下的Debug.WriteLine(contents)
+        /// 调试输出(封装版).
+        /// Unity环境调用Debug.LogFormat(contents, args),其他情况使用.NET下的Debug.WriteLine(string.Format(contents, args)).
+        /// 本方法仅推荐在快速测试结果时使用,调试情况请用未封装的原方法以便IDE识别跳转.
         /// </summary>
         /// <param name="contents">内容</param>
         /// <param name="args">要组合的其他任意参数</param>
