@@ -311,7 +311,7 @@ namespace MMWorld
             float maxY = Scene.gridChunkHeight - 0.5f;
             // 通过相机视口计算真实边界
             float halfHeight = Camera.main.orthographicSize * Screen.height / Screen.width;
-            Debug.Log("halfHeight=" + halfHeight);
+            //Debug.Log("halfHeight=" + halfHeight);
 
             switch (Random.Range(0, 4))
             {

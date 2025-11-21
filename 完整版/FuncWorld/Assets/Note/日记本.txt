@@ -35,6 +35,10 @@ StreamReader的主要作用是将字节流转换为字符流
 
 StringBuilder用于高效处理字符串拼接修改,与普通的字符串(string类型)不同,string是不可变的,每次对string进行操作(如连接、替换等)都会创建一个新的字符串对象,这在频繁操作字符串时会导致性能开销,尤其是在循环中进行大量字符串拼接操作时,而StringBuilder是可变的,它可以在同一个对象上进行多次修改操作从而提高性能
 
+StringBuilder‌适用于单线程需大量字符串拼接或修改,StringBuffer‌适用于多线程且需频繁修改字符串内容
+StringBuilder无需维护同步锁的开销,虽然每次都需要复制字符数组再构造新字符串但单线程执行效率依然高于StringBuffer
+两者均继承自AbstractStringBuilder类但StringBuffer额外用toStringCache缓存机制,在调用toString()方法时会优先使用缓存内容构建字符串
+
 // 获取文件夹中所有子文件夹的名称
 string[] folders = Directory. GetDirectories (path);
 // 输出每个子文件夹的名称

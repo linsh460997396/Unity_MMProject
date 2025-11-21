@@ -324,14 +324,14 @@ namespace MMWorld
                     //2D横板模式用正交投影
                     Camera.main.orthographic = true;
                     Camera.main.orthographicSize = Camera.main.orthographicSize * designWidthToCameraRatio;
-                    Debug.Log("正交镜头:摄像机默认正交尺寸=" + Camera.main.orthographicSize);
+                    Debug.Log("[horizontalMode]正交镜头:摄像机默认正交尺寸=" + Camera.main.orthographicSize);
                 }
                 else if (CPEngine.singleLayerTerrainMode)
                 {
                     //3D单层地形模式用正交投影
                     Camera.main.orthographic = true;
                     Camera.main.orthographicSize = Camera.main.orthographicSize * designWidthToCameraRatio;
-                    Debug.Log("正交镜头:摄像机默认正交尺寸=" + Camera.main.orthographicSize);
+                    Debug.Log("[CPEngine.singleLayerTerrainMode]正交镜头:摄像机默认正交尺寸 = " + Camera.main.orthographicSize);
                     Camera.main.gameObject.transform.rotation = Quaternion.Euler(90, 0, 0); //原横板模式设计的摄像机绕X轴顺时针转90度以俯视X-Z平面
                 }
                 else
@@ -344,7 +344,7 @@ namespace MMWorld
                     //    //3D透视投影用到的是视野大小,若设计分辨率到摄像头坐标的转换系数不为1则调整摄像机的视野大小
                     //    Camera.main.fieldOfView = Camera.main.fieldOfView * designWidthToCameraRatio;
                     //}
-                    Debug.Log("透视镜头:摄像机默认视野大小=" + Camera.main.fieldOfView);
+                    Debug.Log("[正常3D模式]透视镜头:摄像机默认视野大小=" + Camera.main.fieldOfView);
                 }
                 Camera.main.gameObject.transform.position = new Vector3(0, 20, 0);
             }

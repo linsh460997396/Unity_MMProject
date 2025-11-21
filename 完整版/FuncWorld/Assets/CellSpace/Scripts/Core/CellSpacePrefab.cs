@@ -41,7 +41,7 @@ namespace CellSpace
         public static void Init()
         {
             if (initialized) return;
-            group = new GameObject("CellSpacePrefabs");
+            group = GameObject.Find("CellSpacePrefabs") ?? new GameObject("CellSpacePrefabs"); //创建存放CellSpace预制体实例的父级容器
             DontDestroyOnLoad(group);
             runtimePrefab.hideFlags = HideFlags.DontUnloadUnusedAsset; //资源持久化标记
             var temp = CPEngine; //顺带初始化其他预制体
@@ -270,14 +270,14 @@ namespace CellSpace
         /// </summary>
         public static Mesh GetCubeMesh()
         {
-            // 1. 尝试获取内置Cube资源
+            // 尝试获取内置Cube资源
             Mesh builtinMesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
             if (builtinMesh != null)
             {
                 return builtinMesh;
             }
 
-            // 2. 动态生成Cube网格
+            // 动态生成Cube网格
             Mesh dynamicMesh = new Mesh();
             dynamicMesh.name = "DynamicCube";
 
@@ -311,11 +311,13 @@ namespace CellSpace
             0, 1, 4, 4, 1, 5
         };
 
-            // 应用几何数据
+            // 几何数据
             dynamicMesh.vertices = vertices;
             dynamicMesh.triangles = triangles;
-            dynamicMesh.RecalculateNormals();
-            dynamicMesh.RecalculateBounds();
+            // 根据三角形顺序自动生成法线,而非自己定义每个面的朝向.三角形按序顺时针形成的面的法线朝向用户屏幕,为正方向)
+            dynamicMesh.RecalculateNormals(); 
+            // 重新计算网格包围盒(完全包含网格所有顶点的最小长方体,Unity用它进行视锥体裁剪、碰撞检测等操作,在改变顶点数组后调用此方法能刷新渲染或使物理系统正常工作)
+            dynamicMesh.RecalculateBounds();  
 
             return dynamicMesh;
         }
