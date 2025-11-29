@@ -6,14 +6,14 @@
 
         public SWStage2(Main_SimWorld scene) : base(scene)
         {
-            // 这里可判断是不是 切关, 然后对 player 或啥的做相应处理
+            // 这里可判断是不是 切换舞台, 然后对 player 或啥的做相应处理
 
             // 开启小地图
             scene.EnableMinimap(true);
 
             // 先给自己创建一些初始技能
-            // todo: 通过配置来创建. 纯技能并没有什么意义,只有进了关卡之后,才能实例化,开始工作. 也就是说,技能依附于关卡存在.
-            // 玩家在游戏过程中,技能可能会 增加,成长,都应该写进 配置. 这样切换关卡后,可以根据配置 再次创建技能
+            // todo: 通过配置来创建. 纯技能并没有什么意义,只有进了舞台之后,才能实例化,开始工作. 也就是说,技能依附于舞台存在.
+            // 玩家在游戏过程中,技能可能会 增加,成长,都应该写进 配置. 这样切换舞台后,可以根据配置 再次创建技能
             {
                 var ps = new SWPlayerSkill(this);
                 ps.Init();
@@ -93,7 +93,7 @@
 
         public void P3()
         {
-            scene.SetStage(new SWStage1(scene));          // 已超时:切到新关卡
+            scene.SetStage(new SWStage1(scene));          // 已超时:切到新舞台
         }
     }
 }

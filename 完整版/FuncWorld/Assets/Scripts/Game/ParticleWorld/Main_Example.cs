@@ -452,7 +452,7 @@ namespace ParticleWorld
             GameObject tempPrefabA0 = CreatePrefab("prefabA0", 4, 0.5f, "Custom/CShader"); // 内存诞生1个预制体A0对象实例,但Unity会自动把它加载到场景(另存为预制体文件后可进行删除)
             prefabA0 = tempPrefabA0;
             HideObject(tempPrefabA0);
-            //↓保存后网格丢失,可能需要先保存网格文件,解决之前先用隐藏大法.
+            //↓保存后网格丢失,需要先保存网格文件,解决之前先用隐藏大法.
             //SaveAsPrefab(tempPrefabA0, Application.dataPath + "/Prefabs/A0.prefab");
             //Destroy(tempPrefabA0);
         }

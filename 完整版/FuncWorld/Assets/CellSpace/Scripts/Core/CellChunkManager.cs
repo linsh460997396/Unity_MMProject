@@ -170,7 +170,7 @@ namespace CellSpace
                 if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                 {
                     //若帧计时器已流逝时间超过目标游戏周期则进入协程,在渲染完所有摄像机和GUI后等待该帧结束
-                    yield return new WaitForEndOfFrame();
+                    yield return CPEngine.waitForEndOfFrame;
                 }
             }
             ProcessChunkQueueLoopActive = false;
@@ -702,7 +702,7 @@ namespace CellSpace
                                             if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                             {
                                                 //协程暂停让当前帧进行渲染直到下次继续剩余动作
-                                                yield return new WaitForEndOfFrame();
+                                                yield return CPEngine.waitForEndOfFrame;
                                             }
                                         }
                                         //返回指定索引的团块
@@ -740,7 +740,7 @@ namespace CellSpace
                                                         //若帧计时器经过时间超过了目标帧率设定的时间,协程暂停让当前帧进行渲染直到下次继续剩余动作
                                                         if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                                         {
-                                                            yield return new WaitForEndOfFrame();
+                                                            yield return CPEngine.waitForEndOfFrame;
                                                         }
                                                         //若团块管理器通知"终止团块创建序列"
                                                         if (StopSpawning)
@@ -787,7 +787,7 @@ namespace CellSpace
                                                     // continue loop in next frame if the current frame time is exceeded.若超出当前帧时间,协程暂停让当前帧进行渲染直到下次继续剩余动作
                                                     if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                                     {
-                                                        yield return new WaitForEndOfFrame();
+                                                        yield return CPEngine.waitForEndOfFrame;
                                                     }
                                                     //若团块管理器通知"终止团块创建序列"
                                                     if (StopSpawning)
@@ -809,7 +809,7 @@ namespace CellSpace
                                 // continue loop in next frame if the current frame time is exceeded.若超出当前帧时间,协程暂停让当前帧进行渲染直到下次继续剩余动作
                                 if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                 {
-                                    yield return new WaitForEndOfFrame();
+                                    yield return CPEngine.waitForEndOfFrame;
                                 }
                                 //若团块管理器通知"终止团块创建序列"
                                 if (StopSpawning)
@@ -823,7 +823,7 @@ namespace CellSpace
                     }
                 }
                 //协程暂停让当前帧进行渲染直到下次继续剩余动作
-                yield return new WaitForEndOfFrame();
+                yield return CPEngine.waitForEndOfFrame;
                 //结束序列动作
                 EndSequence();
             }
@@ -885,7 +885,7 @@ namespace CellSpace
                                     if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                     {
                                         //协程暂停让当前帧进行渲染直到下次继续剩余动作
-                                        yield return new WaitForEndOfFrame();
+                                        yield return CPEngine.waitForEndOfFrame;
                                     }
                                 }
 
@@ -931,7 +931,7 @@ namespace CellSpace
                                                 // continue loop in next frame if the current frame time is exceeded.若帧计时器经过时间超过了目标帧率设定的时间,协程暂停让当前帧进行渲染直到下次继续剩余动作
                                                 if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                                 {
-                                                    yield return new WaitForEndOfFrame();
+                                                    yield return CPEngine.waitForEndOfFrame;
                                                 }
                                                 //若团块管理器通知"终止团块创建序列"
                                                 if (StopSpawning)
@@ -982,7 +982,7 @@ namespace CellSpace
                                             // continue loop in next frame if the current frame time is exceeded.若超出当前帧时间,协程暂停让当前帧进行渲染直到下次继续剩余动作
                                             if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                             {
-                                                yield return new WaitForEndOfFrame();
+                                                yield return CPEngine.waitForEndOfFrame;
                                             }
                                             //若团块管理器通知"终止团块创建序列"
                                             if (StopSpawning)
@@ -1008,7 +1008,7 @@ namespace CellSpace
                         // continue loop in next frame if the current frame time is exceeded.若超出当前帧时间,协程暂停让当前帧进行渲染直到下次继续剩余动作
                         if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                         {
-                            yield return new WaitForEndOfFrame();
+                            yield return CPEngine.waitForEndOfFrame;
                         }
                         //若团块管理器通知"终止团块创建序列"
                         if (StopSpawning)
@@ -1023,7 +1023,7 @@ namespace CellSpace
             }
 
             //协程暂停让当前帧进行渲染直到下次继续剩余动作
-            yield return new WaitForEndOfFrame();
+            yield return CPEngine.waitForEndOfFrame;
             //结束序列动作
             EndSequence();
         }

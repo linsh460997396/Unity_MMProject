@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using Uniblocks;
+using MetalMaxSystem.Unity;
 using Index = Uniblocks.Index;
 
 namespace MCWorld
@@ -99,7 +100,7 @@ namespace MCWorld
         {
             while (Engine.UniblocksNetwork == null)
             {
-                yield return new WaitForEndOfFrame();
+                yield return UnityUtilities.waitForEndOfFrame;
             }
             UniblocksClient.UpdatePlayerPosition(currentPos);
             UniblocksClient.UpdatePlayerRange(Engine.ChunkSpawnDistance);

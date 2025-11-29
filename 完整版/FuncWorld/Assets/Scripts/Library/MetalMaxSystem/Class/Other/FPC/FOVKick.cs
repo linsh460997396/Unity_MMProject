@@ -56,7 +56,7 @@ namespace MetalMaxSystem.Unity
             {
                 Camera.fieldOfView = originalFov + (IncreaseCurve.Evaluate(t / TimeToIncrease) * FOVIncrease);
                 t += Time.deltaTime;
-                yield return new WaitForEndOfFrame();
+                yield return UnityUtilities.waitForEndOfFrame;
             }
         }
 
@@ -68,7 +68,7 @@ namespace MetalMaxSystem.Unity
             {
                 Camera.fieldOfView = originalFov + (IncreaseCurve.Evaluate(t / TimeToDecrease) * FOVIncrease);
                 t -= Time.deltaTime;
-                yield return new WaitForEndOfFrame();
+                yield return UnityUtilities.waitForEndOfFrame;
             }
             //make sure that fov returns to the original size
             Camera.fieldOfView = originalFov;

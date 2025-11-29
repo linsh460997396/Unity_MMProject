@@ -1,14 +1,16 @@
-﻿using MetalMaxSystem;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
-//using TextAsset = UnityEngine.TextCore.Text.TextAsset;
-using TextAsset = UnityEngine.TextAsset;
-using CellSpace;
 using UnityEngine.UI;
 using TMPro;
+
+using MetalMaxSystem;
+using CellSpace;
+
+using TextAsset = UnityEngine.TextAsset;
 using Vector3 = UnityEngine.Vector3;
+using Player = SpriteSpace.Player;
 
 namespace MMWorld
 {
@@ -147,7 +149,6 @@ namespace MMWorld
 
         private void Awake()
         {
-            //gameMain = GameObject.Find("GameMain");
             gameMain = this.gameObject;
 
             //预创建网格数组用于存储碰撞标记
@@ -174,6 +175,7 @@ namespace MMWorld
 
         private void Start()
         {
+            player = Main_MMWorld.scene.player;
             LoadColliderFile();
 
             if (gameMain != null)

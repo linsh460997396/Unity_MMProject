@@ -6,7 +6,7 @@ namespace SimWorld
     public class SWPlayer
     {
         public Main_SimWorld scene;                                                 // 指向场景
-        public SWStage stage;                                                 // 指向关卡
+        public SWStage stage;                                                 // 指向舞台
         public GO go, mgo;                                                  // 保存底层 u3d 资源. mgo: mini map 用到的那份
 
         public const float defaultMoveSpeed = (int)(450f / Main_SimWorld.fps);      // 原始移动速度

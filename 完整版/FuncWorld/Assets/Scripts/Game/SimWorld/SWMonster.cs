@@ -3,14 +3,14 @@ using UnityEngine;
 
 namespace SimWorld
 {
-    public class SWMonster : SWSpaceItem
+    public class SWMonster : SWGridItem
     {
         // 各种指向
         public Main_SimWorld scene;                                 // 指向场景
-        public SWStage stage;                                 // 指向关卡
+        public SWStage stage;                                 // 指向舞台
         public SWPlayer player;                               // 指向玩家
-        public List<SWMonster> monsters;                      // 指向关卡怪数组
-        public int indexOfContainer;                        // 自己位于关卡怪数组的下标
+        public List<SWMonster> monsters;                      // 指向舞台怪数组
+        public int indexOfContainer;                        // 自己位于舞台怪数组的下标
         public Sprite[] sprites;                            // 指向动画帧集合
         public GO go, mgo;                                  // 保存底层 u3d 资源. mgo: mini map 用到的那份
 

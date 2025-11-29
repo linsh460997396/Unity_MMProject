@@ -5,7 +5,7 @@ namespace SimWorld
     public class SWPlayerBullet2 : SWPlayerBullet
     {
 
-        public List<KeyValuePair<SWSpaceItem, int>> hitBlackList = new();   // 带超时的穿透黑名单
+        public List<KeyValuePair<SWGridItem, int>> hitBlackList = new();   // 带超时的穿透黑名单
 
         // 这些属性从 skill copy
         public int pierceCount;                         // 最大可穿透次数
@@ -63,7 +63,7 @@ namespace SimWorld
             return lifeEndTime < scene.time;
         }
 
-        public bool HitCheck(SWSpaceItem m)
+        public bool HitCheck(SWGridItem m)
         {
             var vx = m.x - x;
             var vy = m.y - y;
@@ -79,7 +79,7 @@ namespace SimWorld
                 }
 
                 // 不存在:加入列表
-                hitBlackList.Add(new KeyValuePair<SWSpaceItem, int>(m, scene.time + pierceDelay));
+                hitBlackList.Add(new KeyValuePair<SWGridItem, int>(m, scene.time + pierceDelay));
 
                 // 伤害怪
                 ((SWMonster)m).Hurt(damage, knockbackForce);

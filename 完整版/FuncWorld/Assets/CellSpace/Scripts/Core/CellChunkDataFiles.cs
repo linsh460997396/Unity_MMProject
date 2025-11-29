@@ -393,7 +393,7 @@ namespace CellSpace
             while (SavingChunks)
             {
                 //在每帧屏幕所有相机和GUI被渲染完成前等待(确保当前帧网格对象全被创造出来后才能进行保存)
-                yield return new WaitForEndOfFrame();
+                yield return CPEngine.waitForEndOfFrame;
             }
             SavingChunks = true;
 
@@ -411,7 +411,7 @@ namespace CellSpace
                 if (count > CPEngine.maxChunkSaves)
                 {
                     //超过每帧团块数据存储的处理上限则在屏幕所有相机和GUI被渲染完成前等待,下一帧再继续处理
-                    yield return new WaitForEndOfFrame();
+                    yield return CPEngine.waitForEndOfFrame;
                     count = 0;
                 }
             }

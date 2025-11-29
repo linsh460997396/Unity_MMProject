@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using MetalMaxSystem.Unity;
 
 // Triggers chunk spawning around the player.在玩家角色周围触发自动化的团块生成
 
@@ -73,7 +74,7 @@ namespace Uniblocks
         {
             while (Engine.UniblocksNetwork == null)
             {
-                yield return new WaitForEndOfFrame();
+                yield return UnityUtilities.waitForEndOfFrame;
             }
             UniblocksClient.UpdatePlayerPosition(currentPos);
             UniblocksClient.UpdatePlayerRange(Engine.ChunkSpawnDistance);

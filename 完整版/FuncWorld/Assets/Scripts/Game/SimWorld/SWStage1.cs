@@ -9,7 +9,7 @@ namespace SimWorld
 
         public SWStage1(Main_SimWorld scene) : base(scene)
         {
-            // 这里可判断是不是 切关, 然后对 player 或啥的做相应处理
+            // 这里可判断是不是 切换舞台, 然后对 player 或啥的做相应处理
 
             // 关闭小地图
             scene.EnableMinimap(false);

@@ -5,7 +5,7 @@ namespace SimWorld
     public class SWEffectExplosion
     {
         public Main_SimWorld scene;                                 // 指向场景
-        public SWStage stage;                                 // 指向关卡
+        public SWStage stage;                                 // 指向舞台
         public Sprite[] sprites;                            // 指向动画帧[]
 
         public GO go;                                       // 保存底层 u3d 资源

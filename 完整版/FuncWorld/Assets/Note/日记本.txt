@@ -105,12 +105,22 @@ public static void StaticMethod() {
     CelestialBodyDictionary = new Dictionary<int, CelestialBody>(); // 仅执行一次(首次调用时)
 }
 
-// Unity脚本生命周期和组件
+序列化‌:将对象转换为字节流,便于存储或网络传输
+‌反序列化‌:从字节流重建对象,恢复其完整状态
+
+可以被序列化:C#原生數據(int, string, enum..)、Unity內建數據(Vector, Color, Rect..)、繼承UnityEngine.Object的類別、標記了[Serializable]的類別、Array,List容器
+不能被序列化:抽象、靜態、泛型、沒有標記[Serializable]的類別、其他容器ex: Dictionary
+會被Unity序列化:標記為Public的成員、標記了[SerializeField]
+不會被Unity序列化:標記為const, static, readonly的成員、標記了[NonSerialized]的成員
+私有或静态字段不被自动序列化到Inspetor,想强制被序列化请使用[SerializeField]特性,想不被序列化请使用[NonSerialized]特性.
+[SerializeReference]标记接口或抽象类字段后支持多态对象管理和动态类型切换.
+
+// Unity脚本生命周期和组件: https://docs.unity.cn/cn/2022.3/Manual/ExecutionOrder.html
 // 继承MonoBehaviour的类必须设计成实例类,可作为Unity组件挂载到游戏物体上,并在Unity编辑器中显示其公共非静态字段和属性(可通过Inspector面板编辑).
 // MonoBehaviour的子类不能直接使用new来创建实例,否则Unity会抛出MissingComponentException异常.
-// 组件用法:Unity中随便新建一个空对象,Inspector面板把脚本拖到组件位置即挂载(自定义类要作为组件挂载必须一个cs文件一个类,且类名须与文件名一致).或代码直接给游戏物体添加组件.
-// 私有或静态字段不被自动序列化到Inspetor,想要强制被序列化请使用[SerializeField]特性,想不被序列化请使用[NonSerialized]特性,
-// [SerializeReference]标记接口或抽象类字段支持多态对象管理和动态类型切换.
+// 组件用法:Unity中随便新建一个空对象,Inspector(通称检视器‌或‌监视面板‌‌)把脚本拖到组件位置即挂载,或代码直接给游戏物体添加组件.
+// 自定义类识别为组件挂载,需其内有类名与文件名一致.
+
 // Start、Update等生命周期方法是Unity控制脚本执行的关键,即使存在Awake但上述方法不存在时在编辑器界面不提供组件启禁用选项.
 // AddComponent时,Awake方法会在添加的那一帧立即执行,但Start方法则在下一帧的Update之前执行‌.
 
@@ -124,6 +134,8 @@ void Awake(){}
 /// </summary>
 void OnEnable(){}
 
+If the component is created because of an Instantiate() call, Awake is always called. and OnEnable is called if the new component starts enabled, before Instantiate returns.
+
 /// <summary>
 /// OnEnable后运行一次(仅自动运行1次,反复激活无效)
 /// </summary>
@@ -136,6 +148,8 @@ void Update(){}
 
 // 反射能绕过可见性设置,就是效率比直接调用慢.创建对象时反射比new慢15-20倍(未缓存反射结果时),方法调用中反射比直接调用慢约10-30倍).
 // 枚举本质上是隐式静态的,成员默认int类型常量(可改为继承ushort),不需也不允许额外添加 static 关键字
+// 静态变量(如小地图开关)是设计让所有实例公用,常量(隐式静态)是用于赋值一次后不允许再修改(实例化后不允许变化)的数据
+// 常量编译时内联替换(如常量=MathConstants.PI编译时被直接替换为3.14159),亦不可用反射修改.
 
 在Unity引擎中,MonoBehaviour组件通常必须附加到GameObject上才能正常工作,但通过特殊技术手段可以实现孤立实例的创建:
 1)反射创建实例‌
@@ -216,7 +230,7 @@ InvokeRepeating(nameof(CPEngine.Tick), 0f, 0.0625f);//作为MonoBehaviour类的�
 CancelInvoke(nameof(CPEngine.Tick));// 取消InvokeRepeating的调用,若没有指定方法名则取消当前MonoBehaviour实例上所有通过Invoke()或InvokeRepeating()启动的方法的延迟/重复调用.
 
 实例方法跟静态一样永远只有1份模板内存,只有实例字段才会每次实例化去分配新的内存空间.区别只是调用方式.能从静态模板找方法调用,最为直接.
-不过像是协程启动,这些方法做不了静态.协程方法体（枚举器）倒是可以做成静态.回调函数更要封装为静态才能去子线程调用.
+不过像是协程启动,这些方法做不了静态.协程方法体(枚举器)倒是可以做成静态.回调函数更要封装为静态才能去子线程调用.
 
 凡是IEnumerator带static修饰的,方法里面基本都是去new另一个IEnumerator类的实例,然后通过该实例的方法遍历集合之用.
 在C#中‌IEnumerator接口的实现类通常不能声明为static‌,原因如下:
@@ -432,9 +446,9 @@ Material mat = new Material(shader); // 转为材质实例
 Unity的Standard Shader属于引擎‌内置核心资源,就跟官方组件一样不用打包进来.
 
 创建100万次Vector2结构体比同规模类实例快3-5倍,但包含复杂方法调用的场景类可能反超10-15%
-readonly字段只能在声明时或构造函数中被赋值，之后在任何地方（包括本类其他方法）都不能再修改其值。
+readonly字段只能在声明时或构造函数中被赋值,之后在任何地方(包括本类其他方法)都不能再修改其值.
 
-blender制作obj是Wavefront开发的通用3D模型格式，以ASCII文本存储顶点、法线和面片数据，但不包含动画、骨骼或材质路径信息
+blender制作obj是Wavefront开发的通用3D模型格式,以ASCII文本存储顶点、法线和面片数据,但不包含动画、骨骼或材质路径信息
 其结构包括：
 v 1.0 0.0 0.0  # 顶点坐标
 vt 0.5 1.0     # 纹理坐标
@@ -442,17 +456,17 @@ vn 0.0 0.0 1.0 # 法线向量
 f 1/1/1 2/2/2 3/3/3 # 面片定义
 mtl则是obj用到的材质文件
 
-使用[RuntimeInitializeOnLoadMethod]属性（针对整个游戏）
+使用[RuntimeInitializeOnLoadMethod]属性(针对整个游戏)
 [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
 private static void OnBeforeSceneLoad()
 {
-    // 在场景加载前执行代码，适用于全局控制初始化逻辑的场景。
+    // 在场景加载前执行代码,适用于全局控制初始化逻辑的场景.
 }
 
 组件用法:Unity中随便新建一个空的游戏物体,用AddComponent<组件类名>()进行添加,或GUI界面拖上去.
 自定义类要作Unity组件除继承MonoBehaviour还要求一个cs文件只能一个类且类名须与文件名一致,如非要同一文件多个类就只有文件名那个类启动生命周期.
 
-何时不用new:对继承MonoBehaviour的脚本用new将返回null引用，须通过AddComponent或Instantiate创建‌(后者会生成整个GameObject并返回组件实例)
+何时不用new:对继承MonoBehaviour的脚本用new将返回null引用,须通过AddComponent或Instantiate创建‌(后者会生成整个GameObject并返回组件实例)
 注意通过new GameObject()创建的游戏对象会持续存在哪怕引用=null,但切换场景时未标记DontDestroyOnLoad的对象会被自动清理
 
 var obj1 = new GameObject("DynamicObj"); //会立即出现在Hierarchy
@@ -463,7 +477,7 @@ GameObject.CreatePrimitive可创建预制类型游戏物体如Cube,Sphere,Plane,
 (GameObject)runtimePrefab.template["Test"]类型转换不是实例化,该操作不会创建新的GameObject实例
 if (CPEngine.network == null) CPEngine.network = this.gameObject; //在C#中if语句后可跟单语句或用大括号{}包含的代码块‌
 
-创建GameObject动作不允许在MonoBehaviour的构造函数（或实例字段初始化器）中调用,应在Awake或Start方法中进行,因Unity在其构造函数阶段尚未完成GameObject初始化和生命周期管理.
+创建GameObject动作不允许在MonoBehaviour的构造函数(或实例字段初始化器)中调用,应在Awake或Start方法中进行,因Unity在其构造函数阶段尚未完成GameObject初始化和生命周期管理.
 
 //私有化构造函数.确保外部无法通过new实例化本类.
 private CPEngine() {}
@@ -491,9 +505,9 @@ Color32[] pixels = texture.GetPixels32();
 //修改pixels数组
 texture.SetPixels32(pixels);
 texture.Apply();
-//平时创建Texture2D时，不填格式参数，默认会使用TextureFormat.RGBA32
+//平时创建Texture2D时,不填格式参数,默认会使用TextureFormat.RGBA32
 
-//在C#中，通过反射获取方法后转换为委托是优化反射性能的常见手段
+//在C#中,通过反射获取方法后转换为委托是优化反射性能的常见手段
 public class DemoClass
 {
     private int Add(int a, int b) => a + b;
@@ -532,7 +546,7 @@ void Update() {
     transform.localScale = _scaleCache;
 }
 
-静态字段上的数据会在模板类内存一直存在,函数内的静态变量也是如此，彻底不用时自己置null
+静态字段上的数据会在模板类内存一直存在,函数内的静态变量也是如此,彻底不用时自己置null
 C#内置封装的委托类型Func<>必须有返回值,Action<>无返回值,有时不是官方封的有限制,跟引擎一样至少封几个通用,特殊用法的要自己编织
 Task基于Thread封装做了线程池复用,避免频繁创建/销毁
 
@@ -586,7 +600,7 @@ else
 //var st = typeof(Scene); //获取类型信息
 //获取私有方法,指定BindingFlags
 //MethodInfo privateMethod = type.GetMethod("方法名",BindingFlags.NonPublic | BindingFlags.Instance);
-//设置方法可访问（如需）
+//设置方法可访问(如需)
 //privateMethod?.SetAccessible(true);
 
 //var fs = st.GetFields(BindingFlags.Public | BindingFlags.Instance); //如果要获取私有字段则换成BindingFlags.NonPublic
@@ -603,11 +617,11 @@ else
 //用反射获取MethodInfo后可将其转换为一个类型明确的委托
 //之后调用该方法时直接使用缓存的委托即可避免后续重复反射开销
 
-mesh返回当前网格实例的副本，对该副本进行的任何修改都只会影响当前游戏对象
-sharedMesh返回网格资源本身的引用，修改它会影响到场景中所有使用该共享网格的对象
-sharedMesh主要用于读取网格数据，不建议用于写入操作，因为对它的修改会直接影响导入的原始资源，且这种修改无法撤销
-Mesh是一个数据结构，记录了组成3D模型的所有三角形面数据，而MeshFilter则是引用该Mesh数据的组件
-在边界计算方面，MeshFilter的mesh.bounds表示模型本身的大小，忽略缩放变换，而MeshRenderer的bounds则考虑缩放变换
+mesh返回当前网格实例的副本,对该副本进行的任何修改都只会影响当前游戏对象
+sharedMesh返回网格资源本身的引用,修改它会影响到场景中所有使用该共享网格的对象
+sharedMesh主要用于读取网格数据,不建议用于写入操作,因为对它的修改会直接影响导入的原始资源,且这种修改无法撤销
+Mesh是一个数据结构,记录了组成3D模型的所有三角形面数据,而MeshFilter则是引用该Mesh数据的组件
+在边界计算方面,MeshFilter的mesh.bounds表示模型本身的大小,忽略缩放变换,而MeshRenderer的bounds则考虑缩放变换
 
 OnValidate()可以在Awake()之前发生
 
@@ -622,9 +636,77 @@ void ProcessWithArray() {
         Graphics.Blit(null, outputRT, processingMaterial);
         buffer.Release();
         TransferToCPU();
-    } //这个是提交一组数组信息，让GPU处理
+    } //这个是提交一组数组信息,让GPU处理
 
 void ProcessWithTexture() {
         Graphics.Blit(inputTexture, outputRT, processingMaterial);
         TransferToCPU();
-    }  //这是Unity中提交图片纹理，让GPU处理，返回结果
+    }  //这是Unity中提交图片纹理,让GPU处理,返回结果
+
+
+注意update(){go.transform.position = new Vector3(x,y,z); }
+因Vector3是结构体(存在栈上),离开作用域不存在GC(垃圾回收),而是后续这块内存会被重复利用,被新数据直接覆盖,非常效率；
+但如果update中去new 引用类型 则要考虑优化,如每次都new List()及自定义类去赋值,上次的会变成垃圾堆,GC时掉帧.
+且new开辟堆空间(存放引用类型)也浪费一些时耗,这种情况建议去其他位置new一次,再到Update里频繁修改.
+
+别忘了enum声明元素的时候,还可以设置元素索引噢~
+public enum Status:ushort 
+{OnLine = 1, Offline = 2, Leave = 3, Busy = 4};
+如果不继承ushort 默认是int
+switch的时候可以填Status.OnLine 也可以直接填索引
+static void CheckStatusWithIndex(ushort index)
+{
+switch (index)
+{
+case 1: // Status.OnLine
+Console.WriteLine($"索引 {index}: 用户在线");
+break;
+...
+枚举的目的跟接口差不多,为多人项目统一命名规范,不让项目出现：阿爸、爸爸、爹...大家都去enum里拿
+
+当你用Namespace写了一个框架,懒人复制一下改个名称变成三套框架...
+假设一套渲染实际地面格子,另一套渲染角色移动时的闪烁路径指示或切换温度图,第三套给单元存储物品、空气流动管理...
+我是一个项目或一套功能换1个
+即便不写Namespace,它会默认是全局Namespace,那Unity一些测试场景没用到的脚本也会打包时检查并编译,这样很不好
+所以任何时候都建议写Namespace,命名时支持点号分隔
+
+协程是在主线程上模拟的,依托MonoBehaviour组件实例运行,组件摧毁时,透过该组件运行的协程实例也全部摧毁.
+
+UniTask异步加载场景 https://github.com/Cysharp/UniTask.git
+async UniTask LoadSceneAsync(string sceneName) {
+    await SceneManager.LoadSceneAsync(sceneName).ToUniTask();
+    Debug.Log("Scene loaded");
+}
+
+shader脚本属性声明时_MainTex换成其他名称需要使用[MainTexture]特性
+//自动识别
+Properties
+{
+    _MainTex ("Main Texture", 2D) = "white" {}
+}
+//显式标记
+Properties
+{
+    [MainTexture] _BaseMap ("Base Map", 2D) = "white" {}
+    [MainTexture] _Albedo ("Albedo Texture", 2D) = "white" {}
+}
+Material newMat = new Material(Shader.Find("Standard"));
+newMat.SetTexture("_Albedo", albedoTexture);
+newMat.EnableKeyword("_NORMALMAP"); //激活法线贴图支持
+newMat.SetTexture("_BaseMap", normalTexture);
+
+//每个精灵材质实例独立,无法因Instantiate处理过预制体而阻止隐式实例化
+if (material != null) material = Instantiate(material);
+if (minimapMaterial != null) minimapMaterial = Instantiate(minimapMaterial);
+
+Unity中三种渲染等级控制方式的核心区别如下：
+‌1)镜头深度(Camera Depth)‌
+控制多个相机之间的渲染优先级,数值小的相机先渲染,数值大的后渲染(覆盖前者)
+适用于场景中多相机分层(如背景/特效/UI相机)
+‌2)渲染队列(Render Queue)‌
+通过Shader的RenderQueue参数定义材质渲染顺序(如Background/Geometry/Transparent等)
+需配合材质设置,适用于透明物体或特殊效果(如粒子系统)
+Material.renderQueue=3000; //设置材质渲染队列,该值会传入Shader的RenderQueue,越大越后渲染
+‌3)排序图层(Sorting Layer)和图层内排序(Order in Layer)‌
+专用于2D渲染(SpriteRenderer/Canvas等),通过Sorting Layer分组,Order in Layer控制组内层级
+值越大越靠前,适合2D游戏中的角色遮挡、UI层级管理.

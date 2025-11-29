@@ -10,6 +10,7 @@ namespace UnityStandardAssets.Utility
     [Serializable]
     public class FOVKick
     {
+        public static readonly WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
         public Camera Camera;                           // optional camera setup, if null the main camera will be used
         [HideInInspector] public float originalFov;     // the original fov
         public float FOVIncrease = 3f;                  // the amount the field of view increases when going into a run
@@ -55,7 +56,7 @@ namespace UnityStandardAssets.Utility
             {
                 Camera.fieldOfView = originalFov + (IncreaseCurve.Evaluate(t/TimeToIncrease)*FOVIncrease);
                 t += Time.deltaTime;
-                yield return new WaitForEndOfFrame();
+                yield return waitForEndOfFrame;
             }
         }
 
@@ -67,7 +68,7 @@ namespace UnityStandardAssets.Utility
             {
                 Camera.fieldOfView = originalFov + (IncreaseCurve.Evaluate(t/TimeToDecrease)*FOVIncrease);
                 t -= Time.deltaTime;
-                yield return new WaitForEndOfFrame();
+                yield return waitForEndOfFrame;
             }
             //make sure that fov returns to the original size
             Camera.fieldOfView = originalFov;

@@ -82,10 +82,10 @@ namespace SimWorld
         // 用于稳定调用 逻辑 Update 的时间累计变量
         internal float timePool = 0;
 
-        // 当前玩家( 玩家可跨越关卡存在, 故放置在此 )
+        // 当前玩家( 玩家可跨越舞台存在, 故放置在此 )
         internal SWPlayer player;
 
-        // 当前关卡
+        // 当前舞台
         internal SWStage stage;
 
         // 空间索引容器 要用到的找最近所需要的格子偏移数组( all stage 公用 )
@@ -114,7 +114,7 @@ namespace SimWorld
             // 初始化 玩家
             player = new SWPlayer(this);
 
-            // 初始化起始关卡
+            // 初始化起始舞台
             //stage = new SWStage1(this);
             stage = new SWStage2(this);
         }

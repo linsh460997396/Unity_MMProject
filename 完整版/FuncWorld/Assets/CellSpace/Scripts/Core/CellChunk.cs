@@ -1,5 +1,4 @@
-﻿using MetalMaxSystem.Unity;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -239,7 +238,7 @@ namespace CellSpace
                     yield break;
                 }
                 //协程停止,等待当前帧刷新画面
-                yield return new WaitForEndOfFrame();
+                yield return CPEngine.waitForEndOfFrame;
 
             }
             //添加当前团块到更新队列
@@ -1105,11 +1104,11 @@ namespace CellSpace
             while (!Network.isClient)
             {
                 CurrentChunkDataRequests = 0; // reset the counter if we're not connected.若没有连接就重置计数器
-                yield return new WaitForEndOfFrame();
+                yield return CPEngine.waitForEndOfFrame;
             }
             while (CPEngine.maxChunkDataRequests != 0 && CurrentChunkDataRequests >= CPEngine.maxChunkDataRequests)
             {
-                yield return new WaitForEndOfFrame();
+                yield return CPEngine.waitForEndOfFrame;
             }
 
             CurrentChunkDataRequests++;
@@ -1118,7 +1117,8 @@ namespace CellSpace
         #endregion
 
         #region 双向链表管理单元体(CellItem)_函数部分
-        //若想要构造带有双向链表管理单元体(CellItem)的团块空间,可开启CPEngine.useCellItem,之后通过团块实例的Add函数为空间容器添加单元体(独立网格容器).
+
+        //若想构造带有双向链表管理单元体(CellItem)的团块空间,可开启CPEngine.useCellItem,之后通过团块实例的Add函数为空间容器添加单元体(独立网格容器,其子类有角色怪物子弹特效等基类).
 
         /// <summary>
         /// [构造函数]团块空间.
@@ -1126,7 +1126,7 @@ namespace CellSpace
         public CellChunk()
         {
             //双向链表暂不支持正常3D模式,仅支持2D横板模式和3D单层地形模式.
-            if (CPEngine.useCellItem && (CPEngine.horizontalMode || CPEngine.singleLayerTerrainMode))
+            if (CPEngine.useCellItem)
             {//启用双向链表管理单元体(CellItem),则在空间构造时初始化双向链表池,幸存者框架的怪物在空间内增减会自动刷新链表
              //不管何时何地调用团块的检索方法,每个怪物类的AI都能找到谁(在MC框架地面上活动的个体网格对象)离它最近,适用于管理上万精灵对象.
 #if UNITY_EDITOR
@@ -1182,7 +1182,6 @@ namespace CellSpace
                 }
             }
         }
-
         /// <summary>
         /// 为空间容器的双向链表添加网格容器(单元体),如添加一些继承单元体(CellItem)的怪物类对象.
         /// </summary>
@@ -1257,7 +1256,6 @@ namespace CellSpace
             //空间容器中网格容器(单元体)数量自增
             ++numCells;
         }
-
         /// <summary>
         /// 从空间容器的双向链表移除网格容器(单元体),如移除一些继承单元体(CellItem)的怪物类对象
         /// </summary>
@@ -1312,7 +1310,6 @@ namespace CellSpace
             //空间容器中网格容器(单元体)数量自减
             --numCells;
         }
-
         /// <summary>
         /// 更新一个Cell对象在空间容器中的索引位置(同时更新双向链表),一般用于活动物体(继承CellItem的角色怪物类对象)在容器频繁移动时的刷新
         /// </summary>
@@ -1424,7 +1421,7 @@ namespace CellSpace
 #endif
         }
 
-        #region 2D空间检索方法,在MC插件代码部分有一些3D空间检索方法,额外的检索方法可一并写在此处
+        #region 双向链表下的空间检索方法
         /// <summary>
         /// [2D横版模式]X-Y平面返回网格容器(单元体)位置在空间容器中的索引
         /// </summary>
@@ -1788,6 +1785,95 @@ namespace CellSpace
             return null;
         }
         /// <summary>
+        /// [正常3D模式]在27立方体网格范围内找出第1个网格容器(单元体)并返回.
+        /// 采用从中心向外扩展的搜索顺序,优先检测最近的网格.
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="radius"></param>
+        /// <returns></returns>
+        public CellItem FindFirstCrossByTwentySevenBoxGrid(float x, float y, float z, float radius)
+        {
+            // 计算初始网格索引
+            int cIdx = (int)(x * _1_cellSize);
+            if (cIdx < 0 || cIdx >= SideLength) return null;
+            int rIdx = (int)(y * _1_cellSize);
+            if (rIdx < 0 || rIdx >= SideLength) return null;
+            int dIdx = (int)(z * _1_cellSize);
+            if (dIdx < 0 || dIdx >= SideLength) return null;
+
+            // 定义3D搜索顺序（从中心开始向外扩展）
+            int[] layerOffsets = {
+        0, 0, 0,   // 中心层 - 中心 (14)
+        1, 0, 0,   // 中心层 - 右 (15)
+        0, 1, 0,   // 中心层 - 下 (17)
+        -1, 0, 0,  // 中心层 - 左 (13)
+        0, -1, 0,  // 中心层 - 上 (11)
+        1, 1, 0,   // 中心层 - 右下 (18)
+        -1, 1, 0,  // 中心层 - 左下 (16)
+        1, -1, 0,  // 中心层 - 右上 (12)
+        -1, -1, 0, // 中心层 - 左上 (10)
+        
+        0, 0, 1,   // 上层 - 中心 (23)
+        1, 0, 1,   // 上层 - 右 (24)
+        0, 1, 1,   // 上层 - 下 (26)
+        -1, 0, 1,  // 上层 - 左 (22)
+        0, -1, 1,  // 上层 - 上 (20)
+        1, 1, 1,   // 上层 - 右下 (27)
+        -1, 1, 1,  // 上层 - 左下 (25)
+        1, -1, 1,  // 上层 - 右上 (21)
+        -1, -1, 1, // 上层 - 左上 (19)
+        
+        0, 0, -1,  // 下层 - 中心 (5)
+        1, 0, -1,  // 下层 - 右 (6)
+        0, 1, -1,  // 下层 - 下 (8)
+        -1, 0, -1, // 下层 - 左 (4)
+        0, -1, -1, // 下层 - 上 (2)
+        1, 1, -1,  // 下层 - 右下 (9)
+        -1, 1, -1, // 下层 - 左下 (7)
+        1, -1, -1, // 下层 - 右上 (3)
+        -1, -1, -1 // 下层 - 左上 (1)
+    };
+
+            // 按顺序搜索27个网格
+            for (int i = 0; i < layerOffsets.Length; i += 3)
+            {
+                int searchCIdx = cIdx + layerOffsets[i];
+                int searchRIdx = rIdx + layerOffsets[i + 1];
+                int searchDIdx = dIdx + layerOffsets[i + 2];
+
+                // 检查边界
+                if (searchCIdx < 0 || searchCIdx >= SideLength ||
+                    searchRIdx < 0 || searchRIdx >= SideLength ||
+                    searchDIdx < 0 || searchDIdx >= SideLength)
+                    continue;
+
+                // 计算一维索引
+                int idx = searchDIdx * SideLength * SideLength + searchRIdx * SideLength + searchCIdx;
+                var c = cellItems[idx];
+
+                // 遍历链表检测碰撞
+                while (c != null)
+                {
+                    var vx = c.x - x;
+                    var vy = c.y - y;
+                    var vz = c.z - z;  // 新增Z轴距离计算
+                    var r = c.radius + radius;
+
+                    // 3D球体碰撞检测
+                    if (vx * vx + vy * vy + vz * vz < r * r)
+                    {
+                        return c;
+                    }
+                    c = c.nodeNext;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// [2D横版模式]X-Y平面遍历坐标周围九宫格内的网格容器(单元体)
         /// </summary>
         /// <param name="x"></param>
@@ -1991,6 +2077,85 @@ namespace CellSpace
                 c = next;
             }
         }
+        /// <summary>
+        /// [正常3D模式]在27立方体网格范围内遍历网格容器(单元体)
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="handler">返回true结束遍历(Func可能产生GC,但这种应该是无所谓的,里面只要不含Unity资源)</param>
+        public void ForeachAllByTwentySevenBoxGrid(float x, float y, float z, Func<CellItem, bool> handler)
+        {
+            // 计算初始网格索引
+            int cIdx = (int)(x * _1_cellSize);
+            if (cIdx < 0 || cIdx >= SideLength) return;
+            int rIdx = (int)(y * _1_cellSize);
+            if (rIdx < 0 || rIdx >= SideLength) return;
+            int dIdx = (int)(z * _1_cellSize);
+            if (dIdx < 0 || dIdx >= SideLength) return;
+
+            // 定义3D搜索顺序（从中心开始向外扩展）
+            int[] offsets = {
+        // 中心层 (z=0)
+        0, 0, 0,   // 中心 (14)
+        1, 0, 0,   // 右 (15)
+        0, 1, 0,   // 下 (17)
+        -1, 0, 0,  // 左 (13)
+        0, -1, 0,  // 上 (11)
+        1, 1, 0,   // 右下 (18)
+        -1, 1, 0,  // 左下 (16)
+        1, -1, 0,  // 右上 (12)
+        -1, -1, 0, // 左上 (10)
+        
+        // 上层 (z=1)
+        0, 0, 1,   // 上层中心 (23)
+        1, 0, 1,   // 上层右 (24)
+        0, 1, 1,   // 上层下 (26)
+        -1, 0, 1,  // 上层左 (22)
+        0, -1, 1,  // 上层上 (20)
+        1, 1, 1,   // 上层右下 (27)
+        -1, 1, 1,  // 上层左下 (25)
+        1, -1, 1,  // 上层右上 (21)
+        -1, -1, 1, // 上层左上 (19)
+        
+        // 下层 (z=-1)
+        0, 0, -1,  // 下层中心 (5)
+        1, 0, -1,  // 下层右 (6)
+        0, 1, -1,  // 下层下 (8)
+        -1, 0, -1, // 下层左 (4)
+        0, -1, -1, // 下层上 (2)
+        1, 1, -1,  // 下层右下 (9)
+        -1, 1, -1, // 下层左下 (7)
+        1, -1, -1, // 下层右上 (3)
+        -1, -1, -1 // 下层左上 (1)
+    };
+
+            // 按顺序搜索27个网格
+            for (int i = 0; i < offsets.Length; i += 3)
+            {
+                int searchCIdx = cIdx + offsets[i];
+                int searchRIdx = rIdx + offsets[i + 1];
+                int searchDIdx = dIdx + offsets[i + 2];
+
+                // 检查边界
+                if (searchCIdx < 0 || searchCIdx >= SideLength ||
+                    searchRIdx < 0 || searchRIdx >= SideLength ||
+                    searchDIdx < 0 || searchDIdx >= SideLength)
+                    continue;
+
+                // 计算一维索引（3D数组转1D）
+                int idx = searchDIdx * SideLength * SideLength + searchRIdx * SideLength + searchCIdx;
+                var c = cellItems[idx];
+
+                // 遍历链表
+                while (c != null)
+                {
+                    var next = c.nodeNext;
+                    if (handler(c)) return;
+                    c = next;
+                }
+            }
+        }
 
         /// <summary>
         /// [2D横版模式]X-Y平面圆形扩散遍历找出边距最近的1个网格容器(单元体)并返回
@@ -2025,7 +2190,6 @@ namespace CellSpace
                     var rIdx = rIdxBase + tmp.y;
                     if (rIdx < 0 || rIdx >= SideLength) continue;
                     var cidx = rIdx * SideLength + cIdx;
-
                     var c = cellItems[cidx];
                     while (c != null)
                     {
@@ -2034,7 +2198,6 @@ namespace CellSpace
                         var dd = vx * vx + vy * vy;
                         var r = maxDistance + c.radius;
                         var v = r * r - dd;
-
 
                         if (v > maxV)
                         {
@@ -2090,7 +2253,68 @@ namespace CellSpace
                         var dd = vx * vx + vz * vz;
                         var r = maxDistance + c.radius;
                         var v = r * r - dd;
+                        if (v > maxV)
+                        {
+                            rtv = c;
+                            maxV = v;
+                        }
+                        c = c.nodeNext;
+                    }
+                }
+                if (lens[i].radius > searchRange) break;
+            }
+            return rtv;
+        }
+        /// <summary>
+        /// [正常3D模式]在27立方体网格范围内遍历找出边距最近的1个网格容器(单元体)并返回
+        /// </summary>
+        /// <param name="d"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="maxDistance"></param>
+        /// <returns></returns>
+        public CellItem FindNearestByRange(CellRingDiffuseXYZ d, float x, float y, float z, float maxDistance)
+        {
+            int cIdxBase = (int)(x * _1_cellSize);
+            if (cIdxBase < 0 || cIdxBase >= SideLength) return null;
+            int rIdxBase = (int)(y * _1_cellSize);
+            if (rIdxBase < 0 || rIdxBase >= SideLength) return null;
+            int hIdxBase = (int)(z * _1_cellSize);
+            if (hIdxBase < 0 || hIdxBase >= SideLength) return null;
 
+            var searchRange = maxDistance + cellSize;
+
+            CellItem rtv = null;
+            float maxV = 0;
+
+            var lens = d.lens;
+            var idxs = d.idxyzs;
+            for (int i = 1; i < lens.Count; i++)
+            {
+                var offsets = lens[i - 1].count;
+                var size = lens[i].count - lens[i - 1].count;
+                for (int j = 0; j < size; ++j)
+                {
+                    var tmp = idxs[offsets + j];
+                    var cIdx = cIdxBase + tmp.x;
+                    if (cIdx < 0 || cIdx >= SideLength) continue;
+                    var rIdx = rIdxBase + tmp.y;
+                    if (rIdx < 0 || rIdx >= SideLength) continue;
+                    var hIdx = hIdxBase + tmp.z;
+                    if (hIdx < 0 || hIdx >= SideLength) continue;
+
+                    var cidx = hIdx * SideLength * SideLength + rIdx * SideLength + cIdx;
+
+                    var c = cellItems[cidx];
+                    while (c != null)
+                    {
+                        var vx = c.x - x;
+                        var vy = c.y - y;
+                        var vz = c.z - z;
+                        var dd = vx * vx + vy * vy + vz * vz;
+                        var r = maxDistance + c.radius;
+                        var v = r * r - dd;
 
                         if (v > maxV)
                         {
@@ -2106,9 +2330,9 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 二维圆形扩散遍历找范围内最多n个网格容器(单元体)的结果的存储容器
+        /// 2D圆形或3D球形扩散遍历找范围内最多n个网格容器(单元体)的结果的存储容器
         /// </summary>
-        public List<CellDistanceInfo> resultFindNearestN2D = new List<CellDistanceInfo>();
+        public List<CellDistanceInfo> resultFindNearest = new List<CellDistanceInfo>();
 
         /// <summary>
         /// [2D横版模式]X-Y平面圆形扩散遍历找出范围内边缘最近的最多n个结果
@@ -2128,7 +2352,7 @@ namespace CellSpace
             //searchRange决定了要扫多远的格子
             var searchRange = maxDistance + cellSize;
 
-            var os = resultFindNearestN2D;
+            var os = resultFindNearest;
             os.Clear();
 
             var lens = d.lens;
@@ -2200,7 +2424,7 @@ namespace CellSpace
             //searchRange决定了要扫多远的格子
             var searchRange = maxDistance + cellSize;
 
-            var os = resultFindNearestN2D;
+            var os = resultFindNearest;
             os.Clear();
 
             var lens = d.lens;
@@ -2224,6 +2448,85 @@ namespace CellSpace
                         var vx = c.x - x;
                         var vz = c.z - z;
                         var dd = vx * vx + vz * vz;
+                        var r = maxDistance + c.radius;
+                        var v = r * r - dd;
+
+                        if (v > 0)
+                        {
+                            if (os.Count < n)
+                            {
+                                os.Add(new CellDistanceInfo { distance = v, cell = c });
+                                if (os.Count == n)
+                                {
+                                    Quick_Sort(0, os.Count - 1);
+                                }
+                            }
+                            else
+                            {
+                                if (os[0].distance < v)
+                                {
+                                    os[0] = new CellDistanceInfo { distance = v, cell = c };
+                                    Quick_Sort(0, os.Count - 1);
+                                }
+                            }
+                        }
+
+                        c = c.nodeNext;
+                    }
+                }
+                if (lens[i].radius > searchRange) break;
+            }
+            return os.Count;
+        }
+        /// <summary>
+        /// [正常3D模式]三维圆球扩散遍历找出范围内边缘最近的最多n个结果
+        /// </summary>
+        /// <param name="d">扩散模式数据</param>
+        /// <param name="x">查询点X坐标</param>
+        /// <param name="y">查询点Y坐标</param>
+        /// <param name="z">查询点Z坐标</param>
+        /// <param name="maxDistance">限制结果集的最大边距</param>
+        /// <param name="n">最大返回结果数</param>
+        /// <returns>返回实际找到的个数</returns>
+        public int FindNearestNByRange(CellRingDiffuseXYZ d, float x, float y, float z, float maxDistance, int n)
+        {
+            int cIdxBase = (int)(x * _1_cellSize);
+            if (cIdxBase < 0 || cIdxBase >= SideLength) return 0;
+            int rIdxBase = (int)(y * _1_cellSize);
+            if (rIdxBase < 0 || rIdxBase >= SideLength) return 0;
+            int hIdxBase = (int)(z * _1_cellSize);
+            if (hIdxBase < 0 || hIdxBase >= SideLength) return 0;
+
+            var searchRange = maxDistance + cellSize;
+
+            var os = resultFindNearest;
+            os.Clear();
+
+            var lens = d.lens;
+            var idxs = d.idxyzs;
+            for (int i = 1; i < lens.Count; i++)
+            {
+                var offsets = lens[i - 1].count;
+                var size = lens[i].count - lens[i - 1].count;
+                for (int j = 0; j < size; ++j)
+                {
+                    var tmp = idxs[offsets + j];
+                    var cIdx = cIdxBase + tmp.x;
+                    if (cIdx < 0 || cIdx >= SideLength) continue;
+                    var rIdx = rIdxBase + tmp.y;
+                    if (rIdx < 0 || rIdx >= SideLength) continue;
+                    var hIdx = hIdxBase + tmp.z;
+                    if (hIdx < 0 || hIdx >= SideLength) continue;
+
+                    var cidx = hIdx * SideLength * SideLength + rIdx * SideLength + cIdx;
+
+                    var c = cellItems[cidx];
+                    while (c != null)
+                    {
+                        var vx = c.x - x;
+                        var vy = c.y - y;
+                        var vz = c.z - z;
+                        var dd = vx * vx + vy * vy + vz * vz;
                         var r = maxDistance + c.radius;
                         var v = r * r - dd;
 
@@ -2283,7 +2586,7 @@ namespace CellSpace
         /// <returns></returns>
         private int Partition(int left, int right)
         {
-            var arr = resultFindNearestN2D;
+            var arr = resultFindNearest;
             var pivot = arr[left];
             while (true)
             {

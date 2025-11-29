@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using MetalMaxSystem.Unity;
 
 namespace Uniblocks
 {
@@ -366,7 +367,7 @@ namespace Uniblocks
             while (SavingChunks)
             {
                 //在每帧屏幕所有相机和GUI被渲染完成前等待(确保当前帧网格对象全被创造出来后才能进行保存)
-                yield return new WaitForEndOfFrame();
+                yield return UnityUtilities.waitForEndOfFrame;
             }
             SavingChunks = true;
 
@@ -384,7 +385,7 @@ namespace Uniblocks
                 if (count > Engine.MaxChunkSaves)
                 {
                     //超过每帧团块数据存储的处理上限则在屏幕所有相机和GUI被渲染完成前等待,下一帧再继续处理
-                    yield return new WaitForEndOfFrame();
+                    yield return UnityUtilities.waitForEndOfFrame;
                     count = 0;
                 }
             }

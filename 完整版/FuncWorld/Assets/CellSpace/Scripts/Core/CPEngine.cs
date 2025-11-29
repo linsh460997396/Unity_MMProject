@@ -1,5 +1,5 @@
 ﻿using CellSpace.Examples;
-// 用到MetalMaxSystem.Unity里写好的OP对象池(修正框架在老外原型时期采用频繁创建引起掉帧及大量摧毁造成GC压力).该对象池也可换Unity自带的,看个人习惯.
+// 用到MetalMaxSystem.Unity里写好的UnityUtilities.waitForEndOfFrame及OP对象池.
 using MetalMaxSystem.Unity;
 using System;
 using System.Collections;
@@ -155,6 +155,11 @@ namespace CellSpace
     public class CPEngine : MonoBehaviour
     {
         #region 字段、属性方法(I前缀表示可被覆写的接口方法,但注意下方小写L开头字段是用于编辑器GUI界面"接口属性"而非前者,脱离编辑器后该字段可用于接收外来数据并在初始化时统一赋值给游戏变量)
+
+        /// <summary>
+        /// 重复使用的"等待帧结束"对象.
+        /// </summary>
+        public static readonly WaitForEndOfFrame waitForEndOfFrame = UnityUtilities.waitForEndOfFrame; //想与MetalMaxSystem解耦可改new WaitForEndOfFrame()
 
         // 启动前考虑:运行模式、要预填充的地块种类数)
 
@@ -1100,11 +1105,11 @@ namespace CellSpace
         /// 当连接到服务器时,更新玩家位置和范围.
         /// </summary>
         /// <returns></returns>
-        public IEnumerator InitialPositionAndRangeUpdate()
+        public static IEnumerator InitialPositionAndRangeUpdate()
         {
             while (CPEngine.network == null)
             {
-                yield return new WaitForEndOfFrame();
+                yield return waitForEndOfFrame;
             }
             Client.UpdatePlayerPosition(CPEngine.currentPos);
             Client.UpdatePlayerRange(CPEngine.chunkSpawnDistance);

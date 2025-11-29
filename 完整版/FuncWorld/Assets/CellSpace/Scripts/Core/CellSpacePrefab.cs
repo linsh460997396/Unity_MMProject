@@ -11,12 +11,13 @@ namespace CellSpace
     /// </summary>
     public class CellSpacePrefab : MonoBehaviour
     {
+        //预制体保存方法也只能在编辑器模式下调用,ScriptableObject不必保存成硬盘文件,直接内存环境使用
+
         /// <summary>
         /// 预制体字典.可模拟AB包素材加载后进Native内存,存储GameObject后Destroy原对象也不影响Native内存已存储的预制体,容器内的预制体不会出现在Unity场景.
         /// 摧毁该字典内容时请调用Resources.UnloadAsset(runtimePrefab[key])来标记销毁.
         /// </summary>
         public static RuntimePrefab runtimePrefab = ScriptableObject.CreateInstance<RuntimePrefab>();
-
         /// <summary>
         /// 用来阻止挂组件时自动Awake一次.而Start、Update那些就不用阻止了,因为runtimePrefab不在场景,即便预制体上组件Enable也不起作用.
         /// </summary>
@@ -30,9 +31,11 @@ namespace CellSpace
         /// </summary>
         public static bool initialized;
         /// <summary>
-        /// 外部纹理图片路径.留空则使用Unity编辑器内部路径.
+        /// 外部纹理图片路径.留空则默认externalTexturePath = Application.dataPath + @"/CellSpace/Res/Textures".
         /// </summary>
         public static string externalTexturePath;
+
+        //其他路径示范
         //public static string externalTexturePath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework";
 
         /// <summary>
@@ -214,7 +217,7 @@ namespace CellSpace
         /// <returns></returns>
         public static Material CPMat(string materialName, string texturePath)
         {
-            Material cachedMaterial = null;
+            Material cachedMaterial;
             Shader shader = Shader.Find("Standard");
             if (!runtimePrefab.ContainsKey(materialName))
             {
@@ -321,7 +324,6 @@ namespace CellSpace
 
             return dynamicMesh;
         }
-
         /// <summary>
         /// 获取支持uv的球体网格（优先查找内置资源,不存在则动态生成）.
         /// </summary>

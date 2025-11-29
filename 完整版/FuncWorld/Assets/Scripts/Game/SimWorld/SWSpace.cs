@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace SimWorld
 {
-    public class SWSpaceItem
+    public class SWGridItem
     {
         public SWSpaceContainer spaceContainer;
-        public SWSpaceItem spacePrev, spaceNext;
+        public SWGridItem spacePrev, spaceNext;
         public int spaceIndex = -1;
         public float x, y;
         public float radius;
@@ -19,7 +19,7 @@ namespace SimWorld
         public float cellSize, _1_cellSize;         // = 1 / gridSize
         public float maxY, maxX;                    // edge position
         public int numItems;                        // for state
-        public SWSpaceItem[] cells;                  // grids container( gridChunkNumRows * gridChunkNumCols )
+        public SWGridItem[] cells;                  // grids container( gridChunkNumRows * gridChunkNumCols )
 
 
         public SWSpaceContainer(int numRows_, int numCols_, float cellSize_)
@@ -37,7 +37,7 @@ namespace SimWorld
             maxX = cellSize * numCols;
             if (cells == null)
             {
-                cells = new SWSpaceItem[numRows * numCols];
+                cells = new SWGridItem[numRows * numCols];
             }
             else
             {
@@ -47,7 +47,7 @@ namespace SimWorld
         }
 
 
-        public void Add(SWSpaceItem c)
+        public void Add(SWGridItem c)
         {
 #if UNITY_EDITOR
             Debug.Assert(c != null);
@@ -84,7 +84,7 @@ namespace SimWorld
         }
 
 
-        public void Remove(SWSpaceItem c)
+        public void Remove(SWGridItem c)
         {
 #if UNITY_EDITOR
             Debug.Assert(c != null);
@@ -131,7 +131,7 @@ namespace SimWorld
         }
 
 
-        public void Update(SWSpaceItem c)
+        public void Update(SWGridItem c)
         {
 #if UNITY_EDITOR
             Debug.Assert(c != null);
@@ -224,7 +224,7 @@ namespace SimWorld
 
 
         // 在 9 宫内找出 第1个 相交物 并返回
-        public SWSpaceItem FindFirstCrossBy9(float x, float y, float radius)
+        public SWGridItem FindFirstCrossBy9(float x, float y, float radius)
         {
             // 5
             int cIdx = (int)(x * _1_cellSize);
@@ -368,7 +368,7 @@ namespace SimWorld
         }
 
         // 遍历坐标所在格子 + 周围  九宫. handler 返回 true 结束遍历( Func 可能产生 gc, 但这种应该是无所谓的, 里面只要不含 unity 资源 )
-        public void Foreach9All(float x, float y, Func<SWSpaceItem, bool> handler)
+        public void Foreach9All(float x, float y, Func<SWGridItem, bool> handler)
         {
             // 5
             int cIdx = (int)(x * _1_cellSize);
@@ -467,7 +467,7 @@ namespace SimWorld
 
 
         // 圆形扩散遍历找出 边距最近的 1 个并返回
-        public SWSpaceItem FindNearestByRange(SWSpaceRingDiffuseData d, float x, float y, float maxDistance)
+        public SWGridItem FindNearestByRange(SWSpaceRingDiffuseData d, float x, float y, float maxDistance)
         {
             int cIdxBase = (int)(x * _1_cellSize);
             if (cIdxBase < 0 || cIdxBase >= numCols) return null;
@@ -475,7 +475,7 @@ namespace SimWorld
             if (rIdxBase < 0 || rIdxBase >= numRows) return null;
             var searchRange = maxDistance + cellSize;
 
-            SWSpaceItem rtv = null;
+            SWGridItem rtv = null;
             float maxV = 0;
 
             var lens = d.lens;
@@ -518,7 +518,7 @@ namespace SimWorld
 
 
         // 圆形扩散遍历 找出范围内 ??? 最多 n 个 的结果容器
-        public List<SWDistanceSpaceItem> result_FindNearestN = new();
+        public List<SWDistanceGridItem> result_FindNearestN = new();
 
         // 圆形扩散遍历 找出范围内 边缘最近的 最多 n 个, 返回实际个数.searchRange 决定了要扫多远的格子. maxDistance 限制了结果集最大边距
         public int FindNearestNByRange(SWSpaceRingDiffuseData d, float x, float y, float maxDistance, int n)
@@ -560,7 +560,7 @@ namespace SimWorld
                         {
                             if (os.Count < n)
                             {
-                                os.Add(new SWDistanceSpaceItem { distance = v, item = c });
+                                os.Add(new SWDistanceGridItem { distance = v, item = c });
                                 if (os.Count == n)
                                 {
                                     Quick_Sort(0, os.Count - 1);
@@ -570,7 +570,7 @@ namespace SimWorld
                             {
                                 if (os[0].distance < v)
                                 {
-                                    os[0] = new SWDistanceSpaceItem { distance = v, item = c };
+                                    os[0] = new SWDistanceGridItem { distance = v, item = c };
                                     Quick_Sort(0, os.Count - 1);
                                 }
                             }
@@ -638,12 +638,12 @@ namespace SimWorld
         public int x, y;
     }
 
-    public struct SWDistanceSpaceItem : IComparable<SWDistanceSpaceItem>
+    public struct SWDistanceGridItem : IComparable<SWDistanceGridItem>
     {
         public float distance;
-        public SWSpaceItem item;
+        public SWGridItem item;
 
-        public int CompareTo(SWDistanceSpaceItem o)
+        public int CompareTo(SWDistanceGridItem o)
         {
             return this.distance.CompareTo(o.distance);
         }

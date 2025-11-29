@@ -701,7 +701,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        ///  以实数返回二维坐标(pixelX,pixelY)与(a,b)形成的角度(单位:度)
+        ///  以实数返回二维坐标(x,y)与(a,b)形成的角度(单位:度)
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -732,7 +732,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回三维坐标(pixelX,pixelY,z)与(a,b,c)形成的角度(单位:度)
+        /// 以实数返回三维坐标(x,y,z)与(a,b,c)形成的角度(单位:度)
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
@@ -763,8 +763,8 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回二维点1点2形成的角度(单位:度)
-        /// Returns the angle from point 1 to point 2 as a real value, in degrees
+        /// 以实数返回二维点1点2形成的角度(单位:度).
+        /// Returns the angle from point 1 to point 2 as a real value, in degrees.
         /// </summary>
         /// <param name="point1">二维点</param>
         /// <param name="point2">二维点</param>
@@ -865,7 +865,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回二维坐标(pixelX,pixelY)与(a,b)形成的距离(单位:m)
+        /// 以实数返回二维坐标(x,y)与(a,b)形成的距离(单位:m)
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>

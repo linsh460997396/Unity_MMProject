@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using MetalMaxSystem.Unity;
 
 namespace Uniblocks
 {
@@ -190,7 +191,7 @@ namespace Uniblocks
                     yield break;
                 }
                 //协程停止,等待当前帧刷新画面
-                yield return new WaitForEndOfFrame();
+                yield return UnityUtilities.waitForEndOfFrame;
 
             }
             //添加当前团块到更新队列
@@ -806,11 +807,11 @@ namespace Uniblocks
             while (!Network.isClient)
             {
                 CurrentChunkDataRequests = 0; // reset the counter if we're not connected.若没有连接就重置计数器
-                yield return new WaitForEndOfFrame();
+                yield return UnityUtilities.waitForEndOfFrame;
             }
             while (Engine.MaxChunkDataRequests != 0 && CurrentChunkDataRequests >= Engine.MaxChunkDataRequests)
             {
-                yield return new WaitForEndOfFrame();
+                yield return UnityUtilities.waitForEndOfFrame;
             }
 
             CurrentChunkDataRequests++;

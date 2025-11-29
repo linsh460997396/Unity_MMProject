@@ -66,7 +66,7 @@ namespace CellSpace
         {
             while (CPEngine.network == null)
             {
-                yield return new WaitForEndOfFrame();
+                yield return CPEngine.waitForEndOfFrame;
             }
             Client.UpdatePlayerPosition(currentPos);
             Client.UpdatePlayerRange(CPEngine.chunkSpawnDistance);

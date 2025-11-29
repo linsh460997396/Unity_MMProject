@@ -12,6 +12,8 @@ namespace MetalMaxSystem.Unity
     /// </summary>
     public class UnityUtilities : MonoBehaviour
     {
+        public static readonly WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+
         /// <summary>
         /// 检测游戏物体是否包含Transform组件外的组件，有则返回true.
         /// </summary>
