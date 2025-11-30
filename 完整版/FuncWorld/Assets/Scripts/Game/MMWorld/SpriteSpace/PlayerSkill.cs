@@ -24,7 +24,7 @@ namespace SpriteSpace
         /// <summary>
         /// 用于UI展示
         /// </summary>
-        public int icon = 123;
+        public int icon = 0;
         /// <summary>
         /// 同步以展示技能就绪进度(结合nextCastTime、castDelay来计算)
         /// </summary>
@@ -99,7 +99,7 @@ namespace SpriteSpace
 
                 var x = player.pixelRow;
                 var y = player.pixelColumn;
-                var o = stage.monstersSpaceContainer.FindNearestByRange(Scene.spaceRDD, x, y, moveSpeed * life);
+                var o = stage.monstersGridContainer.FindNearestByRange(Scene.spaceRDD, x, y, moveSpeed * life);
                 if (o != null)
                 {
                     var dy = o.pixelColumn - y;

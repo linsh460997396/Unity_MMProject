@@ -63,10 +63,10 @@
          //配置怪生成器
             var time = scene.time; //等同运行游戏逻辑的次数
             //创建怪物或NPC
-            monsterGenerators.Add(new MonsterGenerator1("MS2", this, time + Scene.fps * 10, time + Scene.fps * 20, 1));
+            monsterGenerators.Add(new MonsterGenerator1("MS", this, time + Scene.fps * 10, time + Scene.fps * 20, 1));
             //重置玩家位置(舞台,逻辑坐标X,逻辑坐标Y)
             //第一个镇子场景如要出现在本地(1,1)位置,则填逻辑坐标=本地坐标*gridSize即(100,100),目前gridSize=100表示将1个渲染层实际是1.0边长的单元格从逻辑上又划分了100格,空间内本地距离0.01作为游戏逻辑用的逻辑距离1
-            player.Init(this, 350, 350);
+            player.Init(this, 2500, 2000);
             state = 1;//设置下一个自动轮入的舞台索引
         }
 
@@ -75,20 +75,21 @@
         /// </summary>
         public void P1()
         {
-            //Update_Effect_Explosions();//更新爆炸特效
-            //Update_Effect_Numbers();//更新数字特效
-            //Update_Monsters();//更新怪物
+            Update_Effect_Explosions();//更新爆炸特效
+            Update_Effect_Numbers();//更新数字特效
+            Update_Monsters();//更新怪物
 
-            ////怪物没了就进下个state索引
-            //if (Update_MonstersGenerators() == 0)
-            //{
-            //    //怪生成器已经没怪了若还在逗留,可设置超时并切换舞台
-            //    //timeout = scene.time + Scene.fps * 60;      // 设置 60 秒超时
-            //    //state = 2;
-            //}
-            //Update_PlayerBullets();//更新玩家子弹
+            //怪物没了就进下个state索引
+            if (Update_MonstersGenerators() == 0)
+            {
+                //怪生成器已经没怪了若还在逗留,可设置超时并切换舞台
+                timeout = scene.time + Scene.fps * 60;      // 设置 60 秒超时
+                state = 2;
+            }
+            Update_PlayerBullets();//更新玩家子弹
 
             player.Update();//更新玩家(移动、渲染、技能)
+
             //不再有新舞台索引时就一直循环该方法,玩家自由移动和射击、更新位置和动画
         }
 

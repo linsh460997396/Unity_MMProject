@@ -634,7 +634,7 @@ namespace CellSpace
         /// (从GUI界面、配置文件输入)产生碰撞体(为false则团块将不会生成任何碰撞体).
         /// 碰撞体使用渲染网格,当然渲染网格可能是自定义如门的形状,否则都是方形.
         /// </summary>
-        public static bool lGenerateColliders;
+        public static bool lGenerateColliders = true;
         /// <summary>
         /// (从GUI界面、配置文件输入)发送镜头注视事件(若为true, CameraEventsSender组件将把事件发送到主摄像机视场中心指着的单元)
         /// </summary>
@@ -849,7 +849,7 @@ namespace CellSpace
 
                 //遮罩层设置
 
-                //若26层名不为空则输出警告
+                //若26层名不为空则输出警告（编辑器模式下添加有0~31层）
                 if (LayerMask.LayerToName(26) != "" && LayerMask.LayerToName(26) != "CellSpaceNoCollide")
                 {
                     Debug.LogWarning("CellSpace: Layer 26 is reserved for CellSpace, it is automatically set to ignore collision with all layers." +

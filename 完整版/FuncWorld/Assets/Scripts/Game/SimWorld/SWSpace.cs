@@ -479,7 +479,7 @@ namespace SimWorld
             float maxV = 0;
 
             var lens = d.lens;
-            var idxs = d.idxs;
+            var idxs = d.idxys;
             for (int i = 1; i < lens.Count; i++)
             {
                 var offsets = lens[i - 1].count;
@@ -533,7 +533,7 @@ namespace SimWorld
             os.Clear();
 
             var lens = d.lens;
-            var idxs = d.idxs;
+            var idxs = d.idxys;
             for (int i = 1; i < lens.Count; i++)
             {
                 var offsets = lens[i - 1].count;
@@ -653,17 +653,17 @@ namespace SimWorld
     public class SWSpaceRingDiffuseData
     {
         public List<SWSpaceCountRadius> lens = new();
-        public List<SWSpaceXYi> idxs = new();
+        public List<SWSpaceXYi> idxys = new();
 
         public SWSpaceRingDiffuseData(int gridNumRows, int cellSize)
         {
             lens.Add(new SWSpaceCountRadius { count = 0, radius = 0f });
-            idxs.Add(new SWSpaceXYi());
+            idxys.Add(new SWSpaceXYi());
             HashSet<ulong> set = new();
             set.Add(0);
             for (float radius = 0; radius < cellSize * gridNumRows; radius += cellSize)
             {
-                var lenBak = idxs.Count;
+                var lenBak = idxys.Count;
                 var radians = Mathf.Asin(0.5f / radius) * 2;
                 var step = (int)(Mathf.PI * 2 / radians);
                 var inc = Mathf.PI * 2 / step;
@@ -677,12 +677,12 @@ namespace SimWorld
                     var key = ((ulong)iy << 32) + (ulong)ix;
                     if (set.Add(key))
                     {
-                        idxs.Add(new SWSpaceXYi { x = ix, y = iy });
+                        idxys.Add(new SWSpaceXYi { x = ix, y = iy });
                     }
                 }
-                if (idxs.Count > lenBak)
+                if (idxys.Count > lenBak)
                 {
-                    lens.Add(new SWSpaceCountRadius { count = idxs.Count, radius = radius });
+                    lens.Add(new SWSpaceCountRadius { count = idxys.Count, radius = radius });
                 }
             }
         }

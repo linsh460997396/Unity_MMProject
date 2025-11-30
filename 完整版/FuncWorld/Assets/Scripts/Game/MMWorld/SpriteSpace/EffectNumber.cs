@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using CellSpace;
+using UnityEngine;
+using static UnityEngine.RuleTile.TilingRuleOutput;
 
 namespace SpriteSpace
 {
@@ -70,8 +72,8 @@ namespace SpriteSpace
             for (int i = 0; i < size; i++)
             {
                 var o = new GO();
-                //从对象池分配对象,层0,设置精灵渲染器排序图层名称为FG2(Foreground是前景图层,通常指那些位于画面最前、离观众最近的元素部分)
-                GO.Pop(ref o, 0, "FG2");
+                //从对象池分配对象,层0,设置精灵渲染器排序图层名称为FG(ForeGround是前景图层,通常指那些位于画面最前、离观众最近的元素部分)
+                GO.Pop(ref o, 0, "ForeGround");
                 o.spriteRenderer.sprite = scene.sprites_font_outline[sb[i] - 32];//char可直接与数字加减,如sb[i]='2',结果是(int)'2' -32=50=32=18,对应精灵数组索引[18],即2的精灵图片
                 o.transform.localScale = new Vector3(scale, scale, scale);
                 if (lv_criticalHit)
@@ -114,7 +116,19 @@ namespace SpriteSpace
                     //启用对象
                     gos[i].Enable();
                     //绘制数字特效,以xy为原点往右列出全部长度的数字(精灵图片)
-                    gos[i].transform.position = new Vector3((pixelRaw + i * 8 * scale) / Scene.gridSize, pixelColumn / Scene.gridSize, 0);
+                    if (CPEngine.horizontalMode)
+                    {//2D横板模式
+                        gos[i].transform.position = new Vector3((pixelRaw + i * 8 * scale) / Scene.gridSize, pixelColumn / Scene.gridSize, 0);
+                    }
+                    else if (CPEngine.singleLayerTerrainMode)
+                    {//3D单层地形模式
+                        gos[i].transform.position = new Vector3((pixelRaw + i * 8 * scale) / Scene.gridSize, 1, pixelColumn / Scene.gridSize);
+                        gos[i].transform.rotation = Quaternion.Euler(90, 0, 0); //3D模式下把图片转90度
+                    }
+                    else
+                    {//正常3D模式
+                        Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+                    }
                 }
             }
         }

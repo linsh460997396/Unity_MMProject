@@ -24,7 +24,7 @@ namespace SimWorld
             stage.effectExplosions.Add(this);
 
             // 从对象池分配 u3d 底层对象
-            GO.Pop(ref go, 0, "FG");
+            GO.Pop(ref go, 0, "ForeGround");
             go.transform.SetPositionAndRotation(new Vector3(x_ * Main_SimWorld.designWidthToCameraRatio, -y_ * Main_SimWorld.designWidthToCameraRatio, 0)
                 , Quaternion.Euler(0, 0, Random.Range(0f, 360f)));
             var s = displayBaseScale * scale_;

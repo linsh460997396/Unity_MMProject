@@ -2,14 +2,14 @@
 
 namespace SimWorld
 {
-    public class SWPlayerSkill2 : SWPlayerSkill
+    public class SWPlayerSkill1 : SWPlayerSkill
     {
 
         public int pierceCount = 5;                             // 最大可穿透次数
         public int pierceDelay = 12;                            // 穿透时间间隔 帧数( 针对相同目标 )
         public int knockbackForce = 0;                          // 击退强度( 退多少帧, 多远 )
 
-        public SWPlayerSkill2(SWStage stage_) : base(stage_)
+        public SWPlayerSkill1(SWStage stage_) : base(stage_)
         {
         }
 
@@ -55,7 +55,7 @@ namespace SimWorld
                             var sin = Mathf.Sin(r);
                             var tarX = x + cos * shootDistanceStep * count;
                             var tarY = y + sin * shootDistanceStep * count;
-                            new SWPlayerBullet2(this).Init(tarX, tarY, r, cos, sin);
+                            new SWPlayerBullet1(this).Init(tarX, tarY, r, cos, sin);
                             --count;
                             if (count == 0) break;
                         }
@@ -71,7 +71,7 @@ namespace SimWorld
                     {
                         var tarX = x + cos * shootDistanceStep * count;
                         var tarY = y + sin * shootDistanceStep * count;
-                        new SWPlayerBullet2(this).Init(tarX, tarY, r, cos, sin);
+                        new SWPlayerBullet1(this).Init(tarX, tarY, r, cos, sin);
                     }
                 }
             }

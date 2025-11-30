@@ -710,3 +710,8 @@ Material.renderQueue=3000; //设置材质渲染队列,该值会传入Shader的Re
 ‌3)排序图层(Sorting Layer)和图层内排序(Order in Layer)‌
 专用于2D渲染(SpriteRenderer/Canvas等),通过Sorting Layer分组,Order in Layer控制组内层级
 值越大越靠前,适合2D游戏中的角色遮挡、UI层级管理.
+
+Unity中V Sync Count的设置有三种:不设置、每个V空白、每秒V空白
+‌Don't Sync‌:关闭垂直同步,帧率不受显示器刷新率限制,可通过Application.targetFrameRate手动设置目标帧率(如1000FPS)‌,此模式下性能最高,但可能产生画面撕裂.
+‌Every V Blank‌:帧率锁定为60FPS(与标准显示器刷新率同步),Application.targetFrameRate设置无效‌,适合需要稳定帧率的场景,但会限制性能上限.
+‌Every Second V Blank‌:帧率锁定为30FPS,同样忽略Application.targetFrameRate‌,适用于对帧率要求不高的应用,可降低设备负载.

@@ -2,7 +2,7 @@
 
 namespace SimWorld
 {
-    public class SWPlayerBullet2 : SWPlayerBullet
+    public class SWPlayerBullet1 : SWPlayerBullet
     {
 
         public List<KeyValuePair<SWGridItem, int>> hitBlackList = new();   // 带超时的穿透黑名单
@@ -12,7 +12,7 @@ namespace SimWorld
         public int pierceDelay;                         // 穿透时间间隔 帧数( 针对相同目标 )
         public int knockbackForce;                      // 击退强度( 退多少帧, 多远 )
 
-        public SWPlayerBullet2(SWPlayerSkill2 ps) : base(ps)
+        public SWPlayerBullet1(SWPlayerSkill1 ps) : base(ps)
         {
             pierceCount = ps.pierceCount;
             pierceDelay = ps.pierceDelay;

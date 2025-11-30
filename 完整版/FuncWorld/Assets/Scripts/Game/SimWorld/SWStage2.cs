@@ -20,7 +20,7 @@
                 player.skills.Add(ps);
             }
             {
-                var ps = new SWPlayerSkill2(this);
+                var ps = new SWPlayerSkill1(this);
                 ps.Init();
                 player.skills.Add(ps);
             }

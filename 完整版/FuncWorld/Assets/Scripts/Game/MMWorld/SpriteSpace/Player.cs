@@ -83,11 +83,11 @@ namespace SpriteSpace
         /// <summary>
         /// 当前生命值
         /// </summary>
-        public int hp = 100;
+        public int hp = 1000000;
         /// <summary>
         /// //生命值上限
         /// </summary>
-        public int maxHp = 100;
+        public int maxHp = 1000000;
         /// <summary>
         /// 当前基础伤害倍率(技能上的为实际伤害值,此值可作各种倍率如暴击)
         /// </summary>
@@ -142,6 +142,14 @@ namespace SpriteSpace
                 mgo.spriteRenderer.sprite = scene.sprites_player[0];//初始化玩家精灵
                 mgo.spriteRenderer.material = scene.minimapMaterial;//初始化材质,拖入编辑器GUI字段的预制体会在这里赋值时自动实例化,频繁调用多次应使用Instance()后的实例来赋值以节省内存
                 mgo.transform.localScale = new Vector3(1, 1, 1);//初始化本地缩放
+                if (CPEngine.singleLayerTerrainMode)
+                {//3D单层地形模式
+                    mgo.transform.rotation = Quaternion.Euler(90, 0, 0);
+                }
+                else
+                {//正常3D模式
+                    mgo.transform.rotation = Quaternion.Euler(90, 0, 0);
+                }
             }
         }
 
@@ -244,13 +252,13 @@ namespace SpriteSpace
                 positionHistory.RemoveAt(positionHistory.Count - 1);
             }
             //驱动技能
-            //{
-            //    var len = skills.Count;
-            //    for (int i = 0; i < len; ++i)
-            //    {
-            //        skills[i].Update();
-            //    }
-            //}
+            {
+                var len = skills.Count;
+                for (int i = 0; i < len; ++i)
+                {
+                    skills[i].Update();
+                }
+            }
             return false;
         }
 
@@ -268,11 +276,15 @@ namespace SpriteSpace
             {
                 posCache.Set(pixelRow / Scene.gridSize, pixelColumn / Scene.gridSize, 0);
             }
-            else
-            {
+            else if (CPEngine.singleLayerTerrainMode)
+            {//3D单层地形模式
                 posCache.Set(pixelRow / Scene.gridSize, 1 + Scene.aboveHeight, pixelColumn / Scene.gridSize); //3D模式地图刷在方块顶面,该高度是1.0(绝对世界坐标)
                 go.transform.rotation = Quaternion.Euler(90, 0, 0); //3D模式下把图片转90度
                 if (mgo.gameObject != null) mgo.transform.rotation = Quaternion.Euler(90, 0, 0); //小地图游戏物体也转90度
+            }
+            else
+            {//正常3D模式
+                Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
             }
             go.transform.position = posCache;
             go.transform.localScale = new Vector3(displayScale, displayScale, displayScale);

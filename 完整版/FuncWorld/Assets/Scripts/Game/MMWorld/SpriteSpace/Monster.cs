@@ -92,7 +92,7 @@ namespace SpriteSpace
         /// <summary>
         /// 怪物生命值
         /// </summary>
-        public int hp = 20;
+        public int hp = 100;
         /// <summary>
         /// [逻辑坐标]每一帧的移动距离
         /// </summary>
@@ -134,7 +134,7 @@ namespace SpriteSpace
             _1_defaultRadius = 1f / defaultRadius;
 
             //初始化容器为舞台参数的怪物空间容器
-            container = stage_.monstersSpaceContainer;
+            container = stage_.monstersGridContainer;
             stage = stage_;//初始化舞台
             player = stage_.player;//初始化舞台玩家
             scene = stage_.scene;//初始化舞台场景
@@ -149,7 +149,15 @@ namespace SpriteSpace
                 GO.Pop(ref mgo, 3);
                 mgo.spriteRenderer.material = scene.minimapMaterial; //设置小地图对象的材质和缩放
                 mgo.transform.localScale = new Vector3(1, 1, 1);
-                //mgo.spriteRenderer.color = Color.red; //设置小地图怪物对象是红色
+                mgo.spriteRenderer.color = Color.red; //设置小地图怪物对象是红色
+                if (CPEngine.singleLayerTerrainMode)
+                {//3D单层地形模式
+                    mgo.transform.rotation = Quaternion.Euler(90, 0, 0);
+                }
+                else
+                {//正常3D模式
+                    mgo.transform.rotation = Quaternion.Euler(90, 0, 0);
+                }
             }
         }
 
@@ -183,6 +191,9 @@ namespace SpriteSpace
              //逻辑坐标位移
                 pixelRow += knockbackIncX * knockbackIncRate;
                 pixelColumn += knockbackIncY * knockbackIncRate;
+                //修正不能出边界
+                pixelRow = Mathf.Max(0, pixelRow);
+                pixelColumn = Mathf.Max(0, pixelColumn);
                 //衰减
                 knockbackIncRate -= knockbackDecay;
                 //更新自己在空间索引容器中的(逻辑坐标)位置
@@ -262,12 +273,15 @@ namespace SpriteSpace
                     //同步&坐标系转换
                     go.transform.position = new Vector3(pixelRow / Scene.gridSize, pixelColumn / Scene.gridSize, 0);
                 }
-                else
-                {
-                    //3D模式调整
+                else if (CPEngine.singleLayerTerrainMode)
+                {//3D单层地形模式
                     go.transform.position = new Vector3(pixelRow / Scene.gridSize, 1 + Scene.aboveHeight, pixelColumn / Scene.gridSize);
                     go.transform.rotation = Quaternion.Euler(90, 0, 0); //3D模式下把图片转90度
                     if (mgo.gameObject != null) mgo.transform.rotation = Quaternion.Euler(90, 0, 0); //小地图游戏物体也转90度
+                }
+                else
+                {//正常3D模式
+                    Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
                 }
                 //同步尺寸缩放(根据半径推送算)
                 var s = displayBaseScale * range * _1_defaultRadius;
@@ -296,9 +310,13 @@ namespace SpriteSpace
                     {
                         mgo.transform.position = new Vector3(pixelRow / Scene.gridSize, pixelColumn / Scene.gridSize, 0);//[渲染层]设置小地图对象位置
                     }
-                    else
-                    {
+                    else if (CPEngine.singleLayerTerrainMode)
+                    {//3D单层地形模式
                         mgo.transform.position = new Vector3(pixelRow / Scene.gridSize, 1 + Scene.aboveHeight, pixelColumn / Scene.gridSize);//3D模式调整
+                    }
+                    else
+                    {//正常3D模式
+                        Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
                     }
                 }
             }

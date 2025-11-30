@@ -1,11 +1,9 @@
 ﻿using CellSpace;
-using MetalMaxSystem.Unity;
-using System;
 using UnityEngine;
 
 namespace SpriteSpace
 {
-    //精灵空间管理框架(SpriteSpace)入口类.
+    //精灵空间管理框架(SpriteSpace)入口场景类.
     //框架用于管理静态地面上的活动精灵，可配合静态地面空间框架(CellSpace)的2D横板、3D单层地形模式使用.
     //框架自带的双向链表仅支持2D管理检索场景中的活动对象(如怪物、子弹、特效、角色、道具等).
     //可自行修改设计,如它们的基类GridItem继承CellSpace框架的CellItem时,可将它们添加到CellSpace框架的双向链表(支持3D管理和检索).
@@ -95,7 +93,7 @@ namespace SpriteSpace
         /// 设计分辨率(单位是逻辑像素非真实像素),决定了屏幕(摄像机镜头)范围占空间总大小多少.
         /// 为了达到现实中屏幕分辨率,逻辑像素范围可取1920*1080这样的默认值.修改gridSize和grid行列数可调整网格团块一角或全部被屏幕看到的比例.
         /// </summary>
-        public const float designWidth = 1920, designHeight = 1080;
+        public const float designWidth = 3840, designHeight = 2160;
         /// <summary>
         /// 设计分辨率的一半(方便计算和使用)
         /// </summary>
@@ -119,17 +117,17 @@ namespace SpriteSpace
         public const float sqrt2_1 = 0.7071067811865475f;
 
         /// <summary>
-        /// 空间容器索引时要用到的找最近所需格子的偏移数组(所有舞台公用)
+        /// 空间容器索引时要用到的找最近所需格子的偏移量数组(所有舞台公用)
         /// </summary>
-        public static SpaceRingDiffuseData spaceRDD = new(256, gridSize);
+        public static SpaceRingDiffuseData spaceRDD = new(100, gridSize);
         /// <summary>
-        /// 小地图开启状态(默认不开启,节省性能)
+        /// 小地图开启状态.
         /// </summary>
         public static bool minimapEnabled = false;
         /// <summary>
-        /// 是否创建小地图用的GameObject(默认不创建,节省性能)
+        /// 是否创建小地图用的GameObject(默认不创建,节省性能).
         /// </summary>
-        public static bool mGOCreate = false;
+        public static bool mGOCreate = true;
         /// <summary>
         /// 精灵图片离地相对高度.
         /// </summary>
@@ -161,10 +159,10 @@ namespace SpriteSpace
             player = new Player(this);
 
             //初始化起始舞台(切场景时更换为新的舞台)
-            stage = new Stage1(this);
+            //stage = new Stage1(this);
 
             //stage = new TestStage1(this); //测试大量数字特效
-            //stage = new TestStage2(this); //正常打怪测试
+            stage = new TestStage2(this); //正常打怪测试
         }
         void Update()
         {
@@ -227,6 +225,7 @@ namespace SpriteSpace
             minimapEnabled = b;//刷新场景minimapEnabled字段
             minimapCanvas.enabled = b;//决定画布是否启用
             minimapCamera.enabled = b;//决定小地图摄像机是否启用
+            Debug.Log("小地图已" + (b ? "启用" : "禁用"));
         }
 
         //处理玩家输入
@@ -305,6 +304,7 @@ namespace SpriteSpace
                     Camera.main.orthographic = true;
                     Camera.main.orthographicSize = Camera.main.orthographicSize * designWidthToCameraRatio;
                     Debug.Log("[horizontalMode]正交镜头:摄像机默认正交尺寸=" + Camera.main.orthographicSize);
+                    Camera.main.gameObject.transform.position = new Vector3(0, 0, -20);
                 }
                 else if (CPEngine.singleLayerTerrainMode)
                 {
@@ -313,11 +313,13 @@ namespace SpriteSpace
                     Camera.main.orthographicSize = Camera.main.orthographicSize * designWidthToCameraRatio;
                     Debug.Log("[CPEngine.singleLayerTerrainMode]正交镜头:摄像机默认正交尺寸 = " + Camera.main.orthographicSize);
                     Camera.main.gameObject.transform.rotation = Quaternion.Euler(90, 0, 0); //原横板模式设计的摄像机绕X轴顺时针转90度以俯视X-Z平面
+                    Camera.main.gameObject.transform.position = new Vector3(0, 20, 0);
                 }
                 else
                 {
                     //正常3D模式的镜头应另行支持鼠标旋转屏
                     Camera.main.gameObject.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    Camera.main.gameObject.transform.position = new Vector3(0, 20, 0);
                     Camera.main.orthographic = false;
                     //if (designWidthToCameraRatio != 1f)
                     //{
@@ -326,7 +328,6 @@ namespace SpriteSpace
                     //}
                     Debug.Log("[正常3D模式]透视镜头:摄像机默认视野大小=" + Camera.main.fieldOfView);
                 }
-                Camera.main.gameObject.transform.position = new Vector3(0, 20, 0);
             }
             else
             {

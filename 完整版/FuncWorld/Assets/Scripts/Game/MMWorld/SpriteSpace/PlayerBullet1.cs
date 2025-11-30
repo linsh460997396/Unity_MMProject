@@ -28,7 +28,7 @@ namespace SpriteSpace
         public int knockbackForce;
 
         /// <summary>
-        /// [构造函数]MM测试专用玩家子弹(发射物)
+        /// [构造函数]玩家子弹(发射物)1号.
         /// </summary>
         /// <param name="ps">MMPlayerSkill对象</param>
         public PlayerBullet1(PlayerSkill1 ps) : base(ps)
@@ -61,7 +61,7 @@ namespace SpriteSpace
             if (pierceCount <= 1)
             {
                 //在9宫范围内查询首个相交
-                var m = monstersSpaceContainer.FindFirstCrossBy9(pixelRow, pixelColumn, radius);
+                var m = monstersGridContainer.FindFirstCrossBy9(pixelRow, pixelColumn, radius);
                 if (m != null)
                 {
                     ((Monster)m).Hurt(damage, knockbackForce);
@@ -71,7 +71,7 @@ namespace SpriteSpace
             else
             {
                 //遍历九宫挨个处理相交,消耗穿刺数量
-                monstersSpaceContainer.Foreach9All(pixelRow, pixelColumn, HitCheck);
+                monstersGridContainer.Foreach9All(pixelRow, pixelColumn, HitCheck);
                 if (pierceCount <= 0) return true;
             }
 

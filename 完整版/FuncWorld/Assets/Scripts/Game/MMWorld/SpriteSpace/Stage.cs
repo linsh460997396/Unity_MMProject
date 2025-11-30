@@ -36,7 +36,7 @@ namespace SpriteSpace
         /// <summary>
         /// 怪物空间容器
         /// </summary>
-        public GridContainer monstersSpaceContainer;
+        public GridContainer monstersGridContainer;
         /// <summary>
         /// 爆炸特效列表
         /// </summary>
@@ -64,7 +64,7 @@ namespace SpriteSpace
         {//将构造函数设为protected意味着这个构造函数不能在类的外部直接被调用,从而防止了类的直接实例化
             scene = scene_;
             player = scene_.player;
-            monstersSpaceContainer = new(Scene.gridChunkNumRows, Scene.gridChunkNumCols, Scene.gridSize);
+            monstersGridContainer = new(Scene.gridChunkNumRows, Scene.gridChunkNumCols, Scene.gridSize);
             camTrans = Camera.main.transform;
         }
 
@@ -88,10 +88,14 @@ namespace SpriteSpace
             {
                 camTrans.position = new Vector3(player.pixelRow / Scene.gridSize, player.pixelColumn / Scene.gridSize, camTrans.position.z);
             }
-            else
-            {
-                //3D模式保持摄像头Y不变,2D的Y填入3D的Z
+            else if (CPEngine.singleLayerTerrainMode)
+            {//3D单层地形模式
+                //保持摄像头Y不变,2D的Y填入3D的Z
                 camTrans.position = new Vector3(player.pixelRow / Scene.gridSize, camTrans.position.y, player.pixelColumn / Scene.gridSize);
+            }
+            else
+            {//正常3D模式
+                Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
             }
 
             //剔除 & 同步 GO
@@ -167,7 +171,7 @@ namespace SpriteSpace
             }
             // ...
 
-            Debug.Assert(monstersSpaceContainer.numItems == 0);
+            Debug.Assert(monstersGridContainer.numItems == 0);
             monsters.Clear();
             playerBullets.Clear();
             effectExplosions.Clear();

@@ -254,8 +254,8 @@ namespace SpriteSpace
 #endif
 
 #if UNITY_EDITOR
-            Debug.Assert(c.pixelRow >= 0 && c.pixelRow < gridChunkRow);
-            Debug.Assert(c.pixelColumn >= 0 && c.pixelColumn < gridChunkColumn);
+            Debug.Assert(c.pixelRow >= 0 && c.pixelRow < gridChunkRow, $"断言失败！pixelRow: {c.pixelRow} " + $"其有效范围: [0, {gridChunkRow})");
+            Debug.Assert(c.pixelColumn >= 0 && c.pixelColumn < gridChunkColumn, $"断言失败！pixelColumn: {c.pixelColumn} " + $"其有效范围: [0, {gridChunkColumn})");
 #endif
             //逻辑坐标转本地坐标
             int cIdx = (int)(c.pixelRow * _1_gridSize);
@@ -324,7 +324,7 @@ namespace SpriteSpace
         public int PosToIndex(float row, float column)
         {
 #if UNITY_EDITOR
-            Debug.Assert(row >= 0 && row < gridChunkRow,$"row{row} gridChunkRow{gridChunkRow}");
+            Debug.Assert(row >= 0 && row < gridChunkRow, $"row{row} gridChunkRow{gridChunkRow}");
             Debug.Assert(column >= 0 && column < gridChunkColumn, $"column{column} gridChunkColumn{gridChunkColumn}");
 #endif
             int cIdx = (int)(row * _1_gridSize); //直接取整
@@ -609,7 +609,7 @@ namespace SpriteSpace
             float maxV = 0;
 
             var lens = d.lens;
-            var idxs = d.idxs;
+            var idxs = d.idxys;
             for (int i = 1; i < lens.Count; i++)
             {
                 var offsets = lens[i - 1].count;
@@ -672,7 +672,7 @@ namespace SpriteSpace
             os.Clear();
 
             var lens = d.lens;
-            var idxs = d.idxs;
+            var idxs = d.idxys;
             for (int i = 1; i < lens.Count; i++)
             {
                 var offsets = lens[i - 1].count;
@@ -809,7 +809,7 @@ namespace SpriteSpace
     public class SpaceRingDiffuseData
     {
         public List<SpaceCountRadius> lens = new List<SpaceCountRadius>();
-        public List<SpaceRCi> idxs = new List<SpaceRCi>();
+        public List<SpaceRCi> idxys = new List<SpaceRCi>();
         /// <summary>
         /// [构造函数]填充圆形扩散的(逻辑坐标划分的)格子的偏移量数组,主用于更高效的范围内找最近
         /// </summary>
@@ -818,12 +818,12 @@ namespace SpriteSpace
         public SpaceRingDiffuseData(int gridNum, float gridSize)
         {
             lens.Add(new SpaceCountRadius { count = 0, radius = 0f });
-            idxs.Add(new SpaceRCi());
+            idxys.Add(new SpaceRCi());
             HashSet<ulong> set = new HashSet<ulong>();
             set.Add(0);
             for (float radius = 0; radius < gridSize * gridNum; radius += gridSize)
             {
-                var lenBak = idxs.Count;
+                var lenBak = idxys.Count;
                 var radians = Mathf.Asin(0.5f / radius) * 2;
                 var step = (int)(Mathf.PI * 2 / radians);
                 var inc = Mathf.PI * 2 / step; //角度增量
@@ -837,12 +837,12 @@ namespace SpriteSpace
                     var key = ((ulong)iColumn << 32) + (ulong)iRow;
                     if (set.Add(key))
                     {
-                        idxs.Add(new SpaceRCi { row = iRow, column = iColumn });
+                        idxys.Add(new SpaceRCi { row = iRow, column = iColumn });
                     }
                 }
-                if (idxs.Count > lenBak)
+                if (idxys.Count > lenBak)
                 {
-                    lens.Add(new SpaceCountRadius { count = idxs.Count, radius = radius });
+                    lens.Add(new SpaceCountRadius { count = idxys.Count, radius = radius });
                 }
             }
         }

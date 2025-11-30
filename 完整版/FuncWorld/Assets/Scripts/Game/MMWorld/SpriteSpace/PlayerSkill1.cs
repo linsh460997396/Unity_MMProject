@@ -10,7 +10,7 @@ namespace SpriteSpace
         /// <summary>
         /// 最大可穿透次数
         /// </summary>
-        public int pierceCount = 2;
+        public int pierceCount = 1;
         /// <summary>
         /// 穿透时间间隔帧数(针对相同目标)
         /// </summary>
@@ -18,7 +18,7 @@ namespace SpriteSpace
         /// <summary>
         /// 击退强度(影响退多少帧、多远)
         /// </summary>
-        public int knockbackForce = 0;
+        public int knockbackForce = 6;
 
         /// <summary>
         /// [构造函数]MM测试专用玩家技能
@@ -58,7 +58,7 @@ namespace SpriteSpace
                 var column = player.pixelColumn;
                 var shootDistanceStep = maxShootDistance / castCount;
                 var count = castCount;
-                var sc = stage.monstersSpaceContainer;
+                var sc = stage.monstersGridContainer;
                 var os = sc.result_FindNearestN;
                 var n = sc.FindNearestNByRange(Scene.spaceRDD, row, column, moveSpeed * life, count);
 
@@ -77,6 +77,7 @@ namespace SpriteSpace
                             var tarRow = row + cos * shootDistanceStep * count;
                             var tarColumn = column + sin * shootDistanceStep * count;
                             new PlayerBullet1(this).Init(tarRow, tarColumn, r, cos, sin);
+                            //Debug.Log($"PlayerSkill1 Shoot To Monster {o.id} At ({tarRow}, {tarColumn}) With Angle {r} Rad");
                             --count;
                             if (count == 0) break;
                         }

@@ -32,7 +32,7 @@ namespace SimWorld
             for (int i = 0; i < size; i++)
             {
                 var o = new GO();
-                GO.Pop(ref o, 0, "FG2");
+                GO.Pop(ref o, 0, "SL2");
                 o.spriteRenderer.sprite = scene.sprites_font_outline[sb[i] - 32];
                 o.transform.localScale = new Vector3(scale, scale, scale);
                 if (criticalHit)

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using CellSpace;
+using UnityEngine;
 
 namespace SpriteSpace
 {
@@ -28,7 +29,7 @@ namespace SpriteSpace
         /// <summary>
         /// 怪物空间容器
         /// </summary>
-        public GridContainer monstersSpaceContainer;
+        public GridContainer monstersGridContainer;
         /// <summary>
         /// 对象池结构体
         /// </summary>
@@ -91,7 +92,7 @@ namespace SpriteSpace
             player = ps.player;//初始化玩家
             stage = ps.stage;//初始化舞台
             scene = ps.scene;//初始化场景
-            monstersSpaceContainer = stage.monstersSpaceContainer;//初始化怪物空间容器
+            monstersGridContainer = stage.monstersGridContainer;//初始化怪物空间容器
             stage.playerBullets.Add(this);//添加自己到舞台的玩家发射物列表
 
             //属性复制
@@ -116,7 +117,19 @@ namespace SpriteSpace
             //从对象池分配U3D底层对象
             GO.Pop(ref go);
             go.spriteRenderer.sprite = scene.sprites_bullets[1];//默认使用第二个子弹(第一个是箭头状)
-            go.transform.rotation = Quaternion.Euler(0, 0, -radians_ * (180f / Mathf.PI));
+            if (CPEngine.horizontalMode)
+            {//2D横板模式
+                go.transform.rotation = Quaternion.Euler(0, 0, -radians_ * (180f / Mathf.PI)); //X-Y平面下子弹绕Z轴转朝向
+            }
+            else if (CPEngine.singleLayerTerrainMode)
+            {//3D单层地形模式
+                go.transform.rotation = Quaternion.Euler(90, -radians_ * (180f / Mathf.PI), 0); //X-Z平面下子弹绕Y轴转朝向
+            }
+            else
+            {//正常3D模式
+                Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+            }
+            
             lifeEndTime = life + scene.time;
             radians = radians_;
             pixelRow = row_;
@@ -134,7 +147,7 @@ namespace SpriteSpace
         {
 
             //在9宫范围内查询首个相交物体
-            var m = monstersSpaceContainer.FindFirstCrossBy9(pixelRow, pixelColumn, radius);
+            var m = monstersGridContainer.FindFirstCrossBy9(pixelRow, pixelColumn, radius);
             if (m != null)
             {
                 ((Monster)m).Hurt(damage, 0);
@@ -169,7 +182,18 @@ namespace SpriteSpace
                 go.Enable();
 
                 // 同步 & 坐标系转换( pixelColumn 坐标需要反转 )
-                go.transform.position = new Vector3(pixelRow / Scene.gridSize, pixelColumn / Scene.gridSize, 0);
+                if (CPEngine.horizontalMode)
+                {//2D横板模式
+                    go.transform.position = new Vector3(pixelRow / Scene.gridSize, pixelColumn / Scene.gridSize, 0);
+                }
+                else if (CPEngine.singleLayerTerrainMode)
+                {//3D单层地形模式
+                    go.transform.position = new Vector3(pixelRow / Scene.gridSize, 1, pixelColumn / Scene.gridSize);
+                }
+                else
+                {//正常3D模式
+                    Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+                }
 
                 // 根据半径同步缩放
                 var s = displayBaseScale * radius * _1_defaultRadius;
@@ -182,7 +206,19 @@ namespace SpriteSpace
         /// </summary>
         public virtual void DrawGizmos()
         {
-            Gizmos.DrawWireSphere(new Vector3(pixelRow / Scene.gridSize, pixelColumn / Scene.gridSize, 0), radius / Scene.gridSize);
+            if (CPEngine.horizontalMode)
+            {//2D横板模式
+                Gizmos.DrawWireSphere(new Vector3(pixelRow / Scene.gridSize, pixelColumn / Scene.gridSize, 0), radius / Scene.gridSize);
+            }
+            else if (CPEngine.singleLayerTerrainMode)
+            {//3D单层地形模式
+                Gizmos.DrawWireSphere(new Vector3(pixelRow / Scene.gridSize, 1, pixelColumn / Scene.gridSize), radius / Scene.gridSize);
+            }
+            else
+            {//正常3D模式
+                Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+            }
+            
         }
 
         /// <summary>
