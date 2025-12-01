@@ -1,4 +1,6 @@
 ﻿using CellSpace;
+using MetalMaxSystem.Unity;
+using System;
 using UnityEngine;
 
 namespace SpriteSpace
@@ -20,10 +22,12 @@ namespace SpriteSpace
         public Material material;
         // 编辑器拖Sprite-Unlit-Default到此,或不启用URP时用别的
         public Material minimapMaterial;
-        // 编辑器拖Mini Map Canvas 到此
-        public Canvas minimapCanvas;
-        // 编辑器拖Mini Map Camera 到此
-        public Camera minimapCamera;
+
+        public GameObject minimapCameraGO;
+        public GameObject minimapCanvasGO;
+        // 编辑器拖游戏物体到此,会自动识别到组件
+        [NonSerialized] public Camera minimapCamera;
+        [NonSerialized] public Canvas minimapCanvas;
 
         // 编辑器中分组,拖拽精灵图集到此(展开shift可多选)
         public Sprite[] sprites_font_outline;
@@ -135,6 +139,9 @@ namespace SpriteSpace
 
         void Start()
         {
+            minimapCamera = minimapCameraGO.GetComponent<Camera>();
+            minimapCanvas = minimapCanvasGO.GetComponent<Canvas>();
+
             //初始化玩家输入系统
             InitInputAction();
 
@@ -218,14 +225,16 @@ namespace SpriteSpace
         /// <summary>
         /// 启禁用小地图(可间歇开关minimapCamera来提升性能 )
         /// </summary>
-        /// <param name="b">启动小地图(不填则默认为真)</param>
-        public void EnableMinimap(bool b = true)
+        /// <param name="torf">启动小地图(不填则默认为真)</param>
+        public void EnableMinimap(bool torf = true)
         {
-            if (minimapEnabled == b) return;//没变化时直接返回
-            minimapEnabled = b;//刷新场景minimapEnabled字段
-            minimapCanvas.enabled = b;//决定画布是否启用
-            minimapCamera.enabled = b;//决定小地图摄像机是否启用
-            Debug.Log("小地图已" + (b ? "启用" : "禁用"));
+            minimapCanvasGO.SetActive(torf);
+            minimapCameraGO.SetActive(torf);
+            if (minimapEnabled == torf) return;//没变化时直接返回
+            minimapEnabled = torf;//刷新场景minimapEnabled字段
+            minimapCanvas.enabled = torf;//决定画布是否启用
+            minimapCamera.enabled = torf;//决定小地图摄像机是否启用
+            Debug.Log("小地图已" + (torf ? "启用" : "禁用"));
         }
 
         //处理玩家输入

@@ -15,6 +15,28 @@ namespace MetalMaxSystem.Unity
         public static readonly WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
 
         /// <summary>
+        /// 查找物体.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="childName"></param>
+        /// <returns></returns>
+        public static GameObject FindGameObject(GameObject parent, string childName)
+        {
+            //获取所有Transform组件实例（包括隐藏的）
+            Transform[] allChildren = parent.transform.GetComponentsInChildren<Transform>(true);
+
+            foreach (Transform child in allChildren)
+            {
+                //Debug.Log($"Checking child: {child.gameObject.name}");
+                if (child.gameObject.name == childName)
+                {
+                    return child.gameObject;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
         /// 检测游戏物体是否包含Transform组件外的组件，有则返回true.
         /// </summary>
         /// <param name="obj"></param>
