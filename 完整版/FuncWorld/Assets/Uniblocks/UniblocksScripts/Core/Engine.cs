@@ -467,7 +467,7 @@ namespace Uniblocks
             //遮罩层设置
 
             //若26层名不为空则输出警告
-            if (LayerMask.LayerToName(26) != "" && LayerMask.LayerToName(26) != "UniblocksNoCollide")
+            if (LayerMask.LayerToName(26) != "" && LayerMask.LayerToName(26) != "NoCollide")
             {
                 Debug.LogWarning("Uniblocks: Layer 26 is reserved for Uniblocks, it is automatically set to ignore collision with all layers." +
                                  "第26层是为Uniblocks保留的,它被自动设置为忽略与所有图层的碰撞！");

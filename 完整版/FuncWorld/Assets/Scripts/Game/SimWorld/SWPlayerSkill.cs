@@ -20,8 +20,8 @@ namespace SimWorld
         // 创建子弹时,复制到子弹上
         public float radius = 20;                               // 碰撞检测半径( 和显示放大修正配套 )
         public int damage = 1;                                  // 伤害( 倍率 )
-        public float moveSpeed = 25;                            // 按照 fps 来算的每一帧的移动距离
-        public int life = Main_SimWorld.fps * 1;                        // 子弹存在时长( 帧 ): fps * 秒
+        public float moveSpeed = 25;                            // 按照 tps 来算的每一帧的移动距离
+        public int life = Main_SimWorld.fps * 1;                        // 子弹存在时长( 帧 ): tps * 秒
 
         public SWPlayerSkill(SWStage stage_)
         {

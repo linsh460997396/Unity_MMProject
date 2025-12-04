@@ -12,7 +12,7 @@ namespace SimpleFileBrowser
 		public Sprite icon;
 	}
 
-	[CreateAssetMenu( fileName = "UI Skin", menuName = "yasirkula/SimpleFileBrowser/UI Skin", order = 111 )]
+	[CreateAssetMenu( fileName = "UI Skin", menuName = "SimpleFileBrowser/UI Skin", order = 111 )]
 	public class UISkin : ScriptableObject
 	{
 		private int m_version = 0;

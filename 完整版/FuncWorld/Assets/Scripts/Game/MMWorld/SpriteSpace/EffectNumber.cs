@@ -28,11 +28,11 @@ namespace SpriteSpace
         /// <summary>
         /// [逻辑坐标]每帧在Y轴上的增量,它用于控制特效在垂直方向上的移动速度
         /// </summary>
-        public float incY = Scene.gridSize / 120 * Scene.fps;
+        public float incY;
         /// <summary>
         /// 生命周期(以帧数为单位),决定了特效显示多久
         /// </summary>
-        public int life = (int)(Scene.fps * 0.5);
+        public int life;
         /// <summary>
         /// 逻辑坐标
         /// </summary>
@@ -59,6 +59,10 @@ namespace SpriteSpace
         {
             stage = lv_stage;
             scene = lv_stage.scene;
+
+            incY = scene.gridSize / 120 * scene.tps;
+            life = (int)(scene.tps * 0.5);
+
             pixelRaw = lv_pixelRow;
             pixelColumn = lv_pixelColumn;
             scale = lv_scale;
@@ -102,7 +106,7 @@ namespace SpriteSpace
         /// <param name="column">玩家逻辑位置</param>
         public virtual void Draw(float row, float column)
         {
-            if (pixelRaw < row - Scene.designWidth_2 || pixelRaw > row + Scene.designWidth_2 || pixelColumn < column - Scene.designHeight_2 || pixelColumn > column + Scene.designHeight_2)
+            if (pixelRaw < row - scene.designWidth_2 || pixelRaw > row + scene.designWidth_2 || pixelColumn < column - scene.designHeight_2 || pixelColumn > column + scene.designHeight_2)
             {//数字特效的逻辑坐标达到参数值时进行对象禁用
                 for (int i = 0; i < size; ++i)
                 {//遍历特效数字长度,禁用每个精灵图片的游戏物体
@@ -118,16 +122,16 @@ namespace SpriteSpace
                     //绘制数字特效,以xy为原点往右列出全部长度的数字(精灵图片)
                     if (CPEngine.horizontalMode)
                     {//2D横板模式
-                        gos[i].transform.position = new Vector3((pixelRaw + i * 8 * scale) / Scene.gridSize, pixelColumn / Scene.gridSize, 0);
+                        gos[i].transform.position = new Vector3((pixelRaw + i * 8 * scale) / scene.gridSize, pixelColumn / scene.gridSize, 0);
                     }
                     else if (CPEngine.singleLayerTerrainMode)
                     {//3D单层地形模式
-                        gos[i].transform.position = new Vector3((pixelRaw + i * 8 * scale) / Scene.gridSize, 1, pixelColumn / Scene.gridSize);
+                        gos[i].transform.position = new Vector3((pixelRaw + i * 8 * scale) / scene.gridSize, 1, pixelColumn / scene.gridSize);
                         gos[i].transform.rotation = Quaternion.Euler(90, 0, 0); //3D模式下把图片转90度
                     }
                     else
                     {//正常3D模式
-                        Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+                        Debug.LogError("SpriteSpace框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
                     }
                 }
             }

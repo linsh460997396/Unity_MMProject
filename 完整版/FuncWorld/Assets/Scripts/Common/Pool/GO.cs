@@ -203,4 +203,4 @@ public struct GO
 //GameObject tempGroup = new GameObject("GOGroup");
 //DontDestroyOnLoad(tempGroup);
 //初始化底层绘制对象池
-//GO.Init(Instantiate(material), 1, tempGroup); //预制体材质必须是通过Instantiate初始化后的材质,不然Unity会反复隐式实例化再赋值给组件实例的材质字段.
+//GO.Init(material, 1, tempGroup); //Unity会反复隐式实例化再赋值给组件实例的材质字段.

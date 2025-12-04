@@ -1,4 +1,4 @@
-﻿using MetalMaxSystem.Unity;
+﻿using MetalMaxSystem.Unity; //用到MetalMaxSystem.Unity里的UnityUtilities.waitForEndOfFrame及OP对象池.
 using UnityEngine;
 
 namespace CellSpace

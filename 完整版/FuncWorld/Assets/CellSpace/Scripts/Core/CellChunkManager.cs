@@ -954,7 +954,7 @@ namespace CellSpace
                                     // if chunk doesn'transform exist, create new chunk (it adds itself to the update queue when its data is ready)
                                     //若chunk不存在,则创建新的chunk(当它的数据准备好时会将自己添加到更新队列中)
 
-                                    // spawn chunk.团块创建
+                                    // spawn chunk.团块创建(这里尚未做对象池)
                                     GameObject newChunk = Instantiate(ChunkPrefab, new Vector3(x, y, 0), transform.rotation); // Spawn a new chunk.团块实例化到场景(是从几乎空的团块预制体创建的)
                                     newChunk.SetActive(true);
                                     currentChunk = newChunk.GetComponent<CellChunk>();

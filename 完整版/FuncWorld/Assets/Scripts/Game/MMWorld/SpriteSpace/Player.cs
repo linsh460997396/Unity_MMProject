@@ -1,6 +1,7 @@
 ﻿using CellSpace;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace SpriteSpace
 {
@@ -26,25 +27,25 @@ namespace SpriteSpace
         /// </summary>
         public GO mgo;
         /// <summary>
-        /// 原始动画帧播放速度(Value = 4.5f * Scene.gridSize / Scene.fps),大约每秒移动4.5格(若设计一格一帧那就要播放4.5帧动画)
+        /// 原始动画帧播放速度(Value = 4.5f * Scene.gridSize / Scene.tps),大约每秒移动4.5格(若设计一格一帧那就要播放4.5帧动画)
         /// </summary>
-        public const float defaultMoveSpeed = (int)(4.5f * Scene.gridSize / Scene.fps);
+        public float defaultMoveSpeed;
         /// <summary>
         /// 原始动画帧播放速度的倒数
         /// </summary>
-        public const float _1_defaultMoveSpeed = 1f / defaultMoveSpeed;
+        public float _1_defaultMoveSpeed;
         /// <summary>
         /// 帧动画前进速度(针对defaultMoveSpeed)
         /// </summary>
-        public const float frameAnimIncrease = _1_defaultMoveSpeed;
+        public float frameAnimIncrease;
         /// <summary>
         /// 显示放大修正
         /// </summary>
-        public const float displayScale = 1f;
+        public float displayScale = 1f;
         /// <summary>
         /// [逻辑坐标]原始半径(数字越大则实际采用越小),默认是Scene.gridSize/2大小
         /// </summary>
-        public const float defaultRadius = Scene.gridSize / 2;
+        public float defaultRadius;
         /// <summary>
         /// 当前动画帧下标
         /// </summary>
@@ -56,7 +57,7 @@ namespace SpriteSpace
         /// <summary>
         /// [逻辑坐标]半径. 该数值和玩家体积同步
         /// </summary>
-        public float radius = defaultRadius;
+        public float radius;
         /// <summary>
         /// 逻辑坐标
         /// </summary>
@@ -74,7 +75,7 @@ namespace SpriteSpace
         /// </summary>
         public float Radians
         {
-            get { return Mathf.Atan2(scene.PlayerDirection.y, scene.PlayerDirection.x); }
+            get { return Mathf.Atan2(Scene.inputActions.PlayerDirection.y, Scene.inputActions.PlayerDirection.x); }
         }
         /// <summary>
         /// 退出无敌状态的时间点(单位:帧)
@@ -109,9 +110,9 @@ namespace SpriteSpace
         /// </summary>
         public float dodgeRate = 0.05f;
         /// <summary>
-        /// [逻辑坐标]移动速度(当前每帧移动距离),默认值=0.2f* Scene.gridSize
+        /// [逻辑坐标]移动速度(当前每帧移动距离),默认值=0.2f* scene.gridSize
         /// </summary>
-        public float moveSpeed = 0.2f * Scene.gridSize;
+        public float moveSpeed;
         /// <summary>
         /// 受伤短暂无敌时长( 帧 )
         /// </summary>
@@ -132,10 +133,18 @@ namespace SpriteSpace
         public Player(Scene scene_)
         {
             scene = scene_;
+
+            defaultMoveSpeed = (int)(4.5f * scene.gridSize / scene.tps);
+            _1_defaultMoveSpeed = 1f / defaultMoveSpeed;
+            frameAnimIncrease = _1_defaultMoveSpeed;
+            defaultRadius = scene.gridSize / 2;
+            radius = defaultRadius;
+            moveSpeed = 0.2f * scene.gridSize;
+
             GO.Pop(ref go);//取出结构体
             go.Enable();//激活游戏物体
 
-            if (Scene.mGOCreate)
+            if (scene.mGOCreate)
             {
                 GO.Pop(ref mgo, 3);//取出小地图专用结构体覆盖到mgo,游戏物体所在层设为3
                 mgo.Enable();//激活游戏物体
@@ -168,7 +177,7 @@ namespace SpriteSpace
             //预填充一些玩家历史(逻辑)坐标数据防越界
             positionHistory.Clear();
             var p = new Vector2(pixelRow, pixelColumn);
-            for (int i = 0; i < Scene.fps; i++)
+            for (int i = 0; i < scene.tps; i++)
             {
                 positionHistory.Add(p);
             }
@@ -187,7 +196,7 @@ namespace SpriteSpace
             //预填充一些玩家历史(逻辑)坐标数据防越界
             positionHistory.Clear();
             var p = new Vector2(pixelRow, pixelColumn);
-            for (int i = 0; i < Scene.fps; i++)
+            for (int i = 0; i < scene.tps; i++)
             {
                 positionHistory.Add(p);
             }
@@ -200,9 +209,9 @@ namespace SpriteSpace
         public bool Update()
         {
             // 玩家控制移动(条件:还活着)
-            if (hp > 0 && scene.playerMoving)
+            if (hp > 0 && Scene.inputActions.playerMoving)
             {
-                var mv = scene.playerMoveValue;//得到方向向量
+                var mv = Scene.inputActions.playerMoveValue;//得到方向向量
                 pixelRow += mv.x * moveSpeed;
                 pixelColumn += mv.y * moveSpeed;
                 //Debug.Log("(" + pixelRow + "," + pixelColumn + ")");
@@ -229,25 +238,25 @@ namespace SpriteSpace
                     pixelRow = 0;
                     //Debug.Log("pixelRow < 0 " + "(" + pixelRow + "," + pixelColumn + ")");
                 }
-                else if (pixelRow >= Scene.gridChunkWidth)
+                else if (pixelRow >= scene.gridWidth)
                 {
-                    pixelRow = Scene.gridChunkWidth - float.Epsilon;
-                    //Debug.Log("pixelRow >=" + Scene.gridChunkWidth.ToString() + " (" + pixelRow + "," + pixelColumn + ")");
+                    pixelRow = scene.gridWidth - float.Epsilon;
+                    //Debug.Log("pixelRow >=" + scene.gridChunkWidth.ToString() + " (" + pixelRow + "," + pixelColumn + ")");
                 }
                 if (pixelColumn < 0)
                 {
                     pixelColumn = 0;
                     //Debug.Log("pixelColumn < 0 " + "(" + pixelRow + "," + pixelColumn + ")");
                 }
-                else if (pixelColumn >= Scene.gridChunkHeight)
+                else if (pixelColumn >= scene.gridHeight)
                 {
-                    pixelColumn = Scene.gridChunkHeight - float.Epsilon;
-                    //Debug.Log("pixelColumn >=" + Scene.gridChunkWidth.ToString() + " (" + pixelRow + "," + pixelColumn + ")");
+                    pixelColumn = scene.gridHeight - float.Epsilon;
+                    //Debug.Log("pixelColumn >=" + scene.gridChunkWidth.ToString() + " (" + pixelRow + "," + pixelColumn + ")");
                 }
             }
             //将(逻辑)坐标写入历史记录( 限定长度 )
             positionHistory.Insert(0, new Vector2(pixelRow, pixelColumn));
-            if (positionHistory.Count > Scene.fps)
+            if (positionHistory.Count > scene.tps)
             {
                 positionHistory.RemoveAt(positionHistory.Count - 1);
             }
@@ -274,17 +283,17 @@ namespace SpriteSpace
             // 同步 & 坐标系转换
             if (CPEngine.horizontalMode)
             {
-                posCache.Set(pixelRow / Scene.gridSize, pixelColumn / Scene.gridSize, 0);
+                posCache.Set(pixelRow / scene.gridSize, pixelColumn / scene.gridSize, 0);
             }
             else if (CPEngine.singleLayerTerrainMode)
             {//3D单层地形模式
-                posCache.Set(pixelRow / Scene.gridSize, 1 + Scene.aboveHeight, pixelColumn / Scene.gridSize); //3D模式地图刷在方块顶面,该高度是1.0(绝对世界坐标)
+                posCache.Set(pixelRow / scene.gridSize, 1 + scene.aboveHeight, pixelColumn / scene.gridSize); //3D模式地图刷在方块顶面,该高度是1.0(绝对世界坐标)
                 go.transform.rotation = Quaternion.Euler(90, 0, 0); //3D模式下把图片转90度
                 if (mgo.gameObject != null) mgo.transform.rotation = Quaternion.Euler(90, 0, 0); //小地图游戏物体也转90度
             }
             else
             {//正常3D模式
-                Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+                Debug.LogError("SpriteSpace框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
             }
             go.transform.position = posCache;
             go.transform.localScale = new Vector3(displayScale, displayScale, displayScale);
@@ -305,19 +314,19 @@ namespace SpriteSpace
         /// </summary>
         public void DrawGizmos()
         {
-            //绘制实际位置和大小的球形物时,需把逻辑坐标值转为空间的本地相对坐标值(除以Scene.gridSize)
+            //绘制实际位置和大小的球形物时,需把逻辑坐标值转为空间的本地相对坐标值(除以scene.gridSize)
             if (CPEngine.horizontalMode)
             {//2D横板模式
-                Gizmos.DrawWireSphere(new Vector3(pixelRow / Scene.gridSize, pixelColumn / Scene.gridSize, 0), radius / Scene.gridSize);
+                Gizmos.DrawWireSphere(new Vector3(pixelRow / scene.gridSize, pixelColumn / scene.gridSize, 0), radius / scene.gridSize);
             }
             else if (CPEngine.singleLayerTerrainMode)
             {//3D单层地形模式
-                //幸存者框架最早时按横板设计的,从X-Y转X-Z需要参数填的时候原Y与原Z交换,角色高度=地图所在高度+aboveHeight
-                Gizmos.DrawWireSphere(new Vector3(pixelRow / Scene.gridSize, 1 + Scene.aboveHeight, pixelColumn / Scene.gridSize), radius / Scene.gridSize);
+                //SpriteSpace框架最早时按横板设计的,从X-Y转X-Z需要参数填的时候原Y与原Z交换,角色高度=地图所在高度+aboveHeight
+                Gizmos.DrawWireSphere(new Vector3(pixelRow / scene.gridSize, 1 + scene.aboveHeight, pixelColumn / scene.gridSize), radius / scene.gridSize);
             }
             else
             {//正常3D模式
-                Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+                Debug.LogError("SpriteSpace框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
             }
         }
         /// <summary>

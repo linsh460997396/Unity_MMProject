@@ -80,7 +80,7 @@ namespace SpriteSpace
             pixelColumn += incColumn;
 
             //坐标超出grid地图范围:自杀
-            if (pixelRow < 0 || pixelRow >= Scene.gridChunkWidth || pixelColumn < 0 || pixelColumn >= Scene.gridChunkHeight) return true;
+            if (pixelRow < 0 || pixelRow >= scene.gridWidth || pixelColumn < 0 || pixelColumn >= scene.gridHeight) return true;
 
             //生命周期完结:自杀
             return lifeEndTime < scene.time;

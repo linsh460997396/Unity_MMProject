@@ -381,11 +381,11 @@ namespace CellSpace
             int y = height - 1;
             if (mapID >= 0 && mapID < 241)
             {
-                Debug.Log($"Load3DMap: chunk=({chunkx},{chunky},{chunkz}) mapID={mapID} y={y}");
+                Debug.Log($"Load3DMap: chunk=({chunkx},{chunky},{chunkz}) mapID={mapID}");
             }
             else
             {
-                Debug.Log($"EmptyMap: chunk=({chunkx},{chunky},{chunkz}) mapID={mapID} y={y}");
+                Debug.Log($"EmptyMap: chunk=({chunkx},{chunky},{chunkz}) mapID={mapID}");
             }
             //遍历团块长度内所有体素块的索引(进入布置前团块里的单元都是空块)
             if (mapID == 0 || mapID == 240)

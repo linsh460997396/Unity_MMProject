@@ -37,15 +37,15 @@ namespace SpriteSpace
         /// <summary>
         /// 显示放大修正
         /// </summary>
-        public const float displayBaseScale = 1f;
+        public  float displayBaseScale = 1f;
         /// <summary>
-        /// [逻辑坐标]原始半径(数字越大则实际采用越小),默认是Scene.gridSize/2大小
+        /// [逻辑坐标]原始半径(数字越大则实际采用越小),默认是scene.gridSize/2大小
         /// </summary>
-        public const float defaultRadius = Scene.gridSize / 2;
+        public  float defaultRadius;
         /// <summary>
         /// [逻辑坐标]原始半径的倒数
         /// </summary>
-        public const float _1_defaultRadius = 1f / defaultRadius;
+        public  float _1_defaultRadius;
         /// <summary>
         /// 逻辑坐标
         /// </summary>
@@ -74,11 +74,11 @@ namespace SpriteSpace
         /// </summary>
         public int damage;
         /// <summary>
-        /// [逻辑坐标]按照 fps 来算的每一帧的移动距离
+        /// [逻辑坐标]按照 tps 来算的每一帧的移动距离
         /// </summary>
         public float moveSpeed;
         /// <summary>
-        /// 子弹存在时长( 帧 ): fps * 秒
+        /// 子弹存在时长( 帧 ): tps * 秒
         /// </summary>
         public int life;
 
@@ -92,6 +92,10 @@ namespace SpriteSpace
             player = ps.player;//初始化玩家
             stage = ps.stage;//初始化舞台
             scene = ps.scene;//初始化场景
+
+            defaultRadius = scene.gridSize / 2;
+            _1_defaultRadius = 1f / defaultRadius;
+
             monstersGridContainer = stage.monstersGridContainer;//初始化怪物空间容器
             stage.playerBullets.Add(this);//添加自己到舞台的玩家发射物列表
 
@@ -127,7 +131,7 @@ namespace SpriteSpace
             }
             else
             {//正常3D模式
-                Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+                Debug.LogError("SpriteSpace框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
             }
             
             lifeEndTime = life + scene.time;
@@ -159,7 +163,7 @@ namespace SpriteSpace
             pixelColumn += incColumn;
 
             //坐标超出grid地图范围:自杀(或转移到下一个团块空间)
-            if (pixelRow < 0 || pixelRow >= Scene.gridChunkWidth || pixelColumn < 0 || pixelColumn >= Scene.gridChunkHeight) return true;
+            if (pixelRow < 0 || pixelRow >= scene.gridWidth || pixelColumn < 0 || pixelColumn >= scene.gridHeight) return true;
 
             //生命周期完结:自杀
             return lifeEndTime < scene.time;
@@ -173,7 +177,7 @@ namespace SpriteSpace
         public virtual void Draw(float row, float column)
         {
             //因为人始终是在屏幕中间,只要不在屏幕内就不显示
-            if (pixelRow < row - Scene.designWidth_2 || pixelRow > row + Scene.designWidth_2 || pixelColumn < column - Scene.designHeight_2 || pixelColumn > column + Scene.designHeight_2)
+            if (pixelRow < row - scene.designWidth_2 || pixelRow > row + scene.designWidth_2 || pixelColumn < column - scene.designHeight_2 || pixelColumn > column + scene.designHeight_2)
             {
                 go.Disable();
             }
@@ -184,15 +188,15 @@ namespace SpriteSpace
                 // 同步 & 坐标系转换( pixelColumn 坐标需要反转 )
                 if (CPEngine.horizontalMode)
                 {//2D横板模式
-                    go.transform.position = new Vector3(pixelRow / Scene.gridSize, pixelColumn / Scene.gridSize, 0);
+                    go.transform.position = new Vector3(pixelRow / scene.gridSize, pixelColumn / scene.gridSize, 0);
                 }
                 else if (CPEngine.singleLayerTerrainMode)
                 {//3D单层地形模式
-                    go.transform.position = new Vector3(pixelRow / Scene.gridSize, 1, pixelColumn / Scene.gridSize);
+                    go.transform.position = new Vector3(pixelRow / scene.gridSize, 1, pixelColumn / scene.gridSize);
                 }
                 else
                 {//正常3D模式
-                    Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+                    Debug.LogError("SpriteSpace框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
                 }
 
                 // 根据半径同步缩放
@@ -208,15 +212,15 @@ namespace SpriteSpace
         {
             if (CPEngine.horizontalMode)
             {//2D横板模式
-                Gizmos.DrawWireSphere(new Vector3(pixelRow / Scene.gridSize, pixelColumn / Scene.gridSize, 0), radius / Scene.gridSize);
+                Gizmos.DrawWireSphere(new Vector3(pixelRow / scene.gridSize, pixelColumn / scene.gridSize, 0), radius / scene.gridSize);
             }
             else if (CPEngine.singleLayerTerrainMode)
             {//3D单层地形模式
-                Gizmos.DrawWireSphere(new Vector3(pixelRow / Scene.gridSize, 1, pixelColumn / Scene.gridSize), radius / Scene.gridSize);
+                Gizmos.DrawWireSphere(new Vector3(pixelRow / scene.gridSize, 1, pixelColumn / scene.gridSize), radius / scene.gridSize);
             }
             else
             {//正常3D模式
-                Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+                Debug.LogError("SpriteSpace框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
             }
             
         }

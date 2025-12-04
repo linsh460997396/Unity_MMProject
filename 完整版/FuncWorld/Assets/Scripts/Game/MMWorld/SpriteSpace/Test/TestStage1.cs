@@ -46,14 +46,14 @@ namespace SpriteSpace
         /// </summary>
         public void P0()
         {
-            var cx = Scene.gridChunkCenterX;
-            var cy = Scene.gridChunkCenterY;
+            var cx = scene.gridChunkCenterX;
+            var cy = scene.gridChunkCenterY;
 
             // 重置 Player 坐标
             player.Init(this, cx, cy);
 
             //验证一下这个表的数据是否正确
-            //var d = Scene.spaceRDD;
+            //var d = scene.spaceRDD;
             //foreach (var i in d.idxys)
             //{
             //    // 根据 格子 offset 计算 pixelX, pixelY 并设置怪的坐标
@@ -74,8 +74,8 @@ namespace SpriteSpace
             // 测试一下伤害数字的效果
             for (int i = 0; i < 50; i++)
             {
-                var x = Random.Range(-Scene.designWidth_2, Scene.designWidth_2);
-                var y = Random.Range(-Scene.designHeight_2, Scene.designHeight_2);
+                var x = Random.Range(-scene.designWidth_2, scene.designWidth_2);
+                var y = Random.Range(-scene.designHeight_2, scene.designHeight_2);
                 //var v = Random.Range(0, 1000000000) * System.Math.Pow(10, Random.Range(1, 20 - 10));   // 307 - 10
                 var v = random.NextDouble() * System.Math.Pow(10, Random.Range(2, 30 - 10));
                 new EffectNumber(this, player.pixelRow + x, player.pixelColumn + y, 0.5f, v, Random.value > 0.5f);

@@ -68,8 +68,8 @@
 
             //配置怪生成器
             var time = scene.time; //等同运行游戏逻辑的次数
-            monsterGenerators.Add(new TestMonsterGenerator1("stage0_1", this, time + Scene.fps * 0, time + Scene.fps * 10, 1));
-            monsterGenerators.Add(new TestMonsterGenerator2("stage0_2", this, time + Scene.fps * 10, time + Scene.fps * 20, 0));
+            monsterGenerators.Add(new TestMonsterGenerator1("stage0_1", this, time + scene.tps * 0, time + scene.tps * 10, 1));
+            monsterGenerators.Add(new TestMonsterGenerator2("stage0_2", this, time + scene.tps * 10, time + scene.tps * 20, 0));
 
             //重置玩家位置
             player.Init(this, 2000, 1500);
@@ -89,7 +89,7 @@
             if (Update_MonstersGenerators() == 0)
             {
                 //设置60秒超时
-                timeout = scene.time + Scene.fps * 60;
+                timeout = scene.time + scene.tps * 60;
                 state = 2;
             }
             Update_PlayerBullets();

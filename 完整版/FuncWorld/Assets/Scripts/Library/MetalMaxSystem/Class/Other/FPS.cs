@@ -11,7 +11,7 @@ namespace MetalMaxSystem.Unity
         private float deltaTime = 0.0f;
 
         [Tooltip("用于调整显示区高度,值越大高度越小")] //编辑器界面鼠标悬浮该字段时提示
-        public int size = 20;//非静态公共字段会自动初始化
+        public int size = 40;//非静态公共字段会自动初始化
 
         private void Awake()
         {

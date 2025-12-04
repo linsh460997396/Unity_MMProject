@@ -64,7 +64,7 @@ namespace SpriteSpace
         {//将构造函数设为protected意味着这个构造函数不能在类的外部直接被调用,从而防止了类的直接实例化
             scene = scene_;
             player = scene_.player;
-            monstersGridContainer = new(Scene.gridChunkNumRows, Scene.gridChunkNumCols, Scene.gridSize);
+            monstersGridContainer = new(scene.gridNumRows, scene.gridNumCols, scene.gridSize);
             camTrans = Camera.main.transform;
         }
 
@@ -86,16 +86,16 @@ namespace SpriteSpace
             //同步镜头的位置为玩家位置
             if (CPEngine.horizontalMode)
             {
-                camTrans.position = new Vector3(player.pixelRow / Scene.gridSize, player.pixelColumn / Scene.gridSize, camTrans.position.z);
+                camTrans.position = new Vector3(player.pixelRow / scene.gridSize, player.pixelColumn / scene.gridSize, camTrans.position.z);
             }
             else if (CPEngine.singleLayerTerrainMode)
             {//3D单层地形模式
                 //保持摄像头Y不变,2D的Y填入3D的Z
-                camTrans.position = new Vector3(player.pixelRow / Scene.gridSize, camTrans.position.y, player.pixelColumn / Scene.gridSize);
+                camTrans.position = new Vector3(player.pixelRow / scene.gridSize, camTrans.position.y, player.pixelColumn / scene.gridSize);
             }
             else
             {//正常3D模式
-                Debug.LogError("幸存者框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+                Debug.LogError("SpriteSpace框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
             }
 
             //剔除 & 同步 GO
@@ -311,8 +311,8 @@ namespace SpriteSpace
         public Vector2 GetRndPosOutSideTheArea()
         {
             float minX = 0f; float minY = 0f;
-            float maxX = Scene.gridChunkWidth - 0.5f;
-            float maxY = Scene.gridChunkHeight - 0.5f;
+            float maxX = scene.gridWidth - 0.5f;
+            float maxY = scene.gridHeight - 0.5f;
             // 通过相机视口计算真实边界
             float halfHeight = Camera.main.orthographicSize * Screen.height / Screen.width;
             //Debug.Log("halfHeight=" + halfHeight);
@@ -320,19 +320,19 @@ namespace SpriteSpace
             switch (Random.Range(0, 4))
             {
                 case 0: // 上方边缘
-                    float x1 = Mathf.Clamp(player.pixelRow + Random.Range(-Scene.designWidth_2, Scene.designWidth_2), minX, maxX);
+                    float x1 = Mathf.Clamp(player.pixelRow + Random.Range(-scene.designWidth_2, scene.designWidth_2), minX, maxX);
                     return new Vector2(x1, minY);
 
                 case 1: // 下方边缘
-                    float x2 = Mathf.Clamp(player.pixelRow + Random.Range(-Scene.designWidth_2, Scene.designWidth_2), minX, maxX);
+                    float x2 = Mathf.Clamp(player.pixelRow + Random.Range(-scene.designWidth_2, scene.designWidth_2), minX, maxX);
                     return new Vector2(x2, maxY);
 
                 case 2: // 左侧边缘
-                    float y1 = Mathf.Clamp(player.pixelColumn + Random.Range(-Scene.designHeight_2, Scene.designHeight_2), minY, maxY);
+                    float y1 = Mathf.Clamp(player.pixelColumn + Random.Range(-scene.designHeight_2, scene.designHeight_2), minY, maxY);
                     return new Vector2(minX, y1);
 
                 case 3: // 右侧边缘
-                    float y2 = Mathf.Clamp(player.pixelColumn + Random.Range(-Scene.designHeight_2, Scene.designHeight_2), minY, maxY);
+                    float y2 = Mathf.Clamp(player.pixelColumn + Random.Range(-scene.designHeight_2, scene.designHeight_2), minY, maxY);
                     return new Vector2(maxX, y2);
             }
             return Vector2.zero;

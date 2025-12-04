@@ -1,20 +1,17 @@
-﻿using CellSpace.Examples;
-// 用到MetalMaxSystem.Unity里写好的UnityUtilities.waitForEndOfFrame及OP对象池.
-using MetalMaxSystem.Unity;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
+using CellSpace.Examples; //额外示范功能,如点击更新块的事件响应等.
+using MetalMaxSystem.Unity; //用到MetalMaxSystem.Unity里的OP对象池.
 using Random = UnityEngine.Random;
 
-// 目前框架中网络功能是旧版UNet方法(Obsolete黄字警告),待禁用并升级(推荐用NetCode做一遍).
-
+//静态地面体素单元空间框架.
 namespace CellSpace
 {
     #region 枚举
-
     /// <summary>
     /// 网络模式
     /// </summary>
@@ -37,9 +34,8 @@ namespace CellSpace
         /// </summary>
         other
     }
-
     /// <summary>
-    /// 单元(体素)的6个面
+    /// 单元的6个面
     /// </summary>
     public enum Facing : ushort
     {
@@ -68,7 +64,6 @@ namespace CellSpace
         /// </summary>
         back
     }
-
     /// <summary>
     /// 朝向
     /// </summary>
@@ -99,7 +94,6 @@ namespace CellSpace
         /// </summary>
         back
     }
-
     /// <summary>
     /// 透明度
     /// </summary>
@@ -118,7 +112,6 @@ namespace CellSpace
         /// </summary>
         transparent
     }
-
     /// <summary>
     /// 碰撞类型
     /// </summary>
@@ -137,29 +130,23 @@ namespace CellSpace
         /// </summary>
         none
     }
-
     #endregion
 
-    // 本框架魔改自Uniblocks项目(处理速度提升百倍),是一个体素(三维立体像素)空间引擎框架,可用于制作类似Minecraft的游戏或其他体素空间设计应用.
-    // 本框架内"单元"均指体素块(默认边长为Unity世界坐标系的1.0长度),每种地块预制体实例占一个GameObject,创建后隐藏在对象池.空间形成时读预制体网格纹理等信息去计算并将结果赋值给组件以刷新.
-    // 本框架内"团块"均指由多个单元组成的立体空间(顶点少则占1个GameObject否则会分摊给子物体以迎合Unity默认的16位Mesh缓冲区).
-    // 团块用作2D平面使用时,边长默认为256即65536个单元,作3D设计时推荐16*16*16=4096个单元组成一个团块空间(更大会自动拆分故无意义,边长仅用来规定基础最小空间尺寸,周围要显示的空间数可自定义).
-    // 每次创建新世界,其团块边长应在初始化前确认,存储为区域文件后就固定下来了,中途不可再改.
-    // 所有已创建团块实例将被存储在团块管理器类的静态字段容器内,只有完整设计MC世界多团块时,距离过远团块数据从内存转移到硬盘(需开启框架的地块存储功能).
-    // 地形生成器类只负责创建没探索过区域的团块,若世界坐标转换的索引对应团块存在于团块管理器容器内或硬盘区域文件已存在该索引则转而使用已有数据刷地块(单元).
-
     /// <summary>
-    /// 单元(体素)空间引擎.
-    /// 地面空间框架的主入口类.该类设计为单例模式,请用CPEingine.Create()进行创建.
+    /// 单元空间引擎.
+    /// 静态地面体素单元空间框架的主入口类,请用CPEingine.Create()进行创建.
     /// </summary>
     public class CPEngine : MonoBehaviour
     {
+        //本类设计为单例模式(无法new, 强行添加组件方式创建多实例无意义).
+        //若一定要多实例,诸如偷懒把静态地面与温度路径染色分开管理等,复制脚本目录并改namespace,便有了一个工作时互不干扰的镜像框架.
+
         #region 字段、属性方法(I前缀表示可被覆写的接口方法,但注意下方小写L开头字段是用于编辑器GUI界面"接口属性"而非前者,脱离编辑器后该字段可用于接收外来数据并在初始化时统一赋值给游戏变量)
 
         /// <summary>
         /// 重复使用的"等待帧结束"对象.
         /// </summary>
-        public static readonly WaitForEndOfFrame waitForEndOfFrame = UnityUtilities.waitForEndOfFrame; //想与MetalMaxSystem解耦可改new WaitForEndOfFrame()
+        public static readonly WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
 
         // 启动前考虑:运行模式、要预填充的地块种类数)
 
@@ -170,9 +157,9 @@ namespace CellSpace
         /// </summary>
         public static bool unityEditorInteraction = false;
         /// <summary>
-        /// 没接收到外部预制体数据,从代码组装预制体时blocks数组要预填充的地块(单元)种类数.内置默认1675种(ID=0~1674),增加纹理后可进行修改.
+        /// 没接收到外部预制体数据,从代码组装预制体时blocks数组要预填充的地块(单元)种类数.默认65536种(ID=0~65535),增加纹理后可进行修改.
         /// </summary>
-        public static ushort blocksNum = 1675;
+        public static int blocksNum = 1523;
         /// <summary>
         /// CPEnigine组件实例的当前协程方法.用于控制启停.
         /// </summary>
@@ -369,7 +356,7 @@ namespace CellSpace
             }
         }
         /// <summary>
-        /// 决定团块预制体的缩放比例.默认值为(1,1,1),即不缩放.这也决定了单元(体素)的实际大小边长为1.0(Unity场景世界绝对坐标系下的尺度).
+        /// 决定团块预制体的缩放比例.默认值为(1,1,1),即不缩放.这也决定了单元的实际大小边长为1.0(Unity场景世界绝对坐标系下的尺度).
         /// </summary>
         public static Vector3 scale = Vector3.one;
         /// <summary>
@@ -404,12 +391,12 @@ namespace CellSpace
         // 纹理设置
 
         /// <summary>
-        /// X方向纹理单元数量.
+        /// X方向纹理单元数量.决定了对素材图片如何切割.每种风格的素材应单独设置材质并添加主纹理进行分割.可随意划分数量,做地块预制体时才会确定下来(哪怕仅取用部分).
         /// 纹理表边长/纹理单元边长的倍率(用于计算单元纹理划区大小),形象说明的话相当于每个精灵在整张图片中的比例的倒数,填8则X方向均分8个纹理单元
         /// </summary>
         public static float[] textureUnitX;
         /// <summary>
-        /// Y方向纹理单元数量.
+        /// Y方向纹理单元数量.决定了对素材图片如何切割.每种风格的素材应单独设置材质并添加主纹理进行分割.可随意划分数量,做地块预制体时才会确定下来(哪怕仅取用部分).
         /// 纹理表边长/纹理单元边长的倍率(用于计算单元纹理划区大小),形象说明的话相当于每个精灵在整张图片中的比例的倒数,填8则Y方向均分8个纹理单元
         /// </summary>
         public static float[] textureUnitY;
@@ -429,15 +416,15 @@ namespace CellSpace
         // (从GUI界面、配置文件输入)纹理设置
 
         /// <summary>
-        /// (从GUI界面、配置文件输入)X方向纹理单元数量.
+        /// (从GUI界面、配置文件输入)X方向纹理单元数量.决定了对素材图片如何切割.每种风格的素材应单独设置材质并添加主纹理进行分割.可随意划分数量,做地块预制体时才会确定下来(哪怕仅取用部分).
         /// 纹理表边长/纹理单元边长的倍率(用于计算单元纹理划区大小),形象说明的话相当于每个精灵在整张图片中的比例的倒数,填8则X方向均分8个纹理单元
         /// </summary>
-        public static float[] lTextureUnitX = new float[] { 8f, 8f, 8f, 8f };
+        public static float[] lTextureUnitX = new float[] { 8f, 8f, 8f, 256f };
         /// <summary>
-        /// (从GUI界面、配置文件输入)Y方向纹理单元数量.
+        /// (从GUI界面、配置文件输入)Y方向纹理单元数量.决定了对素材图片如何切割.每种风格的素材应单独设置材质并添加主纹理进行分割.可随意划分数量,做地块预制体时才会确定下来(哪怕仅取用部分).
         /// 纹理表边长/纹理单元边长的倍率(用于计算单元纹理划区大小),形象说明的话相当于每个精灵在整张图片中的比例的倒数,填8则Y方向均分8个纹理单元
         /// </summary>
-        public static float[] lTextureUnitY = new float[] { 8f, 19f, 170f, 8f };
+        public static float[] lTextureUnitY = new float[] { 8f, 19f, 170f, 256f };
         /// <summary>
         /// (从GUI界面、配置文件输入)X方向对主纹理UV划区时方形单元内缩率.
         /// 满尺寸取纹理表上纹理时,纹理之间的填充不尽人意,故按内缩率取修正后的纹理UV.
@@ -508,7 +495,7 @@ namespace CellSpace
         /// </summary>
         public static float pseudo3DAngle = 45f;
         /// <summary>
-        /// (3D)单层地形模式.支持与幸存者框架配合.
+        /// (3D)单层地形模式.支持与SpriteSpace框架配合.
         /// 横版模式下失效.首次创建空间时地形生成器会根据指示器位置计算索引对应场景并自动铺在当前空间的指定高度层.
         /// 仅生效于地形首次初始化且不从区域文件读取时,每个空间仅在其相对高度(SingleChunkTerrainHeight)创建一层平地面.
         /// 用于重装机兵等格子游戏2D单层平地面复刻,但依然使用框架完整3D功能,设计时控制地图铺设在X-Z平面上.
@@ -524,7 +511,7 @@ namespace CellSpace
         /// </summary>
         public static bool keepSingleChunkTerrainHeight = false;
         /// <summary>
-        /// (2D)横版模式.支持与幸存者框架配合.
+        /// (2D)横版模式.支持与SpriteSpace框架配合.
         /// 启用时地面使用XY平面坐标系(正高度变成Z-),关闭时为3D模式设计采用XZ平面(默认正高度Y+).
         /// 横版模式默认取消了Z轴延伸,该轴只留最大1个单元体素块(以左下为原点)插入在Z=0处的(pixelX,pixelY)索引点.
         /// 可在CellChunkMeshCreator类中修改具体要显示的体素块的面,横版模式默认仅创建体素块的back面(透过屏幕直接看到的面是方块的背面).
@@ -730,19 +717,19 @@ namespace CellSpace
         #region 框架函数部分(尽量写静态方法)
 
         /// <summary>
-        /// 私有化构造函数.确保外部无法通过new实例化本类.
+        /// 私有化构造函数.确保外部无法通过new实例化本类.只能通过Unity引擎AddComponent挂载脚本方式创建实例.
         /// </summary>
         private CPEngine() { }
         /// <summary>
-        /// 静态构造函数.在静态字段初始化赋值后补充执行.
+        /// 静态构造函数.在静态字段初始化赋值后补充执行的固定逻辑,不可访问修改.
         /// </summary>
         static CPEngine()
         {
-            CPEngine.lTextureUnitY = new float[4];
-            CPEngine.lTextureUnitY[0] = 8;
-            CPEngine.lTextureUnitY[1] = 19;
-            CPEngine.lTextureUnitY[2] = 170;
-            CPEngine.lTextureUnitY[3] = 19;
+            //CPEngine.lTextureUnitY = new float[4];
+            //CPEngine.lTextureUnitY[0] = 8;
+            //CPEngine.lTextureUnitY[1] = 19;
+            //CPEngine.lTextureUnitY[2] = 170;
+            //CPEngine.lTextureUnitY[3] = 19;
         }
 
         /// <summary>
@@ -788,11 +775,13 @@ namespace CellSpace
                 //开始对blocks进行填充
                 if (lBlocks == null)
                 {
+                    Debug.Log("BlocksPreFill(" + blocksNum + ")");
                     //若没有接收到预制体,从代码组装预制体
                     BlocksPreFill(blocksNum);
                 }
                 else
                 {
+                    Debug.Log("blocks = lBlocks");
                     blocks = lBlocks; //编辑器GUI界面拖拽到Engine的Cell预制体(只拖拽了一部分,剩下太多了后续也会用代码追加)
                 }
                 targetFPS = lTargetFPS;
@@ -850,7 +839,7 @@ namespace CellSpace
                 //遮罩层设置
 
                 //若26层名不为空则输出警告（编辑器模式下添加有0~31层）
-                if (LayerMask.LayerToName(26) != "" && LayerMask.LayerToName(26) != "CellSpaceNoCollide")
+                if (LayerMask.LayerToName(26) != "" && LayerMask.LayerToName(26) != "NoCollide")
                 {
                     Debug.LogWarning("CellSpace: Layer 26 is reserved for CellSpace, it is automatically set to ignore collision with all layers." +
                                      "第26层是为CellSpace保留的,它被自动设置为忽略与所有图层的碰撞！");
@@ -1122,9 +1111,11 @@ namespace CellSpace
         /// <summary>
         /// 当没有预制体时,通过代码填充地块数组blocks,填充第0个元素为一个空的地形单元(空块),其他元素为null或自行设计.
         /// </summary>
-        public static void BlocksPreFill(ushort num)
+        public static void BlocksPreFill(int num)
         {
-            blocks = new GameObject[num]; //预计内置1675种地块（第4材质即材质索引3上的纹理是备用重复的,实际地块种类包括空块要减去152种=1523种）
+            //你最多可预制65536个地块(单元)预制体,对应索引0~65535.
+
+            blocks = new GameObject[num]; //预计内置65536种地块（第4材质即材质索引3上的纹理是备用重复的,实际地块种类包括空块=1523种）
             //填充第1个元素为一个空的地形单元(空块),只有0~10地块预制体是特别定制的,其余若只是换个uv则可以批量制作
             blocks[0] = new GameObject("cell_0");
             blocks[0].SetActive(false);
@@ -1266,7 +1257,7 @@ namespace CellSpace
             cell.VColliderType = ColliderType.none;
             cell.VSubmeshIndex = 0;
             cell.VRotation = MeshRotation.none;
-            //后续让材质2的纹理从Cell_11开始,即从第12个元素开始填充,直到第1675个元素为止
+            //后续让材质2的纹理从Cell_11开始,即从第12个元素开始填充,直到第65536个元素为止
         }
         /// <summary>
         /// 创建预制体实例.
@@ -1384,23 +1375,23 @@ namespace CellSpace
         /// <param name="textureCol">X方向列数</param>
         /// <param name="torf">默认true当lBlocks为null时才进行CreatePrefab(若lBlocks已有GUI填入的地块预制体则直接使用),否则总是CreatePrefab(不使用GUI填的地块预制体)</param>
         /// <param name="XIncrement">默认true则UV划区时(左下为原点)先以X方向自增,若为flase则先以Y方向自增</param>
-        public static void CreatePrefabBatch(ushort cellID, ushort endID, ushort subMeshIndex, ushort textureCol, ushort textureRow, bool torf = true, bool XIncrement = true)
+        public static void CreatePrefabBatch(ushort cellID, ushort endID, ushort subMeshIndex, int textureCol, int textureRow, bool torf = true, bool XIncrement = true)
         {
             ushort index = cellID;
-            ushort x = 0; //当前X坐标
-            ushort y = 0; //当前Y坐标
+            int x = 0; //当前X坐标
+            int y = 0; //当前Y坐标
             if (XIncrement)
             {
                 //遍历所有切片,注意检查索引是否越界
-                for (ushort row = 0; row < textureRow; row++)
+                for (int row = 0; row < textureRow; row++)
                 {//Y自增时,X重置为0
                     x = 0;
-                    for (ushort col = 0; col < textureCol; col++)
+                    for (int col = 0; col < textureCol; col++)
                     {
                         //检查索引是否越界
                         if (index >= prefabOPs.Length)
                         {
-                            Debug.LogError("Index out of range!");
+                            Debug.LogError("Cell Index out of range!" + "id = " + index + " prefabOPs.Length = " + prefabOPs.Length);
                             return; //返回或处理越界情况
                         }
                         if (torf == false || (torf == true && blocks[index] == null))
@@ -1419,6 +1410,8 @@ namespace CellSpace
                             }
                             else { Debug.LogError("未获得GUI填入的Cell预制体块"); }
                         }
+                        if (index == ushort.MaxValue) { return; }
+                        if (index == blocksNum - 1) { return; }
                         index++;
                         //下个处理ID超过特征图最后CellID时直接跳出函数
                         if (index > endID) { return; }
@@ -1430,15 +1423,15 @@ namespace CellSpace
             else
             {
                 //遍历所有切片,注意检查索引是否越界
-                for (ushort col = 0; col < textureCol; col++)
+                for (int col = 0; col < textureCol; col++)
                 {//X自增时,Y重置为0
                     y = 0;
-                    for (ushort row = 0; row < textureRow; row++)
+                    for (int row = 0; row < textureRow; row++)
                     {
                         //检查索引是否越界
                         if (index >= prefabOPs.Length)
                         {
-                            Debug.LogError("Index out of range!");
+                            Debug.LogError("Cell Index out of range!" + "id = " + index + " prefabOPs.Length = " + prefabOPs.Length);
                             return; //返回或处理越界情况
                         }
                         if (torf == false || (torf == true && blocks[index] == null))
@@ -1457,6 +1450,8 @@ namespace CellSpace
                             }
                             else { Debug.LogError("未获得GUI填入的Cell预制体块"); }
                         }
+                        if (index == ushort.MaxValue) { return; }
+                        if (index == blocksNum - 1) { return; }
                         index++;
                         //下个处理ID超过特征图最后CellID时直接跳出函数
                         if (index > endID) { return; }
@@ -1588,14 +1583,15 @@ namespace CellSpace
             //接下来是其他材质主纹理所划分的地块纹理数量(因数量巨多,不再手动从GUI拖入字段或从AB包加载)
             ushort num1 = (ushort)(num0 + 152);//163 
             ushort num2 = (ushort)(num1 + 1360);//1523
-            ushort num3 = (ushort)(num2 + 152);//1675（内置地块ID为0~1674）
+            //..后续填充满65536个地块预制体索引
 
-            int length = blocks.Length; //数组长度为1675
+            int length = blocks.Length;
             if (length == 0)
             {
+                Debug.LogWarning("地块预制体数组blocks未填充,重新填充blocks.Length = 1523");
                 //Unity开发时在GUI界面lBlocks预填数组容量后,传到这里blocks.Length是有值的,若没有则进行Debug为内置数量
-                length = num3;
-                BlocksPreFill((ushort)length); //出错则重新填充
+                length = 1523;
+                BlocksPreFill(length); //出错则重新填充
             }
 
             //此处自动创建同样个数的OP对象,所有OP对象共享对象池
@@ -1604,21 +1600,21 @@ namespace CellSpace
             CPEngine.prefabOPs = OP.Init(length, false); //OP对象池预填充但暂时不用创建游戏对象(由CreateTexPrefabBatch及CreatePrefab控制是否创建并绑定)
 
             //手动拖入的Cell预制体数量是num0:cell_0~10(其中0是空块,1~10的uv取自材质[0]主纹理)
-            CreatePrefabBatch(0, (ushort)(num0 - 1), 0, (ushort)textureUnitX[0], (ushort)textureUnitY[0]); //若已经有填充,该函数会直接使用代码创建的Cell预制体块并加入对象池
+            CreatePrefabBatch(0, (ushort)(num0 - 1), 0, (int)textureUnitX[0], (int)textureUnitY[0]); //若已有填充,该函数会直接使用代码创建的Cell预制体块并加入对象池
 
             //额外添加152个大地图纹理:cell_11~162(这些预制体块的uv均是材质[1]主纹理上的)
             //↓大地图19行8列会自动按起始和结尾参数转换出152个预制体实例,函数会绑定它们到OP对象gameObject字段
-            CreatePrefabBatch(num0, (ushort)(num1 - 1), 1, (ushort)textureUnitX[1], (ushort)textureUnitY[1]);
+            if (blocksNum > 11) CreatePrefabBatch(num0, (ushort)(num1 - 1), 1, (int)textureUnitX[1], (int)textureUnitY[1]);
 
             //额外添加1360个小地图纹理:cell_163~1522(这些预制体块的uv均是材质[2]主纹理上的)
             //↓小地图170行8列会自动转换出1360个预制体实例
-            CreatePrefabBatch(num1, (ushort)(num2 - 1), 2, (ushort)textureUnitX[2], (ushort)textureUnitY[2]);
+            if (blocksNum > 163) CreatePrefabBatch(num1, (ushort)(num2 - 1), 2, (int)textureUnitX[2], (int)textureUnitY[2]);
 
-            //额外添加64个:cell_1523~1674(材质[3]主纹理上的),包括CellID_0共1675个Block数组元素
+            //额外添加64个:cell_1523~65535(材质[3]主纹理上的),包括CellID_0共65536个Block数组元素
             //↓备用地图8行19列会自动转换出152个预制体实例
-            CreatePrefabBatch(num2, (ushort)(num3 - 1), 3, (ushort)textureUnitX[3], (ushort)textureUnitY[3]);
+            if (blocksNum > 1523) CreatePrefabBatch(num2, (ushort)(blocksNum - 1), 3, (int)textureUnitX[3], (int)textureUnitY[3]);
 
-            //此处可继续导入第5材质及纹理集...用上述相同方法划分uv,创建新编号地块预制体
+            //可继续导入第5材质及纹理集...用上述相同方法划分uv,创建新编号地块预制体
 
             //读取重装机兵等预制场景纹理ID文本
             LoadPrefabSceneTextureIDs();
@@ -1630,15 +1626,15 @@ namespace CellSpace
         /// <returns>地块纹理uv从哪个材质主纹理上划取,就返回哪个材质索引</returns>
         public static ushort GetSubMeshIndex(ushort cellId)
         {
+            //目前允许制作的地块预制体最大种类数为65536,想超过得设计int分段检索以应付ushort-char序列化存储,或使用其他序列化方式.
             ushort torf = 0; //0~10为第1个材质
             if (cellId >= 11)
             {
-                if (cellId < 163) { torf = 1; }//重装机兵大地图特征纹理
-                else if (cellId < 1523) { torf = 2; }//重装机兵小地图特征纹理
-                else if (cellId < 1675) { torf = 3; }//最后1个材质上的是备用纹理
+                if (cellId < 163) { torf = 1; }//重装机兵大地图特征纹理为第2个材质
+                else if (cellId < 1523) { torf = 2; }//重装机兵小地图特征纹理为第3个材质
+                else if (cellId <= 65535) { torf = 3; }//最后1个材质上的是备用纹理为第4个材质
                 else
                 {
-                    //目前内置的地块ID最大是1674,想要超过这个值需自行修改.
                     Debug.Log("纹理ID超出内置材质子网格索引上限！");
                 }
             }
@@ -1979,6 +1975,16 @@ namespace CellSpace
     }
 }
 
+#region 一些提示
+// 本框架魔改自Uniblocks项目(处理速度提升百倍),是一个静态地面体素(三维立体像素)单元空间框架,用于制作类似Minecraft游戏或其他体素空间设计.
+// 本框架内"单元"均指体素块(默认边长为Unity世界坐标系的1.0长度),每种地块预制体实例占一个GameObject,创建后隐藏在对象池.空间形成时读预制体网格纹理等信息去计算并将结果赋值给组件以刷新.
+// 本框架内"团块"均指由多个单元组成的立体空间(顶点少则占1个GameObject否则会分摊给子物体以迎合Unity默认的16位Mesh缓冲区).
+// 团块用作2D平面使用时,边长默认为256即65536个单元,作3D设计时推荐16*16*16=4096个单元组成一个团块空间(更大会自动拆分故无意义,边长仅用来规定基础最小空间尺寸,周围要显示的空间数可自定义).
+// 每次创建新世界,其团块边长应在初始化前确认,存储为区域文件后就固定下来了,中途不可再改.
+// 所有已创建团块实例将被存储在团块管理器类的静态字段容器内,只有完整设计MC世界多团块时,距离过远团块数据从内存转移到硬盘(需开启框架的地块存储功能).
+// 地形生成器类只负责创建没探索过区域的团块,若世界坐标转换的索引对应团块存在于团块管理器容器内或硬盘区域文件已存在该索引则转而使用已有数据刷地块(单元).
+// 目前框架中网络功能是旧版UNet(Obsolete黄字警告),待禁用并升级(推荐用NetCode做一遍).
+
 // VS2022编写本脚本,在右侧解决方案窗口,引用中添加dll等方法库文件,之后可用其内指定命名空间的具体方法进行编程
 // 在C#编程中,命名空间(Namespace)是一种组织代码的方式,它可以帮助我们避免类名、方法名等之间的冲突,并提供一种逻辑上的分组机制
 // UnityEngine 命名空间
@@ -1992,13 +1998,13 @@ namespace CellSpace
 // 包含内容:这个命名空间中的类允许你创建文件、读取文件内容、写入文件、删除文件、管理目录结构、处理数据流等.例如,File 类提供了静态方法用于文件的创建、复制、删除、移动和打开；Directory 类用于创建、删除和移动目录；StreamReader 和 StreamWriter 类用于从文件中读取文本和向文件中写入文本.
 // 在Unity项目中,通常会通过引用这些命名空间来使用它们提供的类和功能.例如,在脚本文件的开头使用using UnityEngine;语句,就可以让你在脚本中直接使用Unity引擎提供的所有类和功能,而无需每次都写出完整的命名空间路径.
 
-//一些提示:
 //框架启用后,在创建空间团的瞬间,整个空间都是空块(id=0),所有的场景地形图片全凭想象,目前虽然支持6面不同,但需要通过块编辑器进行一个个定制.
-//重装机兵大地图规定只刷侧面是我批量用代码定制的(比手动菜单要快).从横版切换为原版3D框架设计游戏地形后,默认会恢复显示顶部纹理.
-//在关闭单一空间重复利用模式下,只要移动团块位置指示器,自动计算应该刷什么场景图.
+//重装机兵大地图规定只刷侧面是我批量用代码定制的(比手动从菜单制作要快).从横版切换为原版3D框架设计游戏地形后,默认会恢复X-Z平面为顶面(显示表层纹理).
+//在关闭单一空间重复利用模式下,只要移动团块位置指示器,会自动根据位置进行刷新周围空间.
 //在开启单一空间重复利用模式时,地形生成器停止刷新工作,此时当前空间充满透明空块按自己想象随便刷指定纹理块即可,直接使用chunk.SetID(位置索引,id).
 
 //单一空间重复利用模式下,其实也能模拟多场景NPC活动,需要做一套虚拟场景坐标.
-//目前横版幸存者框架里写了一套虚拟坐标,只是与真实世界坐标比例100:1而已.新的虚拟坐标模拟邻居城镇场景各不相同时需要一个转换函数根据虚拟坐标和团块索引得到真实世界坐标(使各场景都重复刷在单个绝对世界空间).
-//重复利用空间的性能高一些,而分开创建摧毁大空间团时会明显掉帧.
-//单一空间重复利用模式下应关闭框架自动存档功能,改为手动刷需要的场景并按需存档信息。
+//目前精灵空间管理框架(SpriteSpace)里写了一套虚拟坐标,只是与真实世界坐标比例100:1而已.新的虚拟坐标模拟邻居城镇场景各不相同时需要一个转换函数根据虚拟坐标和团块索引得到真实世界坐标(使各场景都重复刷在单个绝对世界空间).
+//该设计模式下重复利用空间的性能高一些,而分开设计创建摧毁大量空间团时依然会明显掉帧(空间对象尚未做对象池管理,是因其范围较大不会刷新频繁,但若其频繁摧毁时依然需优化).
+//单一空间重复利用模式下应关闭框架自动存档功能,改为手动刷场景及安排存档。
+#endregion

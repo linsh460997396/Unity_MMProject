@@ -114,6 +114,7 @@ public static void StaticMethod() {
 不會被Unity序列化:標記為const, static, readonly的成員、標記了[NonSerialized]的成員
 私有或静态字段不被自动序列化到Inspetor,想强制被序列化请使用[SerializeField]特性,想不被序列化请使用[NonSerialized]特性.
 [SerializeReference]标记接口或抽象类字段后支持多态对象管理和动态类型切换.
+private字段默认不被序列化‌但通过[SerializeField]可强制序列化,但static不支持序列化(除非使用Odin等插件工具)
 
 // Unity脚本生命周期和组件: https://docs.unity.cn/cn/2022.3/Manual/ExecutionOrder.html
 // 继承MonoBehaviour的类必须设计成实例类,可作为Unity组件挂载到游戏物体上,并在Unity编辑器中显示其公共非静态字段和属性(可通过Inspector面板编辑).
@@ -125,24 +126,24 @@ public static void StaticMethod() {
 // AddComponent时,Awake方法会在添加的那一帧立即执行,但Start方法则在下一帧的Update之前执行‌.
 
 /// <summary>
-/// 挂上组件时运行(无论是否激活,仅自动运行1次)
+/// 挂上组件的当前帧运行(无论是否激活,仅自动运行1次).
 /// </summary>
 void Awake(){}
 
 /// <summary>
-/// 组件激活时运行一次(反复激活反复运行)
+/// 组件激活时的当前帧运行一次(反复激活反复运行).
 /// </summary>
 void OnEnable(){}
 
 If the component is created because of an Instantiate() call, Awake is always called. and OnEnable is called if the new component starts enabled, before Instantiate returns.
 
 /// <summary>
-/// OnEnable后运行一次(仅自动运行1次,反复激活无效)
+/// OnEnable后在下一帧的Update前运行一次(仅自动运行1次,反复激活无效)
 /// </summary>
 void Start(){}
 
 /// <summary>
-/// 每帧运行
+/// 每帧运行.刚挂上组件时的第一帧不运行.
 /// </summary>
 void Update(){}
 
@@ -352,6 +353,7 @@ public class PrefabUnloader : MonoBehaviour
         }
     }
 }
+在Unity中Resources.UnloadAsset用于卸载通过Resources.Load加载的资源.
 二、AB包资源的内存机制
 加载AB包时:资源数据进入‌Native内存‌,引用信息进入‌托管内存‌,所有加载的资源(纹理/模型/预制体等)均会持续占用内存
 内存释放策略如下:‌
@@ -393,6 +395,7 @@ Unity在打包时会将资源的‌完整项目路径‌(如Assets/res/UI/icon.p
 解决方案: 确保每个独立目录使用唯一的AB包名.
 资源迁移或复制‌
 若在项目中直接复制文件(如icon.png复制到多个目录),需在Unity编辑器内操作,否则可能导致Meta文件丢失,路径标识失效.
+Meta文件是Unity编辑器专用的元数据文件,只在编辑器环境下识别生效.
 4. ‌最佳实践建议‌
 保持路径唯一性‌,即使Unity支持同名文件,建议通过命名规范(如ui_icon.png、char_icon.png)提升可维护性.
 分目录打包‌,对高频更新的资源按子目录单独打包(如UI、Models),减少热更新时的AB包体积.
@@ -715,3 +718,127 @@ Unity中V Sync Count的设置有三种:不设置、每个V空白、每秒V空白
 ‌Don't Sync‌:关闭垂直同步,帧率不受显示器刷新率限制,可通过Application.targetFrameRate手动设置目标帧率(如1000FPS)‌,此模式下性能最高,但可能产生画面撕裂.
 ‌Every V Blank‌:帧率锁定为60FPS(与标准显示器刷新率同步),Application.targetFrameRate设置无效‌,适合需要稳定帧率的场景,但会限制性能上限.
 ‌Every Second V Blank‌:帧率锁定为30FPS,同样忽略Application.targetFrameRate‌,适用于对帧率要求不高的应用,可降低设备负载.
+
+Thread.join()方法无论子线程是正常完成、异常终止还是被中断,都会在子线程结束后解除阻塞,让主线程继续执行.
+‌正常完成‌:线程的 run() 方法执行完毕
+‌异常终止‌:线程执行过程中抛出未捕获的异常
+‌被中断‌:线程收到了中断信号
+建议在子线程代码中加入异常处理并通过Thread.IsAlive属性或捕获特定异常如ThreadInterruptedException来明确状态,而不是依赖join()
+
+Unity在打包时会把所有Resources文件夹下的资源统一压缩、加密并生成一个名为resources.assets的数据文件,不再保留原始的文件夹结构
+发布后无法直接访问原始文件路径,只能通过Resources.Load系列API进行读取,该方式无法做热更新,AB包可以热更新.
+注意:Shader文件无法在编辑器开发环境外以零散文件读取,只能打包进AB素材包后通过AB方法读取.
+
+#region 
+//注意Application.dataPath打包前是Assets文件夹下的路径,打包后是识别exe程序名称_Data文件夹下的路径
+//Unity自带切割上万精灵应用到meta要几个小时情况时,可换如下加载方式(非Resources方式的不会被做成素材包,玩家可直观修改替换这些素材文件)
+//Texture2D tmpWP = TextureAnalyzer.LoadImageAndConvertToTexture2D(Application.dataPath + "/Resources/Textures/WorldSP.png");
+//Texture2D tmpMP = TextureAnalyzer.LoadImageAndConvertToTexture2D(Application.dataPath + "/Resources/Textures/MapSP.png");
+//Sprite[] tmpWSP = TextureAnalyzer.SliceTexture(tmpWP, 16, 16);
+//Sprite[] tmpMSP = TextureAnalyzer.SliceTexture(tmpMP, 16, 16);
+//Resources方式,Resources目录内素材会被自动打包,开发者不用担心打包后路径问题(只不过这种方式图片打包后玩家没法直观修改和替换贴图)           
+//Texture2D tWorldSP = Resources.Load<Texture2D>("Textures/WorldSP");
+//Texture2D tMapSP = Resources.Load<Texture2D>("Textures/WorldSP");
+
+//不沾引擎主线程对象情况可让子线程来处理(同时也是测试子线程运用),若是ECS设计模式则专门有支持引擎对象通过的官方线程处理
+//Trigger loadTXT = new Trigger(1); //创建1个循环1次的触发器实例(以子线程运行)
+//loadTXT.Awake += Trigger_LoadTXT_Func; //将需要委托运行的函数注册到Awake事件(该事件在触发器实例启动后运行1次,可在触发器实例属性中设置启动前摇)
+//loadTXT.Run(true);//以后台模式运行这个触发器
+////阻塞主线程,等待子线程完成(要使用精确结果进行下一步时)
+//loadTXT.Thread.Join();
+
+//Resources方式读精灵切片(推荐),编辑器开发环境下直接读取精灵切片信息(识别Meta文件).可在脱离编辑器环境中使用,但其读取对象的文件路径是固定的加密的,无法热更.
+//Sprite[] tmpWSP = Resources.LoadAll<Sprite>("Textures/WorldSP");
+//Sprite[] tmpMSP = Resources.LoadAll<Sprite>("Textures/MapSP");
+
+//将固定数组添加到List可扩展数组中
+Sprite[] tmpWSP = TextureAnalyzer.SliceTexture(tmpWP, 16, 16);
+for (int i = 0; i < mapSprites.Length; i++)
+{
+    mapSprites[i] = new List<Sprite>();
+}
+mapSprites[0].AddRange(tmpWSP);
+#endregion
+
+//测试触发器(子线程运行)
+//Trigger timerUpdate = new Trigger();
+//timerUpdate.Update += TestFunc;
+//timerUpdate.Duetime = 1000;//前摇等待1s
+//timerUpdate.Period = 500;//500ms执行一次
+//timerUpdate.TriggerStart(true);//后台运行触发
+
+//委托+=的方法如果不小心放了GameObject,得跟其他纯C#逻辑分开或写回调方法,再让子线程跑.
+public class ThreadWithEvent : MonoBehaviour
+{
+    public event System.Action ThreadCompleted;
+    private Thread backgroundThread;
+    public void StartBackgroundWork()
+    {
+        StartCoroutine(BackgroundWorkRoutine());
+    }
+    private IEnumerator BackgroundWorkRoutine()
+    {
+        bool isThreadDone = false;
+        backgroundThread = new Thread(() =>
+        {
+            // 执行后台任务
+            DoHeavyWork();
+            // 线程完成时触发事件
+            ThreadCompleted?.Invoke();
+        });
+        backgroundThread.Start();
+        // 等待事件触发,不阻塞主线程
+        yield return new WaitUntil(() => isThreadDone);
+        Debug.Log("后台线程完成,协程继续执行");
+    }
+    private void OnThreadCompleted()
+    {
+        isThreadDone = true;
+        //如果有GameObject相关操作,须用MainThreadDispatcher切回主线程执行
+    }
+    private void Start()
+    {
+        ThreadCompleted += OnThreadCompleted;
+    }
+}
+
+类声明时名字前加@符号用于‌避免与C#关键字冲突‌或‌处理包含特殊字符的标识符‌,仅影响编译器解析,运行时无额外开销.使用时可以不加@.
+Unity禁止‌通过new关键字手动实例化继承自MonoBehaviour的类.
+非静态构造函数中可以使用this.
+public  Material material => _material; //自动识别为属性表达式体写法,等同于get { return _material; }
+
+Object.Instantiate(object, null); 克隆
+GameObject.Instantiate(prefab,Scene); 这个可以克隆到其他场景
+组件脚本所在dll,须比读取AB包预制体这个动作所在dll,更提前加载到内存(不可以放在同一个库),然后取得预制体时组件才能完整识别
+Object.Instantiate克隆的GameObject,如原始对象处于非激活状态则克隆对象也将创建为非激活状态.
+
+//ScriptableObject不接收Unity引擎大部分回调,仅支持一小部分事件方法包括Awake, OnEnable, OnDestroy和OnDisable
+//Editor互动时还会从Inspector调用OnValidate和Reset.
+//特性创建方式(编辑器菜单)
+//[CreateAssetMenu(fileName = "ObjectData", menuName = "Data/ObjectData")]
+//public class ObjectData : ScriptableObject { /*...*/ }
+//非特性创建方式(仅限代码)
+//var prefab = ScriptableObject.CreateInstance<RuntimePrefab>();
+
+Color(R,G,B,A) A数值越大透明度越低,默认255不透明
+
+SO本质上是一种同类数据副本可视化编辑文件.优点是,能够自定义其中包含的数据(包括Unity定义的一些类型),Unity编辑器内总是能解析,并显示在Inspector上.
+缺点是,脱离了Unity编辑器就没法工作,所以打包之后便不再单独存在,而是成为包的一部分.所以,不要试图用SO完成存档功能.
+开发过程中设置数据是很常见的需求.如果是游戏物体,可以直接修改各个组件暴露出来的参数.
+但有的对象不适合继承MonoBehavior,不适合挂载到特定游戏物体上(比如各种纯数据).
+这种情况就可以令其继承ScriptableObject,声明字段通过拖动操作赋值后,在其他类使用.
+ScriptableObject可以和Json互转.
+[CreateAssetMenu(fileName = "SpecialAssets", menuName = "CreateSpecialAssets", order = 1)]
+order参数定义菜单项在Assets -> Create子菜单中的显示位置.数值越小,菜单项越靠前
+
+#region 初始化 HDR 显示模式
+//try
+//{
+//    //启用引擎高动态范围成像提供更广泛亮度范围和更高对比度,使图像亮暗部细节更丰富从而呈现出更加真实和生动的画面效果
+//    HDROutputSettings.main.RequestHDRModeChange(true);
+//}
+//catch (Exception e)
+//{
+//    Debug.Log(e); //Unity6.0不会报这个错
+//}
+#endregion

@@ -1,4 +1,4 @@
-﻿using MetalMaxSystem.Unity;
+﻿using MetalMaxSystem.Unity; //用到RuntimePrefab类型
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -6,16 +6,16 @@ using UnityEngine;
 namespace CellSpace
 {
     /// <summary>
-    /// CellSpace预制体类.用来模拟不在场景的类似从AB包素材加载后的预制体特性.这些预制体都是代码组装起来的.
-    /// 注意场景切换时未被DontDestroyOnLoad保护的预制体实例会被Unity自动销毁‌,请对存储在RuntimePrefab的预制体做好保护.
+    /// CellSpace预制体类.但这些预制体源头都是代码组装起来的.
     /// </summary>
     public class CellSpacePrefab : MonoBehaviour
     {
-        //预制体保存方法也只能在编辑器模式下调用,ScriptableObject不必保存成硬盘文件,直接内存环境使用
+        //预制体保存方法只能在编辑器模式下调用,ScriptableObject不必保存成硬盘文件,直接内存环境使用.
 
         /// <summary>
-        /// 预制体字典.可模拟AB包素材加载后进Native内存,存储GameObject后Destroy原对象也不影响Native内存已存储的预制体,容器内的预制体不会出现在Unity场景.
-        /// 摧毁该字典内容时请调用Resources.UnloadAsset(runtimePrefab[key])来标记销毁.
+        /// 预制体字典.
+        /// 当RuntimePrefab.Add(string key, Object obj,bool clone = false)中的clone参数为true时,资源为副本存储,
+        /// 当clone参数为false时,直接存储对象,摧毁原对象会影响该字典内容,场景切换时未被DontDestroyOnLoad保护的实例会被Unity自动销毁‌,请做好保护.
         /// </summary>
         public static RuntimePrefab runtimePrefab = ScriptableObject.CreateInstance<RuntimePrefab>();
         /// <summary>
@@ -63,16 +63,17 @@ namespace CellSpace
                 string name = "CPEngine";
                 if (!runtimePrefab.ContainsKey(name))
                 {
+                    //GameObject若用C#声明并添加组件,则默认在Managed内存场景中创建实例而非Native内存,此时MonoBehaviour组件会被Unity自动调用Awake、Start等完整生命周期方法.
                     GameObject tempGameObject = new GameObject(name);
-                    tempGameObject.SetActive(false);
-                    tempGameObject.transform.parent = group.transform;
-                    tempGameObject.AddComponent<CPConnectionInitializer>();
-                    CPConnectionInitializer.NetworkPrefab = CPNetwork;
-                    CellSpace.CPEngine.chunkManagerInstance = tempGameObject.AddComponent<CellChunkManager>();
-                    CellChunkManager.ChunkPrefab = CellChunk;
-                    tempGameObject.AddComponent<CPEngine>();
-                    runtimePrefab.Add(name, tempGameObject);
-                    awakeEnable[name] = true;
+                    tempGameObject.SetActive(false); //阻止后续添加组件时执行Awake以外的方法
+                    tempGameObject.transform.parent = group.transform; //作为group的子物体"存放"
+                    tempGameObject.AddComponent<CPConnectionInitializer>(); //添加网络连接初始化组件,注意会运行Awake方法,可设计awakeEnable[name]字段来阻断(余同)
+                    CPConnectionInitializer.NetworkPrefab = CPNetwork; //设置网络预制体
+                    CellSpace.CPEngine.chunkManagerInstance = tempGameObject.AddComponent<CellChunkManager>(); //添加团块空间管理组件
+                    CellChunkManager.ChunkPrefab = CellChunk; //设置团块空间预制体
+                    tempGameObject.AddComponent<CPEngine>(); //添加引擎核心组件
+                    runtimePrefab.Add(name, tempGameObject); //存入预制体字典
+                    awakeEnable[name] = true; //允许Awake运行
                     Debug.Log($"预制体已创建: {name}");
                 }
                 return runtimePrefab.Get(name) as GameObject;
@@ -516,3 +517,9 @@ namespace CellSpace
         }
     }
 }
+
+//本脚本示范Unity游戏框架纯代码化，模仿"取出AB素材包后预制体实例在内存待实例化"的状态。
+//问：为什么要把场景GameObject换成代码组装，把它们做成真正的预制体打AB素材包不行么？
+//答：因预制体带自定义脚本组件情况下，直接读AB包会识别不到该脚本，要先把这个脚本做dll然后比读取AB包动作所在dll更早加载到内存，后续dll中读取预制体才能识别到完整组件。
+//是一家人就该完完整整在一起（其他素材的话，图片可外路径读取，但自定义Shader要打AB包因它不支持零散读取...所以根据情况某些素材还是需打AB包的，但我不想把部分脚本拆出去做dll预读，除非万不得已）。
+//这种方式下，编辑器测试完整功能后可以正常打包，只是素材要手动复制到打包后的_Data目录。如框架用到的图片素材，Application.dataPath打包前是Assets文件夹下的路径，打包后是识别exe程序名称_Data文件夹下的路径(末尾没有\)，用法:Application.dataPath + "/Resources/Textures/WorldSP.png"。

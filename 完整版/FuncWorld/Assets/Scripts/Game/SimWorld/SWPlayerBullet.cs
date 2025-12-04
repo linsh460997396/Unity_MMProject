@@ -23,8 +23,8 @@ namespace SimWorld
         // 这些属性从 skill copy
         public float radius;                            // 碰撞检测半径( 和显示放大修正配套 )
         public int damage;                              // 伤害( 倍率 )
-        public float moveSpeed;                         // 按照 fps 来算的每一帧的移动距离
-        public int life;                                // 子弹存在时长( 帧 ): fps * 秒
+        public float moveSpeed;                         // 按照 tps 来算的每一帧的移动距离
+        public int life;                                // 子弹存在时长( 帧 ): tps * 秒
 
         public SWPlayerBullet(SWPlayerSkill ps)
         {

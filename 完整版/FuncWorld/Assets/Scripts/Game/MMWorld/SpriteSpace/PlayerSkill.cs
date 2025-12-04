@@ -30,13 +30,13 @@ namespace SpriteSpace
         /// </summary>
         public float progress = 1;
         /// <summary>
-        /// [逻辑坐标]子弹发射时与身体的最大距离(默认是Scene.gridSize/2)
+        /// [逻辑坐标]子弹发射时与身体的最大距离(默认是scene.gridSize/2)
         /// </summary>
-        public const float maxShootDistance = Scene.gridSize / 2;
+        public float maxShootDistance;
         /// <summary>
         /// 技能冷却时长
         /// </summary>
-        public int castDelay = (int)(Scene.fps * 0.02f);        // todo: 改为每秒匀速发射多少颗的逻辑
+        public int castDelay; //todo: 改为每秒匀速发射多少颗的逻辑
         /// <summary>
         /// 一次发射多少颗
         /// </summary>
@@ -61,9 +61,9 @@ namespace SpriteSpace
         /// </summary>
         public float moveSpeed = 25;
         /// <summary>
-        /// 子弹存在时长(帧):fps * 秒
+        /// 子弹存在时长(帧):tps * 秒
         /// </summary>
-        public int life = Scene.fps * 1;
+        public int life;
 
         /// <summary>
         /// [构造函数]玩家技能
@@ -73,6 +73,11 @@ namespace SpriteSpace
         {
             stage = stage_;
             scene = stage_.scene;
+
+            maxShootDistance = scene.gridSize / 2;
+            castDelay = (int)(scene.tps * 0.02f);
+            life = scene.tps * 1;
+
             player = scene.player;
         }
 
@@ -99,7 +104,7 @@ namespace SpriteSpace
 
                 var x = player.pixelRow;
                 var y = player.pixelColumn;
-                var o = stage.monstersGridContainer.FindNearestByRange(Scene.spaceRDD, x, y, moveSpeed * life);
+                var o = stage.monstersGridContainer.FindNearestByRange(scene.spaceRDD, x, y, moveSpeed * life);
                 if (o != null)
                 {
                     var dy = o.pixelColumn - y;

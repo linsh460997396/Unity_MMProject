@@ -1,35 +1,29 @@
 ﻿using CellSpace;
-using MetalMaxSystem.Unity;
 using System;
 using UnityEngine;
 
 namespace SpriteSpace
 {
-    //精灵空间管理框架(SpriteSpace)入口场景类.
-    //框架用于管理静态地面上的活动精灵，可配合静态地面空间框架(CellSpace)的2D横板、3D单层地形模式使用.
-    //框架自带的双向链表仅支持2D管理检索场景中的活动对象(如怪物、子弹、特效、角色、道具等).
-    //可自行修改设计,如它们的基类GridItem继承CellSpace框架的CellItem时,可将它们添加到CellSpace框架的双向链表(支持3D管理和检索).
-    //本框架可脱离静态地面空间框架(CellSpace)单独测试上面的活动对象.但具体游戏设计后可能会耦合较深.
+    //精灵空间管理框架(SpriteSpace).
 
     /// <summary>
     /// 场景.
     /// </summary>
     public class Scene : MonoBehaviour
     {
-        //Scene支持多实例切换,静态变量(如小地图开关)是设计让所有实例公用,常量(隐式静态)是用于赋值一次后不允许再修改(实例化后不允许变化)的数据.
-
-        // 编辑器拖拽带法线的材质球到此
-        public Material material;
-        // 编辑器拖Sprite-Unlit-Default到此,或不启用URP时用别的
-        public Material minimapMaterial;
+        //编辑器拖拽带法线的材质球到此
+        [NonSerialized] public Material material;
+        //编辑器拖Sprite-Unlit-Default到此,或不启用URP时用别的
+        [NonSerialized] public Material minimapMaterial;
 
         public GameObject minimapCameraGO;
         public GameObject minimapCanvasGO;
-        // 编辑器拖游戏物体到此,会自动识别到组件
+
+        //编辑器拖游戏物体到此,会自动识别到组件
         [NonSerialized] public Camera minimapCamera;
         [NonSerialized] public Canvas minimapCanvas;
 
-        // 编辑器中分组,拖拽精灵图集到此(展开shift可多选)
+        //编辑器中分组,拖拽精灵图集到此(展开shift可多选)
         public Sprite[] sprites_font_outline;
         public Sprite[] sprites_explosions;
         public Sprite[] sprites_player;
@@ -43,10 +37,6 @@ namespace SpriteSpace
         public Sprite[] sprites_monster07;
         public Sprite[] sprites_monster08;
         // ...
-
-        //注:下述grid(网格)与CellSpace中的怪物容器不混用,可继续将一个Cell划分更细小来检索怪物在grid上的位置,同时用来设计屏幕范围(逻辑像素)在grid空间总的逻辑像素尺寸下的比例
-        //坐标分世界(绝对)坐标、本地(local/相对父级物体/局部)坐标、逻辑(像素)坐标三种,前2种直接关联渲染位置,逻辑坐标则方便参与游戏逻辑的尺寸距离直接判断
-        //CellSpace里还有个怪物容器是本地坐标的(不冲突),注意区别即可
 
         /// <summary>
         /// 当前帧(总的运行帧编号)
@@ -64,117 +54,112 @@ namespace SpriteSpace
         /// 当前舞台
         /// </summary>
         public Stage stage;
-
         /// <summary>
         /// 精灵空间行、列数量.如不再逻辑划分怪物区域,默认同CellSpace中团块空间的边长.
         /// </summary>
-        public const int gridChunkNumRows = 256, gridChunkNumCols = 256;
+        public int gridNumRows = 256, gridNumCols = 256;
         /// <summary>
         /// 网格团块内的网格最大宽度尺寸(单位是逻辑像素非真实像素)
         /// </summary>
-        public const float gridChunkWidth = gridChunkNumCols * gridSize;
+        public float gridWidth;
         /// <summary>
         /// 网格团块内的网格最大高度尺寸(单位是逻辑像素非真实像素)
         /// </summary>
-        public const float gridChunkHeight = gridChunkNumRows * gridSize;
+        public float gridHeight;
         /// <summary>
         /// 网格团块的宽度尺寸中心(单位是逻辑像素非真实像素)
         /// </summary>
-        public const float gridChunkWidth_2 = gridChunkWidth / 2, gridHeight_2 = gridChunkHeight / 2;
+        [NonSerialized] public float gridWidth_2, gridHeight_2;
         /// <summary>
         /// 网格团块的高度尺寸中心(单位是逻辑像素非真实像素)
         /// </summary>
-        public const float gridChunkCenterX = gridChunkWidth_2, gridChunkCenterY = gridHeight_2;
+        public float gridChunkCenterX, gridChunkCenterY;
         /// <summary>
-        /// 设计帧率(逻辑值)
+        /// 设计(目标)帧率.决定游戏逻辑更新频率.允许修改来调整游戏速度.它是逻辑值,并非引擎真实渲染帧率.
         /// </summary>
-        public const int fps = 60;
+        public int tps = 60;
         /// <summary>
         /// 帧率间隔(逻辑帧率的倒数)
         /// </summary>
-        public const float frameDelay = 1f / fps;
+        public float frameDelay;
         /// <summary>
         /// 设计分辨率(单位是逻辑像素非真实像素),决定了屏幕(摄像机镜头)范围占空间总大小多少.
         /// 为了达到现实中屏幕分辨率,逻辑像素范围可取1920*1080这样的默认值.修改gridSize和grid行列数可调整网格团块一角或全部被屏幕看到的比例.
         /// </summary>
-        public const float designWidth = 3840, designHeight = 2160;
+        public float designWidth = 3840, designHeight = 2160;
         /// <summary>
         /// 设计分辨率的一半(方便计算和使用)
         /// </summary>
-        public const float designWidth_2 = designWidth / 2, designHeight_2 = designHeight / 2;
+        [NonSerialized] public float designWidth_2, designHeight_2;
         /// <summary>
         /// 设计分辨率到摄像头坐标的转换系数(允许渲染位置与逻辑位置不同,如戴森球那游戏的庞大星系不按实际距离尺寸制作时).
         /// 用于怪物坐标修正(渲染位置=逻辑位置*designWidthToCameraRatio),如不需要可设为1(无转换).在(0,1)区间调整.
         /// </summary>
-        public const float designWidthToCameraRatio = 1f;
+        public float designWidthToCameraRatio = 1f;
         /// <summary>
         /// 网格尺寸(尺度单位是逻辑像素非真实像素),决定空间或地图总的逻辑像素大小及屏幕(摄像头)占据的大小.
         /// </summary>
-        public const float gridSize = 100f;
-        /// <summary>
-        /// [常数]根号二大小
-        /// </summary>
-        public const float sqrt2 = 1.414213562373095f;
-        /// <summary>
-        /// [常数]根号二大小的一半
-        /// </summary>
-        public const float sqrt2_1 = 0.7071067811865475f;
-
-        /// <summary>
-        /// 空间容器索引时要用到的找最近所需格子的偏移量数组(所有舞台公用)
-        /// </summary>
-        public static SpaceRingDiffuseData spaceRDD = new(100, gridSize);
-        /// <summary>
-        /// 小地图开启状态.
-        /// </summary>
-        public static bool minimapEnabled = false;
-        /// <summary>
-        /// 是否创建小地图用的GameObject(默认不创建,节省性能).
-        /// </summary>
-        public static bool mGOCreate = true;
+        public float gridSize = 100f;
         /// <summary>
         /// 精灵图片离地相对高度.
         /// </summary>
-        public static float aboveHeight = 0.1f;
+        public float aboveHeight = 0.1f;
+        /// <summary>
+        /// 小地图开启状态.
+        /// </summary>
+        public bool minimapEnabled = false;
+        /// <summary>
+        /// 是否创建小地图用的GameObject(默认不创建,节省性能).
+        /// </summary>
+        public bool mGOCreate = false;
+        /// <summary>
+        /// 空间容器索引时要用到的找最近所需格子的偏移量数组(所有舞台公用)
+        /// </summary>
+        public SpaceRingDiffuseData spaceRDD;
+
+        public static InputActions inputActions;
+        public static Scene mainScene;
 
         void Start()
         {
+            frameDelay = 1f / tps;
+            gridWidth = gridNumCols * gridSize;
+            gridHeight = gridNumRows * gridSize;
+            gridWidth_2 = gridWidth / 2;
+            gridHeight_2 = gridHeight / 2;
+            gridChunkCenterX = gridWidth_2;
+            gridChunkCenterY = gridHeight_2;
+            designWidth_2 = designWidth / 2;
+            designHeight_2 = designHeight / 2;
+            spaceRDD = new(100, gridSize);
+
+            material = SpriteSpacePrefab.material;
+            minimapMaterial = material;
             minimapCamera = minimapCameraGO.GetComponent<Camera>();
             minimapCanvas = minimapCanvasGO.GetComponent<Canvas>();
 
-            //初始化玩家输入系统
-            InitInputAction();
+            InitCamera();
 
-            #region 初始化 HDR 显示模式
-            //try
-            //{
-            //    //启用引擎高动态范围成像提供更广泛亮度范围和更高对比度,使图像亮暗部细节更丰富从而呈现出更加真实和生动的画面效果
-            //    HDROutputSettings.main.RequestHDRModeChange(true);
-            //}
-            //catch (Exception e)
-            //{
-            //    Debug.Log(e); //Unity6.0不会报这个错
-            //}
-            #endregion
+            inputActions = new InputActions();
+            inputActions.InitInputAction();
 
-            //初始化底层绘制对象池(用于大量NPC、怪物等活动精灵个体对象复用GameObject,防止频繁创建摧毁导致掉帧问题)
-            GameObject tempGroup = new GameObject("GOGroup");
-            DontDestroyOnLoad(tempGroup);
-            GO.Init(material, 20000, tempGroup);
+
 
             //初始化玩家
             player = new Player(this);
 
-            //初始化起始舞台(切场景时更换为新的舞台)
+            //初始化起始舞台(切场景地图时更换为新的舞台)
             //stage = new Stage1(this);
 
-            //stage = new TestStage1(this); //测试大量数字特效
+            #region 测试舞台
+            //stage = new TestStage1(this); //直接测试大量数字特效
             stage = new TestStage2(this); //正常打怪测试
+            #endregion
         }
         void Update()
         {
             //处理玩家输入
-            HandlePlayerInput();
+            inputActions.HandlePlayerInput();
 
             var timeBak = time;
             //按设计帧率驱动游戏逻辑
@@ -185,12 +170,15 @@ namespace SpriteSpace
                 ++time;
                 stage.Update();
             }
+
+            #region 小地图更新频率
             //若启用了小地图那么只在Update执行过的帧才启用minimap的camera(提升点性能)
-            if (minimapEnabled)
-            {
-                //若游戏逻辑被运行且次数是偶数那么启用小地图镜头
-                minimapCamera.enabled = timeBak != time && (time & 1) == 0; //位运算,功能等价(time % 2) == 0
-            }
+            //if (minimapEnabled)
+            //{
+            //    //若游戏逻辑被运行且次数是偶数那么启用小地图镜头
+            //    minimapCamera.enabled = timeBak != time && (time & 1) == 0; //位运算,功能等价(time % 2) == 0
+            //}
+            #endregion
 
             //同步绘制
             stage.Draw();
@@ -214,12 +202,13 @@ namespace SpriteSpace
             GO.Destroy();
         }
         /// <summary>
-        /// 设置舞台
+        /// 设置舞台.
         /// </summary>
-        /// <param name="newStage">新的舞台</param>
-        public void SetStage(Stage newStage)
+        /// <param name="newStage"></param>
+        /// <param name="oldDestroy">默认true会摧毁当前舞台,可设置false以保留/param>
+        public void SetStage(Stage newStage, bool oldDestroy = true)
         {
-            stage.Destroy();//清理旧舞台
+            if (oldDestroy) stage.Destroy();//清理旧舞台
             stage = newStage;//设置新的舞台
         }
         /// <summary>
@@ -228,82 +217,16 @@ namespace SpriteSpace
         /// <param name="torf">启动小地图(不填则默认为真)</param>
         public void EnableMinimap(bool torf = true)
         {
-            minimapCanvasGO.SetActive(torf);
-            minimapCameraGO.SetActive(torf);
+            minimapCanvasGO?.SetActive(torf);
+            minimapCameraGO?.SetActive(torf);
             if (minimapEnabled == torf) return;//没变化时直接返回
             minimapEnabled = torf;//刷新场景minimapEnabled字段
-            minimapCanvas.enabled = torf;//决定画布是否启用
-            minimapCamera.enabled = torf;//决定小地图摄像机是否启用
+            if (minimapCanvas != null) minimapCanvas.enabled = torf;//决定画布是否启用
+            if (minimapCamera != null) minimapCamera.enabled = torf;//决定小地图摄像机是否启用
             Debug.Log("小地图已" + (torf ? "启用" : "禁用"));
         }
 
-        //处理玩家输入
-
-        /// <summary>
-        /// InputActions.PlayerActions(玩家动作输入)
-        /// </summary>
-        internal InputActions.PlayerActions iapa; //不能在这直接new(会被覆盖)
-        /// <summary>
-        /// 键盘 W/UP
-        /// </summary>
-        internal bool playerKBMovingUp;
-        /// <summary>
-        /// 键盘 S/Down
-        /// </summary>
-        internal bool playerKBMovingDown;
-        /// <summary>
-        /// 键盘 A/Left
-        /// </summary>
-        internal bool playerKBMovingLeft;
-        /// <summary>
-        /// 键盘 D/Right
-        /// </summary>
-        internal bool playerKBMovingRight;
-
-        //主要用下面这几个
-
-        /// <summary>
-        /// 键盘=true,手柄=false
-        /// </summary>
-        internal bool playerUsingKeyboard;
-        /// <summary>
-        /// 键盘Space或手柄按钮A/X
-        /// </summary>
-        internal bool playerJumping;
-        /// <summary>
-        /// 是否正在移动(键盘ASDW或手柄左joy均能触发)
-        /// </summary>
-        internal bool playerMoving;
-        /// <summary>
-        /// 归一化之后的移动方向(读前先判断playerMoving)
-        /// </summary>
-        internal Vector2 playerMoveValue;
-        /// <summary>
-        /// 上一个非零移动值的备份(比如当前值为0而上次备份值为1时可供变化参考),初值=new(1, 0)
-        /// </summary>
-        internal Vector2 playerLastMoveValue = new(1, 0);
-        /// <summary>
-        /// 获取玩家朝向.若移动中,获取归一化后的移动方向；不在移动,则返回上一个非零移动值的备份
-        /// </summary>
-        internal Vector2 PlayerDirection
-        {
-            get
-            {
-                if (playerMoving)
-                {//若移动中,获取归一化后的移动方向
-                    return playerMoveValue;
-                }
-                else
-                {//不在移动,则返回上一个非零移动值的备份
-                    return playerLastMoveValue;
-                }
-            }
-        }
-
-        /// <summary>
-        /// 初始化输入动作
-        /// </summary>
-        internal void InitInputAction()
+        public void InitCamera()
         {
             if (Camera.main != null)
             {
@@ -312,7 +235,7 @@ namespace SpriteSpace
                     //2D横板模式用正交投影
                     Camera.main.orthographic = true;
                     Camera.main.orthographicSize = Camera.main.orthographicSize * designWidthToCameraRatio;
-                    Debug.Log("[horizontalMode]正交镜头:摄像机默认正交尺寸=" + Camera.main.orthographicSize);
+                    //Debug.Log("[horizontalMode]正交镜头:摄像机默认正交尺寸=" + Camera.main.orthographicSize);
                     Camera.main.gameObject.transform.position = new Vector3(0, 0, -20);
                 }
                 else if (CPEngine.singleLayerTerrainMode)
@@ -326,224 +249,23 @@ namespace SpriteSpace
                 }
                 else
                 {
-                    //正常3D模式的镜头应另行支持鼠标旋转屏
-                    Camera.main.gameObject.transform.rotation = Quaternion.Euler(90, 0, 0);
-                    Camera.main.gameObject.transform.position = new Vector3(0, 20, 0);
-                    Camera.main.orthographic = false;
-                    //if (designWidthToCameraRatio != 1f)
-                    //{
-                    //    //3D透视投影用到的是视野大小,若设计分辨率到摄像头坐标的转换系数不为1则调整摄像机的视野大小
-                    //    Camera.main.fieldOfView = Camera.main.fieldOfView * designWidthToCameraRatio;
-                    //}
-                    Debug.Log("[正常3D模式]透视镜头:摄像机默认视野大小=" + Camera.main.fieldOfView);
+                    Debug.LogError("SpriteSpace框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+
+                    ////正常3D模式的镜头应另行支持鼠标旋转屏
+                    //Camera.main.gameObject.transform.rotation = Quaternion.Euler(90, 0, 0);
+                    //Camera.main.gameObject.transform.position = new Vector3(0, 20, 0);
+                    //Camera.main.orthographic = false;
+                    ////if (designWidthToCameraRatio != 1f)
+                    ////{
+                    ////    //3D透视投影用到的是视野大小,若设计分辨率到摄像头坐标的转换系数不为1则调整摄像机的视野大小
+                    ////    Camera.main.fieldOfView = Camera.main.fieldOfView * designWidthToCameraRatio;
+                    ////}
+                    //Debug.Log("[正常3D模式]透视镜头:摄像机默认视野大小=" + Camera.main.fieldOfView);
                 }
             }
             else
             {
                 Debug.LogError("没有找到主摄像机！");
-            }
-
-
-            var ia = new InputActions();//新的输入动作
-            iapa = ia.Player;//绑定输入动作玩家
-            iapa.Enable();//启用
-
-            //↓记录各种玩家操作事件下的状态值
-
-            // keyboard键盘
-            iapa.KBJump.started += c =>
-            {
-                playerUsingKeyboard = true;
-                playerJumping = true;
-            };
-            iapa.KBJump.canceled += c =>
-            {
-                playerUsingKeyboard = true;
-                playerJumping = false;
-            };
-
-            iapa.KBMoveUp.started += c =>
-            {
-                playerUsingKeyboard = true;
-                playerKBMovingUp = true;
-            };
-            iapa.KBMoveUp.canceled += c =>
-            {
-                playerUsingKeyboard = true;
-                playerKBMovingUp = false;
-            };
-
-            iapa.KBMoveDown.started += c =>
-            {
-                playerUsingKeyboard = true;
-                playerKBMovingDown = true;
-            };
-            iapa.KBMoveDown.canceled += c =>
-            {
-                playerUsingKeyboard = true;
-                playerKBMovingDown = false;
-            };
-
-            iapa.KBMoveLeft.started += c =>
-            {
-                playerUsingKeyboard = true;
-                playerKBMovingLeft = true;
-            };
-            iapa.KBMoveLeft.canceled += c =>
-            {
-                playerUsingKeyboard = true;
-                playerKBMovingLeft = false;
-            };
-
-            iapa.KBMoveRight.started += c =>
-            {
-                playerUsingKeyboard = true;
-                playerKBMovingRight = true;
-            };
-            iapa.KBMoveRight.canceled += c =>
-            {
-                playerUsingKeyboard = true;
-                playerKBMovingRight = false;
-            };
-
-            // gamepad游戏手柄
-            iapa.GPJump.started += c =>
-            {
-                playerUsingKeyboard = false;
-                playerJumping = true;
-            };
-            iapa.GPJump.canceled += c =>
-            {
-                playerUsingKeyboard = false;
-                playerJumping = false;
-            };
-
-            iapa.GPMove.started += c =>
-            {
-                playerUsingKeyboard = false;
-                playerMoving = true;
-            };
-            iapa.GPMove.performed += c =>
-            {
-                playerUsingKeyboard = false;
-                playerMoving = true;
-            };
-            iapa.GPMove.canceled += c =>
-            {
-                playerUsingKeyboard = false;
-                playerMoving = false;
-            };
-        }
-        /// <summary>
-        /// 处理玩家输入(只是填充playerMoving等状态值)
-        /// </summary>
-        internal void HandlePlayerInput()
-        {
-            if (playerUsingKeyboard)
-            {//使用键盘情况:需每帧判断、合并方向,计算最终矢量
-                if (!playerKBMovingUp && !playerKBMovingDown && !playerKBMovingLeft && !playerKBMovingRight
-                    || playerKBMovingUp && playerKBMovingDown && playerKBMovingLeft && playerKBMovingRight)
-                {
-                    playerMoveValue.x = 0f;
-                    playerMoveValue.y = 0f; //3D模式下采用X-Z平面所以这个y得用于z轴变化,后面幸存者框架逻辑要根据是否启用CPEngine.horizontalMode模式来进行设计
-                    playerMoving = false;
-                }
-                else if (!playerKBMovingUp && playerKBMovingDown && playerKBMovingLeft && playerKBMovingRight)
-                {
-                    playerMoveValue.x = 0f;
-                    playerMoveValue.y = -1f;
-                    playerMoving = true;
-                }
-                else if (playerKBMovingUp && !playerKBMovingDown && playerKBMovingLeft && playerKBMovingRight)
-                {
-                    playerMoveValue.x = 0f;
-                    playerMoveValue.y = 1f;
-                    playerMoving = true;
-                }
-                else if (playerKBMovingUp && playerKBMovingDown && !playerKBMovingLeft && playerKBMovingRight)
-                {
-                    playerMoveValue.x = 1f;
-                    playerMoveValue.y = 0f;
-                    playerMoving = true;
-                }
-                else if (playerKBMovingUp && playerKBMovingDown && playerKBMovingLeft && !playerKBMovingRight)
-                {
-                    playerMoveValue.x = -1f;
-                    playerMoveValue.y = 0f;
-                    playerMoving = true;
-                }
-                else if (playerKBMovingUp && playerKBMovingDown
-                      || playerKBMovingLeft && playerKBMovingRight)
-                {
-                    playerMoveValue.x = 0f;
-                    playerMoveValue.y = 0f;
-                    playerMoving = false;
-                }
-                else if (playerKBMovingUp && playerKBMovingLeft)
-                {
-                    playerMoveValue.x = -sqrt2_1;
-                    playerMoveValue.y = sqrt2_1;
-                    playerMoving = true;
-                }
-                else if (playerKBMovingUp && playerKBMovingRight)
-                {
-                    playerMoveValue.x = sqrt2_1;
-                    playerMoveValue.y = sqrt2_1;
-                    playerMoving = true;
-                }
-                else if (playerKBMovingDown && playerKBMovingLeft)
-                {
-                    playerMoveValue.x = -sqrt2_1;
-                    playerMoveValue.y = -sqrt2_1;
-                    playerMoving = true;
-                }
-                else if (playerKBMovingDown && playerKBMovingRight)
-                {
-                    playerMoveValue.x = sqrt2_1;
-                    playerMoveValue.y = -sqrt2_1;
-                    playerMoving = true;
-                }
-                else if (playerKBMovingUp)
-                {
-                    playerMoveValue.x = 0;
-                    playerMoveValue.y = 1;
-                    playerMoving = true;
-                }
-                else if (playerKBMovingDown)
-                {
-                    playerMoveValue.x = 0;
-                    playerMoveValue.y = -1;
-                    playerMoving = true;
-                }
-                else if (playerKBMovingLeft)
-                {
-                    playerMoveValue.x = -1;
-                    playerMoveValue.y = 0;
-                    playerMoving = true;
-                }
-                else if (playerKBMovingRight)
-                {
-                    playerMoveValue.x = 1;
-                    playerMoveValue.y = 0;
-                    playerMoving = true;
-                }
-                //if (playerMoving)
-                //{
-                //    Debug.Log(playerKBMovingUp + " " + playerKBMovingDown + " " + playerKBMovingLeft + " " + playerKBMovingRight + " " + playerMoveValue);
-                //}
-            }
-            else
-            {//手柄不需要判断
-                var v = iapa.GPMove.ReadValue<Vector2>();
-                //v.Normalize();//归一化
-                playerMoveValue.x = v.x;
-                playerMoveValue.y = v.y;
-                //todo:playerMoving = 距离 > 死区长度 ？
-            }
-            if (playerMoving)
-            {//若移动成功
-             //记录最后一次移动方向
-                playerLastMoveValue = playerMoveValue;
             }
         }
     }
@@ -555,7 +277,6 @@ namespace SpriteSpace
 //MethodInfo privateMethod = type.GetMethod("方法名",BindingFlags.NonPublic | BindingFlags.Instance);
 //设置方法可访问（如需）
 //privateMethod?.SetAccessible(true);
-
 //var fs = st.GetFields(BindingFlags.Public | BindingFlags.Instance); //如果要获取私有字段则换成BindingFlags.NonPublic
 //foreach (var f in fs) {
 //    if (f.FieldType.Name == "Sprite[]") {
@@ -567,6 +288,13 @@ namespace SpriteSpace
 //        }
 //    }
 //}
+//用反射获取MethodInfo后可将其转换为一个类型明确的委托,之后调用该方法时直接使用缓存的委托即可避免后续重复反射开销.
 
-//用反射获取MethodInfo后可将其转换为一个类型明确的委托
-//之后调用该方法时直接使用缓存的委托即可避免后续重复反射开销
+//本框架用于管理静态地面上的活动精灵,可配合静态地面体素单元空间框架(CellSpace)的2D横板、3D单层地形模式使用.
+//框架自带双向链表支持2D管理检索场景中的活动对象(如怪物、子弹、特效、角色、道具等).
+//可自行修改设计,如活动对象的基类GridItem继承CellSpace框架的CellItem时,可允许将它们添加到CellSpace框架的双向链表以支持3D管理和检索.
+//随着具体游戏设计,与其他框架会耦合较深.SpriteSpace可脱离静态地面空间框架单独测试上面的活动对象,它原型是一个幸存者demo.
+//Scene支持多实例切换,静态变量(如小地图开关)是设计让所有实例公用,常量(隐式静态)是用于赋值一次后不允许再修改(实例化后不允许变化)的数据.
+//允许将一个单元划分得更细小来检索怪物在grid上的位置,同时用来设计屏幕范围(逻辑像素)在grid空间总的逻辑像素尺寸下的比例.
+//坐标分世界(绝对)坐标、本地(local/相对父级物体/局部)坐标、逻辑(像素)坐标三种,前2种直接关联渲染位置,逻辑坐标则方便参与游戏逻辑的尺寸距离直接判断
+//CellSpace里还有个怪物容器是本地坐标的(不冲突),注意区别即可

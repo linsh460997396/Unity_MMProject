@@ -8,7 +8,7 @@
     // CellInfo. adjacentIndex stores the voxel adjacent to the hit face.
 
     /// <summary>
-    /// 体素单元信息.相比单元类型它相当于在实例建立时额外存储了团块游戏物体和团块中特定单元的索引(位置信息).
+    /// 体素单元信息.相比Cell类它相当于在实例建立时额外存储了团块游戏物体和团块中特定单元的索引(位置信息).
     /// 这个类还可存储相邻单元索引,这在CPEngine类的CellRaycast函数中用到:index存储被光线投射击中的单元索引,adjacentIndex则存储被击中面相邻的单元.
     /// </summary>
     public class CellInfo
