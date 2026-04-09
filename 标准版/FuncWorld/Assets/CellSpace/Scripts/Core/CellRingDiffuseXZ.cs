@@ -8,8 +8,8 @@ namespace CellSpace
     /// </summary>
     public class CellRingDiffuseXZ
     {
-        public List<CellCountRadiusInfo> lens = new();
-        public List<CellXZInfo> idxzs = new();
+        public List<CellCountRadiusInfo> lens = new List<CellCountRadiusInfo>();
+        public List<CellXZInfo> idxzs = new List<CellXZInfo>();
 
         /// <summary>
         /// 填充圆形扩散的格子偏移量数组,主用于更高效的2D范围内找最近网格容器(单元),生成一系列均匀分布在多个圆周上的点,并将这些点的坐标及每个圆周上的点数量存储起来.
@@ -20,7 +20,7 @@ namespace CellSpace
         {
             lens.Add(new CellCountRadiusInfo { count = 0, radius = 0f });
             idxzs.Add(new CellXZInfo());
-            HashSet<ulong> set = new();
+            HashSet<ulong> set = new HashSet<ulong>();
             set.Add(0);
             for (float radius = 0; radius < cellSize * gridNum; radius += cellSize)
             {

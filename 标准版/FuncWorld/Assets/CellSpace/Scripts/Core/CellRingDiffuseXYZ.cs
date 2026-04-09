@@ -8,8 +8,8 @@ namespace CellSpace
     /// </summary>
     public class CellRingDiffuseXYZ
     {
-        public List<CellCountRadiusInfo> lens = new();
-        public List<CellXYZInfo> idxyzs = new();
+        public List<CellCountRadiusInfo> lens = new List<CellCountRadiusInfo>();
+        public List<CellXYZInfo> idxyzs = new List<CellXYZInfo>();
 
         /// <summary>
         /// 填充球形扩散的格子偏移量数组，用于3D范围内找最近网格容器
@@ -23,7 +23,7 @@ namespace CellSpace
             lens.Add(new CellCountRadiusInfo { count = 0, radius = 0f });
             idxyzs.Add(new CellXYZInfo());
 
-            HashSet<ulong> set = new();
+            HashSet<ulong> set = new HashSet<ulong>();
             set.Add(0); // 中心点的唯一标识
 
             for (float radius = 0; radius < cellSize * gridNum; radius += cellSize)

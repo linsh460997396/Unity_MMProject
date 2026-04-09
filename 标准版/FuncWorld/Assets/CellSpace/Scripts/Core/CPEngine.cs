@@ -1504,8 +1504,8 @@ namespace CellSpace
             }
             else
             {
-                Debug.Log("地图文本目录: " + path + "MapIndex");
-                tempContent = LoadTextFile(path + "MapIndex/World" + ".txt");
+                Debug.Log("地图文本目录: " + path + "/MapIndex");
+                tempContent = LoadTextFile(path + "/MapIndex/World" + ".txt");
             }
             string tempContent2 = tempContent;
             string[] fields = tempContent.Split(',');
@@ -1532,7 +1532,7 @@ namespace CellSpace
                 }
                 else
                 {
-                    filePath = "MapIndex/" + i.ToString() + ".txt";
+                    filePath = "/MapIndex/" + i.ToString() + ".txt";
                     tempContent = LoadTextFile(path + filePath);
                 }
                 fields = tempContent.Split(',');
@@ -1552,7 +1552,7 @@ namespace CellSpace
             }
             else
             {
-                tempContent = LoadTextFile(path + "MapIndex/Width" + ".txt");
+                tempContent = LoadTextFile(path + "/MapIndex/Width" + ".txt");
             }
             fields = tempContent.Split(',');
             for (int i = 0; i < fields.Length; i++)

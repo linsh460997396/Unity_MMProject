@@ -26,7 +26,7 @@ MonoBehaviour:
   m_MinSize: {x: 400, y: 100}
   m_MaxSize: {x: 32384, y: 16192}
   vertical: 0
-  controlID: 142
+  controlID: 49
   draggingID: 0
 --- !u!114 &2
 MonoBehaviour:
@@ -129,7 +129,6 @@ MonoBehaviour:
   m_LowResolutionForAspectRatios: 01000000000000000000
   m_XRRenderMode: 0
   m_RenderTexture: {fileID: 0}
-  m_showToolbar: 1
 --- !u!114 &3
 MonoBehaviour:
   m_ObjectHideFlags: 52
@@ -762,7 +761,7 @@ MonoBehaviour:
       scrollPos: {x: 0, y: 0}
       m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: bafaffff
+      m_ExpandedIDs: fce0ffff
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -858,7 +857,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scripts/Library/MetalMaxSystem/Class
+    - Assets/Scripts/Game/MMWorld
     m_Globs: []
     m_OriginalText: 
     m_ImportLogFlags: 0
@@ -866,16 +865,16 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 16
   m_LastFolders:
-  - Assets/Scripts/Library/MetalMaxSystem/Class
+  - Assets/Scripts/Game/MMWorld
   m_LastFoldersGridSize: 16
   m_LastProjectPath: T:\Work\Unity\FuncWorld
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: 4e950000
-    m_LastClickedID: 38222
-    m_ExpandedIDs: 0000000046950000489500004a9500004c9500004e95000050950000529500005495000056950000589500005a9500005c9500005e95000060950000629500006495000066950000
+    m_SelectedIDs: c0f40000
+    m_LastClickedID: 62656
+    m_ExpandedIDs: 0000000054f4000056f4000058f400005af400005cf400005ef4000060f4000062f4000064f4000066f4000068f400006af400006cf400006ef4000070f4000072f4000074f40000b0f40000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -903,7 +902,7 @@ MonoBehaviour:
     scrollPos: {x: 0, y: 0}
     m_SelectedIDs: 
     m_LastClickedID: 0
-    m_ExpandedIDs: 0000000046950000489500004a9500004c9500004e95000050950000529500005495000056950000589500005a9500005c9500005e95000060950000629500006495000066950000
+    m_ExpandedIDs: 0000000054f4000056f4000058f400005af400005cf400005ef4000060f4000062f4000064f4000066f4000068f400006af400006cf400006ef4000070f4000072f4000074f40000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
       m_Name: 
@@ -928,24 +927,24 @@ MonoBehaviour:
       m_Icon: {fileID: 0}
       m_ResourceFile: 
   m_ListAreaState:
-    m_SelectedInstanceIDs: 4c790000
-    m_LastClickedInstanceID: 31052
-    m_HadKeyboardFocusLastEvent: 1
+    m_SelectedInstanceIDs: 
+    m_LastClickedInstanceID: 0
+    m_HadKeyboardFocusLastEvent: 0
     m_ExpandedInstanceIDs: f2700000e8760000a07500008e9b0000f086000008720000e4a20000e2720000f0720000948c0000aaa900007298000012a800004a8c0000f2a90000f4a90000b69600000ec9000014c90000c8c8000002c6000008c60000acd90000f8e600005695000094bd0000ea98000000000000
     m_RenameOverlay:
       m_UserAcceptedRename: 0
-      m_Name: MMCore
-      m_OriginalName: MMCore
+      m_Name: 
+      m_OriginalName: 
       m_EditFieldRect:
         serializedVersion: 2
         x: 0
         y: 0
         width: 0
         height: 0
-      m_UserData: 31052
+      m_UserData: 0
       m_IsWaitingForDelay: 0
       m_IsRenaming: 0
-      m_OriginalEventType: 0
+      m_OriginalEventType: 11
       m_IsRenamingFilename: 1
       m_ClientGUIView: {fileID: 9}
     m_CreateAssetUtility:
@@ -1026,7 +1025,7 @@ MonoBehaviour:
     m_CachedPref: 204
     m_ControlHash: -371814159
     m_PrefName: Preview_InspectorPreview
-  m_LastInspectedObjectInstanceID: 31052
+  m_LastInspectedObjectInstanceID: -1
   m_LastVerticalScrollValue: 0
   m_GlobalObjectId: 
   m_InspectorMode: 0

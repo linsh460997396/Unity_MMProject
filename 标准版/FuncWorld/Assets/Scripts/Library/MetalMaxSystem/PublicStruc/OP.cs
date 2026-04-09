@@ -72,13 +72,14 @@ namespace MetalMaxSystem.Unity
 #if UNITY_EDITOR
             Debug.Assert(objectPool.gameObject == null);
 #endif
-            if (!pool.TryPop(out objectPool))
+            if (!pool.TryPop(out objectPool)) //旧版TryPop不可用时启用(1/2) if (pool.Count == 0)
             {
                 //Debug没有就新建
                 objectPool = New(createGameObject, active);
             }
             else
             {//成功取出
+                //objectPool = pool.Pop(); //旧版TryPop不可用时启用(2/2)
                 //拿出对象之后的工作
                 objectPool.actived = active;//激活停用状态应由对象池统一管理
 #if UNITY_EDITOR

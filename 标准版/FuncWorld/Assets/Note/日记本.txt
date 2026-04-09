@@ -868,3 +868,5 @@ static bool IsPrintable(string text)
 {
     return text.All(c => c >= 32 && c <= 126);
 }
+
+Unity的GUILayout依赖于IMGUI系统(对应UnityEngine.IMGUIModule.dll),它在每帧调用OnGUI时重新构建UI元素,因此不适合频繁更新的UI或复杂布局.对于需要动态更新的UI,建议使用Unity的UI系统(如Canvas和UI组件)来实现更高效的性能和更丰富的功能.

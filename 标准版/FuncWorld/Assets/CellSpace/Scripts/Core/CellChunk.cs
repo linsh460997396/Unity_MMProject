@@ -1159,6 +1159,11 @@ namespace CellSpace
                 {
                     //用null填充数组cellItems
                     Array.Fill(cellItems, null);
+                    //用如下代码替换以兼容旧版.NET/Unity（没Array.Fill情况）：
+                    //for (int i = 0; i < cellItems.Length; i++)
+                    //{
+                    //    cellItems[i] = null;
+                    //}
 
                     //重新调整数组cellItems的大小,新的大小为SideLength^边长个数,并将调整后的数组重新赋值给cellItems.
                     //这一步可能会创建一个新的数组,若原数组大小与新的大小不同,原数组的内容将被复制到新数组中(或部分复制,取决于大小变化).
