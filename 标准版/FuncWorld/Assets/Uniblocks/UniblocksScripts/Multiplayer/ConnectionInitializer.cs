@@ -25,7 +25,7 @@ namespace Uniblocks
         /// <summary>
         /// 服务器IP
         /// </summary>
-        public string ServerIP; 
+        public string ServerIP;
 
         /// <summary>
         /// 服务器密码
@@ -35,7 +35,7 @@ namespace Uniblocks
         /// <summary>
         /// 服务器端口
         /// </summary>
-        public int Port; 
+        public int Port;
 
         /// <summary>
         /// 服务器最大连接数

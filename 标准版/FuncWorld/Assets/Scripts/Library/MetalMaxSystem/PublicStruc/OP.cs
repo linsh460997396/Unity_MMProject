@@ -5,10 +5,8 @@ using UnityEngine;
 
 namespace MetalMaxSystem.Unity
 {
-    //官方池(ObjectPool)只是一些基本功能,进出池部分属性重置预填都没做的,还是用此轮子
-
     /// <summary>
-    /// 对象池
+    /// 基础对象池结构体.‌定位是通用对象池单元,主要管理GameObject生命周期.
     /// </summary>
     public struct OP
     {

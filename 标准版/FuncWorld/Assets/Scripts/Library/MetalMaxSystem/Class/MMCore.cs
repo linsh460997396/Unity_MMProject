@@ -1,8 +1,8 @@
-﻿#region 预处理指令(必须靠最前)
+﻿#region 预处理指令(须靠最前)
 //↓制作UnityMOD环境下启用(如BepInEx)
 //#define UNITY_STANDALONE
 
-//#define MonoGame //MonoGame插件下启用(包括XNA框架)
+//#define MONOGAME //MonoGame插件下启用(包括XNA框架)
 
 //#if !(UNITY_EDITOR || UNITY_STANDALONE || NET5_0_OR_GREATER)
 //↓非Unity、NET5以上环境则启用NETFRAMEWORK
@@ -18,7 +18,6 @@ using System.Runtime.InteropServices;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Net;
 using System.Collections.Concurrent;
 using System.Globalization;//判断英文字符用到
 using System.Linq;//混肴处理字符串转义时用到
@@ -38,7 +37,7 @@ using System.Diagnostics;
 using System.Diagnostics.Metrics;
 //↓可使用.Net中的Debug.WriteLine
 using Debug = System.Diagnostics.Debug;
-#if WINDOWS || NET8_0_OR_GREATER || NETFRAMEWORK
+#if WINDOWS || NET5_0_OR_GREATER || NETFRAMEWORK
 //↓支持WINDOWS框架下识别硬件标识等（若依然是灰色，请手动添加或安装程序集）
 using System.Management;
 using Microsoft.Win32;
@@ -50,7 +49,7 @@ using Mathf = System.Math;
 #else
 using Mathf = System.MathF;
 #endif
-#if MonoGame
+#if MONOGAME
 //使用VS2022的MonoGame插件框架时，校准2F3F向量
 using Vector2F = Microsoft.Xna.Framework.Vector2;
 using Vector3F = Microsoft.Xna.Framework.Vector3;
@@ -64,7 +63,7 @@ using Vector3F = System.Numerics.Vector3;
 namespace MetalMaxSystem
 {
     /// <summary>
-    /// 核心类
+    /// MM功能库核心类
     /// </summary>
     public static class MMCore
     {
@@ -218,7 +217,7 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region "全局和局部变量"(不同作用域下的无属性字段)
+        #region "全局和局部变量"(主要存放不同作用域下的无属性字段)
 
         //类只有字段没变量说法,但理论上公有静态字段是该程序在内存中唯一的全局变量,无论类实例化多次或多线程从模板调用,它只生成一次副本直到程序结束才清理
         //而非静态(实例)类每次实例化都复制一份模板去形成多个副本,私有实例字段相当于类的局部变量
@@ -246,6 +245,7 @@ namespace MetalMaxSystem
         /// </summary>
         private static int[] mouseEventFuncrefGroupNum = new int[c_mouseMax + 1];//内部使用
 
+        //以下字段做成了属性来用
         private static bool[] _stopKeyMouseEvent = new bool[Game.c_maxPlayers + 1];
         /// <summary>
         /// 用户按键事件禁用状态(用于过场、剧情对话、特殊技能如禁锢时强制停用用户的按键事件)
@@ -285,9 +285,22 @@ namespace MetalMaxSystem
             }
         }
 
-        #region 哈希表&字典声明
+        #region 哈希表&字典声明(更多类型请使用DataTable<T>、DataTableConcurrent<T>)
 
-        #region 字典(单线程读写,跨线程若只读也可安全使用)
+        //效率：字典 > 哈希表 >> 字典.ToString() > 跨线程字典
+
+        #region 哈希表(可跨线程读写,但不支持泛型)
+        /// <summary>
+        /// 全局哈希表(不排泄,直到程序结束)
+        /// </summary>
+        private static Hashtable globalHashTable = new Hashtable();//内部使用
+        /// <summary>
+        /// 临时哈希表(函数或动作集结束时应手动排泄)
+        /// </summary>
+        private static Hashtable localHashTable = new Hashtable();//内部使用
+        #endregion
+
+        #region 字典(单线程读写,跨线程仅只读安全)
 
         #region 值类型
 
@@ -396,17 +409,6 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #endregion
-
-        #region 哈希表(跨线程)
-        /// <summary>
-        /// 全局哈希表(不排泄,直到程序结束)
-        /// </summary>
-        private static Hashtable globalHashTable = new Hashtable();//内部使用
-        /// <summary>
-        /// 临时哈希表(函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Hashtable localHashTable = new Hashtable();//内部使用
         #endregion
 
         #region 跨线程字典(专为并发访问设计的线程安全集合)
@@ -559,10 +561,10 @@ namespace MetalMaxSystem
         //字段及其属性方法(避免不安全读写,private保护和隐藏字段,设计成只允许通过public修饰的属性方法间接去安全读写)
         //本库前缀单个_开头字段表示其拥有属性方法(若有双_开头表示自定义类型如委托)
 
-        //private static bool isDataTableTypeSet = false;
         private static bool _dataTableType = false;
         /// <summary>
-        /// 数据表类型,为true时全局切换为哈希表(跨线程读取安全),默认采用字典(勿跨线程),可通过切换DataTableType来对比读写效率.
+        /// 数据表类型.用于快捷数据表类型切换,默认false采用字典,为true时切换为哈希表.
+        /// 可增加更多类型来测试读写效率.
         /// </summary>
         public static bool DataTableType
         {
@@ -581,13 +583,13 @@ namespace MetalMaxSystem
                 //}
                 //else
                 //{
-                //    throw new InvalidOperationException("DataTableType can only be set once."); //只允许被改变一次,请在入口或使用数据表前进行设置
+                //    throw new InvalidOperationException("DataTableType can only be set once."); //设计为只允许被改变一次的情况,请在入口或使用数据表前进行设置
                 //}
             }
         }
 
         /// <summary>
-        /// 存储区容错处理当表键值存在时执行线程默认等待的间隔.常用于多线程触发器频繁写值,如大量注册注销动作使存储区数据重排序的,因表正在使用需排队等待完成才给执行下一个.执行原理:将调用该函数的当前线程反复挂起period毫秒,直到动作要写入的存储区闲置
+        /// 存储区容错处理当表键值存在时执行线程默认等待的间隔(50毫秒).常用于多线程触发器频繁写值,如大量注册注销动作使存储区数据重排序的,因表正在使用需排队等待完成才给执行下一个.执行原理:将调用该函数的当前线程反复挂起period毫秒,直到动作要写入的存储区闲置
         /// </summary>
         public static int dataTableThreadWaitPeriod = 50;
 
@@ -1031,7 +1033,68 @@ namespace MetalMaxSystem
         #region Functions 通用功能
 
         /// <summary>
-        /// 调试输出(封装版).
+        /// 构建键值字符串.
+        /// 以baseKey为基础,在其后依次添加下划线和indices中的每个元素,形成一个新的字符串返回.如BuildKey("key", 1, 2)返回"key12"
+        /// </summary>
+        /// <param name="baseKey">基础键值</param>
+        /// <param name="indices">要添加的索引数组</param>
+        /// <returns>构建后的键值字符串</returns>
+        public static string BuildKey<T>(string baseKey, params T[] indices)
+        {
+            if (indices.Length == 0) return baseKey;
+            var sb = ThreadStringBuilder.Get();
+            sb.Append(baseKey);
+            foreach (var index in indices)
+            {
+                sb.Append(index);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 构建键值字符串.
+        /// 以baseKey为基础,在其后依次添加下划线和indices中的每个元素,形成一个新的字符串返回.如BuildKey("key", 1, 2)返回"key_1_2"
+        /// </summary>
+        /// <param name="baseKey">基础键值</param>
+        /// <param name="indices">要添加的索引数组</param>
+        /// <returns>构建后的键值字符串</returns>
+        public static string BuildKeyWithSeparator<T>(string baseKey, params T[] indices)
+        {
+            if (indices.Length == 0) return baseKey;
+            var sb = ThreadStringBuilder.Get();
+            sb.Append(baseKey);
+            foreach (var index in indices)
+            {
+                sb.Append('_');
+                sb.Append(index);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 构建键值字符串(使用指定分隔符).
+        /// 以baseKey为基础,在其后依次添加分隔符和indices中的每个元素，形成一个新的字符串返回。
+        /// 如 BuildKeyWithSeparator('_', "key", 1, 2) 返回 "key_1_2"
+        /// </summary>
+        /// <param name="separator">分隔符</param>
+        /// <param name="baseKey">基础键值</param>
+        /// <param name="indices">要添加的索引数组</param>
+        /// <returns>构建后的键值字符串</returns>
+        public static string BuildKeyWithSeparator<T>(char separator, string baseKey, params T[] indices)
+        {
+            if (indices.Length == 0) return baseKey;
+            var sb = ThreadStringBuilder.Get();
+            sb.Append(baseKey);
+            foreach (var index in indices)
+            {
+                sb.Append(separator);
+                sb.Append(index);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 内部调试输出(封装版).
         /// Unity环境调用Debug.Log(contents),其他情况使用.NET下的Debug.WriteLine(contents).
         /// 本方法仅推荐在快速测试结果时使用,调试情况请用未封装的原方法以便IDE识别跳转.
         /// </summary>
@@ -1047,7 +1110,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 调试输出(封装版).
+        /// 内部调试输出(封装版).
         /// Unity环境调用Debug.LogFormat(contents, args),其他情况使用.NET下的Debug.WriteLine(string.Format(contents, args)).
         /// 本方法仅推荐在快速测试结果时使用,调试情况请用未封装的原方法以便IDE识别跳转.
         /// </summary>
@@ -1238,40 +1301,94 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 删除目录
+        /// 删除目录.
         /// </summary>
         /// <param name="dirInfo"></param>
+        /// <param name="force">是否强制删除,默认true</param>
         /// <returns>删除成功返回真,否则返回假</returns>
-        public static bool DelDirectory(DirectoryInfo dirInfo)
+        public static bool DelDirectory(DirectoryInfo dirInfo, bool force = true)
         {
             bool torf = false;
             if (dirInfo.Exists)
             {
-                dirInfo.Delete(true);
-                if (!dirInfo.Exists) { torf = true; }
+                try
+                {
+                    if (force)
+                    {
+                        // 先清除属性
+                        dirInfo.Attributes &= ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
+
+                        // 递归清除所有子目录和文件的相关属性
+                        foreach (var info in dirInfo.GetFileSystemInfos("*", SearchOption.AllDirectories))
+                        {
+                            info.Attributes &= ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
+                        }
+                    }
+                    dirInfo.Delete(true);
+                    if (!dirInfo.Exists) { torf = true; }
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    Debug.LogWarning($"没有权限删除目录: {dirInfo.FullName}");
+                }
+                catch (IOException)
+                {
+                    Debug.LogWarning($"目录正在被占用: {dirInfo.FullName}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"删除目录失败: {ex.Message}");
+                }
             }
             return torf;
         }
 
         /// <summary>
-        /// 删除目录
+        /// 删除目录.
         /// </summary>
         /// <param name="dirPath"></param>
-        /// <returns>删除返回真,否则返回假</returns>
-        public static bool DelDirectory(string dirPath)
+        /// <param name="force">是否强制删除,默认true</param>
+        /// <returns>删除成功返回真,否则返回假</returns>
+        public static bool DelDirectory(string dirPath, bool force = true)
         {
             bool torf = false;
             if (Directory.Exists(dirPath))
             {
                 DirectoryInfo dirInfo = new DirectoryInfo(dirPath);
-                dirInfo.Delete(true);
-                if (!dirInfo.Exists) { torf = true; }
+                try
+                {
+                    if (force)
+                    {
+                        // 先清除属性
+                        dirInfo.Attributes &= ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
+
+                        // 递归清除所有子目录和文件的相关属性
+                        foreach (var info in dirInfo.GetFileSystemInfos("*", SearchOption.AllDirectories))
+                        {
+                            info.Attributes &= ~(FileAttributes.Archive | FileAttributes.ReadOnly | FileAttributes.Hidden);
+                        }
+                    }
+                    dirInfo.Delete(true);
+                    if (!dirInfo.Exists) { torf = true; }
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    Debug.LogWarning($"没有权限删除目录: {dirInfo.FullName}");
+                }
+                catch (IOException)
+                {
+                    Debug.LogWarning($"目录正在被占用: {dirInfo.FullName}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"删除目录失败: {ex.Message}");
+                }
             }
             return torf;
         }
 
         /// <summary>
-        /// 删除文件到回收站功能专用属性,已添加Shell API特性[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+        /// 删除文件到回收站.已添加Shell API特性[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
         /// </summary>
         /// <param name="lpFileOp"></param>
         /// <returns></returns>
@@ -1319,10 +1436,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 删除文件到回收站
+        /// 删除文件到回收站.支持删除时用户确认.
         /// </summary>
         /// <param name="filePath"></param>
-        /// <param name="torf"></param>
+        /// <param name="torf">删除时是否需要用户确认</param>
         public static void DelFileToRecycleBin(string filePath, bool torf)
         {
             if (!File.Exists(filePath))
@@ -1348,7 +1465,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 删除目录到回收站
+        /// 删除目录到回收站.支持删除时用户确认.
         /// </summary>
         /// <param name="dirPath"></param>
         /// <param name="torf">回收站删除提示</param>
@@ -1433,6 +1550,34 @@ namespace MetalMaxSystem
             // FinalQuotePunctuation:结束引号标点符号,例如 ”、’
             // OtherPunctuation:其他标点符号,包括一些特殊的标点符号,例如 !、@、#、$、%、``、&、* 等
             // 若字符的 Unicode 类别属于上述任何一个类别,方法返回 true,否则返回 false
+        }
+
+        /// <summary>
+        /// 是否十六进制字符
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
+        public static bool IsHexchar(char c)
+        {
+            return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+        }
+        /// <summary>
+        /// 是否八进制字符
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
+        public static bool IsOctchar(char c)
+        {
+            return (c >= '0' && c <= '7');
+        }
+        /// <summary>
+        /// 是否十进制字符
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
+        public static bool IsDecchar(char c)
+        {
+            return (c >= '0' && c <= '9');
         }
         /// <summary>
         /// 是否十六进制字符
@@ -1663,7 +1808,7 @@ namespace MetalMaxSystem
         /// <returns>正常返回中文字符串,错误时返回空字符串</returns>
         public static string HexStringToChineseCharacter(string hexString)
         {
-            try 
+            try
             {
                 byte[] bytes = new byte[hexString.Length / 2];//创建一个字节数组(C#每个字符Char占2字节16位)
                 for (int i = 0; i < hexString.Length; i += 2)
@@ -1716,7 +1861,6 @@ namespace MetalMaxSystem
             }
             return strSize;
         }
-
         /// <summary>
         /// 将字节大小转字符串Byte、KB、MB、GB、TB、PB、EB、ZB、YB、NB形式
         /// </summary>
@@ -1795,7 +1939,6 @@ namespace MetalMaxSystem
             }
             return len;
         }
-
         /// <summary>
         /// 获取文件大小
         /// </summary>
@@ -1843,7 +1986,7 @@ namespace MetalMaxSystem
             return len;
         }
 
-#if WINDOWS || NET8_0_OR_GREATER || NETFRAMEWORK
+#if  WINDOWS && !(UNITY_EDITOR || UNITY_STANDALONE || MONOGAME) && (NETFRAMEWORK || NET5_0_OR_GREATER)
         /// <summary>
         /// 取得设备硬盘的卷序列号(在Unity、MonoGame不适用)
         /// </summary>
@@ -1978,7 +2121,7 @@ namespace MetalMaxSystem
         {
             bool torf = false;
             DirectoryInfo dir = new DirectoryInfo(path);
-            //为了效率,只要验证当前层就可以了
+            //为了效率,只验证当前层即可
             if (dir.GetFiles().Length + dir.GetDirectories().Length == 0)
             {
                 torf = true;
@@ -2012,7 +2155,7 @@ namespace MetalMaxSystem
                     if (IsDirectoryEmpty(path) && GetDirectoryLength(path) == 0)
                     {
                         torf = true;
-                    } //以上两者
+                    } //以上两者都要满足
                     break;
                 default:
                     if (IsDirectoryEmpty(path))
@@ -2033,7 +2176,7 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.WriteLine(value, !bufferAppend);
@@ -2051,7 +2194,7 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.WriteLine(value, !bufferAppend);
@@ -2071,7 +2214,7 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.WriteLine(value, !bufferAppend);
@@ -2088,7 +2231,7 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.WriteLine(value, !bufferAppend);
@@ -2108,7 +2251,7 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
             FileWriter tempFileWriter = new FileWriter();
             if (fileWriter != null)
@@ -2136,7 +2279,7 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.WriteLine(value, !bufferAppend);
@@ -2155,9 +2298,8 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
-            //Tell(value);//临时调试
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.Write(value, !bufferAppend);
         }
@@ -2174,7 +2316,7 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.Write(value, !bufferAppend);
@@ -2194,7 +2336,7 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.Write(value, !bufferAppend);
@@ -2211,7 +2353,7 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.Write(value, !bufferAppend);
@@ -2232,7 +2374,7 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
             FileWriter tempFileWriter = new FileWriter();
             if (fileWriter != null)
@@ -2260,7 +2402,7 @@ namespace MetalMaxSystem
         {
             if (writeTell == true)
             {
-                Tell(value);//临时调试
+                Tell(value);
             }
             if (fileWriter == null) { fileWriter = new FileWriter(); }
             fileWriter.Write(value, !bufferAppend);
@@ -2271,7 +2413,8 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 立即写文本每行(默认UTF-8),文件若不存在则自动新建,StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
+        /// 立即写文本每行(默认UTF-8),文件若不存在则自动新建.
+        /// StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="value"></param>
@@ -2283,11 +2426,12 @@ namespace MetalMaxSystem
                 sw.WriteLine(value);
                 //sw.Flush(); 不等待sw.Close()即刻写入,对于遍历大量写入来说并不效率,故此时不写
             }
-            //using代码块结束,StreamWriter对象被关闭,缓冲区中的数据被写入文件
+            //using代码块结束,此时StreamWriter对象被关闭,缓冲区中的数据被写入文件
 
         }
         /// <summary>
-        /// 立即写文本每行,文件若不存在则自动新建,StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
+        /// 立即写文本每行,文件若不存在则自动新建.
+        /// StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="value"></param>
@@ -2300,12 +2444,13 @@ namespace MetalMaxSystem
                 sw.WriteLine(value);
                 //sw.Flush(); 不等待sw.Close()即刻写入,对于遍历大量写入来说并不效率,故此时不写
             }
-            //using代码块结束,StreamWriter对象被关闭,缓冲区中的数据被写入文件
+            //using代码块结束,此时StreamWriter对象被关闭,缓冲区中的数据被写入文件
 
         }
 
         /// <summary>
-        /// 立即写文本(默认UTF-8),文件若不存在则自动新建,StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
+        /// 立即写文本(默认UTF-8),文件若不存在则自动新建.
+        /// StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="value"></param>
@@ -2317,10 +2462,11 @@ namespace MetalMaxSystem
                 sw.Write(value);
                 //sw.Flush(); 不等待sw.Close()即刻写入,对于遍历大量写入来说并不效率,故此时不写
             }
-            //using代码块结束,StreamWriter对象被关闭,缓冲区中的数据被写入文件
+            //using代码块结束,此时StreamWriter对象被关闭,缓冲区中的数据被写入文件
         }
         /// <summary>
-        /// 立即写文本,文件若不存在则自动新建,StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
+        /// 立即写文本,文件若不存在则自动新建.
+        /// StreamWriter默认缓冲区大小为8192个字节(8KB),满时自动写入文件,本函数使用using代码块,StreamWriter对象被关闭时,缓冲区中的数据也会被写入文件.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="value"></param>
@@ -2333,11 +2479,11 @@ namespace MetalMaxSystem
                 sw.Write(value);
                 //sw.Flush(); 不等待sw.Close()即刻写入,对于遍历大量写入来说并不效率,故此时不写
             }
-            //using代码块结束,StreamWriter对象被关闭,缓冲区中的数据被写入文件
+            //using代码块结束,此时StreamWriter对象被关闭,缓冲区中的数据被写入文件
         }
 
         /// <summary>
-        /// 验证文件大小是否在用户定义的[a,b]范围
+        /// 验证文件大小是否在[a,b]范围
         /// </summary>
         /// <param name="path"></param>
         /// <param name="a"></param>
@@ -2364,165 +2510,6 @@ namespace MetalMaxSystem
                 }
             }
             return torf;
-        }
-
-        /// <summary>
-        /// 创建GET请求
-        /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        public static string CreateGetHttpResponse(string url)
-        {
-            HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
-            request.Method = "GET";
-            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.50";
-            try
-            {
-                HttpWebResponse webresponse = request.GetResponse() as HttpWebResponse;
-                using (Stream s = webresponse.GetResponseStream())
-                {
-                    StreamReader reader = new StreamReader(s, Encoding.UTF8);
-                    return reader.ReadToEnd();
-                }
-            }
-            catch (Exception)
-            {
-                return "requestFalse";
-            }
-
-        }
-
-        /// <summary>
-        /// 创建POST请求
-        /// </summary>
-        /// <param name="url"></param>
-        /// <param name="parameters"></param>
-        /// <param name="ContentType"></param>
-        /// <returns></returns>
-        public static string CreatePostHttpResponse(string url, IDictionary<string, string> parameters, string ContentType = "application/pixelX-www-form-urlencoded")
-        {
-            HttpWebRequest request;
-            //若是发送HTTPS请求  
-            if (url.StartsWith("https", StringComparison.OrdinalIgnoreCase))
-            {
-                request = WebRequest.Create(url) as HttpWebRequest;
-            }
-            else
-            {
-                request = WebRequest.Create(url) as HttpWebRequest;
-            }
-            request.Method = "POST";
-            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.50";
-            request.ContentType = ContentType;
-            //发送POST数据  
-            if (!(parameters == null || parameters.Count == 0))
-            {
-                StringBuilder buffer = new StringBuilder();
-                int i = 0;
-                foreach (string key in parameters.Keys)
-                {
-                    if (i > 0)
-                    {
-                        buffer.AppendFormat("&{0}={1}", key, parameters[key]);
-                    }
-                    else
-                    {
-                        buffer.AppendFormat("{0}={1}", key, parameters[key]);
-                        i++;
-                    }
-                }
-                byte[] data = Encoding.ASCII.GetBytes(buffer.ToString());
-                using (Stream stream = request.GetRequestStream())
-                {
-                    stream.Write(data, 0, data.Length);
-                }
-            }
-            try
-            {
-                HttpWebResponse webresponse = request.GetResponse() as HttpWebResponse;
-                using (Stream s = webresponse.GetResponseStream())
-                {
-                    StreamReader reader = new StreamReader(s, Encoding.UTF8);
-                    return reader.ReadToEnd();
-                }
-            }
-            catch (Exception)
-            {
-                return "requestFalse";
-            }
-        }
-
-        /// <summary>
-        /// 下载指定网站的指定节点内容到指定目录并保存为自定义文件名
-        /// 使用范例:
-        /// HtmlDocument doc = new();
-        /// doc.LoadHtml(MMCore.CreateGetHttpResponse("https://ac.qq.com/Comic/ComicInfo/id/542330"));
-        /// HtmlNode img = doc.DocumentNode.SelectSingleNode("/html/body/div[3]/div[3]/div[1]/div[1]/div[1]/a/img");
-        /// string imgUal = img.Attributes["src"].Value;
-        /// MMCore.Download(imgUal, "123.jpg", @"C:\Users\Admin\Desktop\Download\", true);
-        /// //MMCore.Tell("下载完成！");
-        /// </summary>
-        /// <param name="url">浏览器网址</param>
-        /// <param name="fileName">自定义文件名</param>
-        /// <param name="path">下载路径,如 @"C:\Users\Admin\Desktop\Download\"</param>
-        /// <param name="bufferAppend">发生文件重复时覆盖</param>
-        /// <returns></returns>
-        public static bool Download(string url, string fileName, string path, bool cover)
-        {
-            string tempPath = Path.Combine(Path.GetDirectoryName(path), "temp");//确定临时目录全名路径
-            string filepath = Path.Combine(path, fileName);//确定最终下载文件全名路径
-            Directory.CreateDirectory(tempPath);  //创建临时目录
-            string tempFile = tempPath + "\\" + fileName + ".temp"; //确定临时下载文件全名路径
-            if (File.Exists(tempFile))
-            {
-                File.Delete(tempFile);    //临时下载文件存在则删除
-            }
-            FileStream fs = new FileStream(tempFile, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
-            try
-            {
-                //设置参数
-                HttpWebRequest request = WebRequest.Create(url) as HttpWebRequest;
-                //发送请求并获取相应回应数据
-                HttpWebResponse response = request.GetResponse() as HttpWebResponse;
-                //直到request.GetResponse()程序才开始向目标网页发送Post请求
-                Stream responseStream = response.GetResponseStream();
-                byte[] bArr = new byte[1024];
-                int size = responseStream.Read(bArr, 0, (int)bArr.Length);
-                while (size > 0)
-                {
-                    fs.Write(bArr, 0, size);
-                    size = responseStream.Read(bArr, 0, (int)bArr.Length);
-                }
-                responseStream.Close();
-                responseStream.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Tell(string.Format("错误: {0}", ex.Message));
-                return false;
-            }
-            finally
-            {
-                fs.Close();
-                fs.Dispose();
-            }
-            try
-            {
-                File.Move(tempFile, filepath);
-            }
-            catch
-            {
-                if (cover) { File.Delete(filepath); File.Move(tempFile, filepath); }
-            }
-            try
-            {
-                DelDirectory(tempPath);
-            }
-            catch
-            {
-                DelDirectoryRecursively(tempPath);
-            }
-            return true;
         }
 
         ///<summary>
@@ -2702,7 +2689,8 @@ namespace MetalMaxSystem
                 Tell("保存失败: " + e.Message);
             }
         }
-#if WINDOWS || NET8_0_OR_GREATER || NETFRAMEWORK
+
+#if WINDOWS && !(UNITY_EDITOR || UNITY_STANDALONE || MONOGAME) && (NETFRAMEWORK || NET5_0_OR_GREATER)
         /// <summary>
         /// 用WinRAR解压带密码的压缩包
         /// </summary>
@@ -2746,52 +2734,6 @@ namespace MetalMaxSystem
 
         }
 #endif
-        #region 弹幕爬取
-
-        //功能出处:https://blog.csdn.net/qq_15505341/article/details/79212070/
-
-        /// <summary>
-        /// 获取弹幕信息(本函数待改中请勿使用)
-        /// </summary>
-        /// <param name="room"></param>
-        /// <returns></returns>
-        public static string Post(string room)
-        {
-            string postString = "roomid=" + room + "&token=&csrf_token=我是图中的马赛克";//要发送的数据
-            byte[] postData = Encoding.UTF8.GetBytes(postString);//编码,尤其是汉字,事先要看下抓取网页的编码方式  
-            string url = @"http://api.live.bilibili.com/ajax/msg";//地址  
-
-            WebClient webClient = new WebClient();
-            webClient.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36");
-            webClient.Headers.Add("Content-Type", "application/pixelX-www-form-urlencoded");//采取POST方式必须加的header,若改为GET方式的话就去掉这句话即可  
-            webClient.Headers.Add("Cookie",
-                "可耻的马赛克"
-                );
-            byte[] responseData = webClient.UploadData(url, "POST", postData);//得到返回字符流  
-            string srcString = Encoding.UTF8.GetString(responseData);//解码  
-            return srcString;
-        }
-
-        /// <summary>
-        /// 处理弹幕信息为中文(本函数待改中请勿使用)
-        /// </summary>
-        /// <param name="room"></param>
-        /// <returns></returns>
-        public static List<string> GetDanMu(string room)
-        {
-            string danmu = Post(room);
-            List<string> list = new List<string>();
-            //正则匹配
-            foreach (Match item in Regex.Matches(danmu, "text\":\".*?\""))
-            {
-                //截取字符串,将unicode码转换为中文
-                list.Add(Regex.Unescape(item.Value.Substring(7, item.Value.Length - 8)));
-            }
-            return list;
-        }
-
-
-        #endregion
 
         #endregion
 
@@ -2799,7 +2741,7 @@ namespace MetalMaxSystem
 
         //注:用户与基础数据表通用键名,用户数据表的键名默认添加前缀"HD_"进行区分,用数据表设计其他功能时应再次添加不重复前缀以免与用户数据表键区重叠(参互动管理功能)
 
-        #region 用户快捷数据表(哈希和字典二选一,默认采用字典,不含跨线程字典,建议中途不要再切换否则请直接使用基础数据表)
+        #region 用户快捷数据表(哈希表和字典二选一,默认采用字典,尚未添加跨线程字典,建议中途不要再切换否则请直接使用基础数据表)
 
         //建议使用泛型字典,值与引用类型尽量不混用,引用类型可以互转但值类型尽可能多
 
@@ -7304,9 +7246,9 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region 基础数据表(提供哈希、字典、跨线程字典)
+        #region 基础数据表(提供哈希表、字典、跨线程字典)
 
-        #region 哈希表(任意类型)
+        #region 哈希表(任意类型,支持跨线程读写)
 
         //使用哈希表设计存取任意类型(不支持泛型)
 
@@ -7393,7 +7335,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void HashTableClear1(bool place, string key, int lp_1)
         {
-            HashTableRemove(place, (key + "_" + lp_1.ToString()));
+            HashTableRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -7405,7 +7347,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void HashTableClear2(bool place, string key, int lp_1, int lp_2)
         {
-            HashTableRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            HashTableRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -7418,7 +7360,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void HashTableClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            HashTableRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            HashTableRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -7432,7 +7374,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void HashTableClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            HashTableRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            HashTableRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -7466,7 +7408,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void HashTableSave1(bool place, string key, int lp_1, object val)
         {
-            HashTableSet(place, (key + "_" + lp_1.ToString()), val);
+            HashTableSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -7479,7 +7421,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void HashTableSave2(bool place, string key, int lp_1, int lp_2, object val)
         {
-            HashTableSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            HashTableSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -7493,7 +7435,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void HashTableSave3(bool place, string key, int lp_1, int lp_2, int lp_3, object val)
         {
-            HashTableSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            HashTableSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -7508,7 +7450,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void HashTableSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, object val)
         {
-            HashTableSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            HashTableSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -7535,11 +7477,11 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object HashTableLoad1(bool place, string key, int lp_1)
         {
-            if ((HashTableKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((HashTableKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return HashTableGetValue(place, (key + "_" + lp_1.ToString()));
+            return HashTableGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -7552,11 +7494,11 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object HashTableLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((HashTableKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((HashTableKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return HashTableGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return HashTableGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -7570,11 +7512,11 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object HashTableLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((HashTableKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((HashTableKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return HashTableGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return HashTableGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -7589,16 +7531,16 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object HashTableLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((HashTableKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((HashTableKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return HashTableGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return HashTableGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
 
-        #region 字典(勿跨线程)
+        #region 字典(不可跨线程写入)
 
         //使用字典设计存取指定类型(采用泛型时尽可能多分类来防止装箱耗时,尽量存到指定类型,引用类型之间的互转除外,但平时大量遍历且常用的也可以拆分出来)
 
@@ -7690,7 +7632,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DictionaryIntClear1(bool place, string key, int lp_1)
         {
-            DictionaryIntRemove(place, (key + "_" + lp_1.ToString()));
+            DictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -7702,7 +7644,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DictionaryIntClear2(bool place, string key, int lp_1, int lp_2)
         {
-            DictionaryIntRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            DictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -7715,7 +7657,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DictionaryIntClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            DictionaryIntRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            DictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -7729,7 +7671,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DictionaryIntClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            DictionaryIntRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            DictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -7763,7 +7705,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryIntSave1(bool place, string key, int lp_1, int val)
         {
-            DictionaryIntSet(place, (key + "_" + lp_1.ToString()), val);
+            DictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -7776,7 +7718,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryIntSave2(bool place, string key, int lp_1, int lp_2, int val)
         {
-            DictionaryIntSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            DictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -7790,7 +7732,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryIntSave3(bool place, string key, int lp_1, int lp_2, int lp_3, int val)
         {
-            DictionaryIntSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            DictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -7805,7 +7747,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryIntSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, int val)
         {
-            DictionaryIntSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            DictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -7832,11 +7774,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static int? DictionaryIntLoad1_N(bool place, string key, int lp_1)
         {
-            if ((DictionaryIntKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return DictionaryIntGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -7849,11 +7791,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static int? DictionaryIntLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return DictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -7867,11 +7809,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static int? DictionaryIntLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return DictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -7886,11 +7828,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static int? DictionaryIntLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return DictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -7917,11 +7859,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static int DictionaryIntLoad1(bool place, string key, int lp_1)
         {
-            if ((DictionaryIntKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return 0;
             }
-            return DictionaryIntGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -7934,11 +7876,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static int DictionaryIntLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return 0;
             }
-            return DictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -7952,11 +7894,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static int DictionaryIntLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return 0;
             }
-            return DictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -7971,11 +7913,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static int DictionaryIntLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return 0;
             }
-            return DictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -8066,7 +8008,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DictionaryLongClear1(bool place, string key, int lp_1)
         {
-            DictionaryLongRemove(place, (key + "_" + lp_1.ToString()));
+            DictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -8078,7 +8020,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DictionaryLongClear2(bool place, string key, int lp_1, int lp_2)
         {
-            DictionaryLongRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            DictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -8091,7 +8033,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DictionaryLongClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            DictionaryLongRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            DictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -8105,7 +8047,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DictionaryLongClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            DictionaryLongRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            DictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -8139,7 +8081,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryLongSave1(bool place, string key, int lp_1, long val)
         {
-            DictionaryLongSet(place, (key + "_" + lp_1.ToString()), val);
+            DictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -8152,7 +8094,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryLongSave2(bool place, string key, int lp_1, int lp_2, long val)
         {
-            DictionaryLongSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            DictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -8166,7 +8108,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryLongSave3(bool place, string key, int lp_1, int lp_2, int lp_3, long val)
         {
-            DictionaryLongSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            DictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -8181,7 +8123,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryLongSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, long val)
         {
-            DictionaryLongSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            DictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -8208,11 +8150,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static long? DictionaryLongLoad1_N(bool place, string key, int lp_1)
         {
-            if ((DictionaryLongKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return DictionaryLongGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -8225,11 +8167,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static long? DictionaryLongLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return DictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -8243,11 +8185,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static long? DictionaryLongLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return DictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -8262,11 +8204,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static long? DictionaryLongLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return DictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -8293,11 +8235,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static long DictionaryLongLoad1(bool place, string key, int lp_1)
         {
-            if ((DictionaryLongKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return 0;
             }
-            return DictionaryLongGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -8310,11 +8252,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static long DictionaryLongLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return 0;
             }
-            return DictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -8328,11 +8270,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static long DictionaryLongLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return 0;
             }
-            return DictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -8347,11 +8289,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static long DictionaryLongLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return 0;
             }
-            return DictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -8442,7 +8384,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DictionaryCharClear1(bool place, string key, int lp_1)
         {
-            DictionaryCharRemove(place, (key + "_" + lp_1.ToString()));
+            DictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -8454,7 +8396,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DictionaryCharClear2(bool place, string key, int lp_1, int lp_2)
         {
-            DictionaryCharRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            DictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -8467,7 +8409,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DictionaryCharClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            DictionaryCharRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            DictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -8481,7 +8423,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DictionaryCharClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            DictionaryCharRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            DictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -8515,7 +8457,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryCharSave1(bool place, string key, int lp_1, char val)
         {
-            DictionaryCharSet(place, (key + "_" + lp_1.ToString()), val);
+            DictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -8528,7 +8470,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryCharSave2(bool place, string key, int lp_1, int lp_2, char val)
         {
-            DictionaryCharSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            DictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -8542,7 +8484,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryCharSave3(bool place, string key, int lp_1, int lp_2, int lp_3, char val)
         {
-            DictionaryCharSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            DictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -8557,7 +8499,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryCharSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, char val)
         {
-            DictionaryCharSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            DictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -8584,11 +8526,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static char? DictionaryCharLoad1_N(bool place, string key, int lp_1)
         {
-            if ((DictionaryCharKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return DictionaryCharGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -8601,11 +8543,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static char? DictionaryCharLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return DictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -8619,11 +8561,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static char? DictionaryCharLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return DictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -8638,11 +8580,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static char? DictionaryCharLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return DictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -8669,11 +8611,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回' '</returns>
         public static char DictionaryCharLoad1(bool place, string key, int lp_1)
         {
-            if ((DictionaryCharKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return ' ';
             }
-            return DictionaryCharGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -8686,11 +8628,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回' '</returns>
         public static char DictionaryCharLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return ' ';
             }
-            return DictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -8704,11 +8646,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回' '</returns>
         public static char DictionaryCharLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return ' ';
             }
-            return DictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -8723,11 +8665,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回' '</returns>
         public static char DictionaryCharLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return ' ';
             }
-            return DictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -8818,7 +8760,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DictionaryFloatClear1(bool place, string key, int lp_1)
         {
-            DictionaryFloatRemove(place, (key + "_" + lp_1.ToString()));
+            DictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -8830,7 +8772,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DictionaryFloatClear2(bool place, string key, int lp_1, int lp_2)
         {
-            DictionaryFloatRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            DictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -8843,7 +8785,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DictionaryFloatClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            DictionaryFloatRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            DictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -8857,7 +8799,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DictionaryFloatClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            DictionaryFloatRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            DictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -8891,7 +8833,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryFloatSave1(bool place, string key, int lp_1, float val)
         {
-            DictionaryFloatSet(place, (key + "_" + lp_1.ToString()), val);
+            DictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -8904,7 +8846,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryFloatSave2(bool place, string key, int lp_1, int lp_2, float val)
         {
-            DictionaryFloatSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            DictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -8918,7 +8860,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryFloatSave3(bool place, string key, int lp_1, int lp_2, int lp_3, float val)
         {
-            DictionaryFloatSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            DictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -8933,7 +8875,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryFloatSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, float val)
         {
-            DictionaryFloatSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            DictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -8960,11 +8902,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static float? DictionaryFloatLoad1_N(bool place, string key, int lp_1)
         {
-            if ((DictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return DictionaryFloatGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -8977,11 +8919,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static float? DictionaryFloatLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return DictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -8995,11 +8937,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static float? DictionaryFloatLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return DictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -9014,11 +8956,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static float? DictionaryFloatLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return DictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -9045,11 +8987,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0f</returns>
         public static float DictionaryFloatLoad1(bool place, string key, int lp_1)
         {
-            if ((DictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return 0.0f;
             }
-            return DictionaryFloatGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -9062,11 +9004,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0f</returns>
         public static float DictionaryFloatLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return 0.0f;
             }
-            return DictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -9080,11 +9022,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0f</returns>
         public static float DictionaryFloatLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return 0.0f;
             }
-            return DictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -9099,11 +9041,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0f</returns>
         public static float DictionaryFloatLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return 0.0f;
             }
-            return DictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -9194,7 +9136,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DictionaryDoubleClear1(bool place, string key, int lp_1)
         {
-            DictionaryDoubleRemove(place, (key + "_" + lp_1.ToString()));
+            DictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -9206,7 +9148,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DictionaryDoubleClear2(bool place, string key, int lp_1, int lp_2)
         {
-            DictionaryDoubleRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            DictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -9219,7 +9161,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DictionaryDoubleClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            DictionaryDoubleRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            DictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -9233,7 +9175,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DictionaryDoubleClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            DictionaryDoubleRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            DictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -9267,7 +9209,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryDoubleSave1(bool place, string key, int lp_1, double val)
         {
-            DictionaryDoubleSet(place, (key + "_" + lp_1.ToString()), val);
+            DictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -9280,7 +9222,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryDoubleSave2(bool place, string key, int lp_1, int lp_2, double val)
         {
-            DictionaryDoubleSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            DictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -9294,7 +9236,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryDoubleSave3(bool place, string key, int lp_1, int lp_2, int lp_3, double val)
         {
-            DictionaryDoubleSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            DictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -9309,7 +9251,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryDoubleSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, double val)
         {
-            DictionaryDoubleSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            DictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -9336,11 +9278,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static double? DictionaryDoubleLoad1_N(bool place, string key, int lp_1)
         {
-            if ((DictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return DictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -9353,11 +9295,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static double? DictionaryDoubleLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return DictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -9371,11 +9313,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static double? DictionaryDoubleLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return DictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -9390,11 +9332,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static double? DictionaryDoubleLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return DictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -9421,11 +9363,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0</returns>
         public static double DictionaryDoubleLoad1(bool place, string key, int lp_1)
         {
-            if ((DictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return 0.0;
             }
-            return DictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -9438,11 +9380,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0</returns>
         public static double DictionaryDoubleLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return 0.0;
             }
-            return DictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -9456,11 +9398,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0</returns>
         public static double DictionaryDoubleLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return 0.0;
             }
-            return DictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -9475,11 +9417,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0</returns>
         public static double DictionaryDoubleLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return 0.0;
             }
-            return DictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -9573,7 +9515,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DictionaryBoolClear1(bool place, string key, int lp_1)
         {
-            DictionaryBoolRemove(place, (key + "_" + lp_1.ToString()));
+            DictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -9585,7 +9527,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DictionaryBoolClear2(bool place, string key, int lp_1, int lp_2)
         {
-            DictionaryBoolRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            DictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -9598,7 +9540,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DictionaryBoolClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            DictionaryBoolRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            DictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -9612,7 +9554,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DictionaryBoolClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            DictionaryBoolRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            DictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -9646,7 +9588,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryBoolSave1(bool place, string key, int lp_1, bool val)
         {
-            DictionaryBoolSet(place, (key + "_" + lp_1.ToString()), val);
+            DictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -9659,7 +9601,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryBoolSave2(bool place, string key, int lp_1, int lp_2, bool val)
         {
-            DictionaryBoolSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            DictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -9673,7 +9615,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryBoolSave3(bool place, string key, int lp_1, int lp_2, int lp_3, bool val)
         {
-            DictionaryBoolSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            DictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -9688,7 +9630,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryBoolSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, bool val)
         {
-            DictionaryBoolSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            DictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -9715,11 +9657,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static bool? DictionaryBoolLoad1_N(bool place, string key, int lp_1)
         {
-            if ((DictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return DictionaryBoolGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -9732,11 +9674,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static bool? DictionaryBoolLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return DictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -9750,11 +9692,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static bool? DictionaryBoolLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return DictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -9769,11 +9711,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static bool? DictionaryBoolLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return DictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -9800,11 +9742,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回false</returns>
         public static bool DictionaryBoolLoad1(bool place, string key, int lp_1)
         {
-            if ((DictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return false;
             }
-            return DictionaryBoolGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -9817,11 +9759,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回false</returns>
         public static bool DictionaryBoolLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return false;
             }
-            return DictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -9835,11 +9777,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回false</returns>
         public static bool DictionaryBoolLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return false;
             }
-            return DictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -9854,11 +9796,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回false</returns>
         public static bool DictionaryBoolLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return false;
             }
-            return DictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -9949,7 +9891,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DictionaryByteClear1(bool place, string key, int lp_1)
         {
-            DictionaryByteRemove(place, (key + "_" + lp_1.ToString()));
+            DictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -9961,7 +9903,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DictionaryByteClear2(bool place, string key, int lp_1, int lp_2)
         {
-            DictionaryByteRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            DictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -9974,7 +9916,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DictionaryByteClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            DictionaryByteRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            DictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -9988,7 +9930,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DictionaryByteClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            DictionaryByteRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            DictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -10022,7 +9964,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryByteSave1(bool place, string key, int lp_1, byte val)
         {
-            DictionaryByteSet(place, (key + "_" + lp_1.ToString()), val);
+            DictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -10035,7 +9977,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryByteSave2(bool place, string key, int lp_1, int lp_2, byte val)
         {
-            DictionaryByteSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            DictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -10049,7 +9991,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryByteSave3(bool place, string key, int lp_1, int lp_2, int lp_3, byte val)
         {
-            DictionaryByteSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            DictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -10064,7 +10006,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryByteSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, byte val)
         {
-            DictionaryByteSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            DictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -10091,11 +10033,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static byte? DictionaryByteLoad1_N(bool place, string key, int lp_1)
         {
-            if ((DictionaryByteKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return DictionaryByteGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -10108,11 +10050,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static byte? DictionaryByteLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return DictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -10126,11 +10068,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static byte? DictionaryByteLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return DictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -10145,11 +10087,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static byte? DictionaryByteLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return DictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -10176,11 +10118,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static byte DictionaryByteLoad1(bool place, string key, int lp_1)
         {
-            if ((DictionaryByteKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return 0;
             }
-            return DictionaryByteGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -10193,11 +10135,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static byte DictionaryByteLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return 0;
             }
-            return DictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -10211,11 +10153,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static byte DictionaryByteLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return 0;
             }
-            return DictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -10230,11 +10172,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static byte DictionaryByteLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return 0;
             }
-            return DictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -10327,7 +10269,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DictionaryVectorClear1(bool place, string key, int lp_1)
         {
-            DictionaryVectorRemove(place, (key + "_" + lp_1.ToString()));
+            DictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -10339,7 +10281,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DictionaryVectorClear2(bool place, string key, int lp_1, int lp_2)
         {
-            DictionaryVectorRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            DictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -10352,7 +10294,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DictionaryVectorClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            DictionaryVectorRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            DictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -10366,7 +10308,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DictionaryVectorClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            DictionaryVectorRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            DictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -10400,7 +10342,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryVectorSave1(bool place, string key, int lp_1, Vector2F val)
         {
-            DictionaryVectorSet(place, (key + "_" + lp_1.ToString()), val);
+            DictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -10413,7 +10355,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryVectorSave2(bool place, string key, int lp_1, int lp_2, Vector2F val)
         {
-            DictionaryVectorSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            DictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -10427,7 +10369,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryVectorSave3(bool place, string key, int lp_1, int lp_2, int lp_3, Vector2F val)
         {
-            DictionaryVectorSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            DictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -10442,7 +10384,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryVectorSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, Vector2F val)
         {
-            DictionaryVectorSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            DictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -10469,11 +10411,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static Vector2F? DictionaryVectorLoad1_N(bool place, string key, int lp_1)
         {
-            if ((DictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return DictionaryVectorGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -10486,11 +10428,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static Vector2F? DictionaryVectorLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return DictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -10504,11 +10446,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static Vector2F? DictionaryVectorLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return DictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -10523,11 +10465,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static Vector2F? DictionaryVectorLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return DictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -10554,11 +10496,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回new Vector2F(0,0)</returns>
         public static Vector2F DictionaryVectorLoad1(bool place, string key, int lp_1)
         {
-            if ((DictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return new Vector2F(0, 0);
             }
-            return DictionaryVectorGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -10571,11 +10513,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回new Vector2F(0,0)</returns>
         public static Vector2F DictionaryVectorLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return new Vector2F(0, 0);
             }
-            return DictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -10589,11 +10531,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回new Vector2F(0,0)</returns>
         public static Vector2F DictionaryVectorLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return new Vector2F(0, 0);
             }
-            return DictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -10608,11 +10550,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回new Vector2F(0,0)</returns>
         public static Vector2F DictionaryVectorLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return new Vector2F(0, 0);
             }
-            return DictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -10707,7 +10649,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DictionaryObjectClear1(bool place, string key, int lp_1)
         {
-            DictionaryObjectRemove(place, (key + "_" + lp_1.ToString()));
+            DictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -10719,7 +10661,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DictionaryObjectClear2(bool place, string key, int lp_1, int lp_2)
         {
-            DictionaryObjectRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            DictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -10732,7 +10674,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DictionaryObjectClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            DictionaryObjectRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            DictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -10746,7 +10688,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DictionaryObjectClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            DictionaryObjectRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            DictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -10780,7 +10722,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryObjectSave1(bool place, string key, int lp_1, object val)
         {
-            DictionaryObjectSet(place, (key + "_" + lp_1.ToString()), val);
+            DictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -10793,7 +10735,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryObjectSave2(bool place, string key, int lp_1, int lp_2, object val)
         {
-            DictionaryObjectSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            DictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -10807,7 +10749,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryObjectSave3(bool place, string key, int lp_1, int lp_2, int lp_3, object val)
         {
-            DictionaryObjectSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            DictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -10822,7 +10764,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryObjectSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, object val)
         {
-            DictionaryObjectSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            DictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -10849,11 +10791,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static object DictionaryObjectLoad1(bool place, string key, int lp_1)
         {
-            if ((DictionaryObjectKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return DictionaryObjectGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -10866,11 +10808,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static object DictionaryObjectLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryObjectKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return DictionaryObjectGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -10884,11 +10826,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static object DictionaryObjectLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryObjectKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return DictionaryObjectGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -10903,11 +10845,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static object DictionaryObjectLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryObjectKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return DictionaryObjectGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -11000,7 +10942,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DictionaryStringClear1(bool place, string key, int lp_1)
         {
-            DictionaryStringRemove(place, (key + "_" + lp_1.ToString()));
+            DictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -11012,7 +10954,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DictionaryStringClear2(bool place, string key, int lp_1, int lp_2)
         {
-            DictionaryStringRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            DictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -11025,7 +10967,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DictionaryStringClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            DictionaryStringRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            DictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -11039,7 +10981,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DictionaryStringClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            DictionaryStringRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            DictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -11073,7 +11015,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryStringSave1(bool place, string key, int lp_1, string val)
         {
-            DictionaryStringSet(place, (key + "_" + lp_1.ToString()), val);
+            DictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -11086,7 +11028,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryStringSave2(bool place, string key, int lp_1, int lp_2, string val)
         {
-            DictionaryStringSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            DictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -11100,7 +11042,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryStringSave3(bool place, string key, int lp_1, int lp_2, int lp_3, string val)
         {
-            DictionaryStringSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            DictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -11115,7 +11057,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DictionaryStringSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, string val)
         {
-            DictionaryStringSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            DictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -11142,11 +11084,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static string DictionaryStringLoad1(bool place, string key, int lp_1)
         {
-            if ((DictionaryStringKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((DictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return DictionaryStringGetValue(place, (key + "_" + lp_1.ToString()));
+            return DictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -11159,11 +11101,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static string DictionaryStringLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((DictionaryStringKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((DictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return DictionaryStringGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return DictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -11177,11 +11119,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static string DictionaryStringLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((DictionaryStringKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((DictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return DictionaryStringGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return DictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -11196,11 +11138,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static string DictionaryStringLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((DictionaryStringKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((DictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return DictionaryStringGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return DictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -11295,7 +11237,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void CDictionaryIntClear1(bool place, string key, int lp_1)
         {
-            CDictionaryIntRemove(place, (key + "_" + lp_1.ToString()));
+            CDictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -11307,7 +11249,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void CDictionaryIntClear2(bool place, string key, int lp_1, int lp_2)
         {
-            CDictionaryIntRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            CDictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -11320,7 +11262,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void CDictionaryIntClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            CDictionaryIntRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            CDictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -11334,7 +11276,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void CDictionaryIntClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            CDictionaryIntRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            CDictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -11369,7 +11311,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryIntSave1(bool place, string key, int lp_1, int val)
         {
-            CDictionaryIntSet(place, (key + "_" + lp_1.ToString()), val);
+            CDictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -11382,7 +11324,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryIntSave2(bool place, string key, int lp_1, int lp_2, int val)
         {
-            CDictionaryIntSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            CDictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -11396,7 +11338,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryIntSave3(bool place, string key, int lp_1, int lp_2, int lp_3, int val)
         {
-            CDictionaryIntSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            CDictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -11411,7 +11353,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryIntSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, int val)
         {
-            CDictionaryIntSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            CDictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -11438,11 +11380,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static int? CDictionaryIntLoad1_N(bool place, string key, int lp_1)
         {
-            if ((CDictionaryIntKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return CDictionaryIntGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -11455,11 +11397,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static int? CDictionaryIntLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return CDictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -11473,11 +11415,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static int? CDictionaryIntLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return CDictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -11492,11 +11434,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static int? CDictionaryIntLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return CDictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -11523,11 +11465,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static int CDictionaryIntLoad1(bool place, string key, int lp_1)
         {
-            if ((CDictionaryIntKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return 0;
             }
-            return CDictionaryIntGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -11540,11 +11482,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static int CDictionaryIntLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return 0;
             }
-            return CDictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -11558,11 +11500,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static int CDictionaryIntLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return 0;
             }
-            return CDictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -11577,11 +11519,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static int CDictionaryIntLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryIntKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return 0;
             }
-            return CDictionaryIntGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -11666,7 +11608,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void CDictionaryLongClear1(bool place, string key, int lp_1)
         {
-            CDictionaryLongRemove(place, (key + "_" + lp_1.ToString()));
+            CDictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -11678,7 +11620,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void CDictionaryLongClear2(bool place, string key, int lp_1, int lp_2)
         {
-            CDictionaryLongRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            CDictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -11691,7 +11633,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void CDictionaryLongClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            CDictionaryLongRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            CDictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -11705,7 +11647,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void CDictionaryLongClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            CDictionaryLongRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            CDictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -11740,7 +11682,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryLongSave1(bool place, string key, int lp_1, long val)
         {
-            CDictionaryLongSet(place, (key + "_" + lp_1.ToString()), val);
+            CDictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -11753,7 +11695,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryLongSave2(bool place, string key, int lp_1, int lp_2, long val)
         {
-            CDictionaryLongSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            CDictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -11767,7 +11709,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryLongSave3(bool place, string key, int lp_1, int lp_2, int lp_3, long val)
         {
-            CDictionaryLongSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            CDictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -11782,7 +11724,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryLongSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, long val)
         {
-            CDictionaryLongSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            CDictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -11809,11 +11751,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static long? CDictionaryLongLoad1_N(bool place, string key, int lp_1)
         {
-            if ((CDictionaryLongKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return CDictionaryLongGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -11826,11 +11768,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static long? CDictionaryLongLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return CDictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -11844,11 +11786,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static long? CDictionaryLongLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return CDictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -11863,11 +11805,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static long? CDictionaryLongLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return CDictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -11894,11 +11836,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static long CDictionaryLongLoad1(bool place, string key, int lp_1)
         {
-            if ((CDictionaryLongKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return 0;
             }
-            return CDictionaryLongGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -11911,11 +11853,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static long CDictionaryLongLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return 0;
             }
-            return CDictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -11929,11 +11871,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static long CDictionaryLongLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return 0;
             }
-            return CDictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -11948,11 +11890,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static long CDictionaryLongLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryLongKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return 0;
             }
-            return CDictionaryLongGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -12038,7 +11980,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void CDictionaryCharClear1(bool place, string key, int lp_1)
         {
-            CDictionaryCharRemove(place, (key + "_" + lp_1.ToString()));
+            CDictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -12050,7 +11992,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void CDictionaryCharClear2(bool place, string key, int lp_1, int lp_2)
         {
-            CDictionaryCharRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            CDictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -12063,7 +12005,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void CDictionaryCharClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            CDictionaryCharRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            CDictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -12077,7 +12019,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void CDictionaryCharClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            CDictionaryCharRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            CDictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -12112,7 +12054,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryCharSave1(bool place, string key, int lp_1, char val)
         {
-            CDictionaryCharSet(place, (key + "_" + lp_1.ToString()), val);
+            CDictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -12125,7 +12067,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryCharSave2(bool place, string key, int lp_1, int lp_2, char val)
         {
-            CDictionaryCharSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            CDictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -12139,7 +12081,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryCharSave3(bool place, string key, int lp_1, int lp_2, int lp_3, char val)
         {
-            CDictionaryCharSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            CDictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -12154,7 +12096,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryCharSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, char val)
         {
-            CDictionaryCharSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            CDictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -12181,11 +12123,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static char? CDictionaryCharLoad1_N(bool place, string key, int lp_1)
         {
-            if ((CDictionaryCharKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return CDictionaryCharGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -12198,11 +12140,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static char? CDictionaryCharLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return CDictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -12216,11 +12158,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static char? CDictionaryCharLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return CDictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -12235,11 +12177,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static char? CDictionaryCharLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return CDictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -12266,11 +12208,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回' '</returns>
         public static char CDictionaryCharLoad1(bool place, string key, int lp_1)
         {
-            if ((CDictionaryCharKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return ' ';
             }
-            return CDictionaryCharGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -12283,11 +12225,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回' '</returns>
         public static char CDictionaryCharLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return ' ';
             }
-            return CDictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -12301,11 +12243,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回' '</returns>
         public static char CDictionaryCharLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return ' ';
             }
-            return CDictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -12320,11 +12262,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回' '</returns>
         public static char CDictionaryCharLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryCharKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return ' ';
             }
-            return CDictionaryCharGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -12409,7 +12351,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void CDictionaryFloatClear1(bool place, string key, int lp_1)
         {
-            CDictionaryFloatRemove(place, (key + "_" + lp_1.ToString()));
+            CDictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -12421,7 +12363,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void CDictionaryFloatClear2(bool place, string key, int lp_1, int lp_2)
         {
-            CDictionaryFloatRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            CDictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -12434,7 +12376,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void CDictionaryFloatClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            CDictionaryFloatRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            CDictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -12448,7 +12390,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void CDictionaryFloatClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            CDictionaryFloatRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            CDictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -12483,7 +12425,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryFloatSave1(bool place, string key, int lp_1, float val)
         {
-            CDictionaryFloatSet(place, (key + "_" + lp_1.ToString()), val);
+            CDictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -12496,7 +12438,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryFloatSave2(bool place, string key, int lp_1, int lp_2, float val)
         {
-            CDictionaryFloatSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            CDictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -12510,7 +12452,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryFloatSave3(bool place, string key, int lp_1, int lp_2, int lp_3, float val)
         {
-            CDictionaryFloatSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            CDictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -12525,7 +12467,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryFloatSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, float val)
         {
-            CDictionaryFloatSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            CDictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -12552,11 +12494,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static float? CDictionaryFloatLoad1_N(bool place, string key, int lp_1)
         {
-            if ((CDictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return CDictionaryFloatGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -12569,11 +12511,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static float? CDictionaryFloatLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return CDictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -12587,11 +12529,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static float? CDictionaryFloatLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return CDictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -12606,11 +12548,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static float? CDictionaryFloatLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return CDictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -12637,11 +12579,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0f</returns>
         public static float CDictionaryFloatLoad1(bool place, string key, int lp_1)
         {
-            if ((CDictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return 0.0f;
             }
-            return CDictionaryFloatGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -12654,11 +12596,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0f</returns>
         public static float CDictionaryFloatLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return 0.0f;
             }
-            return CDictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -12672,11 +12614,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0f</returns>
         public static float CDictionaryFloatLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return 0.0f;
             }
-            return CDictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -12691,11 +12633,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0f</returns>
         public static float CDictionaryFloatLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryFloatKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return 0.0f;
             }
-            return CDictionaryFloatGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -12780,7 +12722,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void CDictionaryDoubleClear1(bool place, string key, int lp_1)
         {
-            CDictionaryDoubleRemove(place, (key + "_" + lp_1.ToString()));
+            CDictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -12792,7 +12734,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void CDictionaryDoubleClear2(bool place, string key, int lp_1, int lp_2)
         {
-            CDictionaryDoubleRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            CDictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -12805,7 +12747,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void CDictionaryDoubleClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            CDictionaryDoubleRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            CDictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -12819,7 +12761,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void CDictionaryDoubleClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            CDictionaryDoubleRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            CDictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -12854,7 +12796,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryDoubleSave1(bool place, string key, int lp_1, double val)
         {
-            CDictionaryDoubleSet(place, (key + "_" + lp_1.ToString()), val);
+            CDictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -12867,7 +12809,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryDoubleSave2(bool place, string key, int lp_1, int lp_2, double val)
         {
-            CDictionaryDoubleSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            CDictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -12881,7 +12823,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryDoubleSave3(bool place, string key, int lp_1, int lp_2, int lp_3, double val)
         {
-            CDictionaryDoubleSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            CDictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -12896,7 +12838,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryDoubleSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, double val)
         {
-            CDictionaryDoubleSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            CDictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -12923,11 +12865,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static double? CDictionaryDoubleLoad1_N(bool place, string key, int lp_1)
         {
-            if ((CDictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return CDictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -12940,11 +12882,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static double? CDictionaryDoubleLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return CDictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -12958,11 +12900,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static double? CDictionaryDoubleLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return CDictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -12977,11 +12919,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static double? CDictionaryDoubleLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return CDictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -13008,11 +12950,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0</returns>
         public static double CDictionaryDoubleLoad1(bool place, string key, int lp_1)
         {
-            if ((CDictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return 0.0;
             }
-            return CDictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -13025,11 +12967,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0</returns>
         public static double CDictionaryDoubleLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return 0.0;
             }
-            return CDictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -13043,11 +12985,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0</returns>
         public static double CDictionaryDoubleLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return 0.0;
             }
-            return CDictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -13062,11 +13004,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0.0</returns>
         public static double CDictionaryDoubleLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryDoubleKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return 0.0;
             }
-            return CDictionaryDoubleGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -13154,7 +13096,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void CDictionaryBoolClear1(bool place, string key, int lp_1)
         {
-            CDictionaryBoolRemove(place, (key + "_" + lp_1.ToString()));
+            CDictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -13166,7 +13108,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void CDictionaryBoolClear2(bool place, string key, int lp_1, int lp_2)
         {
-            CDictionaryBoolRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            CDictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -13179,7 +13121,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void CDictionaryBoolClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            CDictionaryBoolRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            CDictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -13193,7 +13135,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void CDictionaryBoolClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            CDictionaryBoolRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            CDictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -13228,7 +13170,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryBoolSave1(bool place, string key, int lp_1, bool val)
         {
-            CDictionaryBoolSet(place, (key + "_" + lp_1.ToString()), val);
+            CDictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -13241,7 +13183,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryBoolSave2(bool place, string key, int lp_1, int lp_2, bool val)
         {
-            CDictionaryBoolSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            CDictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -13255,7 +13197,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryBoolSave3(bool place, string key, int lp_1, int lp_2, int lp_3, bool val)
         {
-            CDictionaryBoolSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            CDictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -13270,7 +13212,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryBoolSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, bool val)
         {
-            CDictionaryBoolSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            CDictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -13297,11 +13239,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static bool? CDictionaryBoolLoad1_N(bool place, string key, int lp_1)
         {
-            if ((CDictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return CDictionaryBoolGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -13314,11 +13256,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static bool? CDictionaryBoolLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return CDictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -13332,11 +13274,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static bool? CDictionaryBoolLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return CDictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -13351,11 +13293,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static bool? CDictionaryBoolLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return CDictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -13382,11 +13324,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回false</returns>
         public static bool CDictionaryBoolLoad1(bool place, string key, int lp_1)
         {
-            if ((CDictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return false;
             }
-            return CDictionaryBoolGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -13399,11 +13341,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回false</returns>
         public static bool CDictionaryBoolLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return false;
             }
-            return CDictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -13417,11 +13359,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回false</returns>
         public static bool CDictionaryBoolLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return false;
             }
-            return CDictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -13436,11 +13378,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回false</returns>
         public static bool CDictionaryBoolLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryBoolKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return false;
             }
-            return CDictionaryBoolGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -13525,7 +13467,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void CDictionaryByteClear1(bool place, string key, int lp_1)
         {
-            CDictionaryByteRemove(place, (key + "_" + lp_1.ToString()));
+            CDictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -13537,7 +13479,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void CDictionaryByteClear2(bool place, string key, int lp_1, int lp_2)
         {
-            CDictionaryByteRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            CDictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -13550,7 +13492,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void CDictionaryByteClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            CDictionaryByteRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            CDictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -13564,7 +13506,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void CDictionaryByteClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            CDictionaryByteRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            CDictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -13599,7 +13541,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryByteSave1(bool place, string key, int lp_1, byte val)
         {
-            CDictionaryByteSet(place, (key + "_" + lp_1.ToString()), val);
+            CDictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -13612,7 +13554,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryByteSave2(bool place, string key, int lp_1, int lp_2, byte val)
         {
-            CDictionaryByteSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            CDictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -13626,7 +13568,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryByteSave3(bool place, string key, int lp_1, int lp_2, int lp_3, byte val)
         {
-            CDictionaryByteSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            CDictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -13641,7 +13583,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryByteSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, byte val)
         {
-            CDictionaryByteSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            CDictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -13668,11 +13610,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static byte? CDictionaryByteLoad1_N(bool place, string key, int lp_1)
         {
-            if ((CDictionaryByteKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return CDictionaryByteGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -13685,11 +13627,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static byte? CDictionaryByteLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return CDictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -13703,11 +13645,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static byte? CDictionaryByteLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return CDictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -13722,11 +13664,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static byte? CDictionaryByteLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return CDictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -13753,11 +13695,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static byte CDictionaryByteLoad1(bool place, string key, int lp_1)
         {
-            if ((CDictionaryByteKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return 0;
             }
-            return CDictionaryByteGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -13770,11 +13712,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static byte CDictionaryByteLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return 0;
             }
-            return CDictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -13788,11 +13730,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static byte CDictionaryByteLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return 0;
             }
-            return CDictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -13807,11 +13749,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static byte CDictionaryByteLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryByteKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return 0;
             }
-            return CDictionaryByteGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -13898,7 +13840,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void CDictionaryVectorClear1(bool place, string key, int lp_1)
         {
-            CDictionaryVectorRemove(place, (key + "_" + lp_1.ToString()));
+            CDictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -13910,7 +13852,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void CDictionaryVectorClear2(bool place, string key, int lp_1, int lp_2)
         {
-            CDictionaryVectorRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            CDictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -13923,7 +13865,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void CDictionaryVectorClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            CDictionaryVectorRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            CDictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -13937,7 +13879,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void CDictionaryVectorClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            CDictionaryVectorRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            CDictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -13972,7 +13914,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryVectorSave1(bool place, string key, int lp_1, Vector2F val)
         {
-            CDictionaryVectorSet(place, (key + "_" + lp_1.ToString()), val);
+            CDictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -13985,7 +13927,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryVectorSave2(bool place, string key, int lp_1, int lp_2, Vector2F val)
         {
-            CDictionaryVectorSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            CDictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -13999,7 +13941,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryVectorSave3(bool place, string key, int lp_1, int lp_2, int lp_3, Vector2F val)
         {
-            CDictionaryVectorSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            CDictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -14014,7 +13956,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryVectorSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, Vector2F val)
         {
-            CDictionaryVectorSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            CDictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -14041,11 +13983,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static Vector2F? CDictionaryVectorLoad1_N(bool place, string key, int lp_1)
         {
-            if ((CDictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return CDictionaryVectorGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -14058,11 +14000,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static Vector2F? CDictionaryVectorLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return CDictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -14076,11 +14018,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static Vector2F? CDictionaryVectorLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return CDictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -14095,11 +14037,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static Vector2F? CDictionaryVectorLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return CDictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -14126,11 +14068,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回new Vector2F(0,0)</returns>
         public static Vector2F CDictionaryVectorLoad1(bool place, string key, int lp_1)
         {
-            if ((CDictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return new Vector2F(0, 0);
             }
-            return CDictionaryVectorGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -14143,11 +14085,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回new Vector2F(0,0)</returns>
         public static Vector2F CDictionaryVectorLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return new Vector2F(0, 0);
             }
-            return CDictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -14161,11 +14103,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回new Vector2F(0,0)</returns>
         public static Vector2F CDictionaryVectorLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return new Vector2F(0, 0);
             }
-            return CDictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -14180,11 +14122,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回new Vector2F(0,0)</returns>
         public static Vector2F CDictionaryVectorLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryVectorKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return new Vector2F(0, 0);
             }
-            return CDictionaryVectorGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -14273,7 +14215,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void CDictionaryObjectClear1(bool place, string key, int lp_1)
         {
-            CDictionaryObjectRemove(place, (key + "_" + lp_1.ToString()));
+            CDictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -14285,7 +14227,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void CDictionaryObjectClear2(bool place, string key, int lp_1, int lp_2)
         {
-            CDictionaryObjectRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            CDictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -14298,7 +14240,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void CDictionaryObjectClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            CDictionaryObjectRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            CDictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -14312,7 +14254,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void CDictionaryObjectClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            CDictionaryObjectRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            CDictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -14347,7 +14289,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryObjectSave1(bool place, string key, int lp_1, object val)
         {
-            CDictionaryObjectSet(place, (key + "_" + lp_1.ToString()), val);
+            CDictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -14360,7 +14302,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryObjectSave2(bool place, string key, int lp_1, int lp_2, object val)
         {
-            CDictionaryObjectSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            CDictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -14374,7 +14316,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryObjectSave3(bool place, string key, int lp_1, int lp_2, int lp_3, object val)
         {
-            CDictionaryObjectSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            CDictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -14389,7 +14331,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryObjectSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, object val)
         {
-            CDictionaryObjectSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            CDictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -14416,11 +14358,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static object CDictionaryObjectLoad1(bool place, string key, int lp_1)
         {
-            if ((CDictionaryObjectKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return CDictionaryObjectGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -14433,11 +14375,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static object CDictionaryObjectLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryObjectKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return CDictionaryObjectGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -14451,11 +14393,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static object CDictionaryObjectLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryObjectKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return CDictionaryObjectGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -14470,11 +14412,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static object CDictionaryObjectLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryObjectKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return CDictionaryObjectGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -14561,7 +14503,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void CDictionaryStringClear1(bool place, string key, int lp_1)
         {
-            CDictionaryStringRemove(place, (key + "_" + lp_1.ToString()));
+            CDictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -14573,7 +14515,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void CDictionaryStringClear2(bool place, string key, int lp_1, int lp_2)
         {
-            CDictionaryStringRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            CDictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -14586,7 +14528,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void CDictionaryStringClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            CDictionaryStringRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            CDictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -14600,7 +14542,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void CDictionaryStringClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            CDictionaryStringRemove(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            CDictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         /// <summary>
@@ -14635,7 +14577,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryStringSave1(bool place, string key, int lp_1, string val)
         {
-            CDictionaryStringSet(place, (key + "_" + lp_1.ToString()), val);
+            CDictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -14648,7 +14590,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryStringSave2(bool place, string key, int lp_1, int lp_2, string val)
         {
-            CDictionaryStringSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()), val);
+            CDictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -14662,7 +14604,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryStringSave3(bool place, string key, int lp_1, int lp_2, int lp_3, string val)
         {
-            CDictionaryStringSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()), val);
+            CDictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -14677,7 +14619,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void CDictionaryStringSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, string val)
         {
-            CDictionaryStringSet(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()), val);
+            CDictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         /// <summary>
@@ -14704,11 +14646,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static string CDictionaryStringLoad1(bool place, string key, int lp_1)
         {
-            if ((CDictionaryStringKeyExists(place, (key + "_" + lp_1.ToString())) == false))
+            if ((CDictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
             {
                 return null;
             }
-            return CDictionaryStringGetValue(place, (key + "_" + lp_1.ToString()));
+            return CDictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -14721,11 +14663,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static string CDictionaryStringLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            if ((CDictionaryStringKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString())) == false))
+            if ((CDictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
             {
                 return null;
             }
-            return CDictionaryStringGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString()));
+            return CDictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -14739,11 +14681,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static string CDictionaryStringLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            if ((CDictionaryStringKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString())) == false))
+            if ((CDictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
             {
                 return null;
             }
-            return CDictionaryStringGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString()));
+            return CDictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -14758,11 +14700,11 @@ namespace MetalMaxSystem
         /// <returns>错误时返回null</returns>
         public static string CDictionaryStringLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            if ((CDictionaryStringKeyExists(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString())) == false))
+            if ((CDictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
             {
                 return null;
             }
-            return CDictionaryStringGetValue(place, (key + "_" + lp_1.ToString() + "_" + lp_2.ToString() + "_" + lp_3.ToString() + "_" + lp_4.ToString()));
+            return CDictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -14774,6 +14716,8 @@ namespace MetalMaxSystem
         #endregion
 
         #endregion
+
+        //任务:以下在字符串组合及数据表使用上需进行优化,C#独立键鼠事件要增加双击和蓄力值功能
 
         #region Functions 互动管理(默认使用用户快捷数据表)
 
@@ -14787,7 +14731,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void ThreadWait(string key)
         {
-            while (DataTableBoolLoad0(true, "MMCore_ThreadWait_" + key) == true)
+            while (DataTableBoolLoad0(true, string.Concat("MMCore_ThreadWait_", key)) == true)
             {
                 Thread.Sleep(dataTableThreadWaitPeriod); //将调用该函数的当前线程挂起
             }
@@ -14800,7 +14744,7 @@ namespace MetalMaxSystem
         /// <param name="period"></param>
         public static void ThreadWait(string key, int period)
         {
-            while (DataTableBoolLoad0(true, "MMCore_ThreadWait_" + key) == true)
+            while (DataTableBoolLoad0(true, string.Concat("MMCore_ThreadWait_", key)) == true)
             {
                 Thread.Sleep(period); //将调用该函数的当前线程挂起
             }
@@ -14813,7 +14757,7 @@ namespace MetalMaxSystem
         /// <param name="val">函数动作完成,所写入存储区闲置时填false,反之填true</param>
         private static void ThreadWaitSet(string key, bool val)
         {
-            DataTableBoolSave0(true, "MMCore_ThreadWait_" + key, val);
+            DataTableBoolSave0(true, string.Concat("MMCore_ThreadWait_", key), val);
         }
 
         /// <summary>
@@ -14822,7 +14766,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void ThreadWait(bool place, string key)
         {
-            while (DataTableBoolLoad0(place, "MMCore_ThreadWait_" + key) == true)
+            while (DataTableBoolLoad0(place, string.Concat("MMCore_ThreadWait_", key)) == true)
             {
                 Thread.Sleep(dataTableThreadWaitPeriod); //将调用该函数的当前线程挂起
             }
@@ -14835,7 +14779,7 @@ namespace MetalMaxSystem
         /// <param name="period"></param>
         public static void ThreadWait(bool place, string key, int period)
         {
-            while (DataTableBoolLoad0(place, "MMCore_ThreadWait_" + key) == true)
+            while (DataTableBoolLoad0(place, string.Concat("MMCore_ThreadWait_", key)) == true)
             {
                 Thread.Sleep(period); //将调用该函数的当前线程挂起
             }
@@ -14848,7 +14792,7 @@ namespace MetalMaxSystem
         /// <param name="val">函数动作完成,所写入存储区闲置时填false,反之填true</param>
         private static void ThreadWaitSet(bool place, string key, bool val)
         {
-            DataTableBoolSave0(place, "MMCore_ThreadWait_" + key, val);
+            DataTableBoolSave0(place, string.Concat("MMCore_ThreadWait_", key), val);
         }
 
         #endregion
@@ -17364,14 +17308,7 @@ namespace MetalMaxSystem
         /// <param name="lp_customValue">自定义值</param>
         public static void HD_SetIntCV(int lp_integer, string lp_key, string lp_customValue)
         {
-            //Variable Declarations
-            string lv_str;
-            int lv_tag;
-            //Variable Initialization
-            lv_str = (lp_key + "HD_Int");
-            lv_tag = lp_integer;
-            //Implementation
-            DataTableStringSave1(true, (("CV" + lv_str)), lv_tag, lp_customValue);
+            DataTableStringSave1(true, string.Concat("CV", lp_key, "HD_Int"), lp_integer, lp_customValue);
         }
 
         /// <summary>
@@ -17382,16 +17319,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnIntCV(int lp_integer, string lp_key)
         {
-            //Variable Declarations
-            string lv_str;
-            int lv_tag;
-            string lv_customValue;
-            //Variable Initialization
-            lv_str = (lp_key + "HD_Int");
-            lv_tag = lp_integer;
-            lv_customValue = DataTableStringLoad1(true, (("CV" + lv_str)), lv_tag);
-            //Implementation
-            return lv_customValue;
+            return DataTableStringLoad1(true, string.Concat("CV", lp_key, "HD_Int"), lp_integer);
         }
 
         /// <summary>
@@ -18200,8 +18128,8 @@ namespace MetalMaxSystem
         /// <summary>
         /// 注销键鼠总控预制事件
         /// </summary>
-        /// <param name="lp_null">true注销全部,否则仅注销预制事件</param>
-        public static void DelKeyMouseEvent(RecordService keyMouseRecordService, bool lp_null)
+        /// <param name="lp_null">true注销全部,否则仅注销预制键鼠事件</param>
+        public static void DelKeyMouseEvent(RecordService keyMouseRecordService, bool lp_null = false)
         {
             if (lp_null)
             {
@@ -18238,9 +18166,9 @@ namespace MetalMaxSystem
             if (StopKeyMouseEvent[player] == false)
             {
                 Player.KeyDownLoopOneBitNum[player] += 1; //玩家当前注册的按键队列数量
-                HashTableSave2(true, "KeyDownLoopOneBit", player, Player.KeyDownLoopOneBitNum[player], key);
+                DataTableIntSave2(true, "KeyDownLoopOneBit", player, Player.KeyDownLoopOneBitNum[player], key);
                 //↑存储玩家注册序号对应按键队列键位
-                HashTableSave2(true, "KeyDownLoopOneBitKey", player, key, true); //玩家按键队列键位状态
+                DataTableBoolSave2(true, "KeyDownLoopOneBitKey", player, key, true); //存储玩家按键队列键位状态
                 //---------------------------------------------------------------------蓄力管理
                 //if (XuLiGuanLi == true){
                 //libBC0D3AAD_gf_HD_RegKXL(key, "IntGroup_XuLi" + IntToString(player)); //HD_注册蓄力按键
@@ -18279,7 +18207,7 @@ namespace MetalMaxSystem
             if (StopKeyMouseEvent[player] == false)
             {
                 //直接执行动作或通知延迟弹起函数去执行动作
-                if ((bool)HashTableLoad2(true, "KeyDownLoopOneBitKey", player, key) == false)
+                if (DataTableBoolLoad2(true, "KeyDownLoopOneBitKey", player, key) == false)
                 {
                     //弹起时无该键动作队列(由延迟弹起执行完),则直接执行本次事件动作
                     KeyUpFunc(player, key);
@@ -18287,7 +18215,7 @@ namespace MetalMaxSystem
                 else
                 {
                     //弹起时有该键动作队列,通知延迟弹起函数运行(按键队列>0时,清空一次队列并执行它们的动作)
-                    HashTableSave2(true, "KeyDownLoopOneBitEnd", player, key, true);
+                    DataTableBoolSave2(true, "KeyDownLoopOneBitEnd", player, key, true);
                 }
             }
             return torf;
@@ -18455,8 +18383,8 @@ namespace MetalMaxSystem
 
                 //---------------------------------------------------------------------
                 Player.MouseDownLoopOneBitNum[player] += 1;
-                HashTableSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], key);
-                HashTableSave2(true, "MouseDownLoopOneBitKey", player, key, true);
+                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], key);
+                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, key, true);
                 //---------------------------------------------------------------------
                 //if (libBC0D3AAD_gv_XuLiGuanLi == true)
                 //{
@@ -18518,8 +18446,8 @@ namespace MetalMaxSystem
 
                 //---------------------------------------------------------------------
                 Player.MouseDownLoopOneBitNum[player] += 1;
-                HashTableSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], key);
-                HashTableSave2(true, "MouseDownLoopOneBitKey", player, key, true);
+                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], key);
+                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, key, true);
                 //---------------------------------------------------------------------
                 //if (libBC0D3AAD_gv_XuLiGuanLi == true)
                 //{
@@ -18618,7 +18546,7 @@ namespace MetalMaxSystem
             if (StopKeyMouseEvent[player] == false)
             {
                 //直接执行动作或通知延迟弹起函数去执行动作
-                if ((bool)HashTableLoad2(true, "MouseDownLoopOneBitKey", player, key) == false)
+                if (DataTableBoolLoad2(true, "MouseDownLoopOneBitKey", player, key) == false)
                 {
                     //弹起时无该键动作队列(由延迟弹起执行完),则直接执行本次事件动作
                     MouseUpFunc(player, key);
@@ -18626,7 +18554,7 @@ namespace MetalMaxSystem
                 else
                 {
                     //弹起时有该键动作队列,通知延迟弹起函数运行(按键队列>0时,清空一次队列并执行它们的动作)
-                    HashTableSave2(true, "MouseDownLoopOneBitEnd", player, key, true);
+                    DataTableBoolSave2(true, "MouseDownLoopOneBitEnd", player, key, true);
                 }
             }
             return torf;
@@ -18670,8 +18598,8 @@ namespace MetalMaxSystem
                 a = 1;
                 for (; ((ai >= 0 && a <= ae) || (ai < 0 && a >= ae)); a += ai)
                 {
-                    key = (int)HashTableLoad2(true, "MouseDownLoopOneBit", player, a);//读取玩家指定动作队列按键
-                    if ((bool)HashTableLoad2(true, "MouseDownLoopOneBitEnd", player, key) == true)//判断玩家指定按键的动作队列是否结束
+                    key = DataTableIntLoad2(true, "MouseDownLoopOneBit", player, a);//读取玩家指定动作队列按键
+                    if (DataTableBoolLoad2(true, "MouseDownLoopOneBitEnd", player, key) == true)//判断玩家指定按键的动作队列是否结束
                     {
                         //若该键的动作队列结束,重置按键状态
                         if (key == c_mouseButtonLeft)
@@ -18689,9 +18617,9 @@ namespace MetalMaxSystem
                         //
                         MouseDownFunc(player, key, Player.MouseVector3F[player], Player.MouseUIX[player], Player.MouseUIY[player]);
                     }
-                    HashTableClear2(true, "MouseDownLoopOneBit", player, a);
-                    HashTableClear2(true, "MouseDownLoopOneBitKey", player, key);
-                    HashTableClear2(true, "MouseDownLoopOneBitEnd", player, key);
+                    DataTableIntClear2(true, "MouseDownLoopOneBit", player, a);
+                    DataTableBoolClear2(true, "MouseDownLoopOneBitKey", player, key);
+                    DataTableBoolClear2(true, "MouseDownLoopOneBitEnd", player, key);
                 }
                 Player.MouseDownLoopOneBitNum[player] = 0; //动作全部执行,全队列清空
             }
@@ -18702,16 +18630,16 @@ namespace MetalMaxSystem
                 a = 1;
                 for (; ((bi >= 0 && a <= be) || (bi < 0 && a >= be)); a += bi)
                 {
-                    key = (int)HashTableLoad2(true, "KeyDownLoopOneBit", player, a);//读取玩家指定动作队列按键
-                    if ((bool)HashTableLoad2(true, "KeyDownLoopOneBitEnd", player, key) == true)//判断玩家指定按键的动作队列是否结束
+                    key = DataTableIntLoad2(true, "KeyDownLoopOneBit", player, a);//读取玩家指定动作队列按键
+                    if (DataTableBoolLoad2(true, "KeyDownLoopOneBitEnd", player, key) == true)//判断玩家指定按键的动作队列是否结束
                     {
                         //若该键的动作队列结束,重置按键状态
                         Player.KeyDown[player, key] = false;
                         KeyUpFunc(player, key);
                     }
-                    HashTableClear2(true, "KeyDownLoopOneBit", player, a);
-                    HashTableClear2(true, "KeyDownLoopOneBitKey", player, key);
-                    HashTableClear2(true, "KeyDownLoopOneBitEnd", player, key);
+                    DataTableIntClear2(true, "KeyDownLoopOneBit", player, a);
+                    DataTableBoolClear2(true, "KeyDownLoopOneBitKey", player, key);
+                    DataTableBoolClear2(true, "KeyDownLoopOneBitEnd", player, key);
                 }
                 Player.KeyDownLoopOneBitNum[player] = 0; //全键盘队列清空
             }
@@ -18719,7 +18647,7 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region Functions 键鼠事件函数引用管理
+        #region Functions 键鼠事件委托(函数引用)管理
 
         //可进行注册注销查询更换归并执行委托
 
@@ -19009,7 +18937,7 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region Functions 主副循环入口事件函数管理
+        #region Functions 主副循环入口事件委托(函数引用)管理
 
         //可进行注册注销查询更换归并执行委托
 
@@ -19159,19 +19087,20 @@ namespace MetalMaxSystem
 }
 
 #region 小记
-//本库由PC加载时推荐UTF-8(带BOM)编码以及CRLF尾行格式
+//本库由PC加载时推荐UTF-8(带BOM)编码以及CRLF尾行格式(Unity及MonoGame亦如此)
 
 //C#中实例方法与静态方法在内存都只存储一份,实例方法可使用this等指向实例,若明确不依赖实例则写静态方法为宜(减少以下性能开销)
 //1.每次调用实例方法时都需要在调用栈上分配一定的空间来保存方法的局部变量和参数
 //2.调用实例方法时会隐式地传递一个this引用指向调用该方法的对象实例(该引用在方法内部可用来访问对象的字段和方法)
 
-//常量(const关键字修饰的字段)不会每次创建类的实例而重新分配内存,编译时就已确定其值并在程序整个生命周期都不会改变
-//委托类型是顶级类型,故不支持Static修饰,用其声明的委托变量可被正常修饰
+//常量(const关键字修饰的字段)不会每次创建类的实例而重新分配内存,编译时就已确定其值并在程序整个生命周期都不会改变,内存方式相当于静态字段,但它在语义上不同,是编译时常量,而静态字段可在运行时被修改(若不是只读)
+//委托(delegate)类型是顶级类型,故不支持Static修饰,但用其声明的委托变量/事件成员（Delegate Variables / Events）可被正常修饰
 
-//对于类中字段,显式指定访问修饰符为宜,因为对于顶级类型(非嵌套),编译器并不会为它们设定默认的访问级别
-//在结构体中,若未指定字段的访问修饰符,则这些字段会默认为public,其余一般会默认为private,对于顶级类型(非嵌套)一般会默认同类
+//‌编译器‌会‌为顶级类型和类成员设定默认访问级别
+//显式指定访问修饰符‌是好习惯,可提高代码可读性、明确设计意图,防止因误解默认规则而导致安全隐患或维护困难
 
 // C#默认修饰符
+// 顶级类型‌（非嵌套的类、结构、接口、委托）默认访问修饰符是internal‌
 // 类、结构体的默认修饰符是internal
 // 类、结构体中所有成员默认修饰符是private
 // 接口默认修饰符是internal
@@ -19196,11 +19125,12 @@ namespace MetalMaxSystem
 //StringBuilder是托管类型,但Stream文件流对象(如StreamWriter)使用了非托管资源(如文件句柄)需要手动调用其Dispose或使用using块
 //using块:动作末尾当Stream文件流对象被销毁时,Dispose会检查是否已调用Flush,若没有它会自动调用Flush确保所有缓冲数据都被写入到文件或其他Stream文件流中
 
-//静态类的成员(如字段、方法)必须是静态的,但静态字段可被赋值为实例对象的引用,静态方法内部也可创建类的实例
+//静态类的成员必须是静态的,但静态字段可被赋值为实例对象的引用,静态方法内部也可创建类的实例
 //静态字段在默认情况下会被初始化为它们的默认值(没赋值直接获取则返回该默认值),对于引用类型默认值是null
 
 //DllImportAttribute常用于从非托管代码中导入函数,这是平台调用(P/Invoke)的一种常见方式
-//LibraryImportAttribute是较新特性,在.NET 5及更高版本中引入,用于在编译时生成P/Invoke封送代码而不是在运行时(这可提高性能并减少启动延迟,因为不再需要在运行时解析DLL和函数)
+//LibraryImportAttribute是较新特性,在.NET 5及更高版本中引入,用于在编译时生成P/Invoke封送代码而不是在运行时(提高性能并减少启动延迟,无需在运行时解析DLL和函数)
 
-//await关键字只能在async声明的异步函数内用,作用是等待一个异步操作的完成,并且不会阻塞调用线程
+//await关键字只能在async声明的异步函数内用,作用是等待一个异步操作的完成,并且不会阻塞调用线程.
+
 #endregion

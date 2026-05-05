@@ -3,7 +3,7 @@ using System;
 #if UNITY_EDITOR || UNITY_STANDALONE
 //Unity编辑器、独立应用程序(不包括Web播放器)
 using Vector3F = UnityEngine.Vector3;
-#elif MonoGame
+#elif MONOGAME
 //使用VS2022的MonoGame插件框架
 using Vector3F = Microsoft.Xna.Framework.Vector3;
 #else

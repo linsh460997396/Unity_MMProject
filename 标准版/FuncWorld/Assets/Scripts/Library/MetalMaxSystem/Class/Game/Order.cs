@@ -1,9 +1,9 @@
 ﻿//#define UNITY_STANDALONE //BepInEx制作UnityMOD时可手动启用
-//#define MonoGame //MonoGame插件下启用(包括XNA框架)
+//#define MONOGAME //MonoGame插件下启用(包括XNA框架)
 #if UNITY_EDITOR || UNITY_STANDALONE
 //Unity编辑器、独立应用程序(不包括Web播放器)
 using Vector2F = UnityEngine.Vector2;
-#elif MonoGame
+#elif MONOGAME
 //使用VS2022的MonoGame插件框架
 using Vector2F = Microsoft.Xna.Framework.Vector2;
 #else

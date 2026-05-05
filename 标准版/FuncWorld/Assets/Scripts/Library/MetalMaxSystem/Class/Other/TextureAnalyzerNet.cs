@@ -1,4 +1,4 @@
-﻿#if NET8_0_OR_GREATER
+﻿#if WINDOWS && !(UNITY_EDITOR || UNITY_STANDALONE || MONOGAME) && (NETFRAMEWORK || NET5_0_OR_GREATER)
 using System.Collections.Concurrent;
 using System.Drawing.Imaging;
 using System.Text;

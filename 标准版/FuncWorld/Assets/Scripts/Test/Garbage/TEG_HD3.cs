@@ -105,13 +105,40 @@
 //            elapsedTime = endTime - startTime;
 //            Debug.Log("用原始HashTable " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //1.9947ms
 
+//            startTime = DateTime.Now;
+//            for (int i = 0; i < 1000000; i++)
+//            {
+//                string.Concat("key", "_", "1", "_", "2", "_", "3", "_", "4");
+//            }
+//            endTime = DateTime.Now;
+//            elapsedTime = endTime - startTime;
+//            Debug.Log("使用string.Concat " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //1156.83ms
+
+//            startTime = DateTime.Now;
+//            for (int i = 0; i < 1000000; i++)
+//            {
+//                string.Concat("key", "_", 1, "_", 2, "_", 3, "_", 4);
+//            }
+//            endTime = DateTime.Now;
+//            elapsedTime = endTime - startTime;
+//            Debug.Log("使用string.Concat带数字 " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //2865.6832ms
+
+//            startTime = DateTime.Now;
+//            for (int i = 0; i < 1000000; i++)
+//            {
+//                ThreadStringBuilder.Concat("key", '_', 1, '_', 2, '_', 3, '_', 4);
+//            }
+//            endTime = DateTime.Now;
+//            elapsedTime = endTime - startTime;
+//            Debug.Log("使用ThreadStringBuilder.Concat " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //1609.9135ms
+
 //            //string A = "A";
 //            //string B = "B"; //若string B = "A"; 下方结果是:1 1 1 1 ,因为C#会对比2个字符串里面的值内容
-//            //Debug.Log(string.Format("结果:{0}, {1}, {2}, {3}", MMCore.THD_RegObjectTagAndReturn(A), MMCore.THD_RegObjectTagAndReturn(A), 
-//            //    MMCore.THD_RegObjectTagAndReturn(B), MMCore.THD_RegObjectTagAndReturn(B)));
+//            //Debug.Log(string.Format("结果:{0}, {1}, {2}, {3}", MMCore.HD_RegObjectTagAndReturn(A), MMCore.HD_RegObjectTagAndReturn(A),
+//            //    MMCore.HD_RegObjectTagAndReturn(B), MMCore.HD_RegObjectTagAndReturn(B)));
 
 //            //Unit C = new Unit(); //装箱后是同一个
-//            //Debug.Log(string.Format("结果:{0}, {1}", MMCore.THD_RegObjectTagAndReturn(A), MMCore.THD_RegObjectTagAndReturn(A)));
+//            //Debug.Log(string.Format("结果:{0}, {1}", MMCore.HD_RegObjectTagAndReturn(C), MMCore.HD_RegObjectTagAndReturn(C)));
 
 //            ////数字装箱后是同一个
 //            //Debug.Log(string.Format("结果:{0}, {1}", 1, 1));

@@ -2,7 +2,8 @@
 using UnityEngine;
 
 /// <summary>
-/// 游戏对象池.用于大量NPC、怪物等活动精灵个体对象复用GameObject,防止频繁创建摧毁导致掉帧问题.
+/// 游戏精灵渲染器专用对象池结构体.
+/// 定位是用于大量角色子弹特效等活动精灵个体对象复用GameObject,防止频繁创建摧毁导致掉帧问题.
 /// </summary>
 public struct GO
 {

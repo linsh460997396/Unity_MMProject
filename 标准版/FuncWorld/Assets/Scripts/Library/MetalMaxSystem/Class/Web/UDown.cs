@@ -2,7 +2,6 @@
 #if UNITY_EDITOR || UNITY_STANDALONE
 using System.Collections;
 using System.IO;
-using System.Net;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -11,69 +10,130 @@ namespace MetalMaxSystem.Unity
 {
     public class UDown : MonoBehaviour
     {
+        public static Regex fileUrlRegex = new Regex("\"(https?://[^\"\\s]+\\.jpg)\"", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         /// <summary>
         /// 开始下载文件
         /// </summary>
-        /// <param name="url">文件的URL</param>
-        /// <param name="savePath">保存文件的路径</param>
         public void Download(string url, string savePath)
         {
-            StartCoroutine(DownloadFile(url, savePath));
+            StartCoroutine(DownloadFileAsync(url, savePath));
         }
 
         /// <summary>
-        /// 采用协程(异步)的方式下载文件
+        /// 协程异步:直接下载指定URL文件.
         /// </summary>
-        /// <param name="fileUrl">文件的URL</param>
-        /// <param name="savePath">保存文件的路径</param>
-        /// <returns></returns>
-        private IEnumerator DownloadFile(string fileUrl, string savePath)
+        private IEnumerator DownloadFileAsync(string url, string savePath)
         {
-            using (UnityWebRequest webRequest = UnityWebRequest.Get(fileUrl))
+            // 构建完整路径
+            string fullPath = Path.Combine(Application.persistentDataPath, savePath);
+
+            // 确保目录存在
+            string directory = Path.GetDirectoryName(fullPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
+                Directory.CreateDirectory(directory);
+            }
+
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            {
+                // 使用DownloadHandlerFile直接写入磁盘,避免大文件占用大量内存
+                webRequest.downloadHandler = new DownloadHandlerFile(fullPath);
+
                 yield return webRequest.SendWebRequest();
 
-                if (webRequest.result == UnityWebRequest.Result.ConnectionError || webRequest.result == UnityWebRequest.Result.ProtocolError)
+                if (webRequest.result == UnityWebRequest.Result.ConnectionError ||
+                    webRequest.result == UnityWebRequest.Result.ProtocolError)
                 {
-                    Debug.LogError(webRequest.error);
-                    yield break;
-                }
+                    Debug.LogError($"Download Error: {webRequest.error}");
 
-                byte[] fileData = webRequest.downloadHandler.data;
-                string filePath = Path.Combine(Application.persistentDataPath, savePath);
-                File.WriteAllBytes(filePath, fileData);
-
-                Debug.Log("File downloaded and saved to: " + filePath);
-            }
-        }
-
-        public IEnumerator DownloadCoroutine(string url, string targetFilePath, string objectRegex = "\"(http[s]?://.*?jpg)\"")
-        {
-            //使用WebClient下载网页内容
-            using (WebClient client = new WebClient())
-            {
-                string htmlContent = client.DownloadString(url);
-
-                //使用正则表达式提取图片URL
-                Match match = Regex.Match(htmlContent, objectRegex);
-                if (match.Success)
-                {
-                    string objectUrl = match.Groups[1].Value;
-
-                    //下载图片并保存到本地
-                    byte[] objectBytes = client.DownloadData(objectUrl);
-                    File.WriteAllBytes(targetFilePath, objectBytes);
-
-                    Debug.Log("Object downloaded and saved to: " + targetFilePath);
+                    // 下载失败时清理可能产生的空文件或损坏文件
+                    if (File.Exists(fullPath))
+                    {
+                        try { File.Delete(fullPath); } catch { }
+                    }
                 }
                 else
                 {
-                    Debug.LogError("Failed to find object URL in HTML content.");
+                    Debug.Log("File downloaded and saved to: " + fullPath);
                 }
             }
+        }
 
-            yield return null;
+        /// <summary>
+        /// 协程异步:从网页提取文件链接,解析后下载.
+        /// </summary>
+        public IEnumerator DownloadCoroutine(string url, string targetFilePath, string objectRegex = null)
+        {
+            // 下载HTML内容
+            string htmlContent;
+            using (UnityWebRequest htmlRequest = UnityWebRequest.Get(url))
+            {
+                yield return htmlRequest.SendWebRequest();
+
+                if (htmlRequest.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError($"Failed to download HTML: {htmlRequest.error}");
+                    yield break;
+                }
+
+                htmlContent = htmlRequest.downloadHandler.text;
+            }
+
+            // 解析文件URL
+            Regex regexToUse = !string.IsNullOrEmpty(objectRegex) ? new Regex(objectRegex) : fileUrlRegex;
+            Match match = regexToUse.Match(htmlContent);
+
+            if (!match.Success)
+            {
+                Debug.LogError("Failed to find object URL in HTML content.");
+                yield break;
+            }
+
+            // Groups[1]代表第一个捕获组(括号内的内容)
+            string imageUrl = match.Groups[1].Value;
+
+            // 下载文件并处理目标路径:若传入的是相对路径则结合persistentDataPath,否则绝对路径直接用
+            string finalImagePath;
+            if (Path.IsPathRooted(targetFilePath))
+            {
+                finalImagePath = targetFilePath;
+            }
+            else
+            {
+                finalImagePath = Path.Combine(Application.persistentDataPath, targetFilePath);
+            }
+
+            // 确保文件保存目录存在
+            string imageDirectory = Path.GetDirectoryName(finalImagePath);
+            if (!string.IsNullOrEmpty(imageDirectory) && !Directory.Exists(imageDirectory))
+            {
+                Directory.CreateDirectory(imageDirectory);
+            }
+
+            using (UnityWebRequest imageRequest = UnityWebRequest.Get(imageUrl))
+            {
+                // 同样使用 DownloadHandlerFile 以节省内存
+                imageRequest.downloadHandler = new DownloadHandlerFile(finalImagePath);
+
+                yield return imageRequest.SendWebRequest();
+
+                if (imageRequest.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError($"Failed to download image: {imageRequest.error}");
+                    // 清理失败的文件
+                    if (File.Exists(finalImagePath))
+                    {
+                        try { File.Delete(finalImagePath); } catch { }
+                    }
+                }
+                else
+                {
+                    Debug.Log("Object downloaded and saved to: " + finalImagePath);
+                }
+            }
         }
     }
 }
+
 #endif
