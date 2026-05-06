@@ -1014,7 +1014,7 @@ namespace CellSpace
             for (int i = 0; i < Faces.Count; ++i)
             {
                 //将团块预制体的几个材质的面加入到网格碰撞器预制体(碰撞面使用渲染面)
-                mesh.SetTriangles(Faces[i].ToArray(), i); // i是材质索引，添加三角形阶段，把材质索引信息一起填入，代表了这个三角形组成的面取自哪个材质上的主纹理
+                mesh.SetTriangles(Faces[i].ToArray(), i); // i是材质索引,添加三角形阶段,把材质索引信息一起填入,代表了这个三角形组成的面取自哪个材质上的主纹理
             }
 
             mesh.uv = UVs.ToArray();//UVs.ToBuiltin(Vector2F) as Vector2F[]	

@@ -26,7 +26,7 @@ using Timer = System.Threading.Timer;
 
 #region 环境适配
 #if UNITY_EDITOR || UNITY_STANDALONE
-//Unity环境:编辑器、独立应用程序（不包括Web播放器）
+//Unity环境:编辑器、独立应用程序(不包括Web播放器)
 using Mathf = UnityEngine.Mathf;
 using Debug = UnityEngine.Debug;
 using Vector2F = UnityEngine.Vector2;
@@ -38,7 +38,7 @@ using System.Diagnostics.Metrics;
 //↓可使用.Net中的Debug.WriteLine
 using Debug = System.Diagnostics.Debug;
 #if WINDOWS || NET5_0_OR_GREATER || NETFRAMEWORK
-//↓支持WINDOWS框架下识别硬件标识等（若依然是灰色，请手动添加或安装程序集）
+//↓支持WINDOWS框架下识别硬件标识等(若依然是灰色,请手动添加或安装程序集)
 using System.Management;
 using Microsoft.Win32;
 using System.Windows;
@@ -50,7 +50,7 @@ using Mathf = System.Math;
 using Mathf = System.MathF;
 #endif
 #if MONOGAME
-//使用VS2022的MonoGame插件框架时，校准2F3F向量
+//使用VS2022的MonoGame插件框架时,校准2F3F向量
 using Vector2F = Microsoft.Xna.Framework.Vector2;
 using Vector3F = Microsoft.Xna.Framework.Vector3;
 #else
@@ -287,7 +287,7 @@ namespace MetalMaxSystem
 
         #region 哈希表&字典声明(更多类型请使用DataTable<T>、DataTableConcurrent<T>)
 
-        //效率：字典 > 哈希表 >> 字典.ToString() > 跨线程字典
+        //效率:字典 > 哈希表 >> 字典.ToString() > 跨线程字典
 
         #region 哈希表(可跨线程读写,但不支持泛型)
         /// <summary>
@@ -561,29 +561,29 @@ namespace MetalMaxSystem
         //字段及其属性方法(避免不安全读写,private保护和隐藏字段,设计成只允许通过public修饰的属性方法间接去安全读写)
         //本库前缀单个_开头字段表示其拥有属性方法(若有双_开头表示自定义类型如委托)
 
-        private static bool _dataTableType = false;
+        private static bool _dataTableHashType = false;
         /// <summary>
         /// 数据表类型.用于快捷数据表类型切换,默认false采用字典,为true时切换为哈希表.
         /// 可增加更多类型来测试读写效率.
         /// </summary>
-        public static bool DataTableType
+        public static bool DataTableHashType
         {
             get
             {
-                return _dataTableType;
+                return _dataTableHashType;
             }
             set
             {
-                _dataTableType = value;
+                _dataTableHashType = value;
 
                 //if (!isDataTableTypeSet)
                 //{
-                //    _dataTableType = value;
+                //    _dataTableHashType = value;
                 //    isDataTableTypeSet = true;
                 //}
                 //else
                 //{
-                //    throw new InvalidOperationException("DataTableType can only be set once."); //设计为只允许被改变一次的情况,请在入口或使用数据表前进行设置
+                //    throw new InvalidOperationException("DataTableHashType can only be set once."); //设计为只允许被改变一次的情况,请在入口或使用数据表前进行设置
                 //}
             }
         }
@@ -1073,7 +1073,7 @@ namespace MetalMaxSystem
 
         /// <summary>
         /// 构建键值字符串(使用指定分隔符).
-        /// 以baseKey为基础,在其后依次添加分隔符和indices中的每个元素，形成一个新的字符串返回。
+        /// 以baseKey为基础,在其后依次添加分隔符和indices中的每个元素,形成一个新的字符串返回.
         /// 如 BuildKeyWithSeparator('_', "key", 1, 2) 返回 "key_1_2"
         /// </summary>
         /// <param name="separator">分隔符</param>
@@ -2757,7 +2757,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableObjectKeyExists(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableKeyExists(place, key);
@@ -2774,7 +2774,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableObjectValueExists(bool place, object value)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableValueExists(place, value);
@@ -2792,7 +2792,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object DataTableObjectGetValue(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableGetValue(place, key);
@@ -2808,7 +2808,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void DataTableObjectClear0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear0(place, key);
@@ -2827,7 +2827,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DataTableObjectClear1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear1(place, key, lp_1);
@@ -2847,7 +2847,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DataTableObjectClear2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear2(place, key, lp_1, lp_2);
@@ -2868,7 +2868,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DataTableObjectClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear3(place, key, lp_1, lp_2, lp_3);
@@ -2890,7 +2890,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DataTableObjectClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -2908,7 +2908,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         private static void DataTableObjectRemove(bool place, string key)//内部函数
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableRemove(place, key);
@@ -2927,7 +2927,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableObjectSave0(bool place, string key, object val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave0(place, key, val);
@@ -2947,7 +2947,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableObjectSave1(bool place, string key, int lp_1, object val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave1(place, key, lp_1, val);
@@ -2968,7 +2968,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableObjectSave2(bool place, string key, int lp_1, int lp_2, object val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave2(place, key, lp_1, lp_2, val);
@@ -2990,7 +2990,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableObjectSave3(bool place, string key, int lp_1, int lp_2, int lp_3, object val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
@@ -3013,7 +3013,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableObjectSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, object val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
@@ -3032,7 +3032,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object DataTableObjectLoad0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableLoad0(place, key);
@@ -3050,7 +3050,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object DataTableObjectLoad1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableLoad1(place, key, lp_1);
@@ -3069,7 +3069,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object DataTableObjectLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableLoad2(place, key, lp_1, lp_2);
@@ -3089,7 +3089,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object DataTableObjectLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -3110,7 +3110,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static object DataTableObjectLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -3131,7 +3131,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableStringKeyExists(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableKeyExists(place, key);
@@ -3148,7 +3148,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableStringValueExists(bool place, string value)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableValueExists(place, value);
@@ -3165,7 +3165,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string DataTableStringGetValue(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableGetValue(place, key).ToString();
@@ -3181,7 +3181,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void DataTableStringClear0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear0(place, key);
@@ -3200,7 +3200,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DataTableStringClear1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear1(place, key, lp_1);
@@ -3220,7 +3220,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DataTableStringClear2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear2(place, key, lp_1, lp_2);
@@ -3241,7 +3241,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DataTableStringClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear3(place, key, lp_1, lp_2, lp_3);
@@ -3263,7 +3263,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DataTableStringClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -3281,7 +3281,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         private static void DataTableStringRemove(bool place, string key)//内部函数
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableRemove(place, key);
@@ -3300,7 +3300,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableStringSave0(bool place, string key, string val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave0(place, key, val);
@@ -3320,7 +3320,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableStringSave1(bool place, string key, int lp_1, string val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave1(place, key, lp_1, val);
@@ -3341,7 +3341,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableStringSave2(bool place, string key, int lp_1, int lp_2, string val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave2(place, key, lp_1, lp_2, val);
@@ -3363,7 +3363,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableStringSave3(bool place, string key, int lp_1, int lp_2, int lp_3, string val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
@@ -3386,7 +3386,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableStringSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, string val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
@@ -3405,7 +3405,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string? DataTableStringLoad0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableLoad0(place, key)?.ToString();
@@ -3423,7 +3423,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string? DataTableStringLoad1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableLoad1(place, key, lp_1)?.ToString();
@@ -3442,7 +3442,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string? DataTableStringLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableLoad2(place, key, lp_1, lp_2)?.ToString();
@@ -3462,7 +3462,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string? DataTableStringLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableLoad3(place, key, lp_1, lp_2, lp_3)?.ToString();
@@ -3483,7 +3483,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string? DataTableStringLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4)?.ToString();
@@ -3508,7 +3508,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableIntKeyExists(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableKeyExists(place, key);
@@ -3525,7 +3525,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableIntValueExists(bool place, int value)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableValueExists(place, value);
@@ -3542,7 +3542,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int DataTableIntGetValue(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (int)HashTableGetValue(place, key);
@@ -3558,7 +3558,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void DataTableIntClear0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear0(place, key);
@@ -3577,7 +3577,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DataTableIntClear1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear1(place, key, lp_1);
@@ -3597,7 +3597,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DataTableIntClear2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear2(place, key, lp_1, lp_2);
@@ -3618,7 +3618,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DataTableIntClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear3(place, key, lp_1, lp_2, lp_3);
@@ -3640,7 +3640,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DataTableIntClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -3658,7 +3658,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         private static void DataTableIntRemove(bool place, string key)//内部函数
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableRemove(place, key);
@@ -3677,7 +3677,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableIntSave0(bool place, string key, int val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave0(place, key, val);
@@ -3697,7 +3697,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableIntSave1(bool place, string key, int lp_1, int val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave1(place, key, lp_1, val);
@@ -3718,7 +3718,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableIntSave2(bool place, string key, int lp_1, int lp_2, int val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave2(place, key, lp_1, lp_2, val);
@@ -3740,7 +3740,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableIntSave3(bool place, string key, int lp_1, int lp_2, int lp_3, int val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
@@ -3763,7 +3763,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableIntSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, int val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
@@ -3782,7 +3782,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int? DataTableIntLoad0_N(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (int?)HashTableLoad0(place, key);
@@ -3800,7 +3800,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int? DataTableIntLoad1_N(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (int?)HashTableLoad1(place, key, lp_1);
@@ -3819,7 +3819,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int? DataTableIntLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (int?)HashTableLoad2(place, key, lp_1, lp_2);
@@ -3839,7 +3839,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int? DataTableIntLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (int?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -3860,7 +3860,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int? DataTableIntLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (int?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -3877,7 +3877,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int DataTableIntLoad0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (int)HashTableLoad0(place, key);
@@ -3895,7 +3895,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int DataTableIntLoad1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (int)HashTableLoad1(place, key, lp_1);
@@ -3914,7 +3914,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int DataTableIntLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (int)HashTableLoad2(place, key, lp_1, lp_2);
@@ -3934,7 +3934,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int DataTableIntLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (int)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -3955,7 +3955,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int DataTableIntLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (int)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -3976,7 +3976,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableLongKeyExists(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableKeyExists(place, key);
@@ -3993,7 +3993,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableLongValueExists(bool place, long value)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableValueExists(place, value);
@@ -4010,7 +4010,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static long DataTableLongGetValue(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (long)HashTableGetValue(place, key);
@@ -4026,7 +4026,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void DataTableLongClear0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear0(place, key);
@@ -4045,7 +4045,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DataTableLongClear1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear1(place, key, lp_1);
@@ -4065,7 +4065,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DataTableLongClear2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear2(place, key, lp_1, lp_2);
@@ -4086,7 +4086,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DataTableLongClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear3(place, key, lp_1, lp_2, lp_3);
@@ -4108,7 +4108,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DataTableLongClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -4126,7 +4126,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         private static void DataTableLongRemove(bool place, string key)//内部函数
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableRemove(place, key);
@@ -4145,7 +4145,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableLongSave0(bool place, string key, long val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave0(place, key, val);
@@ -4165,7 +4165,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableLongSave1(bool place, string key, int lp_1, long val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave1(place, key, lp_1, val);
@@ -4186,7 +4186,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableLongSave2(bool place, string key, int lp_1, int lp_2, long val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave2(place, key, lp_1, lp_2, val);
@@ -4208,7 +4208,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableLongSave3(bool place, string key, int lp_1, int lp_2, int lp_3, long val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
@@ -4231,7 +4231,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableLongSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, long val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
@@ -4250,7 +4250,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static long? DataTableLongLoad0_N(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (long?)HashTableLoad0(place, key);
@@ -4268,7 +4268,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static long? DataTableLongLoad1_N(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (long?)HashTableLoad1(place, key, lp_1);
@@ -4287,7 +4287,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static long? DataTableLongLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (long?)HashTableLoad2(place, key, lp_1, lp_2);
@@ -4307,7 +4307,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static long? DataTableLongLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (long?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -4328,7 +4328,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static long? DataTableLongLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (long?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -4345,7 +4345,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static long DataTableLongLoad0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (long)HashTableLoad0(place, key);
@@ -4363,7 +4363,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static long DataTableLongLoad1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (long)HashTableLoad1(place, key, lp_1);
@@ -4382,7 +4382,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static long DataTableLongLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (long)HashTableLoad2(place, key, lp_1, lp_2);
@@ -4402,7 +4402,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static long DataTableLongLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (long)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -4423,7 +4423,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static long DataTableLongLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (long)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -4444,7 +4444,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableCharKeyExists(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableKeyExists(place, key);
@@ -4461,7 +4461,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableCharValueExists(bool place, char value)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableValueExists(place, value);
@@ -4478,7 +4478,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static char DataTableCharGetValue(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (char)HashTableGetValue(place, key);
@@ -4494,7 +4494,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void DataTableCharClear0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear0(place, key);
@@ -4513,7 +4513,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DataTableCharClear1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear1(place, key, lp_1);
@@ -4533,7 +4533,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DataTableCharClear2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear2(place, key, lp_1, lp_2);
@@ -4554,7 +4554,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DataTableCharClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear3(place, key, lp_1, lp_2, lp_3);
@@ -4576,7 +4576,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DataTableCharClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -4594,7 +4594,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         private static void DataTableCharRemove(bool place, string key)//内部函数
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableRemove(place, key);
@@ -4613,7 +4613,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableCharSave0(bool place, string key, char val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave0(place, key, val);
@@ -4633,7 +4633,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableCharSave1(bool place, string key, int lp_1, char val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave1(place, key, lp_1, val);
@@ -4654,7 +4654,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableCharSave2(bool place, string key, int lp_1, int lp_2, char val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave2(place, key, lp_1, lp_2, val);
@@ -4676,7 +4676,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableCharSave3(bool place, string key, int lp_1, int lp_2, int lp_3, char val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
@@ -4699,7 +4699,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableCharSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, char val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
@@ -4718,7 +4718,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static char? DataTableCharLoad0_N(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (char?)HashTableLoad0(place, key);
@@ -4736,7 +4736,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static char? DataTableCharLoad1_N(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (char?)HashTableLoad1(place, key, lp_1);
@@ -4755,7 +4755,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static char? DataTableCharLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (char?)HashTableLoad2(place, key, lp_1, lp_2);
@@ -4775,7 +4775,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static char? DataTableCharLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (char?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -4796,7 +4796,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static char? DataTableCharLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (char?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -4813,7 +4813,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static char DataTableCharLoad0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (char)HashTableLoad0(place, key);
@@ -4831,7 +4831,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static char DataTableCharLoad1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (char)HashTableLoad1(place, key, lp_1);
@@ -4850,7 +4850,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static char DataTableCharLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (char)HashTableLoad2(place, key, lp_1, lp_2);
@@ -4870,7 +4870,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static char DataTableCharLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (char)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -4891,7 +4891,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static char DataTableCharLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (char)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -4912,7 +4912,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableFloatKeyExists(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableKeyExists(place, key);
@@ -4929,7 +4929,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableFloatValueExists(bool place, float value)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableValueExists(place, value);
@@ -4946,7 +4946,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static float DataTableFloatGetValue(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (float)HashTableGetValue(place, key);
@@ -4962,7 +4962,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void DataTableFloatClear0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear0(place, key);
@@ -4981,7 +4981,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DataTableFloatClear1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear1(place, key, lp_1);
@@ -5001,7 +5001,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DataTableFloatClear2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear2(place, key, lp_1, lp_2);
@@ -5022,7 +5022,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DataTableFloatClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear3(place, key, lp_1, lp_2, lp_3);
@@ -5044,7 +5044,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DataTableFloatClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -5062,7 +5062,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         private static void DataTableFloatRemove(bool place, string key)//内部函数
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableRemove(place, key);
@@ -5081,7 +5081,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableFloatSave0(bool place, string key, float val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave0(place, key, val);
@@ -5101,7 +5101,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableFloatSave1(bool place, string key, int lp_1, float val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave1(place, key, lp_1, val);
@@ -5122,7 +5122,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableFloatSave2(bool place, string key, int lp_1, int lp_2, float val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave2(place, key, lp_1, lp_2, val);
@@ -5144,7 +5144,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableFloatSave3(bool place, string key, int lp_1, int lp_2, int lp_3, float val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
@@ -5167,7 +5167,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableFloatSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, float val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
@@ -5186,7 +5186,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static float? DataTableFloatLoad0_N(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (float?)HashTableLoad0(place, key);
@@ -5204,7 +5204,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static float? DataTableFloatLoad1_N(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (float?)HashTableLoad1(place, key, lp_1);
@@ -5223,7 +5223,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static float? DataTableFloatLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (float?)HashTableLoad2(place, key, lp_1, lp_2);
@@ -5243,7 +5243,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static float? DataTableFloatLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (float?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -5264,7 +5264,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static float? DataTableFloatLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (float?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -5281,7 +5281,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static float DataTableFloatLoad0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (float)HashTableLoad0(place, key);
@@ -5299,7 +5299,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static float DataTableFloatLoad1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (float)HashTableLoad1(place, key, lp_1);
@@ -5318,7 +5318,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static float DataTableFloatLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (float)HashTableLoad2(place, key, lp_1, lp_2);
@@ -5338,7 +5338,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static float DataTableFloatLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (float)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -5359,7 +5359,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static float DataTableFloatLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (float)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -5380,7 +5380,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableDoubleKeyExists(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableKeyExists(place, key);
@@ -5397,7 +5397,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableDoubleValueExists(bool place, double value)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableValueExists(place, value);
@@ -5414,7 +5414,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double DataTableDoubleGetValue(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (double)HashTableGetValue(place, key);
@@ -5430,7 +5430,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void DataTableDoubleClear0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear0(place, key);
@@ -5449,7 +5449,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DataTableDoubleClear1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear1(place, key, lp_1);
@@ -5469,7 +5469,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DataTableDoubleClear2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear2(place, key, lp_1, lp_2);
@@ -5490,7 +5490,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DataTableDoubleClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear3(place, key, lp_1, lp_2, lp_3);
@@ -5512,7 +5512,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DataTableDoubleClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -5530,7 +5530,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         private static void DataTableDoubleRemove(bool place, string key)//内部函数
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableRemove(place, key);
@@ -5549,7 +5549,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableDoubleSave0(bool place, string key, double val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave0(place, key, val);
@@ -5569,7 +5569,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableDoubleSave1(bool place, string key, int lp_1, double val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave1(place, key, lp_1, val);
@@ -5590,7 +5590,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableDoubleSave2(bool place, string key, int lp_1, int lp_2, double val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave2(place, key, lp_1, lp_2, val);
@@ -5612,7 +5612,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableDoubleSave3(bool place, string key, int lp_1, int lp_2, int lp_3, double val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
@@ -5635,7 +5635,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableDoubleSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, double val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
@@ -5654,7 +5654,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double? DataTableDoubleLoad0_N(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (double?)HashTableLoad0(place, key);
@@ -5672,7 +5672,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double? DataTableDoubleLoad1_N(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (double?)HashTableLoad1(place, key, lp_1);
@@ -5691,7 +5691,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double? DataTableDoubleLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (double?)HashTableLoad2(place, key, lp_1, lp_2);
@@ -5711,7 +5711,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double? DataTableDoubleLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (double?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -5732,7 +5732,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double? DataTableDoubleLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (double?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -5749,7 +5749,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double DataTableDoubleLoad0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (double)HashTableLoad0(place, key);
@@ -5767,7 +5767,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double DataTableDoubleLoad1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (double)HashTableLoad1(place, key, lp_1);
@@ -5786,7 +5786,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double DataTableDoubleLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (double)HashTableLoad2(place, key, lp_1, lp_2);
@@ -5806,7 +5806,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double DataTableDoubleLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (double)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -5827,7 +5827,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double DataTableDoubleLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (double)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -5848,7 +5848,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableBoolKeyExists(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableKeyExists(place, key);
@@ -5865,7 +5865,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableBoolValueExists(bool place, bool value)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableValueExists(place, value);
@@ -5882,7 +5882,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableBoolGetValue(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (bool)HashTableGetValue(place, key);
@@ -5898,7 +5898,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void DataTableBoolClear0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear0(place, key);
@@ -5917,7 +5917,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DataTableBoolClear1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear1(place, key, lp_1);
@@ -5937,7 +5937,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DataTableBoolClear2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear2(place, key, lp_1, lp_2);
@@ -5958,7 +5958,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DataTableBoolClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear3(place, key, lp_1, lp_2, lp_3);
@@ -5980,7 +5980,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DataTableBoolClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -5998,7 +5998,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         private static void DataTableBoolRemove(bool place, string key)//内部函数
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableRemove(place, key);
@@ -6017,7 +6017,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableBoolSave0(bool place, string key, bool val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave0(place, key, val);
@@ -6037,7 +6037,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableBoolSave1(bool place, string key, int lp_1, bool val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave1(place, key, lp_1, val);
@@ -6058,7 +6058,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableBoolSave2(bool place, string key, int lp_1, int lp_2, bool val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave2(place, key, lp_1, lp_2, val);
@@ -6080,7 +6080,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableBoolSave3(bool place, string key, int lp_1, int lp_2, int lp_3, bool val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
@@ -6103,7 +6103,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableBoolSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, bool val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
@@ -6122,7 +6122,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool? DataTableBoolLoad0_N(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (bool?)HashTableLoad0(place, key);
@@ -6140,7 +6140,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool? DataTableBoolLoad1_N(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (bool?)HashTableLoad1(place, key, lp_1);
@@ -6159,7 +6159,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool? DataTableBoolLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (bool?)HashTableLoad2(place, key, lp_1, lp_2);
@@ -6179,7 +6179,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool? DataTableBoolLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (bool?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -6200,7 +6200,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool? DataTableBoolLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (bool?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -6217,7 +6217,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableBoolLoad0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (bool)HashTableLoad0(place, key);
@@ -6235,7 +6235,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableBoolLoad1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (bool)HashTableLoad1(place, key, lp_1);
@@ -6254,7 +6254,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableBoolLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (bool)HashTableLoad2(place, key, lp_1, lp_2);
@@ -6274,7 +6274,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableBoolLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (bool)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -6295,7 +6295,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableBoolLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (bool)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -6316,7 +6316,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableByteKeyExists(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableKeyExists(place, key);
@@ -6333,7 +6333,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableByteValueExists(bool place, byte value)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableValueExists(place, value);
@@ -6350,7 +6350,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static byte DataTableByteGetValue(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (byte)HashTableGetValue(place, key);
@@ -6366,7 +6366,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void DataTableByteClear0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear0(place, key);
@@ -6385,7 +6385,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DataTableByteClear1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear1(place, key, lp_1);
@@ -6405,7 +6405,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DataTableByteClear2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear2(place, key, lp_1, lp_2);
@@ -6426,7 +6426,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DataTableByteClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear3(place, key, lp_1, lp_2, lp_3);
@@ -6448,7 +6448,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DataTableByteClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -6466,7 +6466,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         private static void DataTableByteRemove(bool place, string key)//内部函数
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableRemove(place, key);
@@ -6485,7 +6485,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableByteSave0(bool place, string key, byte val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave0(place, key, val);
@@ -6505,7 +6505,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableByteSave1(bool place, string key, int lp_1, byte val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave1(place, key, lp_1, val);
@@ -6526,7 +6526,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableByteSave2(bool place, string key, int lp_1, int lp_2, byte val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave2(place, key, lp_1, lp_2, val);
@@ -6548,7 +6548,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableByteSave3(bool place, string key, int lp_1, int lp_2, int lp_3, byte val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
@@ -6571,7 +6571,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableByteSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, byte val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
@@ -6590,7 +6590,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static byte? DataTableByteLoad0_N(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (byte?)HashTableLoad0(place, key);
@@ -6608,7 +6608,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static byte? DataTableByteLoad1_N(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (byte?)HashTableLoad1(place, key, lp_1);
@@ -6627,7 +6627,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static byte? DataTableByteLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (byte?)HashTableLoad2(place, key, lp_1, lp_2);
@@ -6647,7 +6647,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static byte? DataTableByteLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (byte?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -6668,7 +6668,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static byte? DataTableByteLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (byte?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -6685,7 +6685,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static byte DataTableByteLoad0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (byte)HashTableLoad0(place, key);
@@ -6703,7 +6703,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static byte DataTableByteLoad1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (byte)HashTableLoad1(place, key, lp_1);
@@ -6722,7 +6722,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static byte DataTableByteLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (byte)HashTableLoad2(place, key, lp_1, lp_2);
@@ -6742,7 +6742,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static byte DataTableByteLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (byte)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -6763,7 +6763,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static byte DataTableByteLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (byte)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -6784,7 +6784,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableVectorKeyExists(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableKeyExists(place, key);
@@ -6801,7 +6801,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool DataTableVectorValueExists(bool place, Vector2F value)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return HashTableValueExists(place, value);
@@ -6818,7 +6818,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static Vector2F DataTableVectorGetValue(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (Vector2F)HashTableGetValue(place, key);
@@ -6834,7 +6834,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void DataTableVectorClear0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear0(place, key);
@@ -6853,7 +6853,7 @@ namespace MetalMaxSystem
         /// <param name="lp_1"></param>
         public static void DataTableVectorClear1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear1(place, key, lp_1);
@@ -6873,7 +6873,7 @@ namespace MetalMaxSystem
         /// <param name="lp_2"></param>
         public static void DataTableVectorClear2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear2(place, key, lp_1, lp_2);
@@ -6894,7 +6894,7 @@ namespace MetalMaxSystem
         /// <param name="lp_3"></param>
         public static void DataTableVectorClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear3(place, key, lp_1, lp_2, lp_3);
@@ -6916,7 +6916,7 @@ namespace MetalMaxSystem
         /// <param name="lp_4"></param>
         public static void DataTableVectorClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -6934,7 +6934,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         private static void DataTableVectorRemove(bool place, string key)//内部函数
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableRemove(place, key);
@@ -6953,7 +6953,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableVectorSave0(bool place, string key, Vector2F val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave0(place, key, val);
@@ -6973,7 +6973,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableVectorSave1(bool place, string key, int lp_1, Vector2F val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave1(place, key, lp_1, val);
@@ -6994,7 +6994,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableVectorSave2(bool place, string key, int lp_1, int lp_2, Vector2F val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave2(place, key, lp_1, lp_2, val);
@@ -7016,7 +7016,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableVectorSave3(bool place, string key, int lp_1, int lp_2, int lp_3, Vector2F val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
@@ -7039,7 +7039,7 @@ namespace MetalMaxSystem
         /// <param name="val"></param>
         public static void DataTableVectorSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, Vector2F val)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
@@ -7058,7 +7058,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static Vector2F? DataTableVectorLoad0_N(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (Vector2F?)HashTableLoad0(place, key);
@@ -7076,7 +7076,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static Vector2F? DataTableVectorLoad1_N(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (Vector2F?)HashTableLoad1(place, key, lp_1);
@@ -7095,7 +7095,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static Vector2F? DataTableVectorLoad2_N(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (Vector2F?)HashTableLoad2(place, key, lp_1, lp_2);
@@ -7115,7 +7115,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static Vector2F? DataTableVectorLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (Vector2F?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -7136,7 +7136,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static Vector2F? DataTableVectorLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (Vector2F?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -7153,7 +7153,7 @@ namespace MetalMaxSystem
         /// <returns>错误时返回new Vector2F(0,0)</returns>
         public static Vector2F DataTableVectorLoad0(bool place, string key)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (Vector2F)HashTableLoad0(place, key);
@@ -7171,7 +7171,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static Vector2F DataTableVectorLoad1(bool place, string key, int lp_1)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (Vector2F)HashTableLoad1(place, key, lp_1);
@@ -7190,7 +7190,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static Vector2F DataTableVectorLoad2(bool place, string key, int lp_1, int lp_2)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (Vector2F)HashTableLoad2(place, key, lp_1, lp_2);
@@ -7210,7 +7210,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static Vector2F DataTableVectorLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (Vector2F)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
@@ -7231,7 +7231,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static Vector2F DataTableVectorLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            switch (DataTableType)
+            switch (DataTableHashType)
             {
                 case true:
                     return (Vector2F)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
@@ -19094,13 +19094,13 @@ namespace MetalMaxSystem
 //2.调用实例方法时会隐式地传递一个this引用指向调用该方法的对象实例(该引用在方法内部可用来访问对象的字段和方法)
 
 //常量(const关键字修饰的字段)不会每次创建类的实例而重新分配内存,编译时就已确定其值并在程序整个生命周期都不会改变,内存方式相当于静态字段,但它在语义上不同,是编译时常量,而静态字段可在运行时被修改(若不是只读)
-//委托(delegate)类型是顶级类型,故不支持Static修饰,但用其声明的委托变量/事件成员（Delegate Variables / Events）可被正常修饰
+//委托(delegate)类型是顶级类型,故不支持Static修饰,但用其声明的委托变量/事件成员(Delegate Variables / Events)可被正常修饰
 
 //‌编译器‌会‌为顶级类型和类成员设定默认访问级别
 //显式指定访问修饰符‌是好习惯,可提高代码可读性、明确设计意图,防止因误解默认规则而导致安全隐患或维护困难
 
 // C#默认修饰符
-// 顶级类型‌（非嵌套的类、结构、接口、委托）默认访问修饰符是internal‌
+// 顶级类型‌(非嵌套的类、结构、接口、委托)默认访问修饰符是internal‌
 // 类、结构体的默认修饰符是internal
 // 类、结构体中所有成员默认修饰符是private
 // 接口默认修饰符是internal

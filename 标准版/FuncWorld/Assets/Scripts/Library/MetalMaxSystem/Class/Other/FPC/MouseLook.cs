@@ -120,17 +120,17 @@ namespace MetalMaxSystem.Unity
 
 // 这个MouseLook类是一个处理鼠标旋转输入并应用于角色和相机旋转的Unity脚本.它允许玩家使用鼠标来旋转角色和相机,并提供了多种配置选项,如平滑旋转、垂直旋转限制和鼠标光标锁定.
 
-// 下面是关于这个类及其方法的详细解释：
+// 下面是关于这个类及其方法的详细解释:
 
 // 成员变量
-// XSensitivity 和 YSensitivity：这两个浮点值分别控制水平和垂直方向上的鼠标灵敏度.
-// clampVerticalRotation：一个布尔值,用于确定是否要限制相机的垂直旋转.
-// MinimumX 和 MaximumX：当clampVerticalRotation为true时,这两个值定义了相机在X轴上的最小和最大旋转角度.
-// smooth：一个布尔值,用于确定旋转是否应该是平滑的.
-// smoothTime：平滑旋转的时间（以秒为单位).
-// lockCursor：一个布尔值,用于确定是否应该锁定鼠标光标.
-// m_CharacterTargetRot 和 m_CameraTargetRot：这两个Quaternion变量存储了角色和相机的目标旋转.
-// m_cursorIsLocked：一个私有布尔值,表示当前鼠标光标是否锁定.
+// XSensitivity 和 YSensitivity:这两个浮点值分别控制水平和垂直方向上的鼠标灵敏度.
+// clampVerticalRotation:一个布尔值,用于确定是否要限制相机的垂直旋转.
+// MinimumX 和 MaximumX:当clampVerticalRotation为true时,这两个值定义了相机在X轴上的最小和最大旋转角度.
+// smooth:一个布尔值,用于确定旋转是否应该是平滑的.
+// smoothTime:平滑旋转的时间(以秒为单位).
+// lockCursor:一个布尔值,用于确定是否应该锁定鼠标光标.
+// m_CharacterTargetRot 和 m_CameraTargetRot:这两个Quaternion变量存储了角色和相机的目标旋转.
+// m_cursorIsLocked:一个私有布尔值,表示当前鼠标光标是否锁定.
 // 方法
 
 // Init(Transform character, Transform camera)

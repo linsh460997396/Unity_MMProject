@@ -1,4 +1,4 @@
-在 C# 中，Func 委托是一种‌泛型委托‌，用于封装具有返回值的方法。它属于 .NET Framework 预定义的委托类型，无需手动声明即可直接使用。Func 委托最多支持 16 个输入参数，并且始终将最后一个类型参数视为返回值类型。
+﻿在 C# 中,Func 委托是一种‌泛型委托‌,用于封装具有返回值的方法.它属于 .NET Framework 预定义的委托类型,无需手动声明即可直接使用.Func 委托最多支持 16 个输入参数,并且始终将最后一个类型参数视为返回值类型.
 
 Func 委托的基本语法
 csharp
@@ -6,43 +6,43 @@ Copy Code
 Func<T1, T2, ..., TResult>
 
 
-其中：
+其中:
 
-T1, T2, ..., Tn 表示方法的输入参数类型（最多 16 个）。
-TResult 表示方法的返回值类型。
+T1, T2, ..., Tn 表示方法的输入参数类型(最多 16 个).
+TResult 表示方法的返回值类型.
 
-例如：
+例如:
 
 csharp
 Copy Code
 Func<int, string> convertToString = (num) => num.ToString();
 
 
-这行代码定义了一个 Func<int, string> 类型的委托，表示该委托接受一个 int 类型的参数，并返回一个 string 类型的结果。
+这行代码定义了一个 Func<int, string> 类型的委托,表示该委托接受一个 int 类型的参数,并返回一个 string 类型的结果.
 
-示例详解：Func<int, string> convertToString = (num) => num.ToString();
+示例详解:Func<int, string> convertToString = (num) => num.ToString();
 
-这个语句的作用是将整数转换为字符串。具体解释如下：
+这个语句的作用是将整数转换为字符串.具体解释如下:
 
-委托定义‌：
+委托定义‌:
 
 csharp
 Copy Code
 Func<int, string> convertToString;
 
 
-这里声明了一个名为 convertToString 的委托变量，它接受一个 int 类型的参数并返回一个 string 类型的结果。
+这里声明了一个名为 convertToString 的委托变量,它接受一个 int 类型的参数并返回一个 string 类型的结果.
 
-Lambda 表达式赋值‌：
+Lambda 表达式赋值‌:
 
 csharp
 Copy Code
 convertToString = (num) => num.ToString();
 
 
-使用 Lambda 表达式为委托赋值。这里的 (num) 是输入参数，num.ToString() 是返回值。当调用该委托时，会执行 num.ToString() 方法，将整数转换为字符串。
+使用 Lambda 表达式为委托赋值.这里的 (num) 是输入参数,num.ToString() 是返回值.当调用该委托时,会执行 num.ToString() 方法,将整数转换为字符串.
 
-调用委托‌：
+调用委托‌:
 
 csharp
 Copy Code
@@ -50,12 +50,12 @@ string result = convertToString(123);
 Console.WriteLine(result); // 输出: "123"
 
 
-调用委托时传入一个整数，委托内部执行 num.ToString() 并返回字符串结果。
+调用委托时传入一个整数,委托内部执行 num.ToString() 并返回字符串结果.
 
 Func 的典型应用场景
 
-作为方法参数传递逻辑‌：
-可以将 Func 作为参数传递给其他方法，实现动态逻辑注入。
+作为方法参数传递逻辑‌:
+可以将 Func 作为参数传递给其他方法,实现动态逻辑注入.
 
 csharp
 Copy Code
@@ -63,8 +63,8 @@ int[] numbers = { 1, 2, 3, 4 };
 int[] squares = ProcessArray(numbers, x => x * x); // 求平方
 
 
-与 LINQ 配合使用‌：
-LINQ 中的 Where 和 Select 等方法都依赖于 Func 来实现数据转换和过滤。
+与 LINQ 配合使用‌:
+LINQ 中的 Where 和 Select 等方法都依赖于 Func 来实现数据转换和过滤.
 
 csharp
 Copy Code
@@ -73,8 +73,8 @@ var evenNumbers = numbers.Where(n => n % 2 == 0); // 筛选偶数
 var numberStrings = numbers.Select(n => $"数字:{n}"); // 转换为字符串
 
 
-简化复杂逻辑封装‌：
-将常用逻辑封装成 Func，提高代码复用性。
+简化复杂逻辑封装‌:
+将常用逻辑封装成 Func,提高代码复用性.
 
 csharp
 Copy Code
@@ -84,10 +84,10 @@ Func<string, string, string> processString = (input, suffix) => {
 };
 
 Func 与 Action 的区别
-Func：用于封装‌有返回值‌的方法。
-Action：用于封装‌无返回值‌（即 void）的方法。
+Func:用于封装‌有返回值‌的方法.
+Action:用于封装‌无返回值‌(即 void)的方法.
 
-示例对比：
+示例对比:
 
 csharp
 Copy Code
@@ -101,4 +101,4 @@ LogMessage("Hello World"); // 输出到控制台
 
 总结
 
-Func 委托是 C# 中非常实用的特性，它允许我们以简洁的方式封装具有返回值的方法，并支持多种参数组合。通过 Lambda 表达式或方法引用，可以方便地创建和使用 Func 委托，广泛应用于函数式编程、LINQ 查询和回调机制等场景。
+Func 委托是 C# 中非常实用的特性,它允许我们以简洁的方式封装具有返回值的方法,并支持多种参数组合.通过 Lambda 表达式或方法引用,可以方便地创建和使用 Func 委托,广泛应用于函数式编程、LINQ 查询和回调机制等场景.

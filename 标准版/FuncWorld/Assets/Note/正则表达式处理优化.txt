@@ -1,0 +1,80 @@
+/// <summary>
+/// 缓存的Regex对象（避免重复编译）
+/// </summary>
+private static Dictionary<string, Regex> _regexCache = new Dictionary<string, Regex>();
+
+/// <summary>
+/// 获取缓存的Regex对象，如果不存在则创建并缓存
+/// </summary>
+/// <param name="customRegex">自定义正则表达式</param>
+/// <returns>缓存的Regex对象</returns>
+private Regex GetCachedRegex(string customRegex)
+{
+    string regexPattern = !string.IsNullOrEmpty(customRegex) ? customRegex : fileUrlRegex.ToString();
+
+    if (!_regexCache.TryGetValue(regexPattern, out Regex regex))
+    {
+        regex = new Regex(regexPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        _regexCache[regexPattern] = regex;
+    }
+
+    return regex;
+}
+
+//正则表达式处理优化（缓存机制）
+Regex regexToUse = GetCachedRegex(objectRegex); 
+ 
+为什么要缓存，有什么好处？
+
+在正则表达式处理中，缓存机制（如代码中的 GetCachedRegex）的核心目的是‌避免重复编译带来的巨大性能开销‌。
+
+正则表达式的执行分为两个主要阶段：‌编译（Compilation）‌和‌匹配（Matching）‌。缓存针对的是“编译”阶段。以下是为什么要缓存以及具体好处的详细解析：
+
+1. 为什么要缓存？（核心痛点）
+
+正则表达式引擎在处理一个模式字符串时，并不是直接拿去匹配文本，而是需要先将人类可读的正则字符串（如 ^\d{3}-\d{4}$）转换为机器可高效执行的内部结构。这个过程非常昂贵：
+解析与语法分析‌引擎需要遍历字符串，检查语法正确性。
+构建内部表示形式‌：引擎会将正则表达式编译成抽象语法树（AST）、字节码（Bytecode），甚至在某些优化模式下编译为中间语言（CIL）或本机代码。
+状态机构建‌：对于复杂的正则，引擎可能需要构建非确定性有限自动机（NFA）或确定性有限自动机（DFA）。
+
+如果不缓存：‌
+每次调用 new Regex(pattern) 或使用静态方法 Regex.Match(input, pattern) 时，如果传入的是字符串模式，引擎都必须重新执行上述完整的编译流程。如果在循环中或高并发场景下频繁创建相同的正则对象，CPU 资源将被大量浪费在重复的编译工作上，而非实际的文本匹配上。
+
+2. 缓存的好处
+A. 显著提升性能（降低 CPU 开销）
+消除重复编译耗时‌：编译过程的复杂度通常远高于匹配过程。通过缓存，编译只发生一次，后续使用直接从内存中获取已编译好的对象。
+数据对比‌：在 JavaScript V8 引擎的测试中，动态创建正则对象的性能损耗可能是预编译复用的 ‌15 倍以上‌。在 .NET 中，实例化 Regex 对象的成本也被认为是影响性能的最大单一因素之一。
+B. 降低内存压力与 GC 频率
+减少对象分配‌：每次 new Regex() 都会堆上分配新的对象。高频创建会导致垃圾回收（GC）压力增大。
+复用对象‌：缓存机制确保同一个模式在内存中只有一个实例（或有限个实例），减少了内存碎片和 GC 暂停时间。
+C. 利用引擎内置优化
+.NET 的静态缓存‌：.NET 的 Regex 类内部维护了一个应用程序范围的缓存（默认大小为 15 个条目）。当你使用静态方法（如 Regex.IsMatch(input, pattern)）时，引擎会自动查找缓存。如果缓存命中，则直接使用已编译的代码；如果未命中，则编译并加入缓存（若满则剔除最久未使用的）。
+注意‌：如果你手动 new Regex(pattern) 而不缓存引用，你就绕过了这个内置缓存机制，导致每次都是全新的编译。
+
+3. 不同语言/框架的实现策略
+.NET (C#)
+内置缓存‌：仅对‌静态方法‌调用有效。默认缓存最近使用的 15 个正则表达式。
+最佳实践‌：
+对于少量、频繁使用的正则，建议将其声明为 static readonly 字段，并显式编译：
+private static readonly Regex EmailRegex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", RegexOptions.Compiled);
+
+RegexOptions.Compiled 会将正则编译为 IL 代码，由 JIT 进一步优化为本机代码，启动慢但运行极快，适合长期运行的服务。
+源生成器（Source Generators）‌：在 .NET 7+ 中，推荐使用 [GeneratedRegex] 属性，它在编译时就生成了高效的匹配代码，完全避免了运行时编译开销，是比传统缓存更优的方案。
+
+JavaScript
+无全局自动缓存‌：JS 引擎（如 V8）不会自动缓存由构造函数 new RegExp(pattern) 创建的对象。字面量 /pattern/ 在某些引擎优化下可能被复用，但行为不一致。
+最佳实践‌：必须手动预编译并复用：
+// 推荐：模块级常量
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+function validateEmail(email) {
+    return EMAIL_REGEX.test(email);
+}
+
+4. 总结：GetCachedRegex 的价值
+
+Regex regexToUse = GetCachedRegex(objectRegex); 这种模式是一种‌防御性编程‌和‌性能优化‌的最佳实践。它的好处在于：
+解耦与复用‌：无论调用者如何传入正则（字符串或对象），该方法确保返回的是一个已编译好、可立即用于高效匹配的对象。
+避免“隐形”性能陷阱‌：防止开发者在循环或高频 API 中无意地反复实例化 Regex。
+控制生命周期‌：你可以自定义缓存策略（如最大缓存数量、过期策略），比依赖语言默认的内置缓存更可控，特别是在处理大量动态正则表达式时，可以防止内存泄漏（默认缓存可能无限增长或策略不当）。
+
+结论‌：缓存正则表达式是为了将‌昂贵的编译成本分摊到第一次使用‌，从而在后续成千上万次的匹配操作中获得近乎零的初始化开销，显著提升应用程序的吞吐量和响应速度。

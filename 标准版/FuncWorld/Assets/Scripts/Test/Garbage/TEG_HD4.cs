@@ -66,7 +66,7 @@
 //                sb.Clear();
 //                sb.Append("key");      // 追加字符串
 //                sb.Append('_');        // 追加字符
-//                sb.Append(1);          // 追加整数（会自动转换为字符串）
+//                sb.Append(1);          // 追加整数(会自动转换为字符串)
 //                sb.Append('_');
 //                sb.Append(2);
 //                sb.Append('_');

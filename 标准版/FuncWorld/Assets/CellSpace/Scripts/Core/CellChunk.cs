@@ -1159,7 +1159,7 @@ namespace CellSpace
                 {
                     //用null填充数组cellItems
                     Array.Fill(cellItems, null);
-                    //用如下代码替换以兼容旧版.NET/Unity（没Array.Fill情况）：
+                    //用如下代码替换以兼容旧版.NET/Unity(没Array.Fill情况):
                     //for (int i = 0; i < cellItems.Length; i++)
                     //{
                     //    cellItems[i] = null;
@@ -1808,7 +1808,7 @@ namespace CellSpace
             int dIdx = (int)(z * _1_cellSize);
             if (dIdx < 0 || dIdx >= SideLength) return null;
 
-            // 定义3D搜索顺序（从中心开始向外扩展）
+            // 定义3D搜索顺序(从中心开始向外扩展)
             int[] layerOffsets = {
         0, 0, 0,   // 中心层 - 中心 (14)
         1, 0, 0,   // 中心层 - 右 (15)
@@ -2099,7 +2099,7 @@ namespace CellSpace
             int dIdx = (int)(z * _1_cellSize);
             if (dIdx < 0 || dIdx >= SideLength) return;
 
-            // 定义3D搜索顺序（从中心开始向外扩展）
+            // 定义3D搜索顺序(从中心开始向外扩展)
             int[] offsets = {
         // 中心层 (z=0)
         0, 0, 0,   // 中心 (14)
@@ -2148,7 +2148,7 @@ namespace CellSpace
                     searchDIdx < 0 || searchDIdx >= SideLength)
                     continue;
 
-                // 计算一维索引（3D数组转1D）
+                // 计算一维索引(3D数组转1D)
                 int idx = searchDIdx * SideLength * SideLength + searchRIdx * SideLength + searchCIdx;
                 var c = cellItems[idx];
 

@@ -14,7 +14,6 @@ namespace MetalMaxSystem
 {
     public static class NetHelper
     {
-        
         private static string _dftUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.50";
         /// <summary>
         /// 默认User-Agent字符串,模拟常见浏览器以提高兼容性
@@ -64,9 +63,9 @@ namespace MetalMaxSystem
         /// <summary>
         /// 异步创建GET请求
         /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
-        public static async Task<string> CreateGetHttpResponseAsync(string url)
+        /// <param name="url">请求的URL</param>
+        /// <returns>返回响应内容字符串</returns>
+        public static async Task<string> GetAsync(string url)
         {
             if (string.IsNullOrWhiteSpace(url))
             {
@@ -84,7 +83,7 @@ namespace MetalMaxSystem
             }
             catch (HttpRequestException ex)
             {
-                // 改进错误处理：返回具体错误信息，而不是打印到控制台
+                // 改进错误处理:返回具体错误信息,而不是打印到控制台
                 return $"Error: Network - {ex.Message}";
             }
             catch (TaskCanceledException ex)
@@ -103,7 +102,7 @@ namespace MetalMaxSystem
         /// <param name="url">请求地址</param>
         /// <param name="parameters">表单参数</param>
         /// <returns>响应内容</returns>
-        public static async Task<string> CreatePostHttpResponseAsync(string url, IDictionary<string, string> parameters)
+        public static async Task<string> PostAsync(string url, IDictionary<string, string> parameters)
         {
             if (string.IsNullOrWhiteSpace(url))
             {
@@ -148,7 +147,7 @@ namespace MetalMaxSystem
         /// <param name="fileName">要保存的文件名</param>
         /// <param name="dirPath">下载目录路径,如 @"C:\Users\Admin\Desktop\Download"</param>
         /// <returns>下载是否成功</returns>
-        public static async Task<bool> DownloadFuncAsync(string htmlAttributeValue, string fileName, string dirPath)
+        public static async Task<bool> DownloadAsync_Func(string htmlAttributeValue, string fileName, string dirPath)
         {
             if (string.IsNullOrWhiteSpace(htmlAttributeValue))
             {
@@ -230,7 +229,7 @@ namespace MetalMaxSystem
         {
             try
             {
-                string html = await CreateGetHttpResponseAsync(url);
+                string html = await GetAsync(url);
                 HtmlDocument doc = new HtmlDocument();
                 doc.LoadHtml(html);
                 HtmlNode obj = doc.DocumentNode.SelectSingleNode(node);
@@ -241,7 +240,7 @@ namespace MetalMaxSystem
                 string htmlAttributeValue = obj.Attributes["src"].Value;
                 string fileName = Path.GetFileName(path);
                 string dirPath = Path.GetDirectoryName(path);
-                return await DownloadFuncAsync(htmlAttributeValue, fileName, dirPath);
+                return await DownloadAsync_Func(htmlAttributeValue, fileName, dirPath);
 
             }
             catch
@@ -251,7 +250,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 异步下载指定网站的指定节点内容到指定目录并保存为自定义文件名.
+        /// 异步下载指定网站的多个节点内容到指定目录并保存为自定义文件名.
         /// </summary>
         /// <param name="url">网站的URL地址</param>
         /// <param name="node">HTML节点的XPath,如"//img"</param>
@@ -267,7 +266,7 @@ namespace MetalMaxSystem
             try
             {
                 string objUrl;
-                string html = await CreateGetHttpResponseAsync(url);
+                string html = await GetAsync(url);
                 HtmlDocument doc = new HtmlDocument();
                 doc.LoadHtml(html);
                 HtmlNodeCollection objNodes = doc.DocumentNode.SelectNodes(node);
@@ -305,7 +304,7 @@ namespace MetalMaxSystem
                             }
                             if (Regex.IsMatch(Path.GetExtension(objUrl), objectExtensionPattern))
                             {
-                                await DownloadFuncAsync(objUrl, Path.GetFileName(new Uri(objUrl).LocalPath), dirPath);
+                                await DownloadAsync_Func(objUrl, Path.GetFileName(new Uri(objUrl).LocalPath), dirPath);
                             }
                         }
                     }
@@ -319,13 +318,13 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 获取B站直播间最近弹幕（无需Cookie）
+        /// 获取B站直播间最近弹幕(无需Cookie)
         /// </summary>
         /// <param name="roomId">直播间房间号,https://live.bilibili.com/{roomId}?...</param>
         public static async Task<List<DanmuItem>> GetBiliDanmuAsync(long roomId)
         {// 注释掉的旧代码用到System.Text.Json、System.Net.Http.Json,现改用 Newtonsoft.Json解析
 
-            // 接口地址（B站开放API，无需登录）
+            // 接口地址(B站开放API,无需登录)
             string url = $"https://api.live.bilibili.com/xlive/web-room/v1/dM/gethistory?roomid={roomId}";
 
             // 213是C酱直播间房间号
@@ -428,15 +427,15 @@ namespace MetalMaxSystem
             if (string.IsNullOrWhiteSpace(relativeUrl))
                 return relativeUrl;
 
-            // 如果已经是绝对URL，直接返回
+            // 如果已经是绝对URL,直接返回
             if (Uri.IsWellFormedUriString(relativeUrl, UriKind.Absolute))
                 return relativeUrl;
 
-            // 处理协议相对URL（//example.com/path）
+            // 处理协议相对URL(//example.com/path)
             if (relativeUrl.StartsWith("//"))
                 return "https:" + relativeUrl;
 
-            // 处理相对路径（/path 或 path）
+            // 处理相对路径(/path 或 path)
             Uri baseUri = new Uri(baseUrl);
             Uri absoluteUri = new Uri(baseUri, relativeUrl);
             return absoluteUri.ToString();
@@ -451,8 +450,8 @@ namespace MetalMaxSystem
         /// <param name="url">网址</param>
         /// <param name="timeout">超时毫秒数</param>
         /// <returns>响应内容</returns>
-        [Obsolete("HttpWebRequest is obsolete. Use CreateGetHttpResponseAsync of HttpClient instead.")]
-        public static string CreateGetHttpResponse(string url, int timeout = 10000)
+        [Obsolete("HttpWebRequest is obsolete. Use GetAsync of HttpClient instead.")]
+        public static string Get(string url, int timeout = 10000)
         {
             if (string.IsNullOrWhiteSpace(url)) return "requestFalse";
             HttpWebRequest request = null; HttpWebResponse response = null;
@@ -516,8 +515,8 @@ namespace MetalMaxSystem
         /// <returns>响应内容</returns>
         /// <exception cref="ArgumentException">URL为空或无效时抛出</exception>
         /// <exception cref="InvalidOperationException">HTTP请求失败时抛出</exception>
-        [Obsolete("HttpWebRequest is obsolete. Use CreatePostHttpResponseAsync of HttpClient instead.")]
-        public static string CreatePostHttpResponse(string url, IDictionary<string, string> parameters, int timeout = 10000, string contentType = "application/x-www-form-urlencoded")
+        [Obsolete("HttpWebRequest is obsolete. Use PostAsync of HttpClient instead.")]
+        public static string Post(string url, IDictionary<string, string> parameters, int timeout = 10000, string contentType = "application/x-www-form-urlencoded")
         {
             if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException("URL cannot be null or empty.", nameof(url));
             HttpWebRequest request = null; HttpWebResponse response = null;
@@ -617,7 +616,7 @@ namespace MetalMaxSystem
         /// 缺点是代码较为冗长,且需要手动处理流和异常,不如HttpClient方式简洁和高效.建议在需要兼容旧环境或特定需求时使用,否则推荐使用DownloadFileAsync方法.
         /// 使用范例:
         /// HtmlDocument doc = new HtmlDocument();
-        /// doc.LoadHtml(NetHelper.CreateGetHttpResponse("https://ac.qq.com/Comic/ComicInfo/id/542330"));
+        /// doc.LoadHtml(NetHelper.Get("https://ac.qq.com/Comic/ComicInfo/id/542330"));
         /// HtmlNode img = doc.DocumentNode.SelectSingleNode("/html/body/div[3]/div[3]/div[1]/div[1]/div[1]/a/img");
         /// string imgUal = img.Attributes["src"].Value;
         /// NetHelper.Download(imgUal, "123.jpg", @"C:\Users\Admin\Desktop\Download");
@@ -626,8 +625,8 @@ namespace MetalMaxSystem
         /// <param name="fileName">要保存的文件名</param>
         /// <param name="dirPath">下载目录路径(末尾不带斜杠),如 @"C:\Users\Admin\Desktop\Download"</param>
         /// <returns>下载是否成功</returns>
-        [Obsolete("HttpWebRequest is obsolete. Use DownloadFuncAsync of HttpClient instead.")]
-        public static bool DownloadFunc(string htmlAttributeValue, string fileName, string dirPath)
+        [Obsolete("HttpWebRequest is obsolete. Use DownloadAsync_Func of HttpClient instead.")]
+        public static bool Download_Func(string htmlAttributeValue, string fileName, string dirPath)
         {
             if (string.IsNullOrWhiteSpace(htmlAttributeValue))
             {
@@ -700,7 +699,7 @@ namespace MetalMaxSystem
 
         /// <summary>
         /// 下载指定网站的指定节点内容到指定目录并保存为自定义文件名.
-        /// 示例：NetHelper.XDownload(@"https://ac.qq.com/Comic/ComicInfo/id/542330", @"/html/body/div[3]/div[3]/div[1]/div[1]/div[1]/a/img", @"C:\Users\Admin\Desktop\Download\123.jpg");
+        /// 示例:NetHelper.XDownload(@"https://ac.qq.com/Comic/ComicInfo/id/542330", @"/html/body/div[3]/div[3]/div[1]/div[1]/div[1]/a/img", @"C:\Users\Admin\Desktop\Download\123.jpg");
         /// </summary>
         /// <param name="url">网站的URL地址</param>
         /// <param name="node">HTML节点的XPath</param>
@@ -712,10 +711,10 @@ namespace MetalMaxSystem
             try
             {
                 HtmlDocument doc = new HtmlDocument();
-                doc.LoadHtml(CreateGetHttpResponse(url));
+                doc.LoadHtml(Get(url));
                 HtmlNode obj = doc.DocumentNode.SelectSingleNode(node);
                 string dirPath = string.Concat(Path.GetDirectoryName(path));
-                return DownloadFunc(obj.Attributes["src"].Value, Path.GetFileName(path), dirPath);
+                return Download_Func(obj.Attributes["src"].Value, Path.GetFileName(path), dirPath);
             }
             catch
             {
@@ -745,7 +744,7 @@ namespace MetalMaxSystem
 
                 string objUrl;
                 HtmlDocument doc = new HtmlDocument();
-                doc.LoadHtml(CreateGetHttpResponse(url));
+                doc.LoadHtml(Get(url));
                 HtmlNodeCollection objNodes = doc.DocumentNode.SelectNodes(node);
                 if (objNodes != null)
                 {
@@ -781,7 +780,7 @@ namespace MetalMaxSystem
                             }
                             if (Regex.IsMatch(Path.GetExtension(objUrl), objectExtensionPattern))
                             {
-                                DownloadFunc(objUrl, Path.GetFileName(new Uri(objUrl).LocalPath), dirPath);
+                                Download_Func(objUrl, Path.GetFileName(new Uri(objUrl).LocalPath), dirPath);
                             }
                         }
                     }

@@ -95,7 +95,7 @@ namespace SpriteSpace
             }
             else
             {//正常3D模式
-                Debug.LogError("SpriteSpace框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+                Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
             }
 
             //剔除 & 同步 GO

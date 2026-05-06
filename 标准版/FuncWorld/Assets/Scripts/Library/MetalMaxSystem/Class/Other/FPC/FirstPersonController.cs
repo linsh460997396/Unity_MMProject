@@ -84,7 +84,7 @@ namespace MetalMaxSystem.Unity
             }
 
             m_OriginalCameraPosition = m_Camera.transform.localPosition;//获取主摄像机的本地坐标
-            m_FovKick.Setup(m_Camera);//视野（Field of View, FOV)的“踢动”或变化效果,在射击游戏或其他需要模拟武器后坐力的游戏中,FOV踢动是一种常见的技术,用于模拟玩家在射击时视线的震动或偏移.
+            m_FovKick.Setup(m_Camera);//视野(Field of View, FOV)的“踢动”或变化效果,在射击游戏或其他需要模拟武器后坐力的游戏中,FOV踢动是一种常见的技术,用于模拟玩家在射击时视线的震动或偏移.
             m_HeadBob.Setup(m_Camera, m_StepInterval);//走路时的头部晃动效果
             m_StepCycle = 0f;//用于跟踪头部晃动的周期或进度
             m_NextStep = m_StepCycle / 2f;//用于确定下一次晃动何时发生,设置为 m_StepCycle 的一半这可能是为了在某个时间点触发晃动效果,比如当前晃动周期的一半时,若 m_StepCycle 是用来跟踪当前晃动周期的话,那么 m_NextStep 可能用于确定何时开始下一个晃动周期
@@ -119,10 +119,10 @@ namespace MetalMaxSystem.Unity
             //处理角色在空中时的移动
             if (!m_CharacterController.isGrounded && !m_Jumping && m_PreviouslyGrounded)
             {
-                //检查角色是否在空中（即非着陆状态)并且没有在跳跃,但之前是在着陆状态.若是它会将m_MoveDir.y设置为0f,意味着角色在空中时不会进行垂直移动
+                //检查角色是否在空中(即非着陆状态)并且没有在跳跃,但之前是在着陆状态.若是它会将m_MoveDir.y设置为0f,意味着角色在空中时不会进行垂直移动
                 m_MoveDir.y = 0f;
             }
-            //更新着陆状态（m_PreviouslyGrounded),使其与m_CharacterController.isGrounded的值相同
+            //更新着陆状态(m_PreviouslyGrounded),使其与m_CharacterController.isGrounded的值相同
             //m_CharacterController.isGrounded是表示角色是否着陆的布尔值,在下一次Update调用时,m_PreviouslyGrounded将包含上一次Update时的着陆状态
             m_PreviouslyGrounded = m_CharacterController.isGrounded;
         }
@@ -213,7 +213,7 @@ namespace MetalMaxSystem.Unity
             m_MouseLook.UpdateCursorLock();
         }
 
-        // 这段代码是一个名为 FixedUpdate 的私有方法,通常在 Unity 的游戏开发中用作物理更新的固定频率调用.从代码的结构和逻辑来看,这个方法主要用于控制一个角色的移动和跳跃行为,并更新其视角和碰撞状态.以下是对代码的详细解读：
+        // 这段代码是一个名为 FixedUpdate 的私有方法,通常在 Unity 的游戏开发中用作物理更新的固定频率调用.从代码的结构和逻辑来看,这个方法主要用于控制一个角色的移动和跳跃行为,并更新其视角和碰撞状态.以下是对代码的详细解读:
 
         // 初始化变量:
 
@@ -231,10 +231,10 @@ namespace MetalMaxSystem.Unity
         // 若检测到表面,将 desiredMove 投影到这个表面上,确保角色沿着这个表面移动.
         // 设置移动方向:
 
-        // 根据投影后的 desiredMove 和玩家的移动速度 speed,设置 m_MoveDir（即角色实际的移动方向).
+        // 根据投影后的 desiredMove 和玩家的移动速度 speed,设置 m_MoveDir(即角色实际的移动方向).
         // 处理地面状态和跳跃:
 
-        // 若角色站立在地面上 (m_CharacterController.isGrounded 为真)：
+        // 若角色站立在地面上 (m_CharacterController.isGrounded 为真):
         // 向下施加一个较小的力 (m_StickToGroundForce),使角色紧贴地面.
         // 若玩家按下跳跃键 (m_Jump 为真),则增加向上的跳跃力,播放跳跃声音,并更新跳跃状态.
         // 若角色不在地面上,则考虑重力影响,增加向下的力.
@@ -376,35 +376,35 @@ namespace MetalMaxSystem.Unity
     }
 }
 
-// 这段代码是Unity中第一人称控制器（First Person Controller)的实现,用于处理玩家的移动、跳跃、视角旋转以及其他一些动作.代码使用了Unity的内置组件和API.
-// 下面是对代码主要部分的解释：
-// 命名空间（Namespace)：UnityStandardAssets.Characters.FirstPerson 表示这个脚本属于Unity标准资源包中的第一人称角色控制器.
-// 类定义（Class Definition)：FirstPersonController 类继承自 MonoBehaviour,这意味着它是一个Unity组件,可以附加到游戏对象上.
-// 属性（Properties)：
-// m_IsWalking：玩家是否正在行走.
-// m_WalkSpeed 和 m_RunSpeed：玩家行走和奔跑的速度.
-// m_RunstepLenghten：奔跑时每一步的长度.
-// m_JumpSpeed：玩家跳跃的初速度.
-// m_StickToGroundForce：玩家贴近地面的力（角色跳跃时增加值使更快地落地,或在斜坡上行走时通过调整这个值来使角色更容易沿着斜坡滑动)
-// m_GravityMultiplier：重力乘数,用于调整玩家受到的重力影响.
-// m_MouseLook：用于处理鼠标视角旋转的组件.
-// m_UseFovKick 和 m_FovKick：是否使用视野抖动效果,以及视野抖动的参数.
-// m_UseHeadBob、m_HeadBob 和 m_JumpBob：是否使用头部抖动效果,以及头部抖动的参数.
-// m_StepInterval：每一步之间的时间间隔.
-// m_FootstepSounds：脚步声数组,随机选择播放.
-// m_JumpSound 和 m_LandSound：跳跃和落地时的声音.
-// 私有变量（Private Variables)：
-// m_Camera：玩家的相机.
-// m_Jump：一个标记,表示玩家是否应该跳跃.
-// m_YRotation：玩家的Y轴旋转（通常用于视角).
-// m_Input：玩家输入（例如,键盘和鼠标输入).
-// m_MoveDir：玩家的移动方向.
-// m_CharacterController：CharacterController 组件,用于处理物理碰撞和移动.
-// m_CollisionFlags：碰撞标志,用于检测与环境的碰撞.
-// m_PreviouslyGrounded：一个标记,表示玩家上一帧是否在地面上.
-// m_OriginalCameraPosition：相机原始位置,用于处理头部抖动.
-// m_StepCycle 和 m_NextStep：用于处理步伐周期的变量.
-// m_Jumping：一个标记,表示玩家当前是否在跳跃.
-// m_AudioSource：音频源组件,用于播放声音.
+// 这段代码是Unity中第一人称控制器(First Person Controller)的实现,用于处理玩家的移动、跳跃、视角旋转以及其他一些动作.代码使用了Unity的内置组件和API.
+// 下面是对代码主要部分的解释:
+// 命名空间(Namespace):UnityStandardAssets.Characters.FirstPerson 表示这个脚本属于Unity标准资源包中的第一人称角色控制器.
+// 类定义(Class Definition):FirstPersonController 类继承自 MonoBehaviour,这意味着它是一个Unity组件,可以附加到游戏对象上.
+// 属性(Properties):
+// m_IsWalking:玩家是否正在行走.
+// m_WalkSpeed 和 m_RunSpeed:玩家行走和奔跑的速度.
+// m_RunstepLenghten:奔跑时每一步的长度.
+// m_JumpSpeed:玩家跳跃的初速度.
+// m_StickToGroundForce:玩家贴近地面的力(角色跳跃时增加值使更快地落地,或在斜坡上行走时通过调整这个值来使角色更容易沿着斜坡滑动)
+// m_GravityMultiplier:重力乘数,用于调整玩家受到的重力影响.
+// m_MouseLook:用于处理鼠标视角旋转的组件.
+// m_UseFovKick 和 m_FovKick:是否使用视野抖动效果,以及视野抖动的参数.
+// m_UseHeadBob、m_HeadBob 和 m_JumpBob:是否使用头部抖动效果,以及头部抖动的参数.
+// m_StepInterval:每一步之间的时间间隔.
+// m_FootstepSounds:脚步声数组,随机选择播放.
+// m_JumpSound 和 m_LandSound:跳跃和落地时的声音.
+// 私有变量(Private Variables):
+// m_Camera:玩家的相机.
+// m_Jump:一个标记,表示玩家是否应该跳跃.
+// m_YRotation:玩家的Y轴旋转(通常用于视角).
+// m_Input:玩家输入(例如,键盘和鼠标输入).
+// m_MoveDir:玩家的移动方向.
+// m_CharacterController:CharacterController 组件,用于处理物理碰撞和移动.
+// m_CollisionFlags:碰撞标志,用于检测与环境的碰撞.
+// m_PreviouslyGrounded:一个标记,表示玩家上一帧是否在地面上.
+// m_OriginalCameraPosition:相机原始位置,用于处理头部抖动.
+// m_StepCycle 和 m_NextStep:用于处理步伐周期的变量.
+// m_Jumping:一个标记,表示玩家当前是否在跳跃.
+// m_AudioSource:音频源组件,用于播放声音.
 
 #endif

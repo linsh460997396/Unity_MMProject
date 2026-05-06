@@ -66,7 +66,7 @@ namespace CellSpace
 
         /// <summary>
         /// 从先前压缩的特定团块的单元数据字符串中解压缩出团块数据,并将它保存到团块的CellData数组中.
-        /// 最后会调用SetCellSimple执行刷地块操作(恢复区域文件中的地形)。
+        /// 最后会调用SetCellSimple执行刷地块操作(恢复区域文件中的地形).
         /// </summary>
         /// <param name="chunk">团块</param>
         /// <param name="data">先前压缩的特定团块的单元数据字符串</param>

@@ -4,7 +4,7 @@ namespace MetalMaxSystem
 {
     /// <summary>
     /// 普通字典封装的数据表(单线程读写,跨线程仅只读安全).
-    /// 效率：字典 > 哈希表 >> 字典.ToString() > 跨线程字典
+    /// 效率:字典 > 哈希表 >> 字典.ToString() > 跨线程字典
     /// </summary>
     /// <typeparam name="T">字典中存储的值的类型</typeparam>
     public static class DataTableConcurrent<T>

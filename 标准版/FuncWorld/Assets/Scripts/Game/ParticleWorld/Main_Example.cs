@@ -465,7 +465,7 @@ namespace ParticleWorld
             #region 下载网页数据
 
             //HtmlDocument doc = new();
-            //doc.LoadHtml(MMCore.CreateGetHttpResponse("https://ac.qq.com/Comic/ComicInfo/id/542330"));
+            //doc.LoadHtml(MMCore.Get("https://ac.qq.com/Comic/ComicInfo/id/542330"));
 
             ////单元素下载:
             //HtmlNode obj = doc.DocumentNode.SelectSingleNode("/html/body/div[3]/div[3]/div[1]/div[1]/div[1]/a/img");

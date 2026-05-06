@@ -23,7 +23,7 @@ namespace MetalMaxSystem.Unity
         /// <returns></returns>
         public static GameObject FindGameObject(GameObject parent, string childName)
         {
-            //获取所有Transform组件实例（包括隐藏的）
+            //获取所有Transform组件实例(包括隐藏的)
             Transform[] allChildren = parent.transform.GetComponentsInChildren<Transform>(true);
 
             foreach (Transform child in allChildren)
@@ -38,7 +38,7 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 检测游戏物体是否包含Transform组件外的组件，有则返回true.
+        /// 检测游戏物体是否包含Transform组件外的组件,有则返回true.
         /// </summary>
         /// <param name="obj"></param>
         /// <returns>当发现任何非Transform组件时返回true,否则全部遍历结束返回false</returns>
@@ -47,7 +47,7 @@ namespace MetalMaxSystem.Unity
             return obj.GetComponents<Component>().Where(c => c != null).Any(c => !(c is Transform));
         }
         /// <summary>
-        /// 检测游戏物体是否含指定名称外的组件，有则返回true.
+        /// 检测游戏物体是否含指定名称外的组件,有则返回true.
         /// </summary>
         /// <param name="obj"></param>
         /// <param name="excludeTypeNames">任意组件类型名称字符串</param>

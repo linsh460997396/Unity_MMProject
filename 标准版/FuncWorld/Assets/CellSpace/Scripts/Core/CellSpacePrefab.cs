@@ -270,7 +270,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 获取Cube网格（优先查找内置资源，不存在则动态生成）
+        /// 获取Cube网格(优先查找内置资源,不存在则动态生成)
         /// </summary>
         public static Mesh GetCubeMesh()
         {
@@ -285,7 +285,7 @@ namespace CellSpace
             Mesh dynamicMesh = new Mesh();
             dynamicMesh.name = "DynamicCube";
 
-            // 定义8个顶点（中心点(0,0,0)，边长1）
+            // 定义8个顶点(中心点(0,0,0),边长1)
             Vector3[] vertices = {
             // 前面
             new Vector3(-0.5f, -0.5f, -0.5f), // 0 左下
@@ -299,7 +299,7 @@ namespace CellSpace
             new Vector3(-0.5f,  0.5f,  0.5f)  // 7
         };
 
-            // 定义12个三角形（6个面×2个三角）
+            // 定义12个三角形(6个面×2个三角)
             int[] triangles = {
             // 前面
             0, 2, 1, 0, 3, 2,
@@ -326,7 +326,7 @@ namespace CellSpace
             return dynamicMesh;
         }
         /// <summary>
-        /// 获取支持uv的球体网格（优先查找内置资源,不存在则动态生成）.
+        /// 获取支持uv的球体网格(优先查找内置资源,不存在则动态生成).
         /// </summary>
         /// <param name="radius">半径</param>
         /// <param name="segments">分段数,越多越像球</param>
@@ -427,7 +427,7 @@ namespace CellSpace
             Mesh dynamicMesh = new Mesh();
             dynamicMesh.name = $"DynamicSphere_{radius}";
 
-            // 定义球体顶点（极角/方位角分段）
+            // 定义球体顶点(极角/方位角分段)
             List<Vector3> vertices = new List<Vector3>();
             List<int> triangles = new List<int>();
 
@@ -457,7 +457,7 @@ namespace CellSpace
                 }
             }
 
-            // 生成三角面（四边形剖分）
+            // 生成三角面(四边形剖分)
             for (int i = 0; i < segments; i++)
             {
                 for (int j = 0; j < segments; j++)
@@ -518,8 +518,8 @@ namespace CellSpace
     }
 }
 
-//本脚本示范Unity游戏框架纯代码化，模仿"取出AB素材包后预制体实例在内存待实例化"的状态。
-//问：为什么要把场景GameObject换成代码组装，把它们做成真正的预制体打AB素材包不行么？
-//答：因预制体带自定义脚本组件情况下，直接读AB包会识别不到该脚本，要先把这个脚本做dll然后比读取AB包动作所在dll更早加载到内存，后续dll中读取预制体才能识别到完整组件。
-//是一家人就该完完整整在一起（其他素材的话，图片可外路径读取，但自定义Shader要打AB包因它不支持零散读取...所以根据情况某些素材还是需打AB包的，但我不想把部分脚本拆出去做dll预读，除非万不得已）。
-//这种方式下，编辑器测试完整功能后可以正常打包，只是素材要手动复制到打包后的_Data目录。如框架用到的图片素材，Application.dataPath打包前是Assets文件夹下的路径，打包后是识别exe程序名称_Data文件夹下的路径(末尾没有\)，用法:Application.dataPath + "/Resources/Textures/WorldSP.png"。
+//本脚本示范Unity游戏框架纯代码化,模仿"取出AB素材包后预制体实例在内存待实例化"的状态.
+//问:为什么要把场景GameObject换成代码组装,把它们做成真正的预制体打AB素材包不行么？
+//答:因预制体带自定义脚本组件情况下,直接读AB包会识别不到该脚本,要先把这个脚本做dll然后比读取AB包动作所在dll更早加载到内存,后续dll中读取预制体才能识别到完整组件.
+//是一家人就该完完整整在一起(其他素材的话,图片可外路径读取,但自定义Shader要打AB包因它不支持零散读取...所以根据情况某些素材还是需打AB包的,但我不想把部分脚本拆出去做dll预读,除非万不得已).
+//这种方式下,编辑器测试完整功能后可以正常打包,只是素材要手动复制到打包后的_Data目录.如框架用到的图片素材,Application.dataPath打包前是Assets文件夹下的路径,打包后是识别exe程序名称_Data文件夹下的路径(末尾没有\),用法:Application.dataPath + "/Resources/Textures/WorldSP.png".

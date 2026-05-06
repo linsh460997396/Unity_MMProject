@@ -5,14 +5,18 @@
 //using System.Collections.Generic;
 //using UnityEngine;
 
-//namespace Test.Example.Garbage
+//namespace TestOnly
 //{
-//    public class TEG_HD3 : MonoBehaviour
+//    /// <summary>
+//    /// 测试入口
+//    /// </summary>
+//    public class TEG_HD5 : MonoBehaviour
 //    {
 //        Dictionary<string, string> DataTableSCV = new Dictionary<string, string>();
 //        Dictionary<int, string> DataTableCV = new Dictionary<int, string>();
 //        ConcurrentDictionary<string, string> CDataTableSCV = new ConcurrentDictionary<string, string>();
 //        ConcurrentDictionary<int, string> CDataTableCV = new ConcurrentDictionary<int, string>();
+
 //        Hashtable HashTableCV = new Hashtable();
 //        DateTime startTime, endTime;
 //        TimeSpan elapsedTime;
@@ -31,12 +35,27 @@
 //            elapsedTime = endTime - startTime;
 //            Debug.Log("使用封装字典 " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //27.3604ms 内部拼字符导致变慢
 
+//            ThreadStringBuilder.ConcatType = true;
+
+//            startTime = DateTime.Now;
+//            for (int i = 0; i < 10000; i++)
+//            {
+//                if (MMCore.HD_ReturnIntCV(i, "Compared") != "true")
+//                {
+//                    MMCore.HD_SetIntCV(i, "Compared", "true");
+//                }
+//            }
+//            endTime = DateTime.Now;
+//            elapsedTime = endTime - startTime;
+//            Debug.Log("使用封装字典及string.Concat " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //26.0574ms 内部拼字符导致变慢
+
+//            ThreadStringBuilder.ConcatType = false;
 //            MMCore.DataTableHashType = true;
 
 //            startTime = DateTime.Now;
-//            for (int i = 10000; i < 20000; i++)
+//            for (int i = 0; i < 10000; i++)
 //            {
-//                if (MMCore.HD_ReturnIntCV(i, "Compared") == null || MMCore.HD_ReturnIntCV(i, "Compared") != "true")
+//                if (MMCore.HD_ReturnIntCV(i, "Compared") != "true")
 //                {
 //                    MMCore.HD_SetIntCV(i, "Compared", "true");
 //                }
@@ -45,8 +64,37 @@
 //            elapsedTime = endTime - startTime;
 //            Debug.Log("使用封装HashTable " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //26.0574ms 内部拼字符导致变慢
 
+//            ThreadStringBuilder.ConcatType = true;
+
 //            startTime = DateTime.Now;
-//            for (int i = 20000; i < 30000; i++)
+//            for (int i = 0; i < 10000; i++)
+//            {
+//                if (MMCore.HD_ReturnIntCV(i, "Compared") != "true")
+//                {
+//                    MMCore.HD_SetIntCV(i, "Compared", "true");
+//                }
+//            }
+//            endTime = DateTime.Now;
+//            elapsedTime = endTime - startTime;
+//            Debug.Log("使用封装HashTable及string.Concat " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //26.0574ms 内部拼字符导致变慢
+
+//            ThreadStringBuilder.ConcatType = false;
+//            MMCore.DataTableHashType = false;
+
+//            startTime = DateTime.Now;
+//            for (int i = 0; i < 10000; i++)
+//            {
+//                if (MMCore.HD_ReturnIntCV(i, "Compared") != "true")
+//                {
+//                    MMCore.HD_SetIntCV(i, "Compared", "true");
+//                }
+//            }
+//            endTime = DateTime.Now;
+//            elapsedTime = endTime - startTime;
+//            Debug.Log("使用封装字典 " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //27.3604ms 内部拼字符导致变慢
+
+//            startTime = DateTime.Now;
+//            for (int i = 0; i < 10000; i++)
 //            {
 //                if (!(DataTableCV.ContainsKey(i) && DataTableCV[i] == "true"))
 //                {
@@ -58,7 +106,7 @@
 //            Debug.Log("用原始字典 " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //1.02ms
 
 //            startTime = DateTime.Now;
-//            for (int i = 20000; i < 30000; i++)
+//            for (int i = 0; i < 10000; i++)
 //            {
 //                if (!(DataTableSCV.ContainsKey(i.ToString()) && DataTableSCV[i.ToString()] == "true"))
 //                {
@@ -70,7 +118,7 @@
 //            Debug.Log("用原始字典且ToString() " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //6.9783ms ToString导致变慢
 
 //            startTime = DateTime.Now;
-//            for (int i = 30000; i < 40000; i++)
+//            for (int i = 0; i < 10000; i++)
 //            {
 //                if (!(CDataTableCV.ContainsKey(i) && CDataTableCV[i] == "true"))
 //                {
@@ -82,7 +130,7 @@
 //            Debug.Log("用跨线程字典 " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //6.9533ms 跨线程字典默认速度约等于原始字典.ToString()的速度
 
 //            startTime = DateTime.Now;
-//            for (int i = 40000; i < 50000; i++)
+//            for (int i = 0; i < 10000; i++)
 //            {
 //                if (!(CDataTableSCV.ContainsKey(i.ToString()) && CDataTableSCV[i.ToString()] == "true"))
 //                {
@@ -94,7 +142,7 @@
 //            Debug.Log("用跨线程字典且ToString() " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //16.9541ms 跨线程+ToString()更慢
 
 //            startTime = DateTime.Now;
-//            for (int i = 50000; i < 60000; i++)
+//            for (int i = 0; i < 10000; i++)
 //            {
 //                if (!(HashTableCV.ContainsKey(i) && HashTableCV[i] == "true"))
 //                {
@@ -106,7 +154,7 @@
 //            Debug.Log("用原始HashTable " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //1.9947ms
 
 //            startTime = DateTime.Now;
-//            for (int i = 0; i < 1000000; i++)
+//            for (int i = 0; i < 10000; i++)
 //            {
 //                string.Concat("key", "_", "1", "_", "2", "_", "3", "_", "4");
 //            }
@@ -115,7 +163,7 @@
 //            Debug.Log("使用string.Concat " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //1156.83ms
 
 //            startTime = DateTime.Now;
-//            for (int i = 0; i < 1000000; i++)
+//            for (int i = 0; i < 10000; i++)
 //            {
 //                string.Concat("key", "_", 1, "_", 2, "_", 3, "_", 4);
 //            }
@@ -124,7 +172,7 @@
 //            Debug.Log("使用string.Concat带数字 " + $"耗时:{elapsedTime.TotalMilliseconds}ms"); //2865.6832ms
 
 //            startTime = DateTime.Now;
-//            for (int i = 0; i < 1000000; i++)
+//            for (int i = 0; i < 10000; i++)
 //            {
 //                ThreadStringBuilder.Concat("key", '_', 1, '_', 2, '_', 3, '_', 4);
 //            }
@@ -142,7 +190,6 @@
 
 //            ////数字装箱后是同一个
 //            //Debug.Log(string.Format("结果:{0}, {1}", 1, 1));
-
 //        }
 //    }
 //}

@@ -12,8 +12,8 @@ namespace CellSpace
         public List<CellXYZInfo> idxyzs = new List<CellXYZInfo>();
 
         /// <summary>
-        /// 填充球形扩散的格子偏移量数组，用于3D范围内找最近网格容器
-        /// 生成一系列均匀分布在多个球面上的点，并将这些点的坐标及每个球面上的点数量存储起来
+        /// 填充球形扩散的格子偏移量数组,用于3D范围内找最近网格容器
+        /// 生成一系列均匀分布在多个球面上的点,并将这些点的坐标及每个球面上的点数量存储起来
         /// </summary>
         /// <param name="gridNum">网格行或列数</param>
         /// <param name="cellSize">单元大小</param>
@@ -32,10 +32,10 @@ namespace CellSpace
 
                 if (radius <= 0)
                 {
-                    continue; // 跳过半径为0的情况（中心点已添加）
+                    continue; // 跳过半径为0的情况(中心点已添加)
                 }
 
-                // 计算球面上的采样点数量（基于立体角）
+                // 计算球面上的采样点数量(基于立体角)
                 var solidAngleStep = CalculateSolidAngleStep(radius, cellSize);
                 var thetaSteps = (int)(Mathf.PI / solidAngleStep);
                 var phiSteps = (int)(2 * Mathf.PI / solidAngleStep);
@@ -58,7 +58,7 @@ namespace CellSpace
                         var y = (int)(sinTheta * sinPhi * radius / cellSize);
                         var z = (int)(cosTheta * radius / cellSize);
 
-                        // 生成唯一标识（使用48位存储三个16位坐标）
+                        // 生成唯一标识(使用48位存储三个16位坐标)
                         var key = Generate3DKey(x, y, z);
 
                         if (set.Add(key))
@@ -68,7 +68,7 @@ namespace CellSpace
                     }
                 }
 
-                // 如果本轮添加了新点，记录该球面的信息
+                // 如果本轮添加了新点,记录该球面的信息
                 if (idxyzs.Count > lenBak)
                 {
                     lens.Add(new CellCountRadiusInfo { count = idxyzs.Count, radius = radius });
@@ -77,7 +77,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 计算立体角步长，用于确定球面上的采样密度
+        /// 计算立体角步长,用于确定球面上的采样密度
         /// </summary>
         private float CalculateSolidAngleStep(float radius, float cellSize)
         {
@@ -87,7 +87,7 @@ namespace CellSpace
                 return Mathf.PI / 4; // 小半径时使用较稀疏的采样
             }
 
-            // 目标：每个采样点代表的面积约等于cellSize²
+            // 目标:每个采样点代表的面积约等于cellSize²
             var targetArea = cellSize * cellSize;
             var sphereArea = 4 * Mathf.PI * radius * radius;
             var approximateSteps = sphereArea / targetArea;
@@ -96,7 +96,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 生成3D坐标的唯一标识（使用48位：每个坐标16位）
+        /// 生成3D坐标的唯一标识(使用48位:每个坐标16位)
         /// </summary>
         private ulong Generate3DKey(int x, int y, int z)
         {

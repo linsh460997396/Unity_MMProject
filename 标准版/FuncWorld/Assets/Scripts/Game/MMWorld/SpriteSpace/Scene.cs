@@ -249,7 +249,7 @@ namespace SpriteSpace
                 }
                 else
                 {
-                    Debug.LogError("SpriteSpace框架仅支持2D横板模式（X-Y平面）、3D单层地形模式（X-Z平面）");
+                    Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
 
                     ////正常3D模式的镜头应另行支持鼠标旋转屏
                     //Camera.main.gameObject.transform.rotation = Quaternion.Euler(90, 0, 0);
@@ -275,7 +275,7 @@ namespace SpriteSpace
 //var st = typeof(Scene); //获取类型信息
 //获取私有方法,指定BindingFlags
 //MethodInfo privateMethod = type.GetMethod("方法名",BindingFlags.NonPublic | BindingFlags.Instance);
-//设置方法可访问（如需）
+//设置方法可访问(如需)
 //privateMethod?.SetAccessible(true);
 //var fs = st.GetFields(BindingFlags.Public | BindingFlags.Instance); //如果要获取私有字段则换成BindingFlags.NonPublic
 //foreach (var f in fs) {

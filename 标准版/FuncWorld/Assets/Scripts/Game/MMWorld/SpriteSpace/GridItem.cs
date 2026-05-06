@@ -7,7 +7,7 @@ namespace SpriteSpace
 {
     /// <summary>
     /// 空间物体.作为节点填入双向链表的网格容器.
-    /// 若GridItem继承CellItem,则可把继承GridItem的子类对象（如怪物、子弹等）同时添加到CellChunk的双向链表中管理.
+    /// 若GridItem继承CellItem,则可把继承GridItem的子类对象(如怪物、子弹等)同时添加到CellChunk的双向链表中管理.
     /// </summary>
     public class GridItem
     {

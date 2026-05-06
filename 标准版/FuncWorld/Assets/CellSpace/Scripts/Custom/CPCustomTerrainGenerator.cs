@@ -13,7 +13,7 @@ namespace CellSpace
     {
         public override void GenerateCellData()
         {
-            //Debug.Log("启用地形生成器（硬盘无区域存档时进行首次地形生成）");
+            //Debug.Log("启用地形生成器(硬盘无区域存档时进行首次地形生成)");
             //Debug.Log($"GenerateCellData: chunk=({chunk.ChunkIndex.x},{chunk.ChunkIndex.y},{chunk.ChunkIndex.z})");
             if (CPEngine.horizontalMode == true)
             {//2D横版模式侧面刷图
@@ -49,7 +49,7 @@ namespace CellSpace
                     Debug.Log("团块索引为负数,该空间不执行刷图");
                     return;
                 }
-                //3D模式下刷图在顶面（X-Z）
+                //3D模式下刷图在顶面(X-Z)
                 if (chunk.ChunkIndex.z >= 0)
                 {
                     if (chunk.ChunkIndex.y >= 0)

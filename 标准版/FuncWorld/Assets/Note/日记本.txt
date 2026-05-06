@@ -1109,7 +1109,7 @@ for (int i = 0; i < 1000000; i++)
     sb.Clear();
     sb.Append("key"); // 追加字符串
     sb.Append('_'); // 追加字符
-    sb.Append(1); // 追加整数（会自动转换为字符串）
+    sb.Append(1); // 追加整数(会自动转换为字符串)
     sb.Append('_');
     sb.Append(2);
     sb.Append('_');
@@ -1189,6 +1189,28 @@ IEnumerator 枚举器‌:它代表一个指向集合中当前元素的游标,提
 “迭代器”是更广义的概念‌:在 C# 中,“迭代器”常指通过 yield return 实现的、能按需生成值的方法,其返回类型为 IEnumerable<T>
 这种写法让开发者无需手动实现枚举器类,编译器会自动生成状态机来支持 foreach 遍历
 简单来说:
-IEnumerator → ‌枚举器（Enumerator）‌:具体执行遍历的实例.
-IEnumerable + yield → ‌迭代器（Iterator）‌:提供枚举能力的方法.
+IEnumerator → ‌枚举器(Enumerator)‌:具体执行遍历的实例.
+IEnumerable + yield → ‌迭代器(Iterator)‌:提供枚举能力的方法.
 因此IEnumerator 叫“枚举器”更准确‌,以避免与“迭代器模式”或 yield 机制混淆.
+
+跨线程资源管理还挺复杂的
+线程1创建结构体或类,Unit A = new Unit();然后存入跨线程字典B,线程1摧毁了,A是线程1上的,也跟着没了...
+但跨线程字典B还在,关联还在,于是Unit实例不必去GC,这时候,通常任意线程都可修改Unit,不需要回原来的线程1回调
+只有Unity引擎对象需回主线程回调,即Unit内部若封了这类资源(如字段 = GameObject、Mesh等组件对象),当操作比如Unit.GameObject时,必须回调让主线程操作
+但如果这个Unit继承MonoBehaviour,那就只能放在主线程上了,因为它本身就是Unity引擎对象了,不允许跨线程创建
+子线程创建的对象,只能子线程才能改的情况,除非是子线程引用form.dll的windows窗体,在该线程创建UI实例的情况
+结论:除了UI框架(WinForms/WPF)、引擎组件等特定COM/原生资源外,普通C#对象不存在“只能由创建线程修改”的限制
+堆是全局共享的‌:它不属于任何特定线程
+‌引用是指针‌:字典里存的是指向堆内存的地址
+‌线程只是执行者‌:线程销毁时只清空自己的‌栈(Stack)‌(局部变量、方法调用链),‌不会触碰堆内存‌
+
+
+((DownloadHandlerFile)webRequest.downloadHandler).removeFileOnAbort = true;
+‌功能‌:这是 UnityWebRequest 的 DownloadHandlerFile 提供的‌内置自动清理机制‌.
+‌触发条件‌:当下载被‌主动中止‌(如调用 webRequest.Abort() 或超时自动中止),Unity 会自动删除已写入的部分文件
+‌特点‌:仅在中止时生效‌,不处理其他类型的失败,由 Unity 引擎底层自动执行,无需手动干预,防止因下载中断产生不完整的垃圾文件
+
+//public static Regex fileUrlRegex = new Regex("\"(https?://[^\"\\s]+\\.jpg)\"", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+public static Regex fileUrlRegex = new Regex("\"(?<url>https?://[^\"\\s]+\\.jpg)\"", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+//添加了?<url>就可以通过 match.Groups["url"].Value 来获取匹配的URL字符串,而不需要再进行一次字符串处理来去掉引号.
+//否则要用match.Groups[1].Value然后去掉两端的引号,写成 match.Groups[1].Value.Trim('"')

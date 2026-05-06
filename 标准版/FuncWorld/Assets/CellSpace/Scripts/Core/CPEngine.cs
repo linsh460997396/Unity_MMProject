@@ -838,7 +838,7 @@ namespace CellSpace
 
                 //遮罩层设置
 
-                //若26层名不为空则输出警告（编辑器模式下添加有0~31层）
+                //若26层名不为空则输出警告(编辑器模式下添加有0~31层)
                 if (LayerMask.LayerToName(26) != "" && LayerMask.LayerToName(26) != "NoCollide")
                 {
                     Debug.LogWarning("CellSpace: Layer 26 is reserved for CellSpace, it is automatically set to ignore collision with all layers." +
@@ -1115,7 +1115,7 @@ namespace CellSpace
         {
             //你最多可预制65536个地块(单元)预制体,对应索引0~65535.
 
-            blocks = new GameObject[num]; //预计内置65536种地块（第4材质即材质索引3上的纹理是备用重复的,实际地块种类包括空块=1523种）
+            blocks = new GameObject[num]; //预计内置65536种地块(第4材质即材质索引3上的纹理是备用重复的,实际地块种类包括空块=1523种)
             //填充第1个元素为一个空的地形单元(空块),只有0~10地块预制体是特别定制的,其余若只是换个uv则可以批量制作
             blocks[0] = new GameObject("cell_0");
             blocks[0].SetActive(false);
@@ -2006,5 +2006,5 @@ namespace CellSpace
 //单一空间重复利用模式下,其实也能模拟多场景NPC活动,需要做一套虚拟场景坐标.
 //目前精灵空间管理框架(SpriteSpace)里写了一套虚拟坐标,只是与真实世界坐标比例100:1而已.新的虚拟坐标模拟邻居城镇场景各不相同时需要一个转换函数根据虚拟坐标和团块索引得到真实世界坐标(使各场景都重复刷在单个绝对世界空间).
 //该设计模式下重复利用空间的性能高一些,而分开设计创建摧毁大量空间团时依然会明显掉帧(空间对象尚未做对象池管理,是因其范围较大不会刷新频繁,但若其频繁摧毁时依然需优化).
-//单一空间重复利用模式下应关闭框架自动存档功能,改为手动刷场景及安排存档。
+//单一空间重复利用模式下应关闭框架自动存档功能,改为手动刷场景及安排存档.
 #endregion

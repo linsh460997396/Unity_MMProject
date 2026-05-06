@@ -11,7 +11,7 @@ namespace MetalMaxSystem.Unity
 {
     /// <summary>
     /// 资源方法类,提供AssetBundle资源管理方案.当使用异步加载时,该类只能有1个正在加载资源的协程,届时用Resource.isCoroutineRunning来检查是否可以开启新协程.
-    /// 协程必须在MonoBehaviour组件实例中创建和运行，所以本类必须作为组件挂载到一个GameObject上才能使用.
+    /// 协程必须在MonoBehaviour组件实例中创建和运行,所以本类必须作为组件挂载到一个GameObject上才能使用.
     /// </summary>
     public class AssetBundleLoader : MonoBehaviour
     {
