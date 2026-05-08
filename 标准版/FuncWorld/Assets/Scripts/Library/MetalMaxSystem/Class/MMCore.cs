@@ -1033,7 +1033,7 @@ namespace MetalMaxSystem
         #region Functions 通用功能
 
         /// <summary>
-        /// 构建键值字符串.
+        /// 用ThreadStringBuilder构建键值字符串.
         /// 以baseKey为基础,在其后依次添加下划线和indices中的每个元素,形成一个新的字符串返回.如BuildKey("key", 1, 2)返回"key12"
         /// </summary>
         /// <param name="baseKey">基础键值</param>
@@ -1052,7 +1052,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 构建键值字符串.
+        /// 用ThreadStringBuilder构建键值字符串.
         /// 以baseKey为基础,在其后依次添加下划线和indices中的每个元素,形成一个新的字符串返回.如BuildKey("key", 1, 2)返回"key_1_2"
         /// </summary>
         /// <param name="baseKey">基础键值</param>
@@ -1072,7 +1072,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 构建键值字符串(使用指定分隔符).
+        /// 用ThreadStringBuilder构建键值字符串(使用指定分隔符).
         /// 以baseKey为基础,在其后依次添加分隔符和indices中的每个元素,形成一个新的字符串返回.
         /// 如 BuildKeyWithSeparator('_', "key", 1, 2) 返回 "key_1_2"
         /// </summary>

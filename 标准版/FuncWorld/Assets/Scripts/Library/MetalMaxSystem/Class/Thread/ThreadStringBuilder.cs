@@ -3,28 +3,35 @@ using System.Threading;
 
 namespace MetalMaxSystem
 {
+    /// <summary>
+    /// 线程安全的StringBuilder复用工具类.
+    /// FastSpan.BuildString对于堆栈上值类型拼接非常高效,纯字符串拼接请用string.Concat,但对于混合值、引用类型的复杂格式拼接请用ThreadStringBuilder.
+    /// </summary>
     public static class ThreadStringBuilder
     {
-        private static bool _concatType = false;
-        /// <summary>
-        /// 组合类型.用于Concat方法切换,默认false采用sb.Append(),为true时切换为string.Concat().
-        /// </summary>
-        public static bool ConcatType
-        {
-            get
-            {
-                return _concatType;
-            }
-            set
-            {
-                _concatType = value;
-            }
-        }
+        #region Test
+
+        //private static bool _concatType = false;
+        ///// <summary>
+        ///// 组合类型(仅测试).用于Concat方法切换,默认false采用sb.Append(),为true时切换为string.Concat().
+        ///// </summary>
+        //public static bool ConcatType
+        //{
+        //    get
+        //    {
+        //        return _concatType;
+        //    }
+        //    set
+        //    {
+        //        _concatType = value;
+        //    }
+        //}
+
+        #endregion
 
         // 定义 ThreadLocal 变量
         // 这里的 () => new StringBuilder(256) 是工厂函数,仅在首次访问时执行
-        private static ThreadLocal<StringBuilder> _threadLocalBuilder =
-            new ThreadLocal<StringBuilder>(() => new StringBuilder(256));
+        private static ThreadLocal<StringBuilder> _threadLocalBuilder = new ThreadLocal<StringBuilder>(() => new StringBuilder(256));
 
         // 获取当前线程复用的 StringBuilder
         public static StringBuilder Get()
@@ -51,10 +58,11 @@ namespace MetalMaxSystem
         /// </summary>
         public static string Concat(string str1, char sep1, int val1, char sep2, int val2, char sep3, int val3, char sep4, int val4)
         {
-            if (ConcatType)
-            {
-                return string.Concat(str1, sep1, val1, sep2, val2, sep3, val3, sep4, val4);
-            }
+            //string.Concat组合数字、字符、字符串混合情况性能较StringBuilder更差
+            //if (ConcatType)
+            //{
+            //    return string.Concat(str1, sep1, val1, sep2, val2, sep3, val3, sep4, val4);
+            //}
             var sb = Get();
             sb.Append(str1);
             sb.Append(sep1);
@@ -73,10 +81,11 @@ namespace MetalMaxSystem
         /// </summary>
         public static string Concat(string str1, char sep1, int val1, char sep2, int val2, char sep3, int val3)
         {
-            if (ConcatType)
-            {
-                return string.Concat(str1, sep1, val1, sep2, val2, sep3, val3);
-            }
+            //string.Concat组合数字、字符、字符串混合情况性能较StringBuilder更差
+            //if (ConcatType)
+            //{
+            //    return string.Concat(str1, sep1, val1, sep2, val2, sep3, val3, sep4, val4);
+            //}
             var sb = Get();
             sb.Append(str1);
             sb.Append(sep1);
@@ -93,10 +102,11 @@ namespace MetalMaxSystem
         /// </summary>
         public static string Concat(string str1, char sep1, int val1, char sep2, int val2)
         {
-            if (ConcatType)
-            {
-                return string.Concat(str1, sep1, val1, sep2, val2);
-            }
+            //string.Concat组合数字、字符、字符串混合情况性能较StringBuilder更差
+            //if (ConcatType)
+            //{
+            //    return string.Concat(str1, sep1, val1, sep2, val2, sep3, val3, sep4, val4);
+            //}
             var sb = Get();
             sb.Append(str1);
             sb.Append(sep1);
@@ -111,10 +121,11 @@ namespace MetalMaxSystem
         /// </summary>
         public static string Concat(string str1, char sep1, int val1)
         {
-            if (ConcatType)
-            {
-                return string.Concat(str1, sep1, val1);
-            }
+            //string.Concat组合数字、字符、字符串混合情况性能较StringBuilder更差
+            //if (ConcatType)
+            //{
+            //    return string.Concat(str1, sep1, val1, sep2, val2, sep3, val3, sep4, val4);
+            //}
             var sb = Get();
             sb.Append(str1);
             sb.Append(sep1);

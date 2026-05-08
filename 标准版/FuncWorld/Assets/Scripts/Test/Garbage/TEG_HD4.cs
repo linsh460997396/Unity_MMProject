@@ -45,7 +45,7 @@
 //            startTime = DateTime.Now;
 //            for (int i = 0; i < 1000000; i++)
 //            {
-//                Combi.BuildStringEfficiently("key", "_", 1, "_", 2, "_", 3, "_", 4);
+//                FastSpan.BuildString("key", "_", 1, "_", 2, "_", 3, "_", 4);
 //            }
 //            endTime = DateTime.Now;
 //            elapsedTime = endTime - startTime;
@@ -54,7 +54,7 @@
 //            startTime = DateTime.Now;
 //            for (int i = 0; i < 1000000; i++)
 //            {
-//                Combi.BuildStringEfficiently("key", '_', 1, '_', 2, '_', 3, '_', 4);
+//                FastSpan.BuildString("key", '_', 1, '_', 2, '_', 3, '_', 4);
 //            }
 //            endTime = DateTime.Now;
 //            elapsedTime = endTime - startTime;

@@ -1,5 +1,4 @@
-﻿using MetalMaxSystem.Unity;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace TestOnly
 {
@@ -8,9 +7,10 @@ namespace TestOnly
     /// </summary>
     public class Test_Main : MonoBehaviour
     {
-        void Start()
+        void Awake()
         {
 
         }
+
     }
 }
