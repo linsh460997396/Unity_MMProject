@@ -1,5 +1,4 @@
-﻿//#define UNITY_STANDALONE //BepInEx制作UnityMOD时可手动启用
-#if UNITY_EDITOR || UNITY_STANDALONE
+﻿#if UNITY_EDITOR || UNITY_STANDALONE
 
 using System;
 using UnityEngine.InputSystem;

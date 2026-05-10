@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_EDITOR || UNITY_STANDALONE || NET6_0_OR_GREATER
+using System;
 
 namespace MetalMaxSystem
 {
@@ -296,3 +297,4 @@ namespace MetalMaxSystem
     }
 }
 
+#endif

@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using UnityEditor.PackageManager.UI;
@@ -411,3 +413,5 @@ namespace CellSpace
     }
 
 }
+
+#endif

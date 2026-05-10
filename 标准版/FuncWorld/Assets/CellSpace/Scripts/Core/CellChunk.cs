@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define BEPINEX //BepInEx制作UnityMOD时可手动启用
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -1158,13 +1160,15 @@ namespace CellSpace
                 else
                 {
                     //用null填充数组cellItems
+#if !BEPINEX
                     Array.Fill(cellItems, null);
+#else
                     //用如下代码替换以兼容旧版.NET/Unity(没Array.Fill情况):
-                    //for (int i = 0; i < cellItems.Length; i++)
-                    //{
-                    //    cellItems[i] = null;
-                    //}
-
+                    for (int i = 0; i < cellItems.Length; i++)
+                    {
+                        cellItems[i] = null;
+                    }
+#endif
                     //重新调整数组cellItems的大小,新的大小为SideLength^边长个数,并将调整后的数组重新赋值给cellItems.
                     //这一步可能会创建一个新的数组,若原数组大小与新的大小不同,原数组的内容将被复制到新数组中(或部分复制,取决于大小变化).
                     //若新大小大于原大小,新元素将被设置为默认值(对于引用类型是null,对于值类型是0或相应的默认值).
@@ -2617,4 +2621,3 @@ namespace CellSpace
         #endregion
     }
 }
-

@@ -1,4 +1,7 @@
-﻿using HtmlAgilityPack;
+﻿#define HAS_DLL_HtmlAgilityPack
+#if HAS_DLL_HtmlAgilityPack
+
+using HtmlAgilityPack;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -807,3 +810,5 @@ namespace MetalMaxSystem
         public string Timeline { get; set; }
     }
 }
+
+#endif

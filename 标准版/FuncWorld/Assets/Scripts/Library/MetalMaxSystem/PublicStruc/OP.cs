@@ -1,5 +1,6 @@
-﻿//#define UNITY_STANDALONE //BepInEx制作UnityMOD时可手动启用
-#if UNITY_EDITOR || UNITY_STANDALONE
+﻿//#define BEPINEX //BepInEx制作UnityMOD时可手动启用
+
+#if UNITY_EDITOR || UNITY_STANDALONE || BEPINEX
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -70,14 +71,21 @@ namespace MetalMaxSystem.Unity
 #if UNITY_EDITOR
             Debug.Assert(objectPool.gameObject == null);
 #endif
+
+#if BEPINEX
+            if (pool.Count == 0)
+#else
             if (!pool.TryPop(out objectPool)) //旧版TryPop不可用时启用(1/2) if (pool.Count == 0)
+#endif
             {
                 //Debug没有就新建
                 objectPool = New(createGameObject, active);
             }
             else
             {//成功取出
-                //objectPool = pool.Pop(); //旧版TryPop不可用时启用(2/2)
+#if BEPINEX
+                objectPool = pool.Pop(); //旧版TryPop不可用时启用(2/2)
+#endif
                 //拿出对象之后的工作
                 objectPool.actived = active;//激活停用状态应由对象池统一管理
 #if UNITY_EDITOR
@@ -97,7 +105,7 @@ namespace MetalMaxSystem.Unity
                     objectPool.transform = objectPool.gameObject.transform;
                 }
             }
-            
+
         }
 
         /// <summary>
@@ -128,7 +136,7 @@ namespace MetalMaxSystem.Unity
         /// <returns></returns>
         public static OP New(bool createGameObject = true, bool active = false)
         {
-            OP objectPool = new();
+            OP objectPool = new OP();
             objectPool.actived = active;
             if (createGameObject)
             {
@@ -147,7 +155,7 @@ namespace MetalMaxSystem.Unity
         /// /// <param name="active">结构体激活状态,默认不激活</param>
         public static OP[] Init(int count, bool createGameObject = true, bool active = false)
         {
-            pool = new(count);
+            pool = new Stack<OP>(count);
             for (int i = 0; i < count; i++)
             {
                 pool.Push(New(createGameObject, active));

@@ -72,6 +72,23 @@ namespace MetalMaxSystem
     }
 }
 
+#else
+
+using System;
+
+namespace MetalMaxSystem
+{
+    /// <summary>
+    /// 支持为类或方法添加未完成、正在施工等说明提示.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.All, Inherited = false, AllowMultiple = true)]
+    public class NoteAttribute : Attribute
+    {
+        public string Note { get; }
+        public NoteAttribute(string note) => Note = note;
+    }
+}
+
 #endif
 
 //示范用法(会显示在inspector)

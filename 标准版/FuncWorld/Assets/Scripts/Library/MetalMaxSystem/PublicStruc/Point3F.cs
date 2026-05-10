@@ -1,5 +1,5 @@
 ﻿//#define UNITY_STANDALONE //BepInEx制作UnityMOD时可手动启用
-//#define NETFRAMEWORK
+//#define NETFRAMEWORK //只有FM要启用,MonoGame不启用(因为它有自己的二维向量)
 
 #if UNITY_EDITOR || UNITY_STANDALONE
 //↓Unity环境优先使用Unity的Mathf类

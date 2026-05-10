@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿#if UNITY_EDITOR
+
+using UnityEngine;
 using UnityEditor;
 
 namespace CellSpace
@@ -119,3 +121,5 @@ namespace CellSpace
         }
     }
 }
+
+#endif

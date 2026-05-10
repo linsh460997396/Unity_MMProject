@@ -1,5 +1,6 @@
 ﻿//#define UNITY_STANDALONE //BepInEx制作UnityMOD时可手动启用
 #if UNITY_EDITOR || UNITY_STANDALONE
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -60,7 +61,7 @@ namespace MetalMaxSystem.Unity
         /// 示例MainThreadDispatcher.Instance.Invoke(() =>{涉及主线程对象的动作});
         /// </summary>
         /// <param name="action">这个匿名委托将被添加到队列,由一个专门处理回调的MonoBehaviour组件实例来跑</param>
-        public static void Invoke(Action action)
+        public void Invoke(Action action)
         {
             if (action == null) return;
 
@@ -75,7 +76,7 @@ namespace MetalMaxSystem.Unity
         /// 对Unity引擎组件实例相关动作执行回调(回到主线程调用协程).
         /// 示例MainThreadDispatcher.Instance.Invoke(MyCoroutine());
         /// </summary>
-        public static void Invoke(IEnumerator coroutine)
+        public void Invoke(IEnumerator coroutine)
         {
             if (coroutine == null) return;
 
@@ -93,7 +94,7 @@ namespace MetalMaxSystem.Unity
         ///     Debug.Log("Delayed log");
         /// });
         /// </summary>
-        public static void Invoke(Func<IEnumerator> coroutineFunc)
+        public void Invoke(Func<IEnumerator> coroutineFunc)
         {
             if (coroutineFunc == null) return;
             Invoke(coroutineFunc());

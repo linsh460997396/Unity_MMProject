@@ -1,13 +1,14 @@
 ﻿#region 预处理指令(须靠最前)
-//↓制作UnityMOD环境下启用(如BepInEx)
+//↓制作UnityMOD环境下手动启用(如BepInEx)
 //#define UNITY_STANDALONE
 
 //#define MONOGAME //MonoGame插件下启用(包括XNA框架)
 
-//#if !(UNITY_EDITOR || UNITY_STANDALONE || NET5_0_OR_GREATER)
-//↓非Unity、NET5以上环境则启用NETFRAMEWORK
-//#define NETFRAMEWORK
-//#endif
+#if !(UNITY_EDITOR || UNITY_STANDALONE || NET5_0_OR_GREATER)
+↓仅针对MMCore.cs:非Unity、NET5+则启用NETFRAMEWORK(否则即便Unity的Framework也不启用)
+#define NETFRAMEWORK
+#endif
+
 #endregion
 
 using System;
@@ -1986,7 +1987,7 @@ namespace MetalMaxSystem
             return len;
         }
 
-#if  WINDOWS && !(UNITY_EDITOR || UNITY_STANDALONE || MONOGAME) && (NETFRAMEWORK || NET5_0_OR_GREATER)
+#if WINDOWS && !(UNITY_EDITOR || UNITY_STANDALONE || MONOGAME) && (NETFRAMEWORK || NET5_0_OR_GREATER)
         /// <summary>
         /// 取得设备硬盘的卷序列号(在Unity、MonoGame不适用)
         /// </summary>
@@ -3396,6 +3397,8 @@ namespace MetalMaxSystem
                     break;
             }
         }
+#if !NETFRAMEWORK && NET8_0_OR_GREATER
+        #region
 #nullable enable
         /// <summary>
         /// 读取数据表键值对
@@ -3492,6 +3495,139 @@ namespace MetalMaxSystem
             }
         }
 #nullable restore
+        #endregion
+#else
+        /// <summary>
+        /// 读取数据表键值对
+        /// </summary>
+        /// <param name="place"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static string DataTableStringLoad0(bool place, string key)
+        {
+            switch (DataTableHashType)
+            {
+                case true:
+                    if (HashTableLoad0(place, key) != null)
+                    {
+                        return HashTableLoad0(place, key).ToString();
+                    }
+                    else
+                    {
+                        return string.Empty;
+                    }
+                default:
+                    return DictionaryStringLoad0(place, key);
+            }
+        }
+
+        /// <summary>
+        /// 读取数据表键值对,模拟1维数组
+        /// </summary>
+        /// <param name="place"></param>
+        /// <param name="key"></param>
+        /// <param name="lp_1"></param>
+        /// <returns></returns>
+        public static string DataTableStringLoad1(bool place, string key, int lp_1)
+        {
+            switch (DataTableHashType)
+            {
+                case true:
+                    if (HashTableLoad1(place, key, lp_1) != null)
+                    {
+                        return HashTableLoad1(place, key, lp_1).ToString();
+                    }
+                    else
+                    {
+                        return string.Empty;
+                    }
+                default:
+                    return DictionaryStringLoad1(place, key, lp_1);
+            }
+        }
+
+        /// <summary>
+        /// 读取数据表键值对,模拟2维数组
+        /// </summary>
+        /// <param name="place"></param>
+        /// <param name="key"></param>
+        /// <param name="lp_1"></param>
+        /// <param name="lp_2"></param>
+        /// <returns></returns>
+        public static string DataTableStringLoad2(bool place, string key, int lp_1, int lp_2)
+        {
+            switch (DataTableHashType)
+            {
+                case true:
+                    if (HashTableLoad2(place, key, lp_1, lp_2) != null)
+                    {
+                        return HashTableLoad2(place, key, lp_1, lp_2).ToString();
+                    }
+                    else
+                    {
+                        return string.Empty;
+                    }
+                default:
+                    return DictionaryStringLoad2(place, key, lp_1, lp_2);
+            }
+        }
+
+        /// <summary>
+        /// 读取数据表键值对,模拟3维数组
+        /// </summary>
+        /// <param name="place"></param>
+        /// <param name="key"></param>
+        /// <param name="lp_1"></param>
+        /// <param name="lp_2"></param>
+        /// <param name="lp_3"></param>
+        /// <returns></returns>
+        public static string DataTableStringLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
+        {
+            switch (DataTableHashType)
+            {
+                case true:
+                    if (HashTableLoad3(place, key, lp_1, lp_2, lp_3) != null)
+                    {
+                        return HashTableLoad3(place, key, lp_1, lp_2, lp_3).ToString();
+                    }
+                    else
+                    {
+                        return string.Empty;
+                    }
+                default:
+                    return DictionaryStringLoad3(place, key, lp_1, lp_2, lp_3);
+            }
+        }
+
+        /// <summary>
+        /// 读取数据表键值对,模拟4维数组
+        /// </summary>
+        /// <param name="place"></param>
+        /// <param name="key"></param>
+        /// <param name="lp_1"></param>
+        /// <param name="lp_2"></param>
+        /// <param name="lp_3"></param>
+        /// <param name="lp_4"></param>
+        /// <returns></returns>
+        public static string DataTableStringLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
+        {
+            switch (DataTableHashType)
+            {
+                case true:
+                    if (HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4) != null)
+                    {
+                        return HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4).ToString();
+                    }
+                    else
+                    {
+                        return string.Empty;
+                    }
+                default:
+                    return DictionaryStringLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
+            }
+        }
+#endif
+
         #endregion
 
         #endregion
