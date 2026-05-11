@@ -9,26 +9,6 @@ namespace MetalMaxSystem
     /// </summary>
     public static class ThreadStringBuilder
     {
-        #region Test
-
-        //private static bool _concatType = false;
-        ///// <summary>
-        ///// 组合类型(仅测试).用于Concat方法切换,默认false采用sb.Append(),为true时切换为string.Concat().
-        ///// </summary>
-        //public static bool ConcatType
-        //{
-        //    get
-        //    {
-        //        return _concatType;
-        //    }
-        //    set
-        //    {
-        //        _concatType = value;
-        //    }
-        //}
-
-        #endregion
-
         // 定义 ThreadLocal 变量
         // 这里的 () => new StringBuilder(256) 是工厂函数,仅在首次访问时执行
         private static ThreadLocal<StringBuilder> _threadLocalBuilder = new ThreadLocal<StringBuilder>(() => new StringBuilder(256));

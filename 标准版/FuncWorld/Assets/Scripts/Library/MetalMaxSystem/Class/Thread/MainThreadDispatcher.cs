@@ -24,8 +24,9 @@ namespace MetalMaxSystem.Unity
             {
                 if (_instance == null)
                 {
-                    var obj = new GameObject("MainThreadDispatcher");
-                    _instance = obj.AddComponent<MainThreadDispatcher>();
+                    var obj = GameObject.Find("MainThreadDispatcher");
+                    if (obj == null) obj = new GameObject("MainThreadDispatcher");
+                    if (obj.GetComponent<MainThreadDispatcher>() == null) _instance = obj.AddComponent<MainThreadDispatcher>();
                     DontDestroyOnLoad(obj);
                 }
                 return _instance;

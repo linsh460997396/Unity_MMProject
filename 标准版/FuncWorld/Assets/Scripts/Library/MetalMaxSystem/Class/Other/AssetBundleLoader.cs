@@ -75,8 +75,9 @@ namespace MetalMaxSystem.Unity
             {
                 if (_instance == null)
                 {
-                    var obj = new GameObject("AssetBundleLoader");
-                    _instance = obj.AddComponent<AssetBundleLoader>();
+                    var obj = GameObject.Find("AssetBundleLoader");
+                    if (obj == null) obj = new GameObject("AssetBundleLoader");
+                    if (obj.GetComponent<AssetBundleLoader>() == null) _instance = obj.AddComponent<AssetBundleLoader>();
                     DontDestroyOnLoad(obj);
                 }
                 return _instance;
