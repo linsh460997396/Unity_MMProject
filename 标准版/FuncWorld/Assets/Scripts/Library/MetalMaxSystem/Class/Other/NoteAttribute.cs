@@ -66,7 +66,7 @@ namespace MetalMaxSystem
         public override float GetHeight()
         {
             var noteAttr = attribute as NoteAttribute;
-            // 简单估算高度，实际项目中可能需要根据文本长度计算
+            // 简单估算高度,实际项目中可能需要根据文本长度计算
             return EditorGUIUtility.singleLineHeight * 2 + 4;
         }
     }
@@ -100,6 +100,6 @@ namespace MetalMaxSystem
 //    [MetalMaxSystem.Note("警告：修改此值会导致存档损坏！", NoteType.Warning)]
 //    public string saveFilePath;
 
-//    [MetalMaxSystem.Note("错误：此字段已弃用，请使用 NewHealth", NoteType.Error)]
+//    [MetalMaxSystem.Note("错误：此字段已弃用,请使用 NewHealth", NoteType.Error)]
 //    public float oldHealth;
 //}

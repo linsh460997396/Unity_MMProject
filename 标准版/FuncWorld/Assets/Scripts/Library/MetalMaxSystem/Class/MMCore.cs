@@ -66,7 +66,7 @@ namespace MetalMaxSystem
     /// <summary>
     /// MM功能库核心类
     /// </summary>
-    public static class MMCore
+    public static partial class MMCore
     {
         #region 常量
 
@@ -182,6 +182,10 @@ namespace MetalMaxSystem
         public const int c_mouseButtonXButton1 = 4;
         public const int c_mouseButtonXButton2 = 5;
 
+        //注意:双击和蓄力功能中,键盘不与按鼠共用序号
+        //键盘按键序号=0~98不变,但鼠标按键:99 = mouseButtonLeft = 1,100 = mouseButtonMiddle = 2,101 = mouseButtonRight = 3,102 =mouseButtonXButton1 = 4,103 = mouseButtonXButton2 = 5
+        //蓄力值和双击值获取时,鼠标在键盘98键基础上追加这5个序号
+
         //其他常量
 
         //暂无
@@ -208,11 +212,12 @@ namespace MetalMaxSystem
         //主副循环入口函数引用上限及单入口注册上限
 
         /// <summary>
-        /// 主副循环入口句柄上限(句柄范围0~9)
+        /// 主副循环入口句柄上限(句柄范围0~9).主副循环均有5个事件入口,分别是Awake、Start、Update、End、Destroy,故两循环共10入口.
         /// </summary>
         private const int c_entryMax = 9;//内部使用,无需给用户使用
         /// <summary>
-        /// 每个主副循环入口可注册函数上限
+        /// 每个入口可注册函数上限.它是委托变量可多播,只需1个元素就能+=多个委托函数.
+        /// 但为了预防误操作或其他特殊情况,也可增加到2或更多(不建议太多,以免占用过多内存资源).
         /// </summary>
         private const int c_regEntryMax = 1;//内部使用,无需给用户使用
 
@@ -1330,15 +1335,15 @@ namespace MetalMaxSystem
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    Debug.LogWarning($"没有权限删除目录: {dirInfo.FullName}");
+                    Tell($"没有权限删除目录: {dirInfo.FullName}");
                 }
                 catch (IOException)
                 {
-                    Debug.LogWarning($"目录正在被占用: {dirInfo.FullName}");
+                    Tell($"目录正在被占用: {dirInfo.FullName}");
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogWarning($"删除目录失败: {ex.Message}");
+                    Tell($"删除目录失败: {ex.Message}");
                 }
             }
             return torf;
@@ -1374,15 +1379,15 @@ namespace MetalMaxSystem
                 }
                 catch (UnauthorizedAccessException)
                 {
-                    Debug.LogWarning($"没有权限删除目录: {dirInfo.FullName}");
+                    Tell($"没有权限删除目录: {dirInfo.FullName}");
                 }
                 catch (IOException)
                 {
-                    Debug.LogWarning($"目录正在被占用: {dirInfo.FullName}");
+                    Tell($"目录正在被占用: {dirInfo.FullName}");
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogWarning($"删除目录失败: {ex.Message}");
+                    Tell($"删除目录失败: {ex.Message}");
                 }
             }
             return torf;
@@ -14853,7 +14858,7 @@ namespace MetalMaxSystem
 
         #endregion
 
-        //任务:以下在字符串组合及数据表使用上需进行优化,C#独立键鼠事件要增加双击和蓄力值功能
+        //任务:以下在字符串组合及数据表使用上需进行优化,拥有C#独立键鼠事件双击和蓄力值功能
 
         #region Functions 互动管理(默认使用用户快捷数据表)
 
@@ -18306,11 +18311,13 @@ namespace MetalMaxSystem
                 //↑存储玩家注册序号对应按键队列键位
                 DataTableBoolSave2(true, "KeyDownLoopOneBitKey", player, key, true); //存储玩家按键队列键位状态
                 //---------------------------------------------------------------------蓄力管理
-                //if (XuLiGuanLi == true){
-                //libBC0D3AAD_gf_HD_RegKXL(key, "IntGroup_XuLi" + IntToString(player)); //HD_注册蓄力按键
-                //libBC0D3AAD_gf_HD_SetKeyFixedXL(player, key, 1.0);
+                //if (_xuLiGuanLi == true)
+                //{
+                //    HD_RegKXL(key, player);
+                //    HD_SetKeyFixedXL(player, key, 1.0f);
                 //}
                 //---------------------------------------------------------------------双击管理
+                //ProcessKeyDoubleClick(player, key);
                 //if (ShuangJiGuanLi == true){
                 //    lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(player, key);
                 //    if ((0.0 < lv_a) && (lv_a <= ShuangJiShiXian)){
@@ -18587,8 +18594,8 @@ namespace MetalMaxSystem
                 //---------------------------------------------------------------------
                 //if (libBC0D3AAD_gv_XuLiGuanLi == true)
                 //{
-                //   libBC0D3AAD_gf_HD_RegKXL(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_XuLi" + IntToString(lv_player)); //HD_注册按键
-                //   libBC0D3AAD_gf_HD_SetKeyFixedXL(lv_player, lv_mouseButton, 1.0);
+                //    libBC0D3AAD_gf_HD_RegKXL(key, player);
+                //    libBC0D3AAD_gf_HD_SetKeyFixedXL(player, key, 1.0);
                 //}
                 ////---------------------------------------------------------------------
                 //if (libBC0D3AAD_gv_ShuangJiGuanLi == true)
@@ -19268,5 +19275,156 @@ namespace MetalMaxSystem
 //LibraryImportAttribute是较新特性,在.NET 5及更高版本中引入,用于在编译时生成P/Invoke封送代码而不是在运行时(提高性能并减少启动延迟,无需在运行时解析DLL和函数)
 
 //await关键字只能在async声明的异步函数内用,作用是等待一个异步操作的完成,并且不会阻塞调用线程.
+
+/* 主副循环入口事件委托管理的作用
+
+### 核心作用
+
+**主副循环入口事件委托**是 `MMCore` 框架为游戏/应用提供的一种**生命周期钩子机制**,允许开发者在游戏主循环的特定阶段注册自定义函数,实现逻辑分离和模块化.
+
+---
+
+### 生命周期阶段
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    游戏主循环                            │
+├─────────────────────────────────────────────────────────┤
+│  Awake()  →  Start()  →  [ Update() × N ]  →  End()  →  Destroy()  │
+│     ↓           ↓              ↓                ↓            ↓        │
+│   唤醒         启动          每帧更新           结束          销毁      │
+└─────────────────────────────────────────────────────────┘
+```
+
+| 阶段 | 触发时机 | 典型用途 |
+|------|---------|---------|
+| **Awake** | 对象创建时（最早） | 初始化组件、读取配置、预加载资源 |
+| **Start** | 第一次 Update 前 | 数据初始化、订阅事件、建立引用 |
+| **Update** | 每帧循环 | 游戏逻辑、状态更新、物理计算 |
+| **End** | 循环结束时 | 保存状态、清理资源、停止计时器 |
+| **Destroy** | 对象销毁时 | 释放内存、注销委托、写入存档 |
+
+---
+
+### 工作原理
+
+#### 1. 委托注册机制
+
+```csharp
+// 定义入口枚举
+public enum Entry
+{
+    MainAwake,   // 唤醒入口
+    MainStart,   // 启动入口
+    MainUpdate,  // 更新入口
+    MainEnd,     // 结束入口
+    MainDestroy  // 销毁入口
+}
+
+// 注册函数到主循环入口
+MainUpdate.Start += MyStartFunction;  // 在 Start 阶段调用 MyStartFunction
+
+// 注销函数
+MainUpdate.Start -= MyStartFunction;
+```
+
+#### 2. 内部调用链
+
+```csharp
+// MainUpdate.cs
+public static void Start()
+{
+    MMCore.EntryGlobalEvent(Entry.MainStart);  // 调用 MMCore 的入口触发
+}
+
+// MMCore.cs 中的实现
+public static void EntryGlobalEvent(Entry entry)
+{
+    int entryIndex = (int)entry;
+    for (int i = 1; i <= entryEventFuncrefGroupNum[entryIndex]; i++)
+    {
+        entryEventFuncrefGroup[entryIndex, i]?.Invoke();  // 执行注册的委托
+    }
+}
+```
+
+---
+
+### 与 Unity/MonoGame 生命周期的对比
+
+| 本框架 | Unity | 说明 |
+|--------|-------|------|
+| Awake | Awake | 对象创建后最早调用 |
+| Start | Start | 第一次 Update 前调用 |
+| Update | Update | 每帧调用（需手动调用） |
+| End | OnDisable/OnDestroy | 组件停用时 |
+| Destroy | OnDestroy | 对象销毁时 |
+
+**关键区别**：本框架的 Update 需要**手动调用** `MainUpdate.Update()`,而 Unity 是引擎自动调用.这提供了更灵活的控制.
+
+---
+
+### 典型使用场景
+
+#### 1. 模块化解耦
+
+```csharp
+// 不同的系统注册自己的更新逻辑
+MainUpdate.Update += PlayerSystem.Update;    // 玩家系统更新
+MainUpdate.Update += EnemySystem.Update;     // 敌人系统更新
+MainUpdate.Update += UISystem.Update;        // UI系统更新
+MainUpdate.Update += InventorySystem.Update;  // 背包系统更新
+```
+
+#### 2. 顺序执行控制
+
+```csharp
+MainUpdate.Awake += () => Debug.Log("1. 初始化...");  // 注册序号1
+MainUpdate.Awake += () => Debug.Log("2. 初始化...");  // 注册序号2
+MainUpdate.Awake += () => Debug.Log("3. 初始化...");  // 注册序号3
+// 按注册顺序依次执行
+```
+
+#### 3. 状态切换
+
+```csharp
+// 游戏暂停时只执行必要更新
+MainUpdate.Update -= PhysicsSystem.Update;
+MainUpdate.Update -= AIController.Update;
+
+// 恢复时重新注册
+MainUpdate.Update += PhysicsSystem.Update;
+MainUpdate.Update += AIController.Update;
+```
+
+---
+
+### 线程安全设计
+
+每个入口有**固定容量**（当前为 1 个注册槽位）,通过 `ThreadWait`/`ThreadWaitSet` 保护注册/注销操作：
+
+```csharp
+public static void RegistEntryEventFuncref(Entry entry, EntryEventFuncref funcref)
+{
+    ThreadWait("MMCore_EntryEventFuncref_");
+    ThreadWaitSet("MMCore_EntryEventFuncref_", true);
+    // ... 注册逻辑
+    ThreadWaitSet("MMCore_EntryEventFuncref_", false);
+}
+```
+
+---
+
+### 总结
+
+| 特性 | 说明 |
+|------|------|
+| **生命周期钩子** | 提供 Awake/Start/Update/End/Destroy 五个阶段 |
+| **委托注册** | 支持 += / -= 语法注册和注销函数 |
+| **固定槽位** | 每个入口最多 1 个函数（可扩展） |
+| **线程安全** | 并发访问有保护机制 |
+| **模块解耦** | 各系统独立注册自己的生命周期逻辑 |
+
+这种设计的核心价值是**解耦**和**控制权**——你可以精确控制在哪个阶段执行什么逻辑,而不需要把所有代码塞到一个巨大的 Update 函数里. */
 
 #endregion

@@ -1,0 +1,280 @@
+﻿Best HTTP 是 Unity 中一款功能强大且广泛使用的网络通信插件,它极大地简化了与服务器交互的开发流程.相比 Unity 原生的 UnityWebRequest,它提供了更丰富的功能、更高的性能和更简洁的 API.
+
+以下是 Best HTTP 插件的核心用法介绍.
+
+🚀 核心优势
+
+功能全面：支持 HTTP/1.1, HTTP/2, WebSocket, Socket.IO, SignalR 等多种协议.
+高性能：采用异步模型,避免阻塞主线程；利用内存池技术,减少垃圾回收（GC）压力.
+跨平台：完美支持 iOS、Android、WebGL 等所有 Unity 支持的平台.
+易于使用：提供简洁直观的 API,无论是简单的 GET 请求还是复杂的文件上传、实时通信,都能轻松实现.
+
+📥 安装
+
+从 Unity Asset Store 搜索 "Best HTTP" 并导入到你的项目中即可.
+
+💻 基础用法
+
+Best HTTP 的核心是 HTTPRequest 类,通过它来创建和发送请求.
+
+GET 请求（适用于从服务器获取服务器数据如配置文件、用户信息）
+
+这是最常见的请求类型
+
+using BestHTTP;
+using UnityEngine;
+
+public class GetExample : MonoBehaviour
+{
+    void Start()
+    {
+        // 1. 创建 GET 请求
+        var request = new HTTPRequest(new System.Uri("http://example.com/api/data"), HTTPMethods.Get);
+
+        // 2. 设置请求完成的回调
+        request.OnResponse = (req, resp) =>
+        {
+            if (resp.IsSuccess)
+            {
+                // 请求成功,处理返回的数据
+                string responseData = resp.DataAsText;
+                Debug.Log("获取数据成功: " + responseData);
+            }
+            else
+            {
+                // 请求失败,处理错误
+                Debug.LogError("请求失败,状态码: " + resp.StatusCode);
+            }
+        };
+
+        // 3. 发送请求
+        request.Send();
+    }
+}
+
+或
+
+public class GetExample : MonoBehaviour
+{
+    void Start()
+    {
+        // 创建 GET 请求
+        var request = new HTTPRequest(new Uri("https://api.example.com/data"), (req, resp) =>
+        {
+            if (resp.IsSuccess)
+            {
+                Debug.Log("响应数据: " + resp.DataAsText);
+            }
+            else
+            {
+                Debug.LogError("请求失败: " + resp.StatusCode);
+            }
+        });
+        request.Send();
+    }
+}
+
+POST 请求（上传表单数据）‌
+
+用于向服务器提交数据如用户登录、表单提交等
+
+using BestHTTP;
+using UnityEngine;
+
+public class PostExample : MonoBehaviour
+{
+    void Start()
+    {
+        // 1. 创建 POST 请求
+        var request = new HTTPRequest(new System.Uri("http://example.com/api/login"), HTTPMethods.Post);
+
+        // 2. 添加表单字段
+        request.AddField("username", "playerOne");
+        request.AddField("password", "123456");
+
+        // 3. 设置回调并发送
+        request.OnResponse = (req, resp) =>
+        {
+            if (resp.IsSuccess)
+            {
+                Debug.Log("登录成功: " + resp.DataAsText);
+            }
+        };
+        
+        request.Send();
+    }
+}
+
+常用于登录、注册等场景：
+void Login(string username, string password)
+{
+    var request = HTTPRequest.CreatePost("https://api.example.com/login", OnRequestFinished);
+    
+    // 添加表单字段
+    request.UploadSettings.UploadStream = new MultipartFormDataStream()
+        .AddField("username", username)
+        .AddField("password", password);
+
+    request.Send();
+}
+
+void OnRequestFinished(HTTPRequest req, HTTPResponse resp)
+{
+    if (resp.IsSuccess)
+    {
+        Debug.Log("登录成功");
+    }
+    else
+    {
+        Debug.LogError("登录失败: " + resp.Message);
+    }
+}
+
+📤 数据上传与下载
+
+Best HTTP 提供了强大的文件处理能力,支持进度跟踪和断点续传.
+
+文件下载与进度显示
+
+var request = new HTTPRequest(new System.Uri("http://example.com/largefile.zip"), HTTPMethods.Get);
+
+// 监听下载进度
+request.OnProgress = (req, downloaded, length) =>
+{
+    float percent = (downloaded / (float)length) * 100.0f;
+    Debug.Log("下载进度: {percent:F2}%");
+};
+request.OnResponse = (req, resp) =>
+{
+    if (resp.IsSuccess)
+    {
+        // 下载完成,resp.Data 包含文件的字节数据
+        Debug.Log("下载完成！");
+    }
+};
+request.Send();
+
+提升用户体验,适用于资源包下载：
+var request = new HTTPRequest(new Uri("https://example.com/bigfile.zip"), OnFinished);
+request.OnProgress += (r, downloaded, total) =>
+{
+    float progress = (float)downloaded / total * 100f;
+    Debug.Log($"下载进度: {progress:F2}%");
+};
+request.Send();
+
+文件上传
+
+支持上传原始字节、文件流、JSON 数据以及 Multipart 表单（用于同时上传文件和文本）.
+
+// 示例：使用 Multipart 表单上传文件和文本字段
+var request = new HTTPRequest(new System.Uri("http://example.com/upload"), HTTPMethods.Post);
+
+var form = new BestHTTP.Request.Upload.Forms.MultipartFormDataStream()
+    .AddField("username", "playerOne")
+    .AddStreamField("screenshot", System.IO.File.OpenRead("path/to/image.png"), "image.png", "image/png");
+
+request.UploadSettings.UploadStream = form;
+request.Send();
+
+‌文件上传（支持大文件流式上传）‌
+避免内存溢出,适合上传图片、视频等：
+void UploadFile(string filePath)
+{
+    var request = HTTPRequest.CreatePost("https://api.example.com/upload", OnRequestFinished);
+    request.UploadSettings.UploadStream = File.OpenRead(filePath); // 流式读取
+    request.Send();
+}
+
+✨ 高级特性
+
+使用 UniTask 进行异步编程
+
+结合 UniTask 库,可以使用 async/await 语法,让网络请求的代码逻辑更加清晰和线性.
+
+using BestHTTP;
+using Cysharp.Threading.Tasks; // 引入 UniTask 命名空间
+using UnityEngine;
+
+public class AsyncExample : MonoBehaviour
+{
+    async UniTaskVoid FetchDataAsync()
+    {
+        try
+        {
+            var request = new HTTPRequest(new System.Uri("http://example.com/api/data"), HTTPMethods.Get);
+            request.Send();
+
+            // 等待请求完成
+            await request;
+
+            if (request.Response.IsSuccess)
+            {
+                Debug.Log("异步获取数据: " + request.Response.DataAsText);
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError("请求发生异常: " + ex.Message);
+        }
+    }
+}
+
+处理 JSON 数据
+
+Best HTTP 可以轻松处理 JSON 格式的请求和响应,通常结合 Newtonsoft.Json (Json.NET) 库使用.
+
+using Newtonsoft.Json;
+using BestHTTP;
+
+// 定义数据模型
+public class UserData 
+{ 
+    public string name; 
+    public int age; 
+}
+
+// 发送 JSON 数据
+void SendJson()
+{
+    var userData = new UserData { name = "John", age = 30 };
+    string json = JsonConvert.SerializeObject(userData);
+
+    var request = new HTTPRequest(new System.Uri("http://example.com/api/user"), HTTPMethods.Post);
+    request.SetHeader("Content-Type", "application/json");
+    request.RawData = System.Text.Encoding.UTF8.GetBytes(json);
+    request.Send();
+}
+
+// 接收并解析 JSON 数据
+void OnResponse(HTTPRequest req, HTTPResponse resp)
+{
+    if (resp.IsSuccess)
+    {
+        UserData user = JsonConvert.DeserializeObject(resp.DataAsText);
+        Debug.Log("收到用户: {user.name}, {user.age}岁");
+    }
+}
+
+WebSocket 实时通信
+
+Best HTTP 同样支持 WebSocket 协议,可用于实现聊天、实时游戏状态同步等功能.
+
+using BestHTTP;
+using BestHTTP.WebSocket;
+
+WebSocket webSocket = new WebSocket(new System.Uri("ws://echo.websocket.org"));
+
+webSocket.OnMessage += (ws, msg) =>
+{
+    Debug.Log("收到消息: " + msg);
+};
+webSocket.Open(); // 打开连接
+webSocket.SendText("Hello Server!"); // 发送文本消息
+// webSocket.Close(); // 关闭连接
+
+实现聊天、实时对战等功能：
+var ws = new WebSocket(new Uri("wss://echo.websocket.org"));
+ws.OnOpen += (socket) => Debug.Log("连接已建立");
+ws.OnMessage += (socket, msg) => Debug.Log("收到消息: " + msg);
+ws.Open();

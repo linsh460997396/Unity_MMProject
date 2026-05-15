@@ -33,16 +33,11 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 针对常见场景的优化重载:string + char + int序列.
+        /// 组合string + [char + int]序列(4层).
         /// 例如:key + '_' + index1 + '_' + index2 + '_' + index3 + '_' + index4
         /// </summary>
         public static string Concat(string str1, char sep1, int val1, char sep2, int val2, char sep3, int val3, char sep4, int val4)
         {
-            //string.Concat组合数字、字符、字符串混合情况性能较StringBuilder更差
-            //if (ConcatType)
-            //{
-            //    return string.Concat(str1, sep1, val1, sep2, val2, sep3, val3, sep4, val4);
-            //}
             var sb = Get();
             sb.Append(str1);
             sb.Append(sep1);
@@ -56,16 +51,11 @@ namespace MetalMaxSystem
             return sb.ToString();
         }
         /// <summary>
-        /// 针对常见场景的优化重载:string + char + int序列.
+        /// 组合string + [char + int]序列(3层).
         /// 例如:key + '_' + index1 + '_' + index2 + '_' + index3
         /// </summary>
         public static string Concat(string str1, char sep1, int val1, char sep2, int val2, char sep3, int val3)
         {
-            //string.Concat组合数字、字符、字符串混合情况性能较StringBuilder更差
-            //if (ConcatType)
-            //{
-            //    return string.Concat(str1, sep1, val1, sep2, val2, sep3, val3, sep4, val4);
-            //}
             var sb = Get();
             sb.Append(str1);
             sb.Append(sep1);
@@ -77,16 +67,11 @@ namespace MetalMaxSystem
             return sb.ToString();
         }
         /// <summary>
-        /// 针对常见场景的优化重载:string + char + int序列.
+        /// 组合string + [char + int]序列(2层).
         /// 例如:key + '_' + index1 + '_' + index2
         /// </summary>
         public static string Concat(string str1, char sep1, int val1, char sep2, int val2)
         {
-            //string.Concat组合数字、字符、字符串混合情况性能较StringBuilder更差
-            //if (ConcatType)
-            //{
-            //    return string.Concat(str1, sep1, val1, sep2, val2, sep3, val3, sep4, val4);
-            //}
             var sb = Get();
             sb.Append(str1);
             sb.Append(sep1);
@@ -96,16 +81,11 @@ namespace MetalMaxSystem
             return sb.ToString();
         }
         /// <summary>
-        /// 针对常见场景的优化重载:string + char + int序列.
+        /// 组合string + char + int.
         /// 例如:key + '_' + index1
         /// </summary>
         public static string Concat(string str1, char sep1, int val1)
         {
-            //string.Concat组合数字、字符、字符串混合情况性能较StringBuilder更差
-            //if (ConcatType)
-            //{
-            //    return string.Concat(str1, sep1, val1, sep2, val2, sep3, val3, sep4, val4);
-            //}
             var sb = Get();
             sb.Append(str1);
             sb.Append(sep1);
@@ -115,6 +95,82 @@ namespace MetalMaxSystem
 
         //按需追加重载↓
 
+        /// <summary>
+        /// 组合string + int + string + int + string[].
+        /// </summary>
+        public static string Concat(string str1, int val1, string str2, int val2, params string[] strs)
+        {
+            var sb = Get();
+            sb.Append(str1);
+            sb.Append(val1);
+            sb.Append(str2);
+            sb.Append(val2);
+            foreach (var s in strs)
+            {
+                sb.Append(s);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 组合string + string + int[].
+        /// </summary>
+        public static string Concat(string str1, string str2, params int[] vals)
+        {
+            var sb = Get();
+            sb.Append(str1);
+            sb.Append(str2);
+            foreach (var v in vals)
+            {
+                sb.Append(v);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 组合string + int + char + int[].
+        /// </summary>
+        public static string Concat(string str, int val1, char sep1, params int[] vals)
+        {
+            var sb = Get();
+            sb.Append(str);
+            sb.Append(val1);
+            sb.Append(sep1);
+            foreach (var v in vals)
+            {
+                sb.Append(v);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 组合string + int + string[].
+        /// </summary>
+        public static string Concat(string str1, int val1, params string[] strs)
+        {
+            var sb = Get();
+            sb.Append(str1);
+            sb.Append(val1);
+            foreach (var s in strs)
+            {
+                sb.Append(s);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 组合string + int[].
+        /// </summary>
+        public static string Concat(string str, params int[] vals)
+        {
+            var sb = Get();
+            sb.Append(str);
+            foreach (var v in vals)
+            {
+                sb.Append(v);
+            }
+            return sb.ToString();
+        }
     }
 }
 

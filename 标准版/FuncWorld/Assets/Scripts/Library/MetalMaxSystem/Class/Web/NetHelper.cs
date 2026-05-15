@@ -1,4 +1,6 @@
-﻿#define HAS_DLL_HtmlAgilityPack
+﻿//↓没下载那就注释掉
+#define HAS_DLL_HtmlAgilityPack
+
 #if HAS_DLL_HtmlAgilityPack
 
 using HtmlAgilityPack;

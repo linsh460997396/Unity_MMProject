@@ -145,7 +145,7 @@ namespace MetalMaxSystem.Unity
         /// <param name="saveFilePath">保存文件路径</param>
         /// <param name="objectRegex">正则表达式</param>
         /// <param name="timeout">超时时间（秒）</param>
-        /// <param name="maxMatches">最大匹配数量（0表示无限制，默认1）</param>
+        /// <param name="maxMatches">最大匹配数量（0表示无限制,默认1）</param>
         public void DownloadFilesWithRegex(string url, string saveFilePath, string xpath = "//img", string attribute = "src", string filterRegex = @"\.jpg$", int timeout = 60, int maxMatches = 5)
         {
             StartCoroutine(DownloadFilesWithRegex_Func(url, saveFilePath, xpath, attribute, filterRegex, timeout, maxMatches));
@@ -287,15 +287,15 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 协程异步下载指定URL文件中，符合XPath节点及正则表达式过滤的内容
+        /// 协程异步下载指定URL文件中,符合XPath节点及正则表达式过滤的内容
         /// </summary>
         /// <param name="url">网页URL</param>
         /// <param name="saveFilePath">保存文件路径(自动追加后缀编号),若是相对路径则相对于Application.persistentDataPath</param>
-        /// <param name="xpath">用于定位目标HTML节点的XPath表达式，默认为"//img"</param>
-        /// <param name="attribute">从定位到的节点中提取哪个属性的值，默认为"src"</param>
-        /// <param name="filterRegex">对提取出的属性值进行过滤的正则表达式。如果为null或空，则下载所有匹配节点的资源。</param>
-        /// <param name="timeout">超时时间（秒，默认60）</param>
-        /// <param name="maxMatches">最大匹配数量（0表示无限制，默认1）</param>
+        /// <param name="xpath">用于定位目标HTML节点的XPath表达式,默认为"//img"</param>
+        /// <param name="attribute">从定位到的节点中提取哪个属性的值,默认为"src"</param>
+        /// <param name="filterRegex">对提取出的属性值进行过滤的正则表达式.如果为null或空,则下载所有匹配节点的资源.</param>
+        /// <param name="timeout">超时时间（秒,默认60）</param>
+        /// <param name="maxMatches">最大匹配数量（0表示无限制,默认1）</param>
         /// <returns></returns>
         public IEnumerator DownloadFilesWithRegex_Func(string url, string saveFilePath, string xpath = "//img", string attribute = "src", string filterRegex = @"\.jpg$", int timeout = 60, int maxMatches = 5)
         {
@@ -349,7 +349,7 @@ namespace MetalMaxSystem.Unity
             List<string> urlsToDownload = new List<string>();
             int processedCount = 0;
 
-            // 5. 遍历节点，提取URL并应用正则过滤
+            // 5. 遍历节点,提取URL并应用正则过滤
             foreach (HtmlNode node in nodes)
             {
                 string rawUrl = node.GetAttributeValue(attribute, string.Empty);
@@ -358,7 +358,7 @@ namespace MetalMaxSystem.Unity
                 // URL规范化处理（参考DownloadMutiAsync中的逻辑）
                 string absoluteUrl = NormalizeUrl(url, rawUrl);
 
-                // 如果URL无效，跳过
+                // 如果URL无效,跳过
                 if (!Uri.IsWellFormedUriString(absoluteUrl, UriKind.Absolute))
                 {
                     Debug.LogWarning($"Skipping invalid URL: {absoluteUrl}");
@@ -510,7 +510,7 @@ namespace MetalMaxSystem.Unity
             string extension = Path.GetExtension(basePath);
 
             string numberedFileName = $"{fileName}_{index + 1:000}{extension}";
-            // 生成新的路径，如果原路径没有目录则直接使用编号文件名，否则组合目录和编号文件名
+            // 生成新的路径,如果原路径没有目录则直接使用编号文件名,否则组合目录和编号文件名
             string newPath = string.IsNullOrEmpty(directory) ? numberedFileName : Path.Combine(directory, numberedFileName);
 
             return GetFullPath(newPath);
@@ -617,18 +617,18 @@ namespace MetalMaxSystem.Unity
             // 创建请求对象
             UnityWebRequest request = UnityWebRequest.Get(url);
 
-            // 配置下载处理器：直接写入磁盘，节省内存
+            // 配置下载处理器：直接写入磁盘,节省内存
             request.downloadHandler = new DownloadHandlerFile(savePath);
 
             request.timeout = timeout;
 
-            // 关键设置：如果请求被中止或失败，自动删除已下载的部分文件，防止脏数据
+            // 关键设置：如果请求被中止或失败,自动删除已下载的部分文件,防止脏数据
             ((DownloadHandlerFile)request.downloadHandler).removeFileOnAbort = true;
 
             try
             {
                 // 发送请求并异步等待完成
-                // SendWebRequest 返回 AsyncOperation，在 Unity 2020+ 中可以直接 await
+                // SendWebRequest 返回 AsyncOperation,在 Unity 2020+ 中可以直接 await
                 await request.SendWebRequest();
 
                 // 检查结果
@@ -650,7 +650,7 @@ namespace MetalMaxSystem.Unity
             }
             finally
             {
-                // 无论成功与否，须手动释放资源
+                // 无论成功与否,须手动释放资源
                 request.Dispose();
             }
         }
@@ -714,7 +714,7 @@ namespace MetalMaxSystem.Unity
                 dirPath = _dftDownloadPath;
             }
 
-            Debug.Log($"开始下载，URL: {url}");
+            Debug.Log($"开始下载,URL: {url}");
             Debug.Log($"XPath: {node}");
             Debug.Log($"保存目录: {dirPath}");
 

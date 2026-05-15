@@ -1,8 +1,18 @@
-﻿using MutiAutoLogin;
+﻿//#define UNITY_STANDALONE //BepInEx制作UnityMOD时可手动启用
+#if UNITY_EDITOR || UNITY_STANDALONE
+
 using UnityEngine;
 
-namespace MutiAutoLogin
+namespace MetalMaxSystem.Unity
 {
+    /// <summary>
+    /// 这是一个调试用的简易第一人称/自由视角控制系统,适用于开发阶段测试和调试.
+    /// 它允许你创建一个简单的Avatar小人,并通过键盘和鼠标控制其移动和视角.
+    /// 你可以在游戏中按V键切换第一人称视角模式,在该模式下使用WASD键移动,鼠标控制视角,Space键跳跃或上升,C键下降,Shift键加速,G键切换重力效果.
+    /// 再次按V键退出第一人称视角模式.
+    /// 这个系统还会自动隐藏UI画布,以提供更沉浸的体验.
+    /// 请注意,这个系统是为了快速测试和调试而设计的,并不适合用于正式发布的游戏中.
+    /// </summary>
     [System.Serializable]
     public class FirstPersonAvatar
     {
@@ -46,7 +56,6 @@ namespace MutiAutoLogin
         private Vector3 currentVelocity;
         private Vector3 initialAvatarPosition;
         private Quaternion initialAvatarRotation;
-        private float verticalVelocity = 0f;
         private bool isGrounded = true;
 
         private Canvas[] uiCanvases;
@@ -72,7 +81,7 @@ namespace MutiAutoLogin
             {
                 uiCanvasStates[i] = uiCanvases[i].gameObject.activeSelf;
             }
-            Debug.Log($"FirstPersonAvatar 找到 {uiCanvases.Length} 个UI画布");
+            Debug.Log($"FirstPersonAvatar 找到 {uiCanvases.Length} 个UI画布"); //找画布是为了隐藏UI界面
         }
 
         void ToggleUICanvases(bool show)
@@ -145,7 +154,7 @@ namespace MutiAutoLogin
             initialAvatarPosition = avatar.transform.position;
             initialAvatarRotation = avatar.transform.rotation;
 
-            Debug.Log($"Avatar小人已创建，高度: {avatarHeight}m");
+            Debug.Log($"Avatar小人已创建,高度: {avatarHeight}m");
             Debug.Log("按V键进入第一人称视角模式");
         }
 
@@ -246,26 +255,26 @@ namespace MutiAutoLogin
                 Vector3 newVelocity = avatarRb.velocity;
                 newVelocity.x = moveDirection.x;
                 newVelocity.z = moveDirection.z;
-
+                // 有重力时 - 使用 Rigidbody 的 velocity
                 if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
                 {
-                    newVelocity.y = jumpForce;
+                    newVelocity.y = jumpForce; // 跳跃
                     isGrounded = false;
                 }
-
+                // 直接设置 Rigidbody 速度
                 avatarRb.velocity = newVelocity;
             }
             else
             {
                 Vector3 moveDirection = (forward * vertical + right * horizontal) * targetMoveSpeed;
-
+                // 无重力时 - 直接修改位置
                 if (Input.GetKey(KeyCode.Space))
                 {
-                    moveDirection.y = targetMoveSpeed;
+                    moveDirection.y = targetMoveSpeed; // 上升
                 }
                 else if (Input.GetKey(KeyCode.C) || Input.GetKey(KeyCode.LeftControl))
                 {
-                    moveDirection.y = -targetMoveSpeed;
+                    moveDirection.y = -targetMoveSpeed; // 下降
                 }
 
                 avatarRb.MovePosition(avatar.transform.position + moveDirection * Time.deltaTime);
@@ -290,17 +299,16 @@ namespace MutiAutoLogin
 
             if (hasGravity)
             {
-                Debug.Log("重力已开启 - 小人会下坠，按Space跳跃，有碰撞");
+                Debug.Log("重力已开启 - 小人会下坠,按Space跳跃,有碰撞");
                 CheckGrounded();
             }
             else
             {
-                verticalVelocity = 0;
                 if (avatarRb != null)
                 {
                     avatarRb.velocity = Vector3.zero;
                 }
-                Debug.Log("重力已关闭 - 小人悬浮，可穿墙自由飞行");
+                Debug.Log("重力已关闭 - 小人悬浮,可穿墙自由飞行");
             }
         }
 
@@ -308,7 +316,7 @@ namespace MutiAutoLogin
         {
             if (avatar == null || avatarCamera == null)
             {
-                Debug.LogError("Avatar未创建，无法进入第一人称视角！");
+                Debug.LogError("Avatar未创建,无法进入第一人称视角！");
                 return;
             }
 
@@ -354,12 +362,13 @@ namespace MutiAutoLogin
                 rotationY = 0;
                 targetRotationX = rotationX;
                 targetRotationY = rotationY;
-                verticalVelocity = 0;
                 Debug.Log("Avatar位置已重置");
             }
         }
     }
 }
+
+#endif
 
 //使用示范
 //public class MonoGo : MonoBehaviour
