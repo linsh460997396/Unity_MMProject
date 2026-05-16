@@ -13,7 +13,6 @@ using Vector3F = System.Numerics.Vector3;
 namespace MetalMaxSystem
 {
     //虚拟键码:https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes?redirectedfrom=MSDN
-    //CSDN原址:https://blog.csdn.net/qq_43851684/article/details/113096306
 
     /// <summary>
     /// 监听服务

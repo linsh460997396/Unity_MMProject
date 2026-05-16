@@ -65,19 +65,24 @@ namespace MetalMaxSystem
 {
     public partial class MMCore
     {
+        public static bool chargeEnable = true;
+        public static bool doubleClickEnable = true;
+
         public static bool chargeDebug = true;
         public static bool doubleClickDebug = true;
 
         public static float chargeDeltaValue = 1.0f; //蓄力增量
         public static float doubleClickDeltaValue = 0.0625f; //双击增量
         public static float doubleClickTimeLimit = 0.25f; //双击时间限制(单位秒)
+        public static float doubleClickRange = 0.1f;
 
         public delegate void KeyDoubleClickFuncref(int player, int key, float timeDiff);
         public delegate void MouseDoubleClickFuncref(int player, int mouseButton, float timeDiff);
+        //↓全局键鼠双击回调事件(内存唯一,实例通用)
         public static event KeyDoubleClickFuncref KeyDoubleClickEvent;
         public static event MouseDoubleClickFuncref MouseDoubleClickEvent;
 
-        #region 方法
+        #region 蓄力、双击相关方法
 
         public static void ChargeManager()
         {
@@ -108,14 +113,14 @@ namespace MetalMaxSystem
                         if (Player.MouseDownState[lv_p, (lv_key - 98)] == true)
                         {
                             //蓄力
-                            KXL = HD_ReturnKeyfloatXL(lv_p, lv_key) + chargeDeltaValue;
-                            HD_SetKeyfloatXL(lv_p, lv_key, KXL);
+                            KXL = HD_ReturnKeyFloatXL(lv_p, lv_key) + chargeDeltaValue;
+                            HD_SetKeyFloatXL(lv_p, lv_key, KXL);
                         }
                         else
                         {
                             //未蓄力
-                            KXL = HD_ReturnKeyfloatXL(lv_p, lv_key) - chargeDeltaValue;
-                            HD_SetKeyfloatXL(lv_p, lv_key, KXL);
+                            KXL = HD_ReturnKeyFloatXL(lv_p, lv_key) - chargeDeltaValue;
+                            HD_SetKeyFloatXL(lv_p, lv_key, KXL);
                         }
                     }
                     else
@@ -124,30 +129,33 @@ namespace MetalMaxSystem
                         if (Player.KeyDownState[lv_p, lv_key] == true)
                         {
                             //蓄力
-                            KXL = HD_ReturnKeyfloatXL(lv_p, lv_key) + chargeDeltaValue;
-                            HD_SetKeyfloatXL(lv_p, lv_key, KXL);
+                            KXL = HD_ReturnKeyFloatXL(lv_p, lv_key) + chargeDeltaValue;
+                            HD_SetKeyFloatXL(lv_p, lv_key, KXL);
                         }
                         else
                         {
                             //未蓄力
-                            KXL = HD_ReturnKeyfloatXL(lv_p, lv_key) - chargeDeltaValue;
-                            HD_SetKeyfloatXL(lv_p, lv_key, KXL);
+                            KXL = HD_ReturnKeyFloatXL(lv_p, lv_key) - chargeDeltaValue;
+                            HD_SetKeyFloatXL(lv_p, lv_key, KXL);
                         }
                     }
                     //蓄力值低于原始值,则清空
-                    if (HD_ReturnKeyfloatXL(lv_p, lv_key) < 1.0)
+                    if (HD_ReturnKeyFloatXL(lv_p, lv_key) < 1.0)
                     {
-                        HD_SetKeyfloatXL(lv_p, lv_key, 0);
+                        HD_SetKeyFloatXL(lv_p, lv_key, 0);
                     }
                     //蓄力值调试输出
-                    if ((HD_ReturnKeyfloatXL(lv_p, lv_key) != 0) && (chargeDebug == true))
+                    if ((HD_ReturnKeyFloatXL(lv_p, lv_key) != 0) && (chargeDebug == true))
                     {
-                        Tell(ThreadStringBuilder.Concat("P", lv_p, "蓄力值[", lv_key, "]", " => "), HD_ReturnKeyfloatXL(lv_p, lv_key));
+                        Tell(ThreadStringBuilder.Concat("P", lv_p, "蓄力值[", lv_key, "]", " => "), HD_ReturnKeyFloatXL(lv_p, lv_key));
                     }
                 }
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public static void DoubleClickManager()
         {
             int lv_key;
@@ -173,35 +181,35 @@ namespace MetalMaxSystem
                 for (; ((Auto_ai >= 0 && Auto_va <= Auto_ae) || (Auto_ai < 0 && Auto_va >= Auto_ae)); Auto_va += Auto_ai)
                 {
                     lv_key = HD_ReturnKSJTagFromRegNum(Auto_va, Auto_vs); //取得每个序号对应的双击注册键
-                    if ((HD_ReturnKeyFloat_DoubleClick(lv_p, lv_key) != -1.0))
+                    if ((HD_ReturnKeyFloatSJ(lv_p, lv_key) != -1.0))
                     {  //跳过不需要处理的键（双击值为-1）
                        //无论按键是什么,总是进行双击值的衰减,双击管理无需像蓄力管理那样判断鼠标键盘弹起状态
-                        if (HD_ReturnKeyFloat_DoubleClick(lv_p, lv_key) >= 0.0)
+                        if (HD_ReturnKeyFloatSJ(lv_p, lv_key) >= 0.0)
                         {
-                            KSJ = HD_ReturnKeyFloat_DoubleClick(lv_p, lv_key) - i;
-                            HD_SetKeyFloat_DoubleClick(lv_p, lv_key, KSJ);
+                            KSJ = HD_ReturnKeyFloatSJ(lv_p, lv_key) - i;
+                            HD_SetKeyFloatSJ(lv_p, lv_key, KSJ);
                         }
                         //Debug
-                        if (HD_ReturnKeyFloat_DoubleClick(lv_p, lv_key) < 0.0)
+                        if (HD_ReturnKeyFloatSJ(lv_p, lv_key) < 0.0)
                         {
-                            HD_SetKeyFloat_DoubleClick(lv_p, lv_key, -1.0f);
+                            HD_SetKeyFloatSJ(lv_p, lv_key, -1.0f);
                         }
                         //调试双击值
-                        if ((HD_ReturnKeyFloat_DoubleClick(lv_p, lv_key) != -1.0) && (doubleClickDebug == true))
+                        if ((HD_ReturnKeyFloatSJ(lv_p, lv_key) != -1.0) && (doubleClickDebug == true))
                         {
-                            Tell(ThreadStringBuilder.Concat("P", lv_p, "双击值[", lv_key, "]", " => "), HD_ReturnKeyFloat_DoubleClick(lv_p, lv_key));
+                            Tell(ThreadStringBuilder.Concat("P", lv_p, "双击值[", lv_key, "]", " => "), HD_ReturnKeyFloatSJ(lv_p, lv_key));
                         }
                     }
                 }
             }
         }
 
-        public static void Send_KeyDoubleClicked(int lp_player, int lp_key, float lp_deltaTime)
+        public static void Send_KeySJEvent(int lp_player, int lp_key, float lp_deltaTime)
         {
             KeyDoubleClickEvent?.Invoke(lp_player, lp_key, lp_deltaTime);
         }
 
-        public static void Send_MouseDoubleClicked(int lp_player, int lp_key, float lp_deltaTime, Vector2F lp__3DE782B9, int lp_x, int lp_y)
+        public static void Send_MouseSJEvent(int lp_player, int lp_key, float lp_deltaTime, Vector2F lp_point2D, int lp_x, int lp_y)
         {
             MouseDoubleClickEvent?.Invoke(lp_player, lp_key, lp_deltaTime);
         }
@@ -329,7 +337,7 @@ namespace MetalMaxSystem
             return DataTableIntLoad1(true, (lp_keyStorage + "KXLTag"), lp_regNum);
         }
 
-        public static void HD_SetKeyfloatXL(int lp_player, int lp_key, float lp_value)
+        public static void HD_SetKeyFloatXL(int lp_player, int lp_key, float lp_value)
         {
             DataTableFloatSave1(true, ThreadStringBuilder.Concat("HD_CDFloat_KXL", lp_player), lp_key, lp_value);
         }
@@ -339,22 +347,22 @@ namespace MetalMaxSystem
             chargeDeltaValue = lp_e89384E58A9BE5A29EE9878F;
         }
 
-        public static float HD_ReturnKeyfloatXL(int lp_player, int lp_key)
+        public static float HD_ReturnKeyFloatXL(int lp_player, int lp_key)
         {
             return DataTableFloatLoad1(true, ThreadStringBuilder.Concat("HD_CDFloat_KXL", lp_player), lp_key);
         }
 
-        public static float HD_ReturnKeyfloatXL_Mouse(int lp_player, int lp_mouse)
+        public static float HD_ReturnKeyFloatXL_Mouse(int lp_player, int lp_mouse)
         {
             return DataTableFloatLoad1(true, ThreadStringBuilder.Concat("HD_CDFloat_KXL", lp_player), lp_mouse + 98);
         }
 
-        public static float HD_ReturnKeyfloatXL_Keyboard(int lp_player, int lp_key)
+        public static float HD_ReturnKeyFloatXL_Keyboard(int lp_player, int lp_key)
         {
             return DataTableFloatLoad1(true, ThreadStringBuilder.Concat("HD_CDFloat_KXL", lp_player), lp_key);
         }
 
-        public static void HD_SetKeyFloat_DoubleClick(int lp_player, int lp_key, float lp_value)
+        public static void HD_SetKeyFloatSJ(int lp_player, int lp_key, float lp_value)
         {
             DataTableFloatSave1(true, ThreadStringBuilder.Concat("HD_CDFloat_KSJ", lp_player), lp_key, lp_value);
         }
@@ -364,17 +372,17 @@ namespace MetalMaxSystem
             doubleClickDeltaValue = lp_value;
         }
 
-        public static float HD_ReturnKeyFloat_DoubleClick(int lp_player, int lp_key)
+        public static float HD_ReturnKeyFloatSJ(int lp_player, int lp_key)
         {
             return DataTableFloatLoad1(true, ThreadStringBuilder.Concat("HD_CDFloat_KSJ", lp_player), lp_key);
         }
 
-        public static float HD_ReturnKeyFloat_DoubleClick_Mouse(int lp_player, int lp_mouse)
+        public static float HD_ReturnKeyFloatSJ_Mouse(int lp_player, int lp_mouse)
         {
             return DataTableFloatLoad1(true, ThreadStringBuilder.Concat("HD_CDFloat_KSJ", lp_player), lp_mouse + 98);
         }
 
-        public static float HD_ReturnKeyFloat_DoubleClick_Keyboard(int lp_player, int lp_key)
+        public static float HD_ReturnKeyFloatSJ_Keyboard(int lp_player, int lp_key)
         {
             return DataTableFloatLoad1(true, ThreadStringBuilder.Concat("HD_CDFloat_KSJ", lp_player), lp_key);
         }
@@ -385,6 +393,129 @@ namespace MetalMaxSystem
         }
 
         #endregion
+
+        #region 二点组
+
+        //反复存储2个点,用来比对距离差的小组
+
+        public static void HD_RegPTwo(Vector2F lp_vector2F, string lp_keyStorage)
+        {
+            string lv_str;
+            int lv_num;
+            int Auto_val;
+            int lv_i;
+            int lv_d;
+            lv_str = (lp_keyStorage + "PTwo");
+            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            Auto_val = lv_num;
+            if (Auto_val == 0)
+            {
+                lv_i = (lv_num + 1);
+                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
+                DataTableVectorSave1(true, (lv_str + "Tag"), lv_i, lp_vector2F);
+            }
+            else if (Auto_val == 1)
+            {
+                lv_i = (lv_num + 1);
+                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
+                DataTableVectorSave1(true, (lv_str + "Tag"), lv_i, lp_vector2F);
+            }
+            else if (Auto_val == 2)
+            {
+                lv_d = DataTableIntLoad0(true, "PTwo_Num" + lv_str);
+                if (lv_d == 0)
+                {
+                    DataTableVectorSave1(true, (lv_str + "Tag"), 1, lp_vector2F);
+                    DataTableIntSave0(true, "PTwo_Num" + lv_str, 1);
+                }
+                else
+                {
+                    DataTableVectorSave1(true, (lv_str + "Tag"), 2, lp_vector2F);
+                    DataTableIntSave0(true, "PTwo_Num" + lv_str, 0);
+                }
+            }
+        }
+
+        public static void HD_ClearPTwo(string lp_keyStorage)
+        {
+            string lv_str;
+            lv_str = (lp_keyStorage + "PTwo");
+            DictionaryVectorClear1(true, (lv_str + "Tag"), 1);
+            DictionaryVectorClear1(true, (lv_str + "Tag"), 2);
+            DictionaryIntClear0(true, "PTwo_Num" + lv_str);
+        }
+
+        public static int HD_ReturnPTwoNumMax(string lp_keyStorage)
+        {
+            string lv_str;
+            int lv_num;
+            lv_str = (lp_keyStorage + "PTwo");
+            lv_num = DictionaryIntLoad0(true, (lv_str + "Num"));
+            return lv_num;
+        }
+
+        public static Vector2F? HD_ReturnPTwoTagFromRegNum(int lp_regNum, string lp_keyStorage)
+        {
+            string lv_str;
+            Vector2F? lv_e782B9;
+            lv_str = (lp_keyStorage + "PTwo");
+            lv_e782B9 = DictionaryVectorLoad1_N(true, (lv_str + "Tag"), lp_regNum);
+            return lv_e782B9;
+        }
+
+        public static float HD_PTwoRange(string lp_keyStorage)
+        {
+            Vector2F? lv_a;
+            Vector2F? lv_b;
+            float lv_s;
+            lv_a = HD_ReturnPTwoTagFromRegNum(1, lp_keyStorage);
+            lv_b = HD_ReturnPTwoTagFromRegNum(2, lp_keyStorage);
+            if (((lv_a == null) || (lv_b == null)))
+            {
+                lv_s = -1.0f;
+            }
+            else
+            {
+                lv_s = Distance(lv_a.Value, lv_b.Value);
+            }
+            return lv_s;
+        }
+
+        public static bool HD_PTwoRangeTrue(string lp_keyStorage)
+        {
+            Vector2F? lv_a;
+            Vector2F? lv_b;
+            float lv_s;
+            bool lv_torf = false;
+            lv_a = HD_ReturnPTwoTagFromRegNum(1, lp_keyStorage);
+            lv_b = HD_ReturnPTwoTagFromRegNum(2, lp_keyStorage);
+            if (!((lv_a == null) || (lv_b == null)))
+            {
+                lv_s = Distance(lv_a.Value, lv_b.Value);
+                if ((lv_s <= doubleClickRange))
+                {
+                    lv_torf = true;
+                    if ((doubleClickDebug == true))
+                    {
+                        Tell(("鼠标双击距离差：" + lv_s + " <= " + doubleClickRange));
+                    }
+
+                }
+                else
+                {
+                    if ((doubleClickDebug == true))
+                    {
+                        Tell(("鼠标双击距离差：" + lv_s + " > " + doubleClickRange));
+                    }
+
+                }
+            }
+            return lv_torf;
+        }
+
+        #endregion
+
+        #region 玩家组
 
         // playergroup 类型定义 - 存储玩家组信息
         public class PlayerGroup
@@ -437,6 +568,7 @@ namespace MetalMaxSystem
             return lp_pg.players[index + 1];
         }
 
+        #endregion
     }
 }
 
@@ -585,7 +717,7 @@ private static void Func()
 // Timer -> CheckStatus() -> Update() -> EntryGlobalEvent(MainUpdate) (每50ms)
 // End() -> EntryGlobalEvent(MainEnd)
 // Destroy() -> EntryGlobalEvent(MainDestroy)
-```
+//每个循环体（主副线程）上设计了5个基础事件,虽可追加方法体挂上运行但挂的都是MMCore核心方法,建议用TimerUpdate、Trigger类来新建线程
 
 ### 5. 游戏系统更新 (ChargeManager / DoubleClickManager)
 
@@ -629,31 +761,38 @@ public static void ChargeManager()
 
 ## 四、完整使用示例
 
-// 1. 创建 RecordService 实例
-RecordService recordService = new RecordService(1);  // 绑定玩家1
+// 1. [必要]创建 RecordService 实例
+RecordService recordService = new RecordService(1);  // 绑定玩家1(每个监听实例可以设定一个玩家ID字段)
 
-// 2. 绑定到 MMCore
+// 2. [必要]绑定MMCore内置键鼠按弹核心方法到底层监听的键鼠事件
 MMCore.AddKeyMouseEvent(recordService, cover: true);
 
-// 3. 注册按键委托
-MMCore.RegistKeyEventFuncref(MMCore.c_keyW, OnKeyW_Pressed);
-MMCore.RegistKeyEventFuncref(MMCore.c_keyMouseLeft, OnMouseLeft_Pressed);
+// 3. 注册按键委托(可跳过,其他任意方法在需要时,任意类下书写并挂上即可)
+MMCore.RegistKeyEventFuncref(MMCore.c_keyW, AnyFunc);
+//↑第一个参数是键（0~98是键盘,99~105是鼠标+2个侧键,0和99属于空键,空间也可以挂方法只是没必要）,第二个参数是所挂方法（委托）
+//这里无需输入玩家ID,内部默认遍历所有玩家来执行...设计时想要区分玩家只需在委托方法中写好条件
 
-// 4. 注册蓄力/双击
-MMCore.HD_RegKXL(MMCore.c_keyMouseLeft, "IntGroup_Charge1");
-MMCore.HD_RegKSJ(MMCore.c_keyMouseLeft, "IntGroup_DoubleClick1");
+// 4. 开关蓄力/双击功能(可跳过,默认开启)
+MMCore.chargeEnable = true;
+MMCore.doubleClickEnable = true;
 
-// 5. 注册到 MainUpdate 每帧更新
-MMCore.RegistEntryEventFuncref(Entry.MainUpdate, MMCore.ChargeManager);
-MMCore.RegistEntryEventFuncref(Entry.MainUpdate, MMCore.DoubleClickManager);
-MMCore.RegistEntryEventFuncref(Entry.MainUpdate, () => MMCore.MouseKeyUpWait(1));
+// 5. [必要]注册到 MainUpdate或SubUpdate 每帧更新(支持设定循环体运行次数,提供各种方法管理线程,线程拥有Awake/Start/Update/End/Destroy事件,支持挂载各种方法)
+MMCore.RegistEntryEventFuncref(Entry.MainUpdate, MMCore.ChargeManager); //将蓄力管理方法挂到Update上运作
+MMCore.RegistEntryEventFuncref(Entry.MainUpdate, MMCore.DoubleClickManager); //将双击管理方法挂到Update上运作
+MMCore.RegistEntryEventFuncref(Entry.MainUpdate, () => MMCore.MouseKeyUpWait(1)); //主循环添加处理按键队列的延迟弹起.会按序执行键鼠事件动作队列,需加入到每帧执行(并遍历全部玩家).
+//注:第三个是必须挂上的,另外2个根据蓄力/双击功能启用情况安排添加
 
-// 6. 启动 MainUpdate
+// 6. [必要]启动MainUpdate或SubUpdate（MMCore内部使用的主副线程）
 MainUpdate.Start(isBackground: true);
 
-// 7. 启动钩子
+// 7. [必要]启动钩子进行键鼠事件监听
 recordService.StartMouseHook();
 recordService.StartKeyboardHook();
+    
+// 8. [可选]资源清理
+recordService.StopMouseHook();
+recordService.StopKeyboardHook();
+MainUpdate.TimerStop = true;
 
 这就是整套系统的完整协作流程！通过钩子 -> 服务 -> 总控 -> 周期更新 -> 游戏逻辑,实现了灵活且支持多人的按键事件管理.
  */

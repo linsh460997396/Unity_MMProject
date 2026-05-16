@@ -904,22 +904,28 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回二维点之间形成的距离(单位:m)
+        /// 以实数返回三维坐标(pixelX,pixelY,z)与(a,b,c)形成的距离(单位:度)
         /// </summary>
-        /// <param name="point1"></param>
-        /// <param name="point2"></param>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <param name="z"></param>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="c"></param>
         /// <returns></returns>
-        public static float Distance(Point2F point1, Point2F point2)
+        public static float Distance(float x, float y, float z, float a, float b, float c)
         {
-            float x1 = point1.x;
-            float y1 = point1.y;
+            float x1 = x;
+            float y1 = y;
+            float z1 = z;
 
-            float x2 = point2.x;
-            float y2 = point2.y;
+            float x2 = a;
+            float y2 = b;
+            float z2 = c;
 #if NETFRAMEWORK
-            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2));
+            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
 #else
-            float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2));
+            float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
 #endif
             return result;
         }
@@ -953,56 +959,6 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 以实数返回三维坐标(pixelX,pixelY,z)与(a,b,c)形成的距离(单位:度)
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="z"></param>
-        /// <param name="a"></param>
-        /// <param name="b"></param>
-        /// <param name="c"></param>
-        /// <returns></returns>
-        public static float Distance(float x, float y, float z, float a, float b, float c)
-        {
-            float x1 = x;
-            float y1 = y;
-            float z1 = z;
-
-            float x2 = a;
-            float y2 = b;
-            float z2 = c;
-#if NETFRAMEWORK
-            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
-#else
-            float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
-#endif
-            return result;
-        }
-
-        /// <summary>
-        /// 以实数返回三维点之间形成的距离(单位:m)
-        /// </summary>
-        /// <param name="point1"></param>
-        /// <param name="point2"></param>
-        /// <returns></returns>
-        public static float Distance(Point3F point1, Point3F point2)
-        {
-            float x1 = point1.x;
-            float y1 = point1.y;
-            float z1 = point1.z;
-
-            float x2 = point2.x;
-            float y2 = point2.y;
-            float z2 = point2.z;
-#if NETFRAMEWORK
-            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
-#else
-            float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
-#endif
-            return result;
-        }
-
-        /// <summary>
         /// 以实数返回三维向量之间形成的距离(单位:m)
         /// </summary>
         /// <param name="vector1"></param>
@@ -1030,6 +986,50 @@ namespace MetalMaxSystem
 #else
             float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
 #endif
+#endif
+            return result;
+        }
+
+        /// <summary>
+        /// 以实数返回二维点之间形成的距离(单位:m)
+        /// </summary>
+        /// <param name="point1"></param>
+        /// <param name="point2"></param>
+        /// <returns></returns>
+        public static float Distance(Point2F point1, Point2F point2)
+        {
+            float x1 = point1.x;
+            float y1 = point1.y;
+
+            float x2 = point2.x;
+            float y2 = point2.y;
+#if NETFRAMEWORK
+            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2));
+#else
+            float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2));
+#endif
+            return result;
+        }
+
+        /// <summary>
+        /// 以实数返回三维点之间形成的距离(单位:m)
+        /// </summary>
+        /// <param name="point1"></param>
+        /// <param name="point2"></param>
+        /// <returns></returns>
+        public static float Distance(Point3F point1, Point3F point2)
+        {
+            float x1 = point1.x;
+            float y1 = point1.y;
+            float z1 = point1.z;
+
+            float x2 = point2.x;
+            float y2 = point2.y;
+            float z2 = point2.z;
+#if NETFRAMEWORK
+            float result = (float)Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
+#else
+            float result = Mathf.Sqrt(Mathf.Pow((x1 - x2), 2) + Mathf.Pow((y1 - y2), 2) + Mathf.Pow((z1 - z2), 2));
 #endif
             return result;
         }
@@ -18311,24 +18311,26 @@ namespace MetalMaxSystem
                 //↑存储玩家注册序号对应按键队列键位
                 DataTableBoolSave2(true, "KeyDownLoopOneBitKey", player, key, true); //存储玩家按键队列键位状态
                 //---------------------------------------------------------------------蓄力管理
-                //if (_xuLiGuanLi == true)
-                //{
-                //    HD_RegKXL(key, player);
-                //    HD_SetKeyFixedXL(player, key, 1.0f);
-                //}
+                if (chargeEnable == true)
+                {
+                    HD_RegKXL(key, ThreadStringBuilder.Concat("IntGroup_XuLi", player));
+                    HD_SetKeyFloatXL(player, key, 1.0f);
+                }
                 //---------------------------------------------------------------------双击管理
-                //ProcessKeyDoubleClick(player, key);
-                //if (ShuangJiGuanLi == true){
-                //    lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(player, key);
-                //    if ((0.0 < lv_a) && (lv_a <= ShuangJiShiXian)){
-                //        //符合双击标准,发送事件
-                //        libBC0D3AAD_gf_Send_KeyDoubleClicked(player, key, ShuangJiShiXian - lv_a);
-                //    } 
-                //    else {   
-                //        libBC0D3AAD_gf_HD_RegKSJ(key, "IntGroup_DoubleClicked" + IntToString(player)); //HD_注册按键
-                //        libBC0D3AAD_gf_HD_SetKeyFixedSJ(player, key, ShuangJiShiXian);
-                //    }
-                //}
+                if (doubleClickEnable == true)
+                {
+                    float lv_a = HD_ReturnKeyFloatSJ(player, key);
+                    if ((0.0 < lv_a) && (lv_a <= doubleClickTimeLimit))
+                    {
+                        //符合双击标准,发送事件
+                        Send_KeySJEvent(player, key, doubleClickTimeLimit - lv_a);
+                    }
+                    else
+                    {
+                        HD_RegKSJ(key, ThreadStringBuilder.Concat("IntGroup_DoubleClicked", player)); //HD_注册按键
+                        HD_SetKeyFloatSJ(player, key, doubleClickTimeLimit);
+                    }
+                }
                 //---------------------------------------------------------------------
                 KeyDownGlobalEvent(key, true, player);
             }
@@ -18468,25 +18470,25 @@ namespace MetalMaxSystem
         /// 鼠标按下事件主要动作(加入按键监听并传参执行)
         /// </summary>
         /// <param name="player"></param>
-        /// <param name="key"></param>
+        /// <param name="lp_mouseKey"></param>
         /// <param name="lp_mouseVector3F"></param>
         /// <param name="uiX"></param>
         /// <param name="uiY"></param>
         /// <returns></returns>
-        internal static bool MouseDown(int player, int key, Vector3F lp_mouseVector3F, int uiX, int uiY)
+        internal static bool MouseDown(int player, int lp_mouseKey, Vector3F lp_mouseVector3F, int uiX, int uiY)
         {
             bool torf = !StopKeyMouseEvent[player];
-            Player.MouseDownState[player, key] = torf;  //当前按键状态值
-            Player.MouseDown[player, key] = true;  //当前按键值
-            if (key == c_mouseButtonLeft)
+            Player.MouseDownState[player, lp_mouseKey] = torf;  //当前按键状态值
+            Player.MouseDown[player, lp_mouseKey] = true;  //当前按键值
+            if (lp_mouseKey == c_mouseButtonLeft)
             {
                 Player.MouseDownLeft[player] = true;
             }
-            if (key == c_mouseButtonRight)
+            if (lp_mouseKey == c_mouseButtonRight)
             {
                 Player.MouseDownRight[player] = true;
             }
-            if (key == c_mouseButtonMiddle)
+            if (lp_mouseKey == c_mouseButtonMiddle)
             {
                 Player.MouseDownMiddle[player] = true;
             }
@@ -18526,32 +18528,32 @@ namespace MetalMaxSystem
 
                 //---------------------------------------------------------------------
                 Player.MouseDownLoopOneBitNum[player] += 1;
-                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], key);
-                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, key, true);
+                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], lp_mouseKey);
+                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, lp_mouseKey, true);
                 //---------------------------------------------------------------------
-                //if (libBC0D3AAD_gv_XuLiGuanLi == true)
-                //{
-                //   libBC0D3AAD_gf_HD_RegKXL(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_XuLi" + IntToString(lv_player)); //HD_注册按键
-                //   libBC0D3AAD_gf_HD_SetKeyFixedXL(lv_player, lv_mouseButton, 1.0);
-                //}
-                ////---------------------------------------------------------------------
-                //if (libBC0D3AAD_gv_ShuangJiGuanLi == true)
-                //{
-                //   libBC0D3AAD_gf_HD_RegPTwo(lv_point1, "DoubleClicked_PTwo_" + IntToString(lv_player));
-                //   lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(lv_player, lv_mouseButton);
-                //   if ((0.0 < lv_a) && (lv_a <= libBC0D3AAD_gv_ShuangJiShiXian) && libBC0D3AAD_gf_HD_PTwoRangeTrue("DoubleClicked_PTwo_" + IntToString(lv_player)))
-                //   {
-                //       //符合双击标准(鼠标双击多个2点验证),发送事件
-                //       libBC0D3AAD_gf_Send_MouseDoubleClicked(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian - lv_a, lv_point0, lv_uiX, lv_uiY);
-                //   }
-                //   else
-                //   {
-                //       libBC0D3AAD_gf_HD_RegKSJ(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_DoubleClicked" + IntToString(lv_player)); //HD_注册按键
-                //       libBC0D3AAD_gf_HD_SetKeyFixedSJ(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian);
-                //   }
-                //}
-                ////---------------------------------------------------------------------
-                MouseDownFunc(player, key, lp_mouseVector3F, uiX, uiY);
+                if (chargeDebug == true)
+                {
+                   HD_RegKXL(lp_mouseKey, ThreadStringBuilder.Concat("IntGroup_XuLi", player)); //HD_注册按键
+                   HD_SetKeyFloatXL(player, lp_mouseKey, 1.0f);
+                }
+                //---------------------------------------------------------------------
+                if (doubleClickDebug == true)
+                {
+                    HD_RegPTwo(Player.MouseVector2F[player], ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player));
+                   float lv_a = HD_ReturnKeyFloatSJ(player, lp_mouseKey);
+                   if ((0.0 < lv_a) && (lv_a <= doubleClickTimeLimit) && HD_PTwoRangeTrue(ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player)))
+                   {
+                       //符合双击标准(鼠标双击多个2点验证),发送事件
+                       Send_MouseSJEvent(player, lp_mouseKey, doubleClickTimeLimit - lv_a, lp_mouseVector3F, uiX, uiY);
+                   }
+                   else
+                   {
+                       HD_RegKSJ(lp_mouseKey, ThreadStringBuilder.Concat("IntGroup_DoubleClicked", player)); //HD_注册按键
+                       HD_SetKeyFloatSJ(player, lp_mouseKey, doubleClickTimeLimit);
+                   }
+                }
+                //---------------------------------------------------------------------
+                MouseDownFunc(player, lp_mouseKey, lp_mouseVector3F, uiX, uiY);
             }
 #else
             if (StopKeyMouseEvent[player] == false)
@@ -18589,32 +18591,32 @@ namespace MetalMaxSystem
 
                 //---------------------------------------------------------------------
                 Player.MouseDownLoopOneBitNum[player] += 1;
-                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], key);
-                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, key, true);
+                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], lp_mouseKey);
+                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, lp_mouseKey, true);
                 //---------------------------------------------------------------------
-                //if (libBC0D3AAD_gv_XuLiGuanLi == true)
-                //{
-                //    libBC0D3AAD_gf_HD_RegKXL(key, player);
-                //    libBC0D3AAD_gf_HD_SetKeyFixedXL(player, key, 1.0);
-                //}
-                ////---------------------------------------------------------------------
-                //if (libBC0D3AAD_gv_ShuangJiGuanLi == true)
-                //{
-                //   libBC0D3AAD_gf_HD_RegPTwo(lv_point1, "DoubleClicked_PTwo_" + IntToString(lv_player));
-                //   lv_a = libBC0D3AAD_gf_HD_ReturnKeyFixedSJ(lv_player, lv_mouseButton);
-                //   if ((0.0 < lv_a) && (lv_a <= libBC0D3AAD_gv_ShuangJiShiXian) && libBC0D3AAD_gf_HD_PTwoRangeTrue("DoubleClicked_PTwo_" + IntToString(lv_player)))
-                //   {
-                //       //符合双击标准(鼠标双击多个2点验证),发送事件
-                //       libBC0D3AAD_gf_Send_MouseDoubleClicked(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian - lv_a, lv_point0, lv_uiX, lv_uiY);
-                //   }
-                //   else
-                //   {
-                //       libBC0D3AAD_gf_HD_RegKSJ(lv_mouseButton, "libBC0D3AAD_gv_IntGroup_DoubleClicked" + IntToString(lv_player)); //HD_注册按键
-                //       libBC0D3AAD_gf_HD_SetKeyFixedSJ(lv_player, lv_mouseButton, libBC0D3AAD_gv_ShuangJiShiXian);
-                //   }
-                //}
-                ////---------------------------------------------------------------------
-                MouseDownFunc(player, key, lp_mouseVector3F, uiX, uiY);
+                if (chargeEnable == true)
+                {
+                    HD_RegKXL(lp_mouseKey, ThreadStringBuilder.Concat("IntGroup_XuLi", player)); //HD_注册按键
+                    HD_SetKeyFloatXL(player, lp_mouseKey, 1.0f);
+                }
+                //---------------------------------------------------------------------
+                if (doubleClickEnable == true)
+                {
+                    HD_RegPTwo(Player.MouseVector2F[player], ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player));
+                    float lv_a = HD_ReturnKeyFloatSJ(player, lp_mouseKey);
+                    if ((0.0f < lv_a) && (lv_a <= doubleClickTimeLimit) && HD_PTwoRangeTrue(ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player)))
+                    {
+                        //符合双击标准(鼠标双击多个2点验证),发送事件
+                        Send_MouseSJEvent(player, lp_mouseKey, doubleClickTimeLimit - lv_a, Player.MouseVector2F[player], uiX, uiY);
+                    }
+                    else
+                    {
+                        HD_RegKSJ(lp_mouseKey, ThreadStringBuilder.Concat("IntGroup_DoubleClicked", player)); //HD_注册按键
+                        HD_SetKeyFloatSJ(player, lp_mouseKey, doubleClickTimeLimit);
+                    }
+                }
+                //---------------------------------------------------------------------
+                MouseDownFunc(player, lp_mouseKey, lp_mouseVector3F, uiX, uiY);
             }
 #endif
             return torf;
@@ -18723,14 +18725,14 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 键鼠弹起事件延迟执行函数,会按序执行键鼠事件动作队列,需加入到每帧执行(并遍历全部玩家)
+        /// 处理按键队列的延迟弹起.会按序执行键鼠事件动作队列,需加入到每帧执行(并遍历全部玩家).
         /// </summary>
         /// <param name="player"></param>
         /// <param name="key"></param>
         /// <param name="lp_mouseVector3F"></param>
         /// <param name="uiX"></param>
         /// <param name="uiY"></param>
-        internal static void MouseKeyUpWait(int player)
+        public static void MouseKeyUpWait(int player)
         {
             int key;
             int ae, be, a, ai = 1, bi = 1;

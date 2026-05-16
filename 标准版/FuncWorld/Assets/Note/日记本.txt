@@ -1368,3 +1368,15 @@ public void LaunchExternalExe(string exePath, string arguments = "")
 // 每个游戏实例通常需要独立的配置或存档读写权限.虽然 exe 相同,但确保每个实例都在其自己的安装目录下运行是最安全的做法.
 // 3. 实现多开的正确代码示例
 // 你需要获取当前 exe 的路径,然后启动它,并显式指定工作目录.
+
+浮点数字面量的默认规则:
+C#中任何带有小数点的实数literals（字面量），没添加特定后缀编译器默认double‌
+1.0、-1.0、3.14、0.42e2 等均为 double
+对应的.NET 类型为System.Double
+希望字面量是float或decimal类型须显式添加后缀f或m(不区分大小写)
+
+当声明带?的Vector2F时，方法体内不能直接对比,需按如下方式解决
+Vector2F? v1 = GetVector();
+Vector2F? v2 = GetVector();
+Distance(v1, v2); //错误
+Distance(v1.Value, v2.Value); //正确
