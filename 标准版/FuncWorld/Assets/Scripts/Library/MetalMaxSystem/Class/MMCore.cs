@@ -57,6 +57,8 @@ using Vector3F = Microsoft.Xna.Framework.Vector3;
 #else
 using Vector2F = System.Numerics.Vector2;
 using Vector3F = System.Numerics.Vector3;
+using System.Windows.Input;
+using MetalMaxSystem;
 #endif
 #endif
 #endregion
@@ -182,9 +184,7 @@ namespace MetalMaxSystem
         public const int c_mouseButtonXButton1 = 4;
         public const int c_mouseButtonXButton2 = 5;
 
-        //注意:双击和蓄力功能中,键盘不与按鼠共用序号
-        //键盘按键序号=0~98不变,但鼠标按键:99 = mouseButtonLeft = 1,100 = mouseButtonMiddle = 2,101 = mouseButtonRight = 3,102 =mouseButtonXButton1 = 4,103 = mouseButtonXButton2 = 5
-        //蓄力值和双击值获取时,鼠标在键盘98键基础上追加这5个序号
+        //全键共用序号时,键盘按键=0~98不变,鼠标按键:99 = mouseButtonLeft,100 = mouseButtonMiddle,101 = mouseButtonRight,102 =mouseButtonXButton1,103 = mouseButtonXButton2
 
         //其他常量
 
@@ -212,9 +212,9 @@ namespace MetalMaxSystem
         //主副循环入口函数引用上限及单入口注册上限
 
         /// <summary>
-        /// 主副循环入口句柄上限(句柄范围0~9).主副循环均有5个事件入口,分别是Awake、Start、Update、End、Destroy,故两循环共10入口.
+        /// 主副循环入口句柄上限.主副循环均有5个事件入口,分别是Awake、Start、Update、End、Destroy,故两循环共10入口.
         /// </summary>
-        private const int c_entryMax = 9;//内部使用,无需给用户使用
+        private const int c_entryMax = 10;//内部使用,无需给用户使用
         /// <summary>
         /// 每个入口可注册函数上限.它是委托变量可多播,只需1个元素就能+=多个委托函数.
         /// 但为了预防误操作或其他特殊情况,也可增加到2或更多(不建议太多,以免占用过多内存资源).
@@ -231,6 +231,20 @@ namespace MetalMaxSystem
         //静态局部变量在函数结束时不参与垃圾回收,以便相同函数重复访问
         //静态数据是从模板形成的内存中唯一的可修改副本(不同类同名也不一样,要考虑命名空间和类名路径,无需担心重复)
         //数组元素数量上限均+1是习惯问题,防止某些循环以数组判断时最后退出还+1导致超限
+
+        #region 内部键鼠事件相关字段
+
+        /// <summary>
+        /// 内部键鼠事件监听服务实例(由RecordService监听底层钩子并记录状态)
+        /// </summary>
+        private static RecordService recordService;
+
+        /// <summary>
+        /// 内部键鼠事件是否已启动
+        /// </summary>
+        private static bool keyMouseEventState = false;
+
+        #endregion
 
         /// <summary>
         /// MMCore.Write或WriteLine中的文件写入器
@@ -544,9 +558,10 @@ namespace MetalMaxSystem
         //声明用于存放"主副循环入口事件引用类型"委托变量二维数组集合
 
         /// <summary>
-        /// 主副循环入口事件引用委托类型变量数组[c_entryMax + 1, c_regEntryMax + 1],用于自定义委托函数注册
+        /// 主副循环入口事件引用委托类型变量数组[c_entryMax, c_regEntryMax],用于自定义委托函数注册.
+        /// 当前固定容量[10,2]对应数组索引[0~9,1],因索引0不被使用所以实际只能注册1个.
         /// </summary>
-        private static EntryEventFuncref[,] entryEventFuncrefGroup = new EntryEventFuncref[c_entryMax + 1, c_regEntryMax + 1];//内部使用
+        private static EntryEventFuncref[,] entryEventFuncrefGroup = new EntryEventFuncref[c_entryMax, c_regEntryMax + 1];//内部使用
 
         #endregion
 
@@ -600,9 +615,10 @@ namespace MetalMaxSystem
         public static int dataTableThreadWaitPeriod = 50;
 
         /// <summary>
-        /// 本地主机编号
+        /// 本地主机编号.默认-1(表示未设置).
+        /// 作为玩家ID使用时:推荐用户1~15,中立0及设置为电脑的ID不算活动玩家,16是系统操作(上帝),17起算观战玩家.
         /// </summary>
-        public static int LocalID { get; set; }
+        public static int LocalID { get; set; } = -1;
 
         private static int _directoryEmptyUserDefIndex = 0;
         /// <summary>
@@ -14858,7 +14874,7 @@ namespace MetalMaxSystem
 
         #endregion
 
-        //任务:以下在字符串组合及数据表使用上需进行优化,拥有C#独立键鼠事件双击和蓄力值功能
+        //数据表使用过程涉及高频字符串组合或类型转换,需注意进行优化.
 
         #region Functions 互动管理(默认使用用户快捷数据表)
 
@@ -18143,7 +18159,6 @@ namespace MetalMaxSystem
         //    HD_AddIntToGroup(#AUTOVAR(var), #AUTOVAR(vsb));
         //}
 
-
         /// <summary>
         /// 互动IG_添加Int组到Int组.添加一个Int组A的元素到另一个Int组B,相同Int被认为是同一个.Int组目前不支持赋值其他变量,绝对ID对应绝对Key,可使用"添加Int组到Int组"函数来完成赋值需求
         /// </summary>
@@ -18235,62 +18250,203 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region Functions 键鼠事件动作主体
+        #region 键鼠事件
 
-        //加入按键监听并传参执行
+        //↓降频版事件转发,推荐注册
+        public static KeyDownEventFuncref KeyDownEvent;
+        public static KeyUpEventFuncref KeyUpEvent;
+        public static MouseMoveEventFuncref MouseMoveEvent;
+        public static MouseDownEventFuncref MouseDownEvent;
+        public static MouseUpEventFuncref MouseUpEvent;
+        public static MouseDoubleClickEventFuncref MouseDoubleClickEvent;
+        public static KeyDoubleClickEventFuncref KeyDoubleClickEvent;
+
+        #region Functions 键鼠事件启停封装
 
         /// <summary>
-        /// 注册键鼠总控预制事件.通过本函数可快捷将RecordService类实例中5个预制事件KeyDown、KeyUp、MouseMove、MouseDown、MouseUp注册给库内预制函数引用,从而使用按键总控管理衍生的所有功能(比如将“移动”、“发射火箭”等函数动作注册给Q键)
+        /// 启动MMCore内部键鼠事件循环.
+        /// RecordService监听底层钩子记录状态,MainUpdate周期间隔读取状态并判断发送事件,避免直接挂底层事件导致阻塞卡顿.
         /// </summary>
-        /// <param name="cover">true:覆盖注册,false:追加注册</param>
-        public static void AddKeyMouseEvent(RecordService keyMouseRecordService, bool cover)
+        /// <param name="player">玩家编号,有效编号1~15</param>
+        /// <param name="isBackground">是否后台线程运行</param>
+        public static void StartKeyMouseEvent(int player = 1, bool isBackground = true)
         {
-            if (cover)
-            {
-                //执行事件覆盖
-                keyMouseRecordService.KeyDownEvent = KeyDown;
-                keyMouseRecordService.KeyUpEvent = KeyUp;
-                keyMouseRecordService.MouseMoveEvent = MouseMove;
-                keyMouseRecordService.MouseDownEvent = MouseDown;
-                keyMouseRecordService.MouseUpEvent = MouseUp;
-            }
-            else if (!keyMouseRecordService.DefaultEvent)
-            {
-                //执行事件追加
-                keyMouseRecordService.KeyDownEvent += KeyDown;
-                keyMouseRecordService.KeyUpEvent += KeyUp;
-                keyMouseRecordService.MouseMoveEvent += MouseMove;
-                keyMouseRecordService.MouseDownEvent += MouseDown;
-                keyMouseRecordService.MouseUpEvent += MouseUp;
-            }
-            keyMouseRecordService.DefaultEvent = true;
+            if (keyMouseEventState || recordService != null) return;
+            keyMouseEventState = true;
+            recordService = (player <= 0 || player >= 16) ? new RecordService() : new RecordService(player);
+            recordService.mainUpdateState = true;
+
+            // 开启底层钩子监听
+            recordService.StartMouseHook();
+            recordService.StartKeyboardHook();
+
+            // 注册UpdateKeyMouseEventLoop到MainUpdate的Update事件
+            MainUpdate.Update += UpdateKeyMouseEventLoop;
+
+            // 启动MainUpdate(50ms周期运行=20Frames Per Second)
+            MainUpdate.Period = 50;
+            MainUpdate.Duetime = 0;
+            MainUpdate.Run(isBackground); //键鼠事件以后台线程运行即可
         }
 
         /// <summary>
-        /// 注销键鼠总控预制事件
+        /// 停止MMCore内部键鼠事件循环
+        /// </summary>
+        public static void StopKeyMouseEventLoop()
+        {
+            if (!keyMouseEventState) return;
+            // 通知停止MainUpdate
+            MainUpdate.TimerStop = true;
+            // 注销事件
+            MainUpdate.Update -= UpdateKeyMouseEventLoop;
+            // 停止底层钩子监听
+            recordService.StopMouseHook();
+            recordService.StopKeyboardHook();
+            // 清理资源
+            recordService = null;
+            // 状态重置
+            keyMouseEventState = false;
+        }
+
+        /// <summary>
+        /// 更新键鼠事件(在MainUpdate周期调用).
+        /// 读取RecordService记录的状态并判断是否发送KeyDown/KeyUp/MouseMove/MouseDown/MouseUp事件.
+        /// </summary>
+        private static void UpdateKeyMouseEventLoop()
+        {
+            if (recordService == null || !keyMouseEventState || !recordService.mainUpdateState) return;
+            MouseEventHandler(recordService);
+            KeyboardEventHandler(recordService);
+        }
+
+        private static void MouseEventHandler(RecordService recordService)
+        {
+            switch (recordService.MouseWParam)
+            {
+                case MouseHook.WM_MOUSEMOVE:
+                    //鼠标移动位置(整数UI坐标)
+                    //MouseMove(recordService.PlayerID, recordService.X, recordService.Y); //直接函数测试
+                    MouseMoveEvent?.Invoke(recordService.PlayerID, recordService.X, recordService.Y);
+                    break;
+                case MouseHook.WM_LBUTTONDOWN:
+                    //鼠标左键按下
+                    MouseDownEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonLeft, recordService.X, recordService.Y);
+                    break;
+                case MouseHook.WM_LBUTTONUP:
+                    //鼠标左键弹起
+                    MouseUpEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonLeft, recordService.X, recordService.Y);
+                    break;
+                case MouseHook.WM_RBUTTONDOWN:
+                    //鼠标右键按下
+                    MouseDownEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonRight, recordService.X, recordService.Y);
+                    break;
+                case MouseHook.WM_RBUTTONUP:
+                    //鼠标右键弹起
+                    MouseUpEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonRight, recordService.X, recordService.Y);
+                    break;
+                case MouseHook.WM_LBUTTONDBLCLK:
+                    //鼠标左键双击
+                    MouseDoubleClickEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonLeft, recordService.X, recordService.Y);
+                    break;
+                case MouseHook.WM_RBUTTONDBLCLK:
+                    //鼠标右键双击
+                    MouseDoubleClickEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonRight, recordService.X, recordService.Y);
+                    break;
+            }
+        }
+
+        //↓键盘双击事件专用
+
+        /// <summary>
+        /// 上一次按下按键的虚拟键码,默认-1表示无按键.
+        /// </summary>
+        private static int lastKeyDownValue = -1;
+        /// <summary>
+        /// 上一次按下按键的时间,默认最小值.
+        /// </summary>
+        private static DateTime lastKeyDownTime = DateTime.MinValue;
+        /// <summary>
+        /// 双击事件间隔时间(毫秒)
+        /// </summary>
+        private static int doubleClickIntervalMs = 250;
+
+        private static void KeyboardEventHandler(RecordService recordService)
+        {
+            //热键判断
+            if (recordService.KeyWParam‌ == KeyboardHook.WM_KEYDOWN || recordService.KeyWParam‌ == KeyboardHook.WM_SYSKEYDOWN)
+            {
+                //按下
+                KeyDownEvent?.Invoke(recordService.PlayerID, recordService.VKCode);
+                //键盘双击
+                if (lastKeyDownValue == recordService.VKCode && (DateTime.Now - lastKeyDownTime).TotalMilliseconds <= doubleClickIntervalMs)
+                {
+                    lastKeyDownValue = -1;
+                    lastKeyDownTime = DateTime.MinValue;
+                    KeyDoubleClickEvent?.Invoke(recordService.PlayerID, recordService.VKCode);
+                }
+                else
+                {
+                    lastKeyDownValue = recordService.VKCode;
+                    lastKeyDownTime = DateTime.Now;
+                }
+            }
+            else if (recordService.KeyWParam‌ == KeyboardHook.WM_KEYUP || recordService.KeyWParam‌ == KeyboardHook.WM_SYSKEYUP)
+            {
+                //松开
+                KeyUpEvent?.Invoke(recordService.PlayerID, recordService.VKCode);
+            }
+        }
+
+        #endregion
+
+        #region Functions 键鼠事件动作主体(测试专用,不推荐使用)
+
+        //由MainUpdate监听RecordService实例字段来判断发送,由于底层事件的发送频率过高,应由MainUpdate降频后转发.
+
+        /// <summary>
+        /// 注册底层键鼠事件.由于底层事件的发送频率过高,不推荐注册耗时动作.
+        /// </summary>
+        /// <param name="cover">true:覆盖注册,false:追加注册</param>
+        public static void AddVisualKeyMouseEvent(RecordService keyMouseRecordService, bool cover, KeyDownEventFuncref keyDown, KeyUpEventFuncref keyUp, MouseMoveEventFuncref mouseMove, MouseDownEventFuncref mouseDown, MouseUpEventFuncref mouseUp)
+        {
+            if (cover)
+            {
+                keyMouseRecordService.KeyDownEvent = keyDown;
+                keyMouseRecordService.KeyUpEvent = keyUp;
+                keyMouseRecordService.MouseMoveEvent = mouseMove;
+                keyMouseRecordService.MouseDownEvent = mouseDown;
+                keyMouseRecordService.MouseUpEvent = mouseUp;
+            }
+            {
+                keyMouseRecordService.KeyDownEvent += keyDown;
+                keyMouseRecordService.KeyUpEvent += keyUp;
+                keyMouseRecordService.MouseMoveEvent += mouseMove;
+                keyMouseRecordService.MouseDownEvent += mouseDown;
+                keyMouseRecordService.MouseUpEvent += mouseUp;
+            }
+        }
+
+        /// <summary>
+        /// 注销底层键鼠事件.
         /// </summary>
         /// <param name="lp_null">true注销全部,否则仅注销预制键鼠事件</param>
-        public static void DelKeyMouseEvent(RecordService keyMouseRecordService, bool lp_null = false)
+        public static void DelVisualKeyMouseEvent(RecordService keyMouseRecordService, bool lp_null = false, KeyDownEventFuncref keyDown = null, KeyUpEventFuncref keyUp = null, MouseMoveEventFuncref mouseMove = null, MouseDownEventFuncref mouseDown = null, MouseUpEventFuncref mouseUp = null)
         {
             if (lp_null)
             {
-                //全事件清除
                 keyMouseRecordService.KeyDownEvent = null;
                 keyMouseRecordService.KeyUpEvent = null;
                 keyMouseRecordService.MouseMoveEvent = null;
                 keyMouseRecordService.MouseDownEvent = null;
                 keyMouseRecordService.MouseUpEvent = null;
             }
-            else if (keyMouseRecordService.DefaultEvent)
             {
-                //仅移除预制事件
-                keyMouseRecordService.KeyDownEvent -= KeyDown;
-                keyMouseRecordService.KeyUpEvent -= KeyUp;
-                keyMouseRecordService.MouseMoveEvent -= MouseMove;
-                keyMouseRecordService.MouseDownEvent -= MouseDown;
-                keyMouseRecordService.MouseUpEvent -= MouseUp;
+                keyMouseRecordService.KeyDownEvent -= keyDown;
+                keyMouseRecordService.KeyUpEvent -= keyUp;
+                keyMouseRecordService.MouseMoveEvent -= mouseMove;
+                keyMouseRecordService.MouseDownEvent -= mouseDown;
+                keyMouseRecordService.MouseUpEvent -= mouseUp;
             }
-            keyMouseRecordService.DefaultEvent = false;
         }
 
         /// <summary>
@@ -18298,7 +18454,7 @@ namespace MetalMaxSystem
         /// </summary>
         /// <param name="player"></param>
         /// <param name="key"></param>
-        internal static bool KeyDown(int player, int key)
+        public static bool KeyDown(int player, int key)
         {
             bool torf = !StopKeyMouseEvent[player];
             Player.KeyDownState[player, key] = torf;  //当前按键状态值
@@ -18343,7 +18499,7 @@ namespace MetalMaxSystem
         /// <param name="player"></param>
         /// <param name="key"></param>
         /// <returns></returns>
-        internal static bool KeyUp(int player, int key)
+        public static bool KeyUp(int player, int key)
         {
             bool torf = !StopKeyMouseEvent[player];
             Player.KeyDownState[player, key] = false;  //当前按键状态值,本事件始终为false
@@ -18390,33 +18546,36 @@ namespace MetalMaxSystem
         /// 鼠标移动事件主要动作(加入按键监听并传参执行)
         /// </summary>
         /// <param name="player"></param>
-        /// <param name="lp_mouseVector3F"></param>
         /// <param name="uiX"></param>
         /// <param name="uiY"></param>
-        internal static void MouseMove(int player, Vector3F lp_mouseVector3F, int uiX, int uiY)
+        public static void MouseMove(int player, int uiX, int uiY)
         {
+            Vector3F mouseVector = new Vector3F(uiX, uiY, 0f);
+            float unitTerrainHeight = 0f, unitHeight = 0f;
 #if UNITY_EDITOR || UNITY_STANDALONE
             if (StopKeyMouseEvent[player] == false)
             {
-                Player.MouseVector2F[player] = new Vector2F(lp_mouseVector3F.x, lp_mouseVector3F.y);
+                Player.MouseVector2F[player] = new Vector2F(mouseVector.x, mouseVector.y);
 
                 //↓注意取出来的是该点最高位Unit
-                float unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight"));
-                float unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height"));
+                try { unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight")); }
+                catch { }
+                try { unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height")); }
+                catch { }
 
-                Player.MouseVectorX[player] = lp_mouseVector3F.x;
-                Player.MouseVectorY[player] = lp_mouseVector3F.y;
-                Player.MouseVectorZ[player] = lp_mouseVector3F.z;
-                Player.MouseVectorZFixed[player] = lp_mouseVector3F.z - Game.MapHeight;
+                Player.MouseVectorX[player] = mouseVector.x;
+                Player.MouseVectorY[player] = mouseVector.y;
+                Player.MouseVectorZ[player] = mouseVector.z;
+                Player.MouseVectorZFixed[player] = mouseVector.z - Game.MapHeight;
 
                 Player.MouseUIX[player] = uiX;
                 Player.MouseUIY[player] = uiY;
 
-                Player.MouseVector3FFixed[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, Player.MouseVectorZFixed[player]);
-                Player.MouseVector3F[player] = lp_mouseVector3F;
+                Player.MouseVectorFixed[player] = new Vector3F(mouseVector.x, mouseVector.y, Player.MouseVectorZFixed[player]);
+                Player.MouseVector[player] = mouseVector;
                 //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
-                Player.MouseVector3FUnitTerrain[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, lp_mouseVector3F.z - unitTerrainHeight);
-                Player.MouseVector3FTerrain[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, lp_mouseVector3F.z - unitTerrainHeight - unitHeight);
+                Player.MouseVectorUnitTerrain[player] = new Vector3F(mouseVector.x, mouseVector.y, mouseVector.z - unitTerrainHeight);
+                Player.MouseVectorTerrain[player] = new Vector3F(mouseVector.x, mouseVector.y, mouseVector.z - unitTerrainHeight - unitHeight);
 
                 //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
                 if (Player.UnitControl[player] != null)
@@ -18426,31 +18585,33 @@ namespace MetalMaxSystem
                     //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
                     //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
+                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, mouseVector);
                 }
             }
 #else
             if (StopKeyMouseEvent[player] == false)
             {
-                Player.MouseVector2F[player] = new Vector2F(lp_mouseVector3F.X, lp_mouseVector3F.Y);
+                Player.MouseVector2F[player] = new Vector2F(mouseVector.X, mouseVector.Y);
 
                 //↓注意取出来的是该点最高位Unit
-                float unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight"));
-                float unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height"));
+                try { unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight")); }
+                catch { }
+                try { unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height")); }
+                catch { }
 
-                Player.MouseVectorX[player] = lp_mouseVector3F.X;
-                Player.MouseVectorY[player] = lp_mouseVector3F.Y;
-                Player.MouseVectorZ[player] = lp_mouseVector3F.Z;
-                Player.MouseVectorZFixed[player] = lp_mouseVector3F.Z - Game.MapHeight;
+                Player.MouseVectorX[player] = mouseVector.X;
+                Player.MouseVectorY[player] = mouseVector.Y;
+                Player.MouseVectorZ[player] = mouseVector.Z;
+                Player.MouseVectorZFixed[player] = mouseVector.Z - Game.MapHeight;
 
                 Player.MouseUIX[player] = uiX;
                 Player.MouseUIY[player] = uiY;
 
-                Player.MouseVector3FFixed[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, Player.MouseVectorZFixed[player]);
-                Player.MouseVector3F[player] = lp_mouseVector3F;
+                Player.MouseVectorFixed[player] = new Vector3F(mouseVector.X, mouseVector.Y, Player.MouseVectorZFixed[player]);
+                Player.MouseVector[player] = mouseVector;
                 //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
-                Player.MouseVector3FUnitTerrain[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, lp_mouseVector3F.Z - unitTerrainHeight);
-                Player.MouseVector3FTerrain[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, lp_mouseVector3F.Z - unitTerrainHeight - unitHeight);
+                Player.MouseVectorUnitTerrain[player] = new Vector3F(mouseVector.X, mouseVector.Y, mouseVector.Z - unitTerrainHeight);
+                Player.MouseVectorTerrain[player] = new Vector3F(mouseVector.X, mouseVector.Y, mouseVector.Z - unitTerrainHeight - unitHeight);
 
                 //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
                 if (Player.UnitControl[player] != null)
@@ -18460,7 +18621,7 @@ namespace MetalMaxSystem
                     //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
                     //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
+                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, mouseVector);
                 }
             }
 #endif
@@ -18470,50 +18631,56 @@ namespace MetalMaxSystem
         /// 鼠标按下事件主要动作(加入按键监听并传参执行)
         /// </summary>
         /// <param name="player"></param>
-        /// <param name="lp_mouseKey"></param>
-        /// <param name="lp_mouseVector3F"></param>
+        /// <param name="key"></param>
         /// <param name="uiX"></param>
         /// <param name="uiY"></param>
         /// <returns></returns>
-        internal static bool MouseDown(int player, int lp_mouseKey, Vector3F lp_mouseVector3F, int uiX, int uiY)
+        public static bool MouseDown(int player, int key, int uiX, int uiY)
         {
+            Vector3F mouseVector = new Vector3F(uiX, uiY, 0f);
+            float unitTerrainHeight = 0f, unitHeight = 0f;
+
             bool torf = !StopKeyMouseEvent[player];
-            Player.MouseDownState[player, lp_mouseKey] = torf;  //当前按键状态值
-            Player.MouseDown[player, lp_mouseKey] = true;  //当前按键值
-            if (lp_mouseKey == c_mouseButtonLeft)
+            Player.MouseDownState[player, key] = torf;  //当前按键状态
+            Player.MouseDown[player, key] = true;  //当前按键值
+
+            if (key == c_mouseButtonLeft)
             {
                 Player.MouseDownLeft[player] = true;
             }
-            if (lp_mouseKey == c_mouseButtonRight)
+            if (key == c_mouseButtonRight)
             {
                 Player.MouseDownRight[player] = true;
             }
-            if (lp_mouseKey == c_mouseButtonMiddle)
+            if (key == c_mouseButtonMiddle)
             {
                 Player.MouseDownMiddle[player] = true;
             }
+
 #if UNITY_EDITOR || UNITY_STANDALONE
             if (StopKeyMouseEvent[player] == false)
             {
-                Player.MouseVector2F[player] = new Vector2F(lp_mouseVector3F.x, lp_mouseVector3F.y);
+                Player.MouseVector2F[player] = new Vector2F(uiX, uiY);
 
                 //↓注意取出来的是该点最高位Unit
-                float unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight"));
-                float unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height"));
+                try { unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight")); }
+                catch { }
+                try { unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height")); }
+                catch { }
 
-                Player.MouseVectorX[player] = lp_mouseVector3F.x;
-                Player.MouseVectorY[player] = lp_mouseVector3F.y;
-                Player.MouseVectorZ[player] = lp_mouseVector3F.z;
-                Player.MouseVectorZFixed[player] = lp_mouseVector3F.z - Game.MapHeight;
+                Player.MouseVectorX[player] = uiX;
+                Player.MouseVectorY[player] = uiY;
+                Player.MouseVectorZ[player] = mouseVector.z;
+                Player.MouseVectorZFixed[player] = mouseVector.z - Game.MapHeight;
 
                 Player.MouseUIX[player] = uiX;
                 Player.MouseUIY[player] = uiY;
 
-                Player.MouseVector3FFixed[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, Player.MouseVectorZFixed[player]);
-                Player.MouseVector3F[player] = lp_mouseVector3F;
+                Player.MouseVectorFixed[player] = new Vector3F(uiX, uiY, Player.MouseVectorZFixed[player]);
+                Player.MouseVector[player] = mouseVector;
                 //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
-                Player.MouseVector3FUnitTerrain[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, lp_mouseVector3F.z - unitTerrainHeight);
-                Player.MouseVector3FTerrain[player] = new Vector3F(lp_mouseVector3F.x, lp_mouseVector3F.y, lp_mouseVector3F.z - unitTerrainHeight - unitHeight);
+                Player.MouseVectorUnitTerrain[player] = new Vector3F(uiX, uiY, mouseVector.z - unitTerrainHeight);
+                Player.MouseVectorTerrain[player] = new Vector3F(uiX, uiY, mouseVector.z - unitTerrainHeight - unitHeight);
 
                 //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
                 if (Player.UnitControl[player] != null)
@@ -18523,60 +18690,62 @@ namespace MetalMaxSystem
                     //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
                     //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
+                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, mouseVector);
                 }
 
                 //---------------------------------------------------------------------
                 Player.MouseDownLoopOneBitNum[player] += 1;
-                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], lp_mouseKey);
-                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, lp_mouseKey, true);
+                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], key);
+                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, key, true);
                 //---------------------------------------------------------------------
                 if (chargeDebug == true)
                 {
-                   HD_RegKXL(lp_mouseKey, ThreadStringBuilder.Concat("IntGroup_XuLi", player)); //HD_注册按键
-                   HD_SetKeyFloatXL(player, lp_mouseKey, 1.0f);
+                    HD_RegKXL(key, ThreadStringBuilder.Concat("IntGroup_XuLi", player)); //HD_注册按键
+                    HD_SetKeyFloatXL(player, key, 1.0f);
                 }
                 //---------------------------------------------------------------------
                 if (doubleClickDebug == true)
                 {
                     HD_RegPTwo(Player.MouseVector2F[player], ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player));
-                   float lv_a = HD_ReturnKeyFloatSJ(player, lp_mouseKey);
-                   if ((0.0 < lv_a) && (lv_a <= doubleClickTimeLimit) && HD_PTwoRangeTrue(ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player)))
-                   {
-                       //符合双击标准(鼠标双击多个2点验证),发送事件
-                       Send_MouseSJEvent(player, lp_mouseKey, doubleClickTimeLimit - lv_a, lp_mouseVector3F, uiX, uiY);
-                   }
-                   else
-                   {
-                       HD_RegKSJ(lp_mouseKey, ThreadStringBuilder.Concat("IntGroup_DoubleClicked", player)); //HD_注册按键
-                       HD_SetKeyFloatSJ(player, lp_mouseKey, doubleClickTimeLimit);
-                   }
+                    float lv_a = HD_ReturnKeyFloatSJ(player, key);
+                    if ((0.0 < lv_a) && (lv_a <= doubleClickTimeLimit) && HD_PTwoRangeTrue(ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player)))
+                    {
+                        //符合双击标准(鼠标双击多个2点验证),发送事件
+                        Send_MouseSJEvent(player, key, doubleClickTimeLimit - lv_a, uiX, uiY, mouseVector);
+                    }
+                    else
+                    {
+                        HD_RegKSJ(key, ThreadStringBuilder.Concat("IntGroup_DoubleClicked", player)); //HD_注册按键
+                        HD_SetKeyFloatSJ(player, key, doubleClickTimeLimit);
+                    }
                 }
                 //---------------------------------------------------------------------
-                MouseDownFunc(player, lp_mouseKey, lp_mouseVector3F, uiX, uiY);
+                MouseDownFunc(player, key, uiX, uiY, mouseVector);
             }
 #else
             if (StopKeyMouseEvent[player] == false)
             {
-                Player.MouseVector2F[player] = new Vector2F(lp_mouseVector3F.X, lp_mouseVector3F.Y);
+                Player.MouseVector2F[player] = new Vector2F(uiX, uiY);
 
                 //↓注意取出来的是该点最高位Unit
-                float unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight"));
-                float unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height"));
+                try { unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight")); }
+                catch { }
+                try { unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height")); }
+                catch { }
 
-                Player.MouseVectorX[player] = lp_mouseVector3F.X;
-                Player.MouseVectorY[player] = lp_mouseVector3F.Y;
-                Player.MouseVectorZ[player] = lp_mouseVector3F.Z;
-                Player.MouseVectorZFixed[player] = lp_mouseVector3F.Z - Game.MapHeight;
+                Player.MouseVectorX[player] = uiX;
+                Player.MouseVectorY[player] = uiY;
+                Player.MouseVectorZ[player] = mouseVector.Z;
+                Player.MouseVectorZFixed[player] = mouseVector.Z - Game.MapHeight;
 
                 Player.MouseUIX[player] = uiX;
                 Player.MouseUIY[player] = uiY;
 
-                Player.MouseVector3FFixed[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, Player.MouseVectorZFixed[player]);
-                Player.MouseVector3F[player] = lp_mouseVector3F;
+                Player.MouseVectorFixed[player] = new Vector3F(uiX, uiY, Player.MouseVectorZFixed[player]);
+                Player.MouseVector[player] = mouseVector;
                 //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
-                Player.MouseVector3FUnitTerrain[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, lp_mouseVector3F.Z - unitTerrainHeight);
-                Player.MouseVector3FTerrain[player] = new Vector3F(lp_mouseVector3F.X, lp_mouseVector3F.Y, lp_mouseVector3F.Z - unitTerrainHeight - unitHeight);
+                Player.MouseVectorUnitTerrain[player] = new Vector3F(uiX, uiY, mouseVector.Z - unitTerrainHeight);
+                Player.MouseVectorTerrain[player] = new Vector3F(uiX, uiY, mouseVector.Z - unitTerrainHeight - unitHeight);
 
                 //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
                 if (Player.UnitControl[player] != null)
@@ -18586,37 +18755,37 @@ namespace MetalMaxSystem
                     //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
                     Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
                     //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, lp_mouseVector3F);
+                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, mouseVector);
                 }
 
                 //---------------------------------------------------------------------
                 Player.MouseDownLoopOneBitNum[player] += 1;
-                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], lp_mouseKey);
-                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, lp_mouseKey, true);
+                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], key);
+                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, key, true);
                 //---------------------------------------------------------------------
                 if (chargeEnable == true)
                 {
-                    HD_RegKXL(lp_mouseKey, ThreadStringBuilder.Concat("IntGroup_XuLi", player)); //HD_注册按键
-                    HD_SetKeyFloatXL(player, lp_mouseKey, 1.0f);
+                    HD_RegKXL(key, ThreadStringBuilder.Concat("IntGroup_XuLi", player)); //HD_注册按键
+                    HD_SetKeyFloatXL(player, key, 1.0f);
                 }
                 //---------------------------------------------------------------------
                 if (doubleClickEnable == true)
                 {
                     HD_RegPTwo(Player.MouseVector2F[player], ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player));
-                    float lv_a = HD_ReturnKeyFloatSJ(player, lp_mouseKey);
+                    float lv_a = HD_ReturnKeyFloatSJ(player, key);
                     if ((0.0f < lv_a) && (lv_a <= doubleClickTimeLimit) && HD_PTwoRangeTrue(ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player)))
                     {
                         //符合双击标准(鼠标双击多个2点验证),发送事件
-                        Send_MouseSJEvent(player, lp_mouseKey, doubleClickTimeLimit - lv_a, Player.MouseVector2F[player], uiX, uiY);
+                        Send_MouseSJEvent(player, key, doubleClickTimeLimit - lv_a, uiX, uiY, Player.MouseVector[player]);
                     }
                     else
                     {
-                        HD_RegKSJ(lp_mouseKey, ThreadStringBuilder.Concat("IntGroup_DoubleClicked", player)); //HD_注册按键
-                        HD_SetKeyFloatSJ(player, lp_mouseKey, doubleClickTimeLimit);
+                        HD_RegKSJ(key, ThreadStringBuilder.Concat("IntGroup_DoubleClicked", player)); //HD_注册按键
+                        HD_SetKeyFloatSJ(player, key, doubleClickTimeLimit);
                     }
                 }
                 //---------------------------------------------------------------------
-                MouseDownFunc(player, lp_mouseKey, lp_mouseVector3F, uiX, uiY);
+                MouseDownFunc(player, key, uiX, uiY, mouseVector);
             }
 #endif
             return torf;
@@ -18627,11 +18796,11 @@ namespace MetalMaxSystem
         /// </summary>
         /// <param name="player"></param>
         /// <param name="key"></param>
-        /// <param name="lp_mouseVector3F"></param>
+        /// <param name="mouseVector">鼠标在3D世界中的坐标</param>
         /// <param name="uiX"></param>
         /// <param name="uiY"></param>
         /// <returns></returns>
-        internal static bool MouseDownFunc(int player, int key, Vector3F lp_mouseVector3F, int uiX, int uiY)
+        internal static bool MouseDownFunc(int player, int key, int uiX = 0, int uiY = 0, Vector3F? mouseVector = null)
         {
             //Variable Declarations
             bool torf = true;
@@ -18667,10 +18836,9 @@ namespace MetalMaxSystem
         /// </summary>
         /// <param name="player"></param>
         /// <param name="key"></param>
-        /// <param name="lp_mouseVector3F"></param>
         /// <param name="uiX"></param>
         /// <param name="uiY"></param>
-        internal static bool MouseUp(int player, int key, Vector3F lp_mouseVector3F, int uiX, int uiY)
+        public static bool MouseUp(int player, int key, int uiX, int uiY)
         {
             bool torf = !StopKeyMouseEvent[player];
             Player.MouseDownState[player, key] = false;  //当前按键状态值,本事件始终为false
@@ -18728,11 +18896,7 @@ namespace MetalMaxSystem
         /// 处理按键队列的延迟弹起.会按序执行键鼠事件动作队列,需加入到每帧执行(并遍历全部玩家).
         /// </summary>
         /// <param name="player"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_mouseVector3F"></param>
-        /// <param name="uiX"></param>
-        /// <param name="uiY"></param>
-        public static void MouseKeyUpWait(int player)
+        public static void KeyMouseUpWait(int player)
         {
             int key;
             int ae, be, a, ai = 1, bi = 1;
@@ -18760,7 +18924,7 @@ namespace MetalMaxSystem
                             Player.MouseDown[player, c_mouseButtonMiddle] = false;
                         }
                         //
-                        MouseDownFunc(player, key, Player.MouseVector3F[player], Player.MouseUIX[player], Player.MouseUIY[player]);
+                        MouseDownFunc(player, key, Player.MouseUIX[player], Player.MouseUIY[player], Player.MouseVector[player]);
                     }
                     DataTableIntClear2(true, "MouseDownLoopOneBit", player, a);
                     DataTableBoolClear2(true, "MouseDownLoopOneBitKey", player, key);
@@ -18790,11 +18954,7 @@ namespace MetalMaxSystem
             }
         }
 
-        #endregion
-
-        #region Functions 键鼠事件委托(函数引用)管理
-
-        //可进行注册注销查询更换归并执行委托
+        #region Functions 键鼠事件委托管理(与键鼠事件动作主体将执行的委托小组进行互动).
 
         //------------------------------------↓KeyDownEventStart↓-----------------------------------------
 
@@ -18839,23 +18999,37 @@ namespace MetalMaxSystem
         {
             ThreadWait("MMCore_KeyEventFuncref_");
             ThreadWaitSet("MMCore_KeyEventFuncref_", true);
-            for (int a = 1; a <= keyEventFuncrefGroupNum[key]; a += 1)
+            try
             {
-                //遍历检查所填函数注册序号
-                if (keyEventFuncrefGroup[key, a] == funcref)
+                int currentCount = keyEventFuncrefGroupNum[key];
+                int a = 1;
+                while (a <= currentCount)
                 {
-                    //该键位注册总数减一
-                    keyEventFuncrefGroupNum[key] -= 1;
-                    for (int b = a; b <= keyEventFuncrefGroupNum[key]; b += 1)
+                    if (keyEventFuncrefGroup[key, a] == funcref)
                     {
-                        //将后序有效函数(如有)按序重排
-                        keyEventFuncrefGroup[key, b] = keyEventFuncrefGroup[key, b];
+                        // 1. 将后续元素前移，覆盖当前被删除的元素
+                        for (int b = a; b < currentCount; b++)
+                        {
+                            keyEventFuncrefGroup[key, b] = keyEventFuncrefGroup[key, b + 1];
+                        }
+                        // 2. 清空最后一个冗余位置（防止内存泄漏或幽灵引用）
+                        keyEventFuncrefGroup[key, currentCount] = null;
+
+                        // 3. 总数减一
+                        currentCount--;
+                        keyEventFuncrefGroupNum[key] = currentCount;
                     }
-                    //新的序号下从可疑序号重新开始检查,确保该函数在键位中彻底消失
-                    a -= 1;
+                    else
+                    {
+                        // 只有当不匹配时，才检查下一个索引
+                        a++;
+                    }
                 }
             }
-            ThreadWaitSet("MMCore_KeyEventFuncref_", false);
+            finally
+            {
+                ThreadWaitSet("MMCore_KeyEventFuncref_", false);
+            }
         }
 
         /// <summary>
@@ -18961,7 +19135,6 @@ namespace MetalMaxSystem
             mouseEventFuncrefGroup[key, mouseEventFuncrefGroupNum[key]] = funcref;//这里采用等于,设计为覆盖
             ThreadWaitSet("MouseEventFuncref", false);
         }
-
         /// <summary>
         /// 注册指定鼠标键位的委托函数(登录在指定注册序号num位置)
         /// </summary>
@@ -18985,19 +19158,38 @@ namespace MetalMaxSystem
         {
             ThreadWait("MouseEventFuncref");
             ThreadWaitSet("MouseEventFuncref", true);
-            for (int a = 1; a <= mouseEventFuncrefGroupNum[key]; a += 1)
+            try
             {
-                if (mouseEventFuncrefGroup[key, a] == funcref)
+                int currentCount = mouseEventFuncrefGroupNum[key];
+                int a = 1;
+                while (a <= currentCount)
                 {
-                    mouseEventFuncrefGroupNum[key] -= 1;
-                    for (int b = a; b <= mouseEventFuncrefGroupNum[key]; b += 1)
+                    if (mouseEventFuncrefGroup[key, a] == funcref)
                     {
-                        mouseEventFuncrefGroup[key, b] = mouseEventFuncrefGroup[key, b];
+                        // 1. 将后续元素前移，覆盖当前被删除的元素
+                        for (int b = a; b < currentCount; b++)
+                        {
+                            mouseEventFuncrefGroup[key, b] = mouseEventFuncrefGroup[key, b + 1];
+                        }
+
+                        // 2. 清空最后一个冗余位置（防止内存泄漏或幽灵引用）
+                        mouseEventFuncrefGroup[key, currentCount] = null;
+
+                        // 3. 总数减一
+                        currentCount--;
+                        mouseEventFuncrefGroupNum[key] = currentCount;
                     }
-                    a -= 1;
+                    else
+                    {
+                        // 只有当不匹配时，才检查下一个索引
+                        a++;
+                    }
                 }
             }
-            ThreadWaitSet("MouseEventFuncref", false);
+            finally
+            {
+                ThreadWaitSet("MouseEventFuncref", false);
+            }
         }
 
         /// <summary>
@@ -19082,18 +19274,19 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region Functions 主副循环入口事件委托(函数引用)管理
+        #endregion
 
-        //可进行注册注销查询更换归并执行委托
+        #region Functions 主副循环入口事件委托管理(仅示范,推荐直接用MainUpdate.Awake/Start/Update/End/Destroy +=)
+
+        //MainUpdate、SubUpdate的循环体执行一个委托小组,这里是框架内部与该小组的管理互动
 
         //------------------------------------↓EntryFuncStart↓-----------------------------------------
 
         /// <summary>
-        /// 将(1个或多个)委托函数注册到主副循环入口事件(或者说给委托函数添加指定事件,完成事件注册).
-        /// 注册指定主副循环入口的委托函数,每个入口最大注册数量限制(1),超过则什么也不做
+        /// 将1个委托(可多播)注册到主副循环入口事件的委托小组.10个入口每个最大注册1个,超过什么也不做.
         /// </summary>
         /// <param name="entry"></param>
-        /// <param name="funcref"></param>
+        /// <param name="funcref">委托</param>
         public static void RegistEntryEventFuncref(Entry entry, EntryEventFuncref funcref)
         {
             ThreadWait("EntryEventFuncref");//注册注销时进行等待
@@ -19103,54 +19296,72 @@ namespace MetalMaxSystem
                 return;
             }
             entryEventFuncrefGroupNum[(int)entry] += 1;//注册成功记录+1
-            entryEventFuncrefGroup[(int)entry, entryEventFuncrefGroupNum[(int)entry]] = funcref;//这里采用等于,设计为覆盖
+            entryEventFuncrefGroup[(int)entry, entryEventFuncrefGroupNum[(int)entry]] = funcref;//覆盖小组索引1的委托(索引0不被使用)
             ThreadWaitSet("EntryEventFuncref", false);
         }
 
         /// <summary>
-        /// 注册指定主副循环入口的委托函数(登录在指定注册序号num位置)
+        /// 将1个委托(可多播)注册到指定主副循环入口事件的委托小组,10个入口每个最大注册1个,超过什么也不做.
+        /// 本函数允许选择覆盖指定注册序号的小组元素(目前仅索引位1可覆盖).
         /// </summary>
         /// <param name="entry"></param>
-        /// <param name="num">不能超过最大注册数量限制(8)</param>
-        /// <param name="funcref"></param>
-        public static void RegistEntryEventFuncref(Entry entry, int num, EntryEventFuncref funcref)
+        /// <param name="regNum">索引必须从1开始</param>
+        /// <param name="funcref">委托</param>
+        public static void RegistEntryEventFuncref(Entry entry, int regNum, EntryEventFuncref funcref)
         {
+            if (regNum < 1) return;
             ThreadWait("EntryEventFuncref");//注册注销时进行等待
             ThreadWaitSet("EntryEventFuncref", true);
-            entryEventFuncrefGroup[(int)entry, num] = funcref;
+            entryEventFuncrefGroup[(int)entry, regNum] = funcref;
             ThreadWaitSet("EntryEventFuncref", false);
         }
 
         /// <summary>
-        /// 注销指定主副循环入口的委托函数(发生序号重排)
+        /// 注销主副循环入口事件的委托小组的指定元素(若该入口小组元素超过2个会引发序号重排,若只有1个则直接删除)
         /// </summary>
         /// <param name="entry"></param>
-        /// <param name="funcref"></param>
+        /// <param name="funcref">委托</param>
         public static void RemoveEntryEventFuncref(Entry entry, EntryEventFuncref funcref)
         {
             ThreadWait("EntryEventFuncref");
             ThreadWaitSet("EntryEventFuncref", true);
-            for (int a = 1; a <= entryEventFuncrefGroupNum[(int)entry]; a += 1)
+            try
             {
-                //遍历检查所填函数注册序号
-                if (entryEventFuncrefGroup[(int)entry, a] == funcref)
+                int entryIndex = (int)entry;
+                int currentCount = entryEventFuncrefGroupNum[entryIndex];
+                int a = 1;
+                while (a <= currentCount)
                 {
-                    //该键位注册总数减一
-                    entryEventFuncrefGroupNum[(int)entry] -= 1;
-                    for (int b = a; b <= entryEventFuncrefGroupNum[(int)entry]; b += 1)
+                    if (entryEventFuncrefGroup[entryIndex, a] == funcref)
                     {
-                        //将后序有效函数(如有)按序重排
-                        entryEventFuncrefGroup[(int)entry, b] = entryEventFuncrefGroup[(int)entry, b];
+                        // 1. 将后续元素前移
+                        for (int b = a; b < currentCount; b++)
+                        {
+                            entryEventFuncrefGroup[entryIndex, b] = entryEventFuncrefGroup[entryIndex, b + 1];
+                        }
+
+                        // 2. 清空最后一个冗余位置（防止内存泄漏/幽灵引用）
+                        entryEventFuncrefGroup[entryIndex, currentCount] = null;
+
+                        // 3. 总数减一
+                        currentCount--;
+                        entryEventFuncrefGroupNum[entryIndex] = currentCount;
                     }
-                    //新的序号下从可疑序号重新开始检查,确保该函数在键位中彻底消失
-                    a -= 1;
+                    else
+                    {
+                        // 只有不匹配时，才开始下一个索引检查
+                        a++;
+                    }
                 }
             }
-            ThreadWaitSet("EntryEventFuncref", false);
+            finally
+            {
+                ThreadWaitSet("EntryEventFuncref", false);
+            }
         }
 
         /// <summary>
-        /// 返回指定主副循环入口注册函数的序号
+        /// 返回指定委托在主副循环入口事件的委托小组的注册序号
         /// </summary>
         /// <param name="entry"></param>
         /// <param name="funcref"></param>
@@ -19172,7 +19383,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 返回指定主副循环入口指定函数的注册数量(>1则注册了多个同样的函数)
+        /// 返回指定委托在主副循环入口事件的委托小组的注册数量(大于1则注册了多个同样的)
         /// </summary>
         /// <param name="entry"></param>
         /// <param name="funcref"></param>
@@ -19193,7 +19404,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 归并主副循环入口指定函数(如存在则移除该函数注册并序号重排,之后重新注册1次)
+        /// 归并主副循环入口的委托小组的指定委托(如存在则移除干净,之后重新注册1次)
         /// </summary>
         /// <param name="entry"></param>
         /// <param name="funcref"></param>
@@ -19205,7 +19416,6 @@ namespace MetalMaxSystem
             if (num > 1)
             {
                 result = true;
-                //发现重复函数,移除后重新注册
                 RemoveEntryEventFuncref(entry, funcref);
                 RegistEntryEventFuncref(entry, funcref);
             }
@@ -19213,7 +19423,7 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 全局主副循环入口事件,对指定入口执行委托函数动作集合
+        /// 全局主副循环入口事件.本函数由MainUpdate、SubUpdate执行时自动调用.
         /// </summary>
         /// <param name="entry"></param>
         public static void EntryGlobalEvent(Entry entry)
@@ -19225,9 +19435,9 @@ namespace MetalMaxSystem
         }
 
         //------------------------------------↑EntryFuncEnd↑-----------------------------------------
-
         #endregion
 
+        #endregion
     }
 }
 
@@ -19278,17 +19488,16 @@ namespace MetalMaxSystem
 
 //await关键字只能在async声明的异步函数内用,作用是等待一个异步操作的完成,并且不会阻塞调用线程.
 
-/* 主副循环入口事件委托管理的作用
+/* 
+
+主副循环入口事件委托管理的作用
 
 ### 核心作用
 
-**主副循环入口事件委托**是 `MMCore` 框架为游戏/应用提供的一种**生命周期钩子机制**,允许开发者在游戏主循环的特定阶段注册自定义函数,实现逻辑分离和模块化.
-
----
+**主副循环入口事件委托是MM框架为游戏/应用提供的一种生命周期钩子机制,允许开发者在游戏主循环的特定阶段注册自定义按键函数,实现逻辑分离和模块化.
 
 ### 生命周期阶段
 
-```
 ┌─────────────────────────────────────────────────────────┐
 │                    游戏主循环                            │
 ├─────────────────────────────────────────────────────────┤
@@ -19296,7 +19505,6 @@ namespace MetalMaxSystem
 │     ↓           ↓              ↓                ↓            ↓        │
 │   唤醒         启动          每帧更新           结束          销毁      │
 └─────────────────────────────────────────────────────────┘
-```
 
 | 阶段 | 触发时机 | 典型用途 |
 |------|---------|---------|
@@ -19306,13 +19514,10 @@ namespace MetalMaxSystem
 | **End** | 循环结束时 | 保存状态、清理资源、停止计时器 |
 | **Destroy** | 对象销毁时 | 释放内存、注销委托、写入存档 |
 
----
-
 ### 工作原理
 
 #### 1. 委托注册机制
 
-```csharp
 // 定义入口枚举
 public enum Entry
 {
@@ -19323,23 +19528,34 @@ public enum Entry
     MainDestroy  // 销毁入口
 }
 
-// 注册函数到主循环入口
-MainUpdate.Start += MyStartFunction;  // 在 Start 阶段调用 MyStartFunction
+主副循环入口事件支持两种注册注销方式，容量限制不同：
 
-// 注销函数
-MainUpdate.Start -= MyStartFunction;
-```
+#### 方式一 事件 += / -= 注册（无限容量）
+线程安全: C#内置事件(event)自带保护机制
 
-#### 2. 内部调用链
+// MainUpdate/SubUpdate 的静态事件，支持无限个处理函数（多播委托）
+MainUpdate.Update += PlayerSystem.Update;    // 无限注册
+MainUpdate.Update += EnemySystem.Update;     // 继续添加
+MainUpdate.Update += UISystem.Update;       // 仍可继续
+MainUpdate.Update -= PlayerSystem.Update;  // 注销函数
+//↓在其他事件阶段添加委托
+MainUpdate.Start += MyStartFunction;
 
-```csharp
+#### 方式二：MMCore.RegistEntryEventFuncref 注册（每入口限1个）
+线程安全: 调用注册注销方法时,有ThreadWait保护,当同时大量注册注销时优先处理注销队列
+
+// 每个Entry入口最多注册1个函数，超过则什么也不做
+MMCore.RegistEntryEventFuncref(Entry.MainUpdate, MyUpdateFunction);
+
+两种方式可同时使用,都会执行.
+
 // MainUpdate.cs
 public static void Start()
 {
-    MMCore.EntryGlobalEvent(Entry.MainStart);  // 调用 MMCore 的入口触发
+    MMCore.EntryGlobalEvent(Entry.MainStart);  // 调用MMCore的入口触发
 }
 
-// MMCore.cs 中的实现
+// MMCore.cs 入口事件的委托小组被遍历执行(具体实现)
 public static void EntryGlobalEvent(Entry entry)
 {
     int entryIndex = (int)entry;
@@ -19348,85 +19564,56 @@ public static void EntryGlobalEvent(Entry entry)
         entryEventFuncrefGroup[entryIndex, i]?.Invoke();  // 执行注册的委托
     }
 }
-```
-
----
-
-### 与 Unity/MonoGame 生命周期的对比
-
-| 本框架 | Unity | 说明 |
-|--------|-------|------|
-| Awake | Awake | 对象创建后最早调用 |
-| Start | Start | 第一次 Update 前调用 |
-| Update | Update | 每帧调用（需手动调用） |
-| End | OnDisable/OnDestroy | 组件停用时 |
-| Destroy | OnDestroy | 对象销毁时 |
-
-**关键区别**：本框架的 Update 需要**手动调用** `MainUpdate.Update()`,而 Unity 是引擎自动调用.这提供了更灵活的控制.
-
----
 
 ### 典型使用场景
 
 #### 1. 模块化解耦
 
-```csharp
 // 不同的系统注册自己的更新逻辑
 MainUpdate.Update += PlayerSystem.Update;    // 玩家系统更新
-MainUpdate.Update += EnemySystem.Update;     // 敌人系统更新
-MainUpdate.Update += UISystem.Update;        // UI系统更新
-MainUpdate.Update += InventorySystem.Update;  // 背包系统更新
-```
+SubUpdate.Update += EnemySystem.Update;     // 敌人系统更新
+TimerUpdate t1 = new TimerUpdate(); t1.Update += UISystem.Update;  // UI系统更新
+Trigger t2 = new Trigger(); t2.Update += InventorySystem.Update;  // 背包系统更新
 
 #### 2. 顺序执行控制
 
-```csharp
 MainUpdate.Awake += () => Debug.Log("1. 初始化...");  // 注册序号1
 MainUpdate.Awake += () => Debug.Log("2. 初始化...");  // 注册序号2
-MainUpdate.Awake += () => Debug.Log("3. 初始化...");  // 注册序号3
-// 按注册顺序依次执行
-```
+// ↑会按注册顺序依次执行
 
-#### 3. 状态切换
+#### 3. 即时逻辑运算/状态切换
 
-```csharp
-// 游戏暂停时只执行必要更新
+// 游戏暂停时只执行必要更新,其余随时卸载
 MainUpdate.Update -= PhysicsSystem.Update;
 MainUpdate.Update -= AIController.Update;
 
 // 恢复时重新注册
 MainUpdate.Update += PhysicsSystem.Update;
 MainUpdate.Update += AIController.Update;
-```
-
----
-
-### 线程安全设计
-
-每个入口有**固定容量**（当前为 1 个注册槽位）,通过 `ThreadWait`/`ThreadWaitSet` 保护注册/注销操作：
-
-```csharp
-public static void RegistEntryEventFuncref(Entry entry, EntryEventFuncref funcref)
-{
-    ThreadWait("MMCore_EntryEventFuncref_");
-    ThreadWaitSet("MMCore_EntryEventFuncref_", true);
-    // ... 注册逻辑
-    ThreadWaitSet("MMCore_EntryEventFuncref_", false);
-}
-```
-
----
 
 ### 总结
 
 | 特性 | 说明 |
 |------|------|
 | **生命周期钩子** | 提供 Awake/Start/Update/End/Destroy 五个阶段 |
-| **委托注册** | 支持 += / -= 语法注册和注销函数 |
-| **固定槽位** | 每个入口最多 1 个函数（可扩展） |
+| **委托注册** | 支持 += / -= 语法注册和注销函数（无限容量） |
+| **MMCore注册** | RegistEntryEventFuncref 每入口限1个 |
 | **线程安全** | 并发访问有保护机制 |
 | **模块解耦** | 各系统独立注册自己的生命周期逻辑 |
 
-这种设计的核心价值是**解耦**和**控制权**——你可以精确控制在哪个阶段执行什么逻辑,而不需要把所有代码塞到一个巨大的 Update 函数里. */
+这种设计的核心价值是解耦和控制权,用户可精确控制在哪个键鼠事件阶段执行什么逻辑,给玩家键鼠注册多个函数引用.
+由于仅依托C#,可丢到Unity或C#控制台、其他使用C#的引擎中使用.
+
+//最简用法↓
+MMCore.StartKeyMouseEvent();
+MMCore.KeyDownEvent += KeyDown;
+
+public static bool KeyDown(int player, int key)
+{
+    Debug.WriteLine($"Key={key}, Player={player}");
+    return true;
+}
+
+*/
 
 #endregion

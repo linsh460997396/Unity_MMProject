@@ -1,0 +1,18 @@
+微软查询地址↓
+https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes?redirectedfrom=MSDN
+
+Windows 系统中的虚拟键码（Virtual-Key Codes）总共有 ‌256 个‌。
+
+这些键码的数值范围从 ‌0x00‌ 到 ‌0xFF‌（即十进制的 0 到 255）。它们被定义在 Windows API 的头文件 Winuser.h 中，通常以 VK_ 为前缀（例如 VK_LBUTTON、VK_RETURN）。
+
+关键细节：
+实际使用数量‌：虽然总数为 256 个，但并非所有值都对应具体的物理按键。
+0x00‌：未使用。
+0x01–0xFE‌：大部分已分配给鼠标按钮、键盘按键（字母、数字、功能键、控制键等）以及保留用于未来扩展或特定 OEM 设备。
+0xFF‌：通常保留或未定义。
+常见分类‌：
+鼠标键‌：如左键 (0x01)、右键 (0x02)、中键 (0x04)。
+控制键‌：如 Shift (0x10)、Ctrl (0x11)、Alt (0x12)。
+字母/数字键‌：A-Z (0x41–0x5A)，0-9 (0x30–0x39)。
+功能键‌：F1–F24 (0x70–0x87)。
+小键盘键‌：如 Numpad 0–9 (0x60–0x69)。

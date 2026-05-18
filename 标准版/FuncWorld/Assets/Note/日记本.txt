@@ -1242,8 +1242,8 @@ public static Regex fileUrlRegex = new Regex("\"(?<url>https?://[^\"\\s]+\\.jpg)
 //否则要用match.Groups[1].Value然后去掉两端的引号,写成 match.Groups[1].Value.Trim('"')
 
 Unity原生备注方式(直接显示在Inspector面板上)
-‌[Tooltip("说明文字")]‌：鼠标悬停在字段上时显示提示
-‌[Header("分组标题")]‌：在字段上方添加粗体标题,用于分组和说明上下文
+‌[Tooltip("说明文字")]:鼠标悬停在字段上时显示提示
+‌[Header("分组标题")]:在字段上方添加粗体标题,用于分组和说明上下文
 
 public static string BuildString(string key, char separator, int id)
 {
@@ -1302,24 +1302,24 @@ if (Input.GetKey("space"))
     // 当空格键被按住时执行
     Debug.Log("Space is being held down");
 }
-第 1 帧（按下瞬间）‌：GetKeyDown 为 true,GetKey 为 true,GetKeyUp 为 false.
-第 2 ~ N 帧（按住期间）‌：GetKeyDown 为 false,‌GetKey 为 true‌,GetKeyUp 为 false.
-第 N+1 帧（松开瞬间）‌：GetKeyDown 为 false,GetKey 为 false,‌GetKeyUp 为 true‌.
+第 1 帧（按下瞬间）:GetKeyDown 为 true,GetKey 为 true,GetKeyUp 为 false.
+第 2 ~ N 帧（按住期间）:GetKeyDown 为 false,‌GetKey 为 true‌,GetKeyUp 为 false.
+第 N+1 帧（松开瞬间）:GetKeyDown 为 false,GetKey 为 false,‌GetKeyUp 为 true‌.
 Input.GetKeyDown‌:跳跃、开枪（单发）、打开菜单、确认操作
 ‌Input.GetKey‌:角色左右移动、奔跑、持续激光射击、镜头转动
 ‌Input.GetKeyUp‌:停止射击、结束蓄力、关闭菜单
 Unity官方文档和建议通常推荐可能情况下用‌Input.GetAxis‌或Input.GetButton‌原因如下：
-‌可配置性‌：玩家可在游戏设置中重新映射按键（如将“前进”从 W 键改为上箭头）而硬编码的 KeyCode.W 无法被玩家修改
-‌平滑处理‌：Input.GetAxis 会自动处理按键的平滑过渡（如手柄摇杆的渐变）,使角色移动更自然,而 GetKey 只有 0 或 1 两种状态.
+‌可配置性:玩家可在游戏设置中重新映射按键（如将“前进”从 W 键改为上箭头）而硬编码的 KeyCode.W 无法被玩家修改
+‌平滑处理:Input.GetAxis 会自动处理按键的平滑过渡（如手柄摇杆的渐变）,使角色移动更自然,而 GetKey 只有 0 或 1 两种状态.
 
-FindObjectOfType<T>()‌：
-依据类型（Component/Script）‌：它查找的是场景中是否存在挂载了特定脚本（如 MonoForMutiAutoLogin）或特定组件（如 Camera、Rigidbody）的游戏物体.
-返回结果‌：返回该类型的‌组件实例引用‌.如果找到,你可以直接调用该脚本中的公共方法和变量,无需再通过 GetComponent 转换.
-GameObject.Find() / FindWithTag()‌：
-依据名称或标签‌：它查找的是游戏物体（GameObject）本身的名称或标签.
-返回结果‌：返回 ‌GameObject‌ 引用.如果你需要访问上面的脚本,拿到 GameObject 后还必须额外调用 GetComponent<MonoForMutiAutoLogin>(),多了一步操作且容易出错（例如物体存在但脚本被移除）.
+FindObjectOfType<T>():
+依据类型（Component/Script）:它查找的是场景中是否存在挂载了特定脚本（如 MonoForMutiAutoLogin）或特定组件（如 Camera、Rigidbody）的游戏物体.
+返回结果:返回该类型的‌组件实例引用‌.如果找到,你可以直接调用该脚本中的公共方法和变量,无需再通过 GetComponent 转换.
+GameObject.Find() / FindWithTag():
+依据名称或标签:它查找的是游戏物体（GameObject）本身的名称或标签.
+返回结果:返回 ‌GameObject‌ 引用.如果你需要访问上面的脚本,拿到 GameObject 后还必须额外调用 GetComponent<MonoForMutiAutoLogin>(),多了一步操作且容易出错（例如物体存在但脚本被移除）.
 2. 对“禁用物体”的处理不同（关键点）
-FindObjectOfType<T>()‌：只查找激活（Active）的物体‌.如果挂载该脚本的 GameObject 被设置为 SetActive(false),该方法将返回 null.
+FindObjectOfType<T>():只查找激活（Active）的物体‌.如果挂载该脚本的 GameObject 被设置为 SetActive(false),该方法将返回 null.
 
 游戏物体的GetComponentsInChildren<T>()方法会递归搜索‌返回GameObject下所有层级组件,包括子的子的子...
 该方法‌只返回处于活跃状态（Active in Hierarchy）‌的 GameObject 上的组件
@@ -1358,25 +1358,74 @@ public void LaunchExternalExe(string exePath, string arguments = "")
         Debug.LogError($"启动失败: {ex.Message}");
     }
 }
-‌UseShellExecute = true‌：使用 Windows Shell (explorer.exe) 启动进程.Shell 启动时通常继承当前用户的全局环境,‌不支持‌通过代码直接注入特定的、临时的环境变量到子进程中.
-‌UseShellExecute = false‌：使用 Windows API CreateProcess 直接启动进程.这种方式允许精确控制子进程的启动参数,包括‌自定义环境变量‌、重定向输入输出等.
+‌UseShellExecute = true:使用 Windows Shell (explorer.exe) 启动进程.Shell 启动时通常继承当前用户的全局环境,‌不支持‌通过代码直接注入特定的、临时的环境变量到子进程中.
+‌UseShellExecute = false:使用 Windows API CreateProcess 直接启动进程.这种方式允许精确控制子进程的启动参数,包括‌自定义环境变量‌、重定向输入输出等.
 // 即使启动的是同一个 exe,也强烈建议设置 WorkingDirectory.‌
 // 如果不设置 WorkingDirectory,新启动的进程会‌继承‌当前进程的工作目录.
-// ‌情况 A（幸运）‌：如果当前游戏进程的工作目录恰好就是 exe 所在的根目录,那么新进程也能正常找到配置文件和资源,多开成功.
-// ‌情况 B（常见失败）‌：如果当前游戏是通过快捷方式、Steam 启动器或其他路径启动的,或者你的插件代码改变了当前工作目录,新进程可能会在错误的目录下寻找资源,导致启动失败、报错或读取错误存档.
+// ‌情况 A（幸运）:如果当前游戏进程的工作目录恰好就是 exe 所在的根目录,那么新进程也能正常找到配置文件和资源,多开成功.
+// ‌情况 B（常见失败）:如果当前游戏是通过快捷方式、Steam 启动器或其他路径启动的,或者你的插件代码改变了当前工作目录,新进程可能会在错误的目录下寻找资源,导致启动失败、报错或读取错误存档.
 // 2. 为什么多开需要显式设置工作目录？
 // 每个游戏实例通常需要独立的配置或存档读写权限.虽然 exe 相同,但确保每个实例都在其自己的安装目录下运行是最安全的做法.
 // 3. 实现多开的正确代码示例
 // 你需要获取当前 exe 的路径,然后启动它,并显式指定工作目录.
 
 浮点数字面量的默认规则:
-C#中任何带有小数点的实数literals（字面量），没添加特定后缀编译器默认double‌
+C#中任何带有小数点的实数literals（字面量）,没添加特定后缀编译器默认double‌
 1.0、-1.0、3.14、0.42e2 等均为 double
 对应的.NET 类型为System.Double
 希望字面量是float或decimal类型须显式添加后缀f或m(不区分大小写)
 
-当声明带?的Vector2F时，方法体内不能直接对比,需按如下方式解决
+当声明带?的Vector2F时,方法体内不能直接对比,需按如下方式解决
 Vector2F? v1 = GetVector();
 Vector2F? v2 = GetVector();
 Distance(v1, v2); //错误
 Distance(v1.Value, v2.Value); //正确
+
+// Delegate.Remove 会移除链表中最后一个匹配的委托实例
+// 如果需要移除所有匹配项,需循环调用或使用 GetInvocationList 过滤
+entryEventFuncrefGroup[index] = (EntryEventFuncref)Delegate.Remove(currentDelegate, funcref);
+//用List来添加移除委托最合适↓
+private static List<EntryEventFuncref>[] entryEventFuncrefLists = new List<EntryEventFuncref>[Enum.GetValues(typeof(Entry)).Length];
+public static void RemoveEntryEventFuncref(Entry entry, EntryEventFuncref funcref)
+{
+    var list = entryEventFuncrefLists[(int)entry];
+    if (list != null)
+    {
+        // 移除List中所有funcref匹配项
+        list.RemoveAll(d => d == funcref); 
+        // 注意:RemoveAll同样依赖引用相等,对于Lambda需谨慎(因为每个Lambda都是新的实例)
+    }
+}
+上述代码利用List<T>.RemoveAll 自动处理了数组元素的前移和索引维护,避免了手动管理数组的复杂性
+核心风险在于 d == funcref 的引用相等性判断‌,如果 funcref 是通过 Lambda 表达式动态创建的,移除操作将‌静默失败‌.
+注:同一个委托实例可以被添加到委托列表（或数组）的多个不同索引位置上
+
+C#中的string是不可变的,如果在循环内执行 string s = "prefix" + i; 或 s = someMethod(),无论把 string s; 声明在循环内还是循环外,‌每次迭代都会创建一个新的字符串对象并在堆上分配内存‌.
+循环内声明:for(...) { string s = GetStr(); } -> 每次新建对象,旧对象等待 GC.
+循环外声明:string s; for(...) { s = GetStr(); } -> 每次新建对象,旧对象等待 GC.
+结果:两者的 GC 压力完全一样.将声明移到外面‌不能‌减少内存分配.
+
+Thread前后台建议↓注意:前台不会因窗口关闭而中断任务,后台则随全部前台线程关闭(进程结束)会自动关闭.
+|     任务类型     |    推荐线程类型    |    理由    |
+| ‌键鼠监听、日志、心跳‌ | ‌后台线程‌ | 主程序退,它就该退,避免僵尸进程. |
+| ‌文件保存、数据提交‌ | ‌前台线程‌ | 必须确保数据写完才能退,防止数据丢失. |
+| ‌控制台主工作流‌ | ‌前台线程‌ | 防止主线程结束后进程立即退出. |
+| ‌UI 后台加载‌ | ‌后台线程‌ | 用户关闭窗口时,加载任务应自动取消. |
+
+声明后不赋值即有默认值的规则仅适用于‌字段（Fields）‌、‌数组元素‌和‌结构体成员‌，不适用于方法内的‌局部变量‌
+| 类型类别 | 具体类型 | 默认值 |
+| ‌数值类型‌ | int, long, float, double, decimal | ‌0‌ (或 0.0) |
+| ‌布尔类型‌ | bool | ‌false‌ |
+| ‌字符类型‌ | char | ‌'\0'‌ (空字符) |
+| ‌引用类型‌ | string, class, interface, delegate | ‌null‌ |
+| ‌可空类型‌ | int?, bool? | ‌null‌ |
+| ‌结构体 (Struct)‌ | Vector3, DateTime, 自定义 struct | ‌所有字段均为默认值‌ (如 Vector3 为 0,0,0) |
+| ‌枚举 (Enum)‌ | enum MyEnum { A, B } | ‌0‌ (即第一个枚举值，除非指定了其他值) |
+
+拆箱和装箱机制‌仅发生在值类型（Value Type）与引用类型（Reference Type）之间
+注意结构体是值类型,与Object转换会发生拆装箱
+
+//字符串插值 (C# 6+)
+Debug.WriteLine($"Key={key}, Player={player}");
+//String.Format
+Debug.WriteLine(string.Format("Key={0}, Player={1}", key, player));

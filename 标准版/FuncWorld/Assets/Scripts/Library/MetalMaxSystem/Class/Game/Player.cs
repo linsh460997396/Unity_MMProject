@@ -15,18 +15,15 @@ using Vector3F = System.Numerics.Vector3;
 
 namespace MetalMaxSystem
 {
-    /// <summary>
-    /// 玩家类,为每个玩家创建它并初始化所需信息,内置字段以外的临时属性可用数据表添加修改
-    /// </summary>
     public static class Player
     {
         #region 字段
 
         private static Unit[] _hero = new Unit[Game.c_maxPlayers + 1];
-        private static Unit[,] vehicle = new Unit[Game.c_maxPlayers + 1, Game.c_vehicleTypeMax];
-        private static Unit[] currentVehicle = new Unit[Game.c_maxPlayers + 1];
-        private static Unit[] unitMain = new Unit[Game.c_maxPlayers + 1];
-        private static Unit[] unitControl = new Unit[Game.c_maxPlayers + 1];
+        private static Unit[,] _vehicle = new Unit[Game.c_maxPlayers + 1, Game.c_vehicleTypeMax];
+        private static Unit[] _currentVehicle = new Unit[Game.c_maxPlayers + 1];
+        private static Unit[] _unitMain = new Unit[Game.c_maxPlayers + 1];
+        private static Unit[] _unitControl = new Unit[Game.c_maxPlayers + 1];
         private static bool[] _canNotOperation = new bool[Game.c_maxPlayers + 1];
 
         private static bool[,] _keyDown = new bool[Game.c_maxPlayers + 1, MMCore.c_keyMax + 1];
@@ -62,7 +59,7 @@ namespace MetalMaxSystem
         private static Vector3F[] _mouseVector3FTerrain = new Vector3F[Game.c_maxPlayers + 1];
         private static Vector2F[] _mouseVector2F = new Vector2F[Game.c_maxPlayers + 1];
 
-        private static string[] _type = new string[Game.c_maxPlayers + 1];
+        private static PlayerType[] _type = new PlayerType[Game.c_maxPlayers + 1];
         private static string[] _handle = new string[Game.c_maxPlayers + 1];//句柄格式:"A1-A1-A1-A0000001"
 
         private static bool[] _localUser = new bool[Game.c_maxPlayers + 1];
@@ -95,12 +92,12 @@ namespace MetalMaxSystem
         {
             get
             {
-                return vehicle;
+                return _vehicle;
             }
 
             set
             {
-                vehicle = value;
+                _vehicle = value;
             }
         }
         /// <summary>
@@ -110,12 +107,12 @@ namespace MetalMaxSystem
         {
             get
             {
-                return currentVehicle;
+                return _currentVehicle;
             }
 
             set
             {
-                currentVehicle = value;
+                _currentVehicle = value;
             }
         }
         /// <summary>
@@ -125,12 +122,12 @@ namespace MetalMaxSystem
         {
             get
             {
-                return unitMain;
+                return _unitMain;
             }
 
             set
             {
-                unitMain = value;
+                _unitMain = value;
             }
         }
         /// <summary>
@@ -140,12 +137,12 @@ namespace MetalMaxSystem
         {
             get
             {
-                return unitControl;
+                return _unitControl;
             }
 
             set
             {
-                unitControl = value;
+                _unitControl = value;
             }
         }
         /// <summary>
@@ -501,7 +498,7 @@ namespace MetalMaxSystem
         /// <summary>
         /// 相机位置
         /// </summary>
-        public static Vector3F[] CameraVector3F
+        public static Vector3F[] CameraVector
         {
             get
             {
@@ -514,9 +511,9 @@ namespace MetalMaxSystem
             }
         }
         /// <summary>
-        /// 鼠标3D点向量坐标,修正了鼠标点高度(扣减了地图高度,所以这是相对地面的高度),mouseVectorZFixed=mouseVectorZ-MapHeight=TerrainHeight+Unit.TerrainHeight+Unit.Height
+        /// 鼠标3D点向量坐标,修正了鼠标点高度(扣减了地图高度,所以这是单位头顶相对地面的高度),mouseVectorZFixed=mouseVectorZ-MapHeight=TerrainHeight+Unit.TerrainHeight+Unit.Height
         /// </summary>
-        public static Vector3F[] MouseVector3FFixed
+        public static Vector3F[] MouseVectorFixed
         {
             get
             {
@@ -531,7 +528,7 @@ namespace MetalMaxSystem
         /// <summary>
         /// 鼠标3D点向量坐标,鼠标Z点在单位高度顶部,Z=MapHeight+TerrainHeight+Unit.TerrainHeight+Unit.Height
         /// </summary>
-        public static Vector3F[] MouseVector3F
+        public static Vector3F[] MouseVector
         {
             get
             {
@@ -546,7 +543,7 @@ namespace MetalMaxSystem
         /// <summary>
         /// 鼠标3D点向量坐标,鼠标Z点在单位层地形物件高度顶部(单位脚底),Z=MapHeight+TerrainHeight+Unit.TerrainHeight
         /// </summary>
-        public static Vector3F[] MouseVector3FUnitTerrain
+        public static Vector3F[] MouseVectorUnitTerrain
         {
             get
             {
@@ -561,7 +558,7 @@ namespace MetalMaxSystem
         /// <summary>
         /// 鼠标3D点向量坐标,鼠标Z点在悬崖、地形物件顶部,Z=MapHeight+TerrainHeight
         /// </summary>
-        public static Vector3F[] MouseVector3FTerrain
+        public static Vector3F[] MouseVectorTerrain
         {
             get
             {
@@ -590,9 +587,9 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 玩家类型(中立Neutral、电脑Ai、用户User、玩家Player、敌人Enemy)
+        /// 玩家类型(中立Neutral、电脑Ai、用户User、系统System)
         /// </summary>
-        public static string[] Type
+        public static PlayerType[] Type
         {
             get
             {

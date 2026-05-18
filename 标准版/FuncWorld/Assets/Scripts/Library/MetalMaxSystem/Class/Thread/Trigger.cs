@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Threading;
+using System.Timers;
 
 namespace MetalMaxSystem
 {
@@ -18,14 +19,14 @@ namespace MetalMaxSystem
         public AutoResetEvent AutoResetEvent_Trigger { get; private set; }
 
         /// <summary>
-        /// 常规触发器Update事件运行次数,该属性可随时读取或清零
+        /// 常规触发器Update事件运行次数,该属性可随时读取或清零(使用ulong类型防止溢出)
         /// </summary>
-        public int InvokeCount { get; set; }
+        public ulong InvokeCount { get; set; }
 
         /// <summary>
-        /// 常规触发器Update事件运行次数上限,该属性让计时器到期退出循环,计时器所在父线程将运行End和Destory事件
+        /// 常规触发器Update事件运行次数上限,该属性让计时器到期退出循环,计时器所在父线程将运行End和Destory事件(使用ulong类型防止溢出)
         /// </summary>
-        public int InvokeCountMax { get; set; }
+        public ulong InvokeCountMax { get; set; }
 
         /// <summary>
         /// 常规触发器Update事件前摇,未设置直接启动Run则默认为0
@@ -33,9 +34,9 @@ namespace MetalMaxSystem
         public int Duetime { get; set; }
 
         /// <summary>
-        /// 常规触发器的运行间隔属性,未设置直接启动Run则默认为1s
+        /// 常规触发器的运行间隔属性,未设置直接启动Run则默认为1s(支持小数如62.5ms)
         /// </summary>
-        public int Period { get; set; }
+        public double Period { get; set; }
 
         /// <summary>
         /// 常规触发器的状态属性,手动设置为false则计时器工作时将收到信号退出循环(不执行Update事件),计时器所在父线程将运行End和Destory事件
@@ -53,9 +54,9 @@ namespace MetalMaxSystem
         public Thread Thread { get; private set; }
 
         /// <summary>
-        /// 常规触发器执行Update事件的计时器实例,提供该属性方便随时读取,但不允许不安全赋值
+        /// 常规触发器执行Update事件的计时器实例,提供该属性方便随时读取,但不允许不安全赋值(支持小数毫秒间隔)
         /// </summary>
-        public Timer Timer { get; private set; }
+        public System.Timers.Timer Timer { get; private set; }
 
         #endregion
 
@@ -69,18 +70,22 @@ namespace MetalMaxSystem
         /// 常规触发器用于返回事件委托队列中Awake事件委托对象的键
         /// </summary>
         private static readonly object awakeEventKey = new object();
+
         /// <summary>
         /// 常规触发器用于返回事件委托队列中Start事件委托对象的键
         /// </summary>
         private static readonly object startEventKey = new object();
+
         /// <summary>
         /// 常规触发器用于返回事件委托队列中Update事件委托对象的键
         /// </summary>
         private static readonly object updateEventKey = new object();
+
         /// <summary>
         /// 常规触发器用于返回事件委托队列中End事件委托对象的键
         /// </summary>
         private static readonly object endEventKey = new object();
+
         /// <summary>
         /// 常规触发器用于返回事件委托队列中Destroy事件委托对象的键
         /// </summary>
@@ -99,15 +104,9 @@ namespace MetalMaxSystem
         public event TriggerEventHandler Awake
         {
             //Add the input delegate to the collection.
-            add
-            {
-                _listEventDelegates.AddHandler(awakeEventKey, value);
-            }
+            add { _listEventDelegates.AddHandler(awakeEventKey, value); }
             //Remove the input delegate from the collection.
-            remove
-            {
-                _listEventDelegates.RemoveHandler(awakeEventKey, value);
-            }
+            remove { _listEventDelegates.RemoveHandler(awakeEventKey, value); }
         }
 
         /// <summary>
@@ -115,14 +114,8 @@ namespace MetalMaxSystem
         /// </summary>
         public event TriggerEventHandler Start
         {
-            add
-            {
-                _listEventDelegates.AddHandler(startEventKey, value);
-            }
-            remove
-            {
-                _listEventDelegates.RemoveHandler(startEventKey, value);
-            }
+            add { _listEventDelegates.AddHandler(startEventKey, value); }
+            remove { _listEventDelegates.RemoveHandler(startEventKey, value); }
         }
 
         /// <summary>
@@ -130,14 +123,8 @@ namespace MetalMaxSystem
         /// </summary>
         public event TriggerEventHandler Update
         {
-            add
-            {
-                _listEventDelegates.AddHandler(updateEventKey, value);
-            }
-            remove
-            {
-                _listEventDelegates.RemoveHandler(updateEventKey, value);
-            }
+            add { _listEventDelegates.AddHandler(updateEventKey, value); }
+            remove { _listEventDelegates.RemoveHandler(updateEventKey, value); }
         }
 
         /// <summary>
@@ -145,14 +132,8 @@ namespace MetalMaxSystem
         /// </summary>
         public event TriggerEventHandler End
         {
-            add
-            {
-                _listEventDelegates.AddHandler(endEventKey, value);
-            }
-            remove
-            {
-                _listEventDelegates.RemoveHandler(endEventKey, value);
-            }
+            add { _listEventDelegates.AddHandler(endEventKey, value); }
+            remove { _listEventDelegates.RemoveHandler(endEventKey, value); }
         }
 
         /// <summary>
@@ -160,14 +141,8 @@ namespace MetalMaxSystem
         /// </summary>
         public event TriggerEventHandler Destroy
         {
-            add
-            {
-                _listEventDelegates.AddHandler(destroyEventKey, value);
-            }
-            remove
-            {
-                _listEventDelegates.RemoveHandler(destroyEventKey, value);
-            }
+            add { _listEventDelegates.AddHandler(destroyEventKey, value); }
+            remove { _listEventDelegates.RemoveHandler(destroyEventKey, value); }
         }
 
         #endregion
@@ -177,7 +152,7 @@ namespace MetalMaxSystem
         /// <summary>
         /// 创建一个不会到期的常规触发器
         /// </summary>
-        public Trigger()//构造函数
+        public Trigger() //构造函数
         {
             InvokeCount = 0;
             InvokeCountMax = 0;
@@ -188,7 +163,7 @@ namespace MetalMaxSystem
         /// 创建一个有执行次数的常规触发器
         /// </summary>
         /// <param name="invokeCountMax">决定计时器Update阶段循环次数</param>
-        public Trigger(int invokeCountMax)//构造函数
+        public Trigger(ulong invokeCountMax) //构造函数
         {
             InvokeCount = 0;
             InvokeCountMax = invokeCountMax;
@@ -223,7 +198,7 @@ namespace MetalMaxSystem
         //注:Action函数在特殊需要时再设置为公开(不让用户直接使用),用户使用Trigger.Run自带线程启动
 
         /// <summary>
-        /// 常规触发器主体事件发布动作(重复执行则什么也不做),在当前线程创建常规触发器并执行事件委托(提前定义事件委托变量Trigger.Awake/Start/Update/End/Destroy += 要委托执行的函数,即完成事件注册到函数),可预先自定义计时器Updata阶段的执行间隔(否则默认以Duetime=0、Period=1000运行计时器).注:若直接调用本函数则在计时器Updata阶段会暂停当前线程,不想暂停请额外开线程手动加载Action运行或使用Trigger.Run自带线程启动(推荐)
+        /// 常规触发器主体事件发布动作(重复执行则什么也不做),在当前线程创建常规触发器并执行事件委托(提前定义事件委托变量Trigger.Awake/Start/Update/End/Destroy += 要委托执行的函数,即完成事件注册到函数),可预先自定义计时器Updata阶段的执行间隔(否则默认以Duetime=0、Period=50运行计时器).注:若直接调用本函数则在计时器Updata阶段会暂停当前线程,不想暂停请额外开线程手动加载Action运行或使用Trigger.Run自带线程启动(推荐)
         /// </summary>
         private void Action()
         {
@@ -239,10 +214,22 @@ namespace MetalMaxSystem
                 //执行委托并传递事件参数
                 OnAwake(this, new EventArgs());
                 OnStart(this, new EventArgs());
-                if (Duetime < 0) { Duetime = 0; }
-                if (Period <= 0) { Period = 1000; }
-                Timer = new Timer(CheckStatus, AutoResetEvent_Trigger, Duetime, Period);
+                if (Duetime < 0)
+                {
+                    Duetime = 0;
+                }
+                if (Period <= 0)
+                {
+                    Period = 50;
+                }
+                // 使用 System.Timers.Timer 支持小数毫秒间隔(如62.5ms)
+                Timer = new System.Timers.Timer();
+                Timer.Interval = Period;
+                Timer.Elapsed += (sender, e) => CheckStatus(AutoResetEvent_Trigger);
+                System.Threading.Thread.Sleep(Duetime); // 前摇等待
+                Timer.Start();
                 AutoResetEvent_Trigger.WaitOne();
+                Timer.Stop();
                 OnEnd(this, new EventArgs());
                 AutoResetEvent_Trigger.WaitOne();
                 Timer.Dispose();
@@ -251,21 +238,27 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 常规触发器主体事件发布动作(重复执行则什么也不做),在当前线程创建常规触发器并执行事件委托(提前定义事件委托变量Trigger.Awake/Start/Update/End/Destroy += 要委托执行的函数,即完成事件注册到函数),可预先自定义计时器Updata阶段的执行间隔(否则默认以Duetime=0、Period=1000运行计时器).注:若直接调用本函数则在计时器Updata阶段会暂停当前线程,不想暂停请额外开线程手动加载Action运行或使用Trigger.Run自带线程启动(推荐)
+        /// 常规触发器主体事件发布动作(重复执行则什么也不做),在当前线程创建常规触发器并执行事件委托(提前定义事件委托变量Trigger.Awake/Start/Update/End/Destroy += 要委托执行的函数,即完成事件注册到函数),可预先自定义计时器Updata阶段的执行间隔(否则默认以Duetime=0、Period=50运行计时器).注:若直接调用本函数则在计时器Updata阶段会暂停当前线程,不想暂停请额外开线程手动加载Action运行或使用Trigger.Run自带线程启动(推荐)
         /// </summary>
         /// <param name="duetime">Updata阶段执行开始前等待(毫秒),仅生效一次</param>
-        /// <param name="period">Updata阶段执行间隔(毫秒)</param>
-        private void Action(int duetime, int period)
+        /// <param name="period">Updata阶段执行间隔(毫秒，支持小数如62.5ms)</param>
+        private void Action(int duetime, double period)
         {
             if (AutoResetEvent_Trigger == null)
             {
                 AutoResetEvent_Trigger = new AutoResetEvent(false);
                 OnAwake(this, new EventArgs());
                 OnStart(this, new EventArgs());
-                if (Duetime < 0) { Duetime = 0; }
-                if (Period <= 0) { Period = 1000; }
-                Timer = new Timer(CheckStatus, AutoResetEvent_Trigger, duetime, period);
+                Duetime = duetime < 0 ? 0 : duetime;
+                Period = period <= 0 ? 50 : period;
+                // 使用 System.Timers.Timer 支持小数毫秒间隔(如62.5ms)
+                Timer = new System.Timers.Timer();
+                Timer.Interval = Period;
+                Timer.Elapsed += (sender, e) => CheckStatus(AutoResetEvent_Trigger);
+                System.Threading.Thread.Sleep(Duetime); // 前摇等待
+                Timer.Start();
                 AutoResetEvent_Trigger.WaitOne();
+                Timer.Stop();
                 OnEnd(this, new EventArgs());
                 AutoResetEvent_Trigger.WaitOne();
                 Timer.Dispose();
@@ -282,7 +275,8 @@ namespace MetalMaxSystem
         /// <param name="e"></param>
         private void OnAwake(object sender, EventArgs e)
         {
-            TriggerEventHandler triggerEventHandler = (TriggerEventHandler)_listEventDelegates[awakeEventKey];
+            TriggerEventHandler triggerEventHandler = (TriggerEventHandler)
+                _listEventDelegates[awakeEventKey];
             //triggerEventHandler?.Invoke(sender, e);
             if (triggerEventHandler != null)
             {
@@ -295,7 +289,8 @@ namespace MetalMaxSystem
         /// </summary>
         private void OnStart(object sender, EventArgs e)
         {
-            TriggerEventHandler triggerEventHandler = (TriggerEventHandler)_listEventDelegates[startEventKey];
+            TriggerEventHandler triggerEventHandler = (TriggerEventHandler)
+                _listEventDelegates[startEventKey];
             //triggerEventHandler?.Invoke(sender, e);
             if (triggerEventHandler != null)
             {
@@ -308,7 +303,8 @@ namespace MetalMaxSystem
         /// </summary>
         private void OnUpdate(object sender, EventArgs e)
         {
-            TriggerEventHandler triggerEventHandler = (TriggerEventHandler)_listEventDelegates[updateEventKey];
+            TriggerEventHandler triggerEventHandler = (TriggerEventHandler)
+                _listEventDelegates[updateEventKey];
             //triggerEventHandler?.Invoke(sender, e);
             if (triggerEventHandler != null)
             {
@@ -321,7 +317,8 @@ namespace MetalMaxSystem
         /// </summary>
         private void OnEnd(object sender, EventArgs e)
         {
-            TriggerEventHandler triggerEventHandler = (TriggerEventHandler)_listEventDelegates[endEventKey];
+            TriggerEventHandler triggerEventHandler = (TriggerEventHandler)
+                _listEventDelegates[endEventKey];
             //triggerEventHandler?.Invoke(sender, e);
             if (triggerEventHandler != null)
             {
@@ -334,7 +331,8 @@ namespace MetalMaxSystem
         /// </summary>
         private void OnDestroy(object sender, EventArgs e)
         {
-            TriggerEventHandler triggerEventHandler = (TriggerEventHandler)_listEventDelegates[destroyEventKey];
+            TriggerEventHandler triggerEventHandler = (TriggerEventHandler)
+                _listEventDelegates[destroyEventKey];
             //triggerEventHandler?.Invoke(sender, e);
             if (triggerEventHandler != null)
             {
@@ -360,6 +358,34 @@ namespace MetalMaxSystem
         }
 
         #endregion
-
     }
 }
+
+//// 1. 创建实例并注册事件
+//Trigger trigger = new Trigger();
+//trigger.Awake += OnTriggerAwake;
+//trigger.Start += OnTriggerStart;
+//trigger.Update += OnTriggerUpdate;
+//trigger.End += OnTriggerEnd;
+//trigger.Destroy += OnTriggerDestroy;
+
+//// 2. 配置参数（可选）
+//trigger.Duetime = 0;       // 前摇时间（毫秒）
+//trigger.Period = 50;       // 更新间隔（毫秒）
+//trigger.InvokeCountMax = 0; // 最大执行次数（0为无限循环）
+
+//// 3. 启动（创建独立线程运行）
+//trigger.Run(isBackground: true);
+
+//// 4. 运行中可以读取状态
+//ulong count = trigger.InvokeCount;  // 获取Update执行次数
+
+//// 5. 停止（方式一：设置状态标志）
+//trigger.TimerState = true;
+
+//// 5. 停止（方式二：达到执行次数上限）
+//trigger.InvokeCountMax = 100;  // 执行100次后自动停止
+
+//// 6. 创建新实例重新启动
+//trigger = new Trigger();
+//trigger.Run(isBackground: true);

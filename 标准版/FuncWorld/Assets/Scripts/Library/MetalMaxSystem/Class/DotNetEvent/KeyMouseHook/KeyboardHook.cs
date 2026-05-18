@@ -28,7 +28,7 @@ namespace MetalMaxSystem
         public class KeyboardHookStruct
 
         {
-            public int vkCode; //表示一个在1到254间的虚似键盘码 
+            public int vkCode; //表示一个在1到254间的虚似键盘码(255未分配) 
             public int scanCode; //表示硬件扫描码 
             public int flags;
             public int time;

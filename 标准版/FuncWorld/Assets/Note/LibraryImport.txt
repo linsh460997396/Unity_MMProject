@@ -1,0 +1,51 @@
+在 .NET 7 及更高版本中，微软推荐使用 LibraryImportAttribute 替代传统的 DllImportAttribute，主要基于以下几个核心原因：
+
+1. 编译时生成封送代码（性能与安全性提升）
+DllImport‌：依赖于运行时（Runtime）的动态封送处理。每次调用 P/Invoke 方法时，CLR 都需要在运行时解析签名、分配内存并进行数据转换。这不仅带来性能开销，还可能因为运行时环境的差异导致不可预知的行为。
+LibraryImport‌：利用 ‌源生成器（Source Generator）‌ 在‌编译时‌生成本地互操作代码。这意味着封送逻辑在编译阶段就已确定并嵌入到程序集中。
+性能更优‌：消除了运行时的动态查找和反射开销。
+更安全‌：编译器可以在构建阶段检查类型匹配和参数合法性，减少运行时错误。
+可预测性‌：生成的代码是静态的，行为更加一致且易于调试。
+2. 现代化的字符串处理
+DllImport‌：使用 CharSet 属性（如 CharSet.Ansi 或 CharSet.Unicode）来控制字符串封送。ANSI 封送在某些情况下涉及复杂的代码页转换，且 BestFitMapping 等行为可能带来安全隐患或数据丢失。
+LibraryImport‌：引入了 StringMarshalling 枚举，提供了更明确和现代的选项：
+StringMarshalling.Utf8：原生支持 UTF-8，这是现代跨平台开发的标准。
+StringMarshalling.Utf16：对应传统的 Unicode。
+StringMarshalling.Custom：允许开发者自定义封送逻辑。
+移除了 ANSI 的模糊性‌：不再依赖系统默认的代码页，避免了因区域设置不同导致的乱码问题。
+3. 更清晰的调用约定控制
+DllImport‌：通过 CallingConvention 枚举指定调用约定（如 StdCall, Cdecl）。
+LibraryImport‌：使用 [UnmanagedCallConv] 属性来指定调用约定。这种方式更加灵活，能够更好地支持非 Windows 平台（如 Linux/macOS）上的不同 ABI（应用二进制接口）需求，符合 .NET 跨平台的战略方向。
+4. 编译器诊断与分析支持
+.NET 引入了专门的代码分析器规则（如 ‌SYSLIB1054‌），当检测到可以使用 LibraryImport 时，会建议开发者进行迁移。
+如果使用了 LibraryImport 但配置不当（如不支持的类型或参数），编译器会给出明确的错误诊断（如 SYSLIB1050 - SYSLIB1053），帮助开发者在编码阶段就解决互操作问题，而不是等到运行时崩溃。
+5. 简化与维护性
+LibraryImport 的设计初衷是作为 DllImport 的直接现代化替代品，大多数情况下可以平滑迁移。
+它强制开发者更明确地定义互操作边界，例如必须显式指定字符串封送方式，减少了“隐式魔法”带来的维护困难。
+总结对比
+表格
+特性	DllImport (传统)	LibraryImport (推荐, .NET 7+)
+代码生成时机‌	运行时动态封送	‌编译时‌源生成静态代码
+性能‌	较低（有运行时开销）	‌较高‌（无运行时反射/查找开销）
+字符串处理‌	CharSet (Ansi/Unicode)	StringMarshalling (Utf8/Utf16/Custom)
+调用约定‌	CallingConvention 枚举	[UnmanagedCallConv] 属性
+错误检测‌	运行时可能报错	‌编译时‌即可发现大部分错误
+跨平台支持‌	主要针对 Windows 优化	更好地支持 Linux/macOS 等 Unix 系统
+示例迁移
+
+旧写法 (DllImport):‌
+
+csharp
+[DllImport("libc", CallingConvention = CallingConvention.Cdecl)]
+public static extern int printf(string format, int value);
+
+
+新写法 (LibraryImport):‌
+
+csharp
+[LibraryImport("libc", StringMarshalling = StringMarshalling.Utf8)]
+[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+public static partial int printf(string format, int value);
+
+
+注意‌：LibraryImport 要求方法必须是 partial 且 static，因为源生成器需要为其生成实现部分。如果目标框架低于 .NET 7，或者遇到源生成器不支持的复杂场景，仍需使用 DllImport。
