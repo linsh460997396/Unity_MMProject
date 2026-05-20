@@ -573,10 +573,10 @@ namespace MetalMaxSystem
         #region 虚拟键位转换
 
         /// <summary>
-        /// 将Windows虚拟键码转换为MMCore键位常量
+        /// 将Windows虚拟键码转换为MMCore键位常量(如c_keyShift)
         /// </summary>
         /// <param name="virtualKey">Windows虚拟键码</param>
-        /// <returns>MMCore键位常量(如MMCore.c_keyW等),如果无法识别则返回MMCore.c_keyNone(-1)</returns>
+        /// <returns>MMCore键位常量,键盘按键返回0~98,鼠标按键返回99~103,无法识别则返回-1.</returns>
         public static int ConvertVirtualKeyToMMCoreKey(int virtualKey)
         {
             switch (virtualKey)
@@ -795,10 +795,10 @@ namespace MetalMaxSystem
         }
 
         /// <summary>
-        /// 将MMCore键位常量转换为Windows虚拟键码
+        /// 将MMCore键位常量(如c_keyShift)转换回Windows虚拟键码
         /// </summary>
-        /// <param name="mmcoreKey">MMCore键位常量(如MMCore.c_keyW等)</param>
-        /// <returns>Windows虚拟键码,如果无法识别则返回-1</returns>
+        /// <param name="mmcoreKey">MMCore键位常量(填入范围:键盘0~98,鼠标99~103)</param>
+        /// <returns>Windows虚拟键码(1~254),如果无法识别则返回-1</returns>
         public static int ConvertMMCoreKeyToVirtualKey(int mmcoreKey)
         {
             switch (mmcoreKey)

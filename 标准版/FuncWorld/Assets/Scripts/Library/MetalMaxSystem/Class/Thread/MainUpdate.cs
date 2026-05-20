@@ -275,6 +275,8 @@ namespace MetalMaxSystem
     }
 }
 
+#region 介绍
+
 //// 1. 注册全局事件（在程序初始化时，通过MMCore注册到Entry枚举对应的事件）
 //// 方式一：单独注册单个函数
 //// 例如：MMCore.RegistEntryEventFuncref(Entry.MainAwake, OnMainAwake);  // 注册主循环唤醒事件
@@ -320,3 +322,5 @@ namespace MetalMaxSystem
 
 //// 6. 停止后可以重新启动
 //MainUpdate.Run(isBackground: true);  // OnDestroy已自动重置状态
+
+#endregion

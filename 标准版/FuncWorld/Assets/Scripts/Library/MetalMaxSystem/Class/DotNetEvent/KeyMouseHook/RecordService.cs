@@ -387,6 +387,30 @@ namespace MetalMaxSystem
                         MouseDoubleClickEvent.Invoke(PlayerID, MMCore.c_mouseButtonRight, X, Y);
                     }
                     break;
+                case MouseHook.WM_MBUTTONDOWN:
+                    //鼠标中键按下
+                    SetMouseState(MMCore.c_mouseButtonMiddle, true);
+                    if (MouseDownEvent != null)
+                    {
+                        MouseDownEvent.Invoke(PlayerID, MMCore.c_mouseButtonMiddle, X, Y);
+                    }
+                    break;
+                case MouseHook.WM_MBUTTONUP:
+                    //鼠标中键弹起
+                    SetMouseState(MMCore.c_mouseButtonMiddle, false);
+                    if (MouseUpEvent != null)
+                    {
+                        MouseUpEvent.Invoke(PlayerID, MMCore.c_mouseButtonMiddle, X, Y);
+                    }
+                    break;
+                case MouseHook.WM_MBUTTONDBLCLK:
+                    //鼠标中键双击
+                    SetMouseDoubleClickState(MMCore.c_mouseButtonMiddle, true);
+                    if (MouseDoubleClickEvent != null)
+                    {
+                        MouseDoubleClickEvent.Invoke(PlayerID, MMCore.c_mouseButtonMiddle, X, Y);
+                    }
+                    break;
             }
         }
 
