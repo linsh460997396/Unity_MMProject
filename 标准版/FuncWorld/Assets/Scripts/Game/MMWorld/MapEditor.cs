@@ -178,47 +178,61 @@ namespace MMWorld
             player = Main_MMWorld.scene.player;
             LoadColliderFile();
 
-            if (gameMain != null)
+            //使用代码创建的MapEditorCanvas，不依赖场景中的预制对象
+            mainCanvaGO = SpriteSpace.SpriteSpacePrefab.MapEditorCanvas;
+            if (mainCanvaGO != null)
             {
-                mainCamera = GameObject.Find("MainCamera");
-                mainCanvaGO = mainCamera.transform.Find("MainCanva").gameObject;
-                mainCanvaGO.SetActive(true);
-                mainCanva = GameObject.Find("MainCanva").GetComponent<Canvas>();
+                mainCamera = SpriteSpace.SpriteSpacePrefab.MainCamera;
+                mainCanva = mainCanvaGO.GetComponent<Canvas>();
 
-                //Variable Init
-                label_headTip = GameObject.Find("label_headTip");
-                comboBox_selectFunc = GameObject.Find("comboBox_selectFunc");
-                textBox_workID = GameObject.Find("textBox_workID");
-                textBox_outsideResPath = GameObject.Find("textBox_outsideResPath");
-                button_run = GameObject.Find("button_run");
-                button_openFolder = GameObject.Find("button_openFolder");
-                button_outsideSave = GameObject.Find("button_outsideSave");
-                checkBox_mapEditorMode = GameObject.Find("checkBox_mapEditorMode");
-                colliderToggle = checkBox_mapEditorMode.GetComponent<Toggle>();
-                checkBox_showCollider = GameObject.Find("checkBox_showCollider");
-                showColliderToggle = checkBox_showCollider.GetComponent<Toggle>();
-
-                //Value Dft
-                label_headTip.GetComponent<TextMeshProUGUI>().color = Color.red;
-                if (comboBox_selectFunc.GetComponent<TMP_Dropdown>().value < 0)
+                //从代码创建的Canvas中查找UI元素
+                Transform panel = mainCanvaGO.transform.Find("Panel");
+                if (panel != null)
                 {
-                    //当值为-1(未选)时,重置为第一个元素选项
-                    comboBox_selectFunc.GetComponent<TMP_Dropdown>().value = 0;
+                    //Variable Init
+                    label_headTip = panel.Find("label_headTip").gameObject;
+                    comboBox_selectFunc = panel.Find("comboBox_selectFunc").gameObject;
+                    textBox_workID = panel.Find("textBox_workID").gameObject;
+                    textBox_outsideResPath = panel.Find("textBox_outsideResPath").gameObject;
+                    button_run = panel.Find("button_run").gameObject;
+                    button_outsideSave = panel.Find("button_outsideSave").gameObject;
+                    checkBox_mapEditorMode = panel.Find("checkBox_mapEditorMode").gameObject;
+                    checkBox_showCollider = panel.Find("checkBox_showCollider").gameObject;
+
+                    if (checkBox_mapEditorMode != null)
+                        colliderToggle = checkBox_mapEditorMode.GetComponent<Toggle>();
+                    if (checkBox_showCollider != null)
+                        showColliderToggle = checkBox_showCollider.GetComponent<Toggle>();
+
+                    //Value Dft
+                    if (label_headTip != null)
+                        label_headTip.GetComponent<TextMeshProUGUI>().color = Color.red;
+                    if (comboBox_selectFunc != null)
+                    {
+                        TMP_Dropdown dropdown = comboBox_selectFunc.GetComponent<TMP_Dropdown>();
+                        if (dropdown.value < 0)
+                        {
+                            dropdown.value = 0;
+                        }
+                    }
+
+                    //Event Register
+                    if (button_run != null)
+                        button_run.GetComponent<Button>().onClick.AddListener(button1_Click);
+                    if (textBox_workID != null)
+                        textBox_workID.GetComponent<TMP_InputField>().onValueChanged.AddListener(OnTextChanged);
+
+                    //other - 路径已在SpriteSpacePrefab中设置
                 }
-
-                //Event Register
-                button_run.GetComponent<Button>().onClick.AddListener(button1_Click);
-                button_openFolder.GetComponent<Button>().onClick.AddListener(button2_Click);
-                textBox_workID.GetComponent<TMP_InputField>().onValueChanged.AddListener(OnTextChanged);
-
-                //other
-                textBox_outsideResPath.GetComponent<TMP_InputField>().text = Application.dataPath + "/Resources/ColliderFiles/MapCollider.txt";//显示默认路径
-                //textBox_input.GetComponent<TMP_InputField>().lineType = TMP_InputField.LineType.MultiLineNewline;//多行
             }
         }
 
         private void Update()
         {
+            //添加空引用检查，避免使用未初始化的对象
+            if (mainCanvaGO == null || colliderToggle == null)
+                return;
+
             if (mainCanvaGO.activeSelf == false && colliderToggle.isOn && MapID >= 0 && MapID < 2)
             {
                 Update_TextureCollider();
@@ -231,7 +245,7 @@ namespace MMWorld
             {//按回车键保存碰撞文件
                 SaveColliderFile();
             }
-            else if (Input.GetKeyDown(KeyCode.Tilde) || Input.GetKeyDown(KeyCode.BackQuote) && mainCanvaGO != null)
+            else if (Input.GetKeyDown(KeyCode.Tilde) || Input.GetKeyDown(KeyCode.BackQuote))
             {//按波浪或反引号键来显隐界面
                 colliderID = "0";//显隐时总是重置用户选择的碰撞类型,以免误操作
                 mainCanvaGO.SetActive(!mainCanvaGO.activeSelf);

@@ -1,0 +1,103 @@
+EventHandlerList 可以存储不同类型的委托。‌
+
+EventHandlerList 本质上是一个基于键值对（Key-Value）的集合，其内部存储的是基类 System.Delegate。由于 C# 中所有的委托类型都继承自 System.Delegate，因此它具备多态性，允许在同一个列表中混合存储签名不同、类型不同的委托对象。
+
+以下是详细的技术解析：
+
+1. 存储机制：基于 Delegate 基类
+
+EventHandlerList 的定义如下：
+
+csharp
+public class EventHandlerList : IDisposable
+{
+    // 内部实际上是一个链表或字典结构，存储的是 Delegate
+    public Delegate this[object key] { get; set; }
+    public void AddHandler(object key, Delegate value);
+    public void RemoveHandler(object key, Delegate value);
+}
+
+
+因为 AddHandler 接受的参数类型是 Delegate，所以你可以传入任何类型的委托实例：
+
+EventHandler (标准事件委托)
+Action / Func<T>
+自定义委托 (如 public delegate void MyCustomDelegate(int x);)
+2. 实际应用场景：混合类型是完全合法的
+
+在一个类中，你可以同时拥有不同签名的事件，并共用同一个 EventHandlerList 来节省内存。例如：
+
+csharp
+public class MultiEventComponent : Component
+{
+    protected EventHandlerList _events = new EventHandlerList();
+
+    // 键1：对应一个标准 EventHandler (object, EventArgs)
+    private static readonly object ClickKey = new object();
+    public event EventHandler Click
+    {
+        add { _events.AddHandler(ClickKey, value); }
+        remove { _events.RemoveHandler(ClickKey, value); }
+    }
+
+    // 键2：对应一个自定义无参委托 Action
+    private static readonly object ResetKey = new object();
+    public event Action Reset
+    {
+        add { _events.AddHandler(ResetKey, value); }
+        remove { _events.RemoveHandler(ResetKey, value); }
+    }
+}
+
+
+在这个例子中，_events 同时存储了 EventHandler 和 Action 两种完全不同的委托类型，这是完全正常且常见的做法。
+
+3. 关键限制：读取时必须“知道”具体类型
+
+虽然‌存储‌时可以是任意类型，但在‌读取（调用）‌时，你必须清楚地知道某个 Key 对应的是什么类型的委托，并进行正确的强制转换。
+
+错误做法‌：试图将所有取出的委托统一转换为某一种特定类型（如你之前提到的 EntryEventFuncref）。如果 Key 对应的是其他类型的委托，转换会失败。
+正确做法‌：每个事件属性在触发（Raise Event）时，必须使用与该事件定义时一致的委托类型进行转换。
+csharp
+// 触发 Click 事件：必须转为 EventHandler
+protected virtual void OnClick(EventArgs e)
+{
+    // 注意这里转为 EventHandler
+    ((EventHandler)_events[ClickKey])?.Invoke(this, e);
+}
+
+// 触发 Reset 事件：必须转为 Action
+protected virtual void OnReset()
+{
+    // 注意这里转为 Action
+    ((Action)_events[ResetKey])?.Invoke();
+}
+
+存储能力‌：EventHandlerList ‌不限制‌委托类型，可以混合存储不同签名、不同定义的委托。
+使用约束‌：你在‌取出‌委托时，必须根据 Key 的含义，将其转换为‌当初存入时的那个具体委托类型‌。如果类型不匹配，运行时会抛出 InvalidCastException。
+
+如果要自动判断并调用不同的委托↓
+var del = _events[ClickKey];
+if (del != null)
+{
+    foreach (Delegate singleDel in del.GetInvocationList())
+    {
+        // 这里你还是得知道可能的类型有哪些
+        if (singleDel is EventHandler eh)
+            eh(this, e);
+        else if (singleDel is Action act)
+            act();
+        else
+        try 
+        {
+            singleDel.DynamicInvoke(args); // 兜底
+        }
+        catch (Exception ex)
+        {
+            // 记录日志或处理异常，避免崩溃
+            Console.WriteLine($"Event invocation error: {ex.Message}");
+        }
+
+    }
+}
+DynamicInvoke尝试将参数数组与委托签名进行运行时匹配，如果匹配失败就会报错，性能稍差

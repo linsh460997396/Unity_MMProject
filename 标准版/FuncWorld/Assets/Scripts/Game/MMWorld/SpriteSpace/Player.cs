@@ -125,6 +125,30 @@ namespace SpriteSpace
         /// 复用型坐标缓存.用于每帧刷新玩家坐标时不产生GC(如果每次new Vector3会导致大量GC).
         /// </summary>
         public Vector3 posCache = Vector3.one;
+        /// <summary>
+        /// 是否为AI控制模式(非玩家控制,像NPC一样自由活动)
+        /// </summary>
+        public bool isAIControl = false;
+        /// <summary>
+        /// AI移动的目标位置
+        /// </summary>
+        private Vector2 aiTargetPos;
+        /// <summary>
+        /// AI移动方向弧度
+        /// </summary>
+        private float aiRadians;
+        /// <summary>
+        /// AI改变方向的计时器
+        /// </summary>
+        private int aiChangeDirectionTimer;
+        /// <summary>
+        /// AI改变方向的间隔(帧)
+        /// </summary>
+        private int aiChangeDirectionInterval = 120;
+        /// <summary>
+        /// AI攻击范围(逻辑坐标)
+        /// </summary>
+        private float aiAttackRange = 200f;
 
         /// <summary>
         /// [构造函数]玩家
@@ -208,8 +232,13 @@ namespace SpriteSpace
         /// <returns></returns>
         public bool Update()
         {
+            // AI控制模式(像NPC一样自由活动)
+            if (hp > 0 && isAIControl)
+            {
+                UpdateAIMovement();
+            }
             // 玩家控制移动(条件:还活着)
-            if (hp > 0 && Scene.inputActions.playerMoving)
+            else if (hp > 0 && Scene.inputActions.playerMoving)
             {
                 var mv = Scene.inputActions.playerMoveValue;//得到方向向量
                 pixelRow += mv.x * moveSpeed;
@@ -269,6 +298,145 @@ namespace SpriteSpace
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// AI控制移动更新
+        /// </summary>
+        private void UpdateAIMovement()
+        {
+            // 尝试找到附近的怪物
+            Monster nearestMonster = FindNearestMonster();
+
+            if (nearestMonster != null)
+            {
+                // 计算与怪物的距离
+                float distance = Vector2.Distance(
+                    new Vector2(pixelRow, pixelColumn),
+                    new Vector2(nearestMonster.pixelRow, nearestMonster.pixelColumn)
+                );
+
+                if (distance < aiAttackRange)
+                {
+                    // 怪物在攻击范围内，追击怪物
+                    ChaseMonster(nearestMonster);
+                    return;
+                }
+            }
+
+            // 没有找到怪物或怪物太远，继续随机漫步
+            WanderAround();
+        }
+
+        /// <summary>
+        /// 寻找最近的怪物
+        /// </summary>
+        /// <returns></returns>
+        private Monster FindNearestMonster()
+        {
+            if (stage == null || stage.monsters == null || stage.monsters.Count == 0)
+                return null;
+
+            Monster nearest = null;
+            float minDistance = float.MaxValue;
+
+            foreach (var monster in stage.monsters)
+            {
+                if (monster == null || monster.hp <= 0)
+                    continue;
+
+                float distance = Vector2.Distance(
+                    new Vector2(pixelRow, pixelColumn),
+                    new Vector2(monster.pixelRow, monster.pixelColumn)
+                );
+
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    nearest = monster;
+                }
+            }
+
+            return nearest;
+        }
+
+        /// <summary>
+        /// 追击怪物
+        /// </summary>
+        /// <param name="monster"></param>
+        private void ChaseMonster(Monster monster)
+        {
+            // 计算朝向怪物的方向
+            var dRow = monster.pixelRow - pixelRow;
+            var dColumn = monster.pixelColumn - pixelColumn;
+            aiRadians = Mathf.Atan2(dColumn, dRow);
+
+            // 向怪物移动
+            var cos = Mathf.Cos(aiRadians);
+            var sin = Mathf.Sin(aiRadians);
+            pixelRow += cos * moveSpeed;
+            pixelColumn += sin * moveSpeed;
+
+            // 判断朝向翻转
+            flipX = cos < 0;
+
+            // 根据移动速度步进动画帧下标
+            frameIndex += frameAnimIncrease * moveSpeed * _1_defaultMoveSpeed;
+            var len = scene.sprites_player.Length;
+            if (frameIndex >= len)
+            {
+                frameIndex -= len;
+            }
+
+            // 边界修正
+            pixelRow = Mathf.Clamp(pixelRow, 0, scene.gridWidth - float.Epsilon);
+            pixelColumn = Mathf.Clamp(pixelColumn, 0, scene.gridHeight - float.Epsilon);
+        }
+
+        /// <summary>
+        /// 随机漫步
+        /// </summary>
+        private void WanderAround()
+        {
+            // 更新计时器
+            aiChangeDirectionTimer++;
+
+            // 判断是否需要改变方向
+            if (aiChangeDirectionTimer >= aiChangeDirectionInterval ||
+                Vector2.Distance(new Vector2(pixelRow, pixelColumn), aiTargetPos) < scene.gridSize)
+            {
+                // 随机生成新的目标位置
+                aiTargetPos = new Vector2(
+                    Random.Range(scene.gridSize, scene.gridWidth - scene.gridSize),
+                    Random.Range(scene.gridSize, scene.gridHeight - scene.gridSize)
+                );
+                // 计算朝向目标的方向
+                var dRow = aiTargetPos.x - pixelRow;
+                var dColumn = aiTargetPos.y - pixelColumn;
+                aiRadians = Mathf.Atan2(dColumn, dRow);
+                aiChangeDirectionTimer = 0;
+            }
+
+            // 向目标移动
+            var cos = Mathf.Cos(aiRadians);
+            var sin = Mathf.Sin(aiRadians);
+            pixelRow += cos * moveSpeed;
+            pixelColumn += sin * moveSpeed;
+
+            // 判断朝向翻转
+            flipX = cos < 0;
+
+            // 根据移动速度步进动画帧下标
+            frameIndex += frameAnimIncrease * moveSpeed * _1_defaultMoveSpeed;
+            var len = scene.sprites_player.Length;
+            if (frameIndex >= len)
+            {
+                frameIndex -= len;
+            }
+
+            // 边界修正
+            pixelRow = Mathf.Clamp(pixelRow, 0, scene.gridWidth - float.Epsilon);
+            pixelColumn = Mathf.Clamp(pixelColumn, 0, scene.gridHeight - float.Epsilon);
         }
 
         /// <summary>

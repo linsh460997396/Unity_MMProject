@@ -2,7 +2,16 @@
 using MetalMaxSystem.Unity;
 using System.Collections.Generic;
 using System.Diagnostics;
+using TMPro;
+using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
 using Debug = UnityEngine.Debug;
 
 namespace SpriteSpace
@@ -35,6 +44,7 @@ namespace SpriteSpace
         /// </summary>
         public static string externalAssetsPath;
         public static Material material;
+        public static RenderTexture minimap;
 
         //内置精灵素材
         public static List<Sprite>[] Vehicle;
@@ -63,6 +73,17 @@ namespace SpriteSpace
             DontDestroyOnLoad(tempGroup);
             GO.Init(material, 20000, tempGroup);
 
+            //主动检查并创建场景必需的对象(Sun、MainCamera、MinimapCamera、MinimapCanvas)
+            //通过访问属性触发延迟创建逻辑
+            //注意: MapEditorCanvas 不在此初始化,需要第一次按下M键时才初始化
+            var sun = Sun;
+            var mainCamera = MainCamera;
+            var minimapCamera = MinimapCamera;
+            var minimapCanvas = MinimapCanvas;
+
+            //创建EventSystem用于UI交互
+            CreateEventSystem();
+
             initialized = true;
         }
 
@@ -75,33 +96,506 @@ namespace SpriteSpace
         {
             get
             {
-                string name = "Sun";
+                return GetOrCreatePrefab("Sun", go =>
+                {
+                    // 太阳位置在场景上方（Y=50），朝向地面倾斜照射
+                    go.transform.SetPositionAndRotation(new Vector3(0f, 50f, 0f), Quaternion.Euler(60f, 28.5f, 90f));
+                    go.transform.parent = group.transform;
+                    Light light = go.AddComponent<Light>();
+                    light.type = LightType.Directional; // 平行光（模拟太阳光）
+                    light.intensity = 1.0f; // 光源强度（1.0为满强度）
+                    light.range = 100f; // 光源范围（平行光此参数实际不影响光照）
+                    light.color = Color.white; // 白色光源
+                    // light.shadowStrength = 0.5f; // 阴影强度（0-1），当前关闭阴影
+                    // light.shadowBias = 0.001f; // 阴影偏移，防止阴影贴图瑕疵
+                    // light.shadowNormalBias = 0.001f; // 阴影法线偏移
+                    light.cullingMask = ~0; // 照亮所有层（~0即-1，二进制取反）
+                    go.SetActive(true); // 光源需要立即激活才能照亮场景
+                    Debug.Log($"预制体已创建: Sun");
+                });
+            }
+        }
+
+        /// <summary>
+        /// 获取MinimapCamera预制体.作为单例直接使用.
+        /// 如不存在,会创建名为"MinimapCamera"的游戏物体并添加Camera组件和RenderTexture.
+        /// 首次创建的预制体不激活.
+        /// </summary>
+        public static GameObject MinimapCamera
+        {
+            get
+            {
+                string name = "MinimapCamera";
                 if (!runtimePrefab.ContainsKey(name))
                 {
                     GameObject tempGameObject = GameObject.Find(name);
                     if (tempGameObject == null)
                     {
                         tempGameObject = new GameObject(name);
-                        tempGameObject.SetActive(false); //阻止后续添加组件时执行Awake以外的方法
-                        tempGameObject.transform.SetPositionAndRotation(new Vector3(0f, 50f, 0f), Quaternion.Euler(60f, 28.5f, 90f));
-                        tempGameObject.transform.parent = group.transform; //作为group的子物体"存放"
-                        tempGameObject.AddComponent<Light>().type = LightType.Directional;
-                        tempGameObject.GetComponent<Light>().intensity = 0.7f;
-                        tempGameObject.GetComponent<Light>().range = 1f;
-                        runtimePrefab.Add(name, tempGameObject); //存入预制体字典
-                        //awakeEnable[name] = true; //Sun的组件无自定义部分,不需设计阻止或允许Awake
+                        tempGameObject.SetActive(false);
+                        // 将小地图相机作为MainCamera的子对象，这样会自动跟随主摄像机移动
+                        tempGameObject.transform.SetParent(MainCamera.transform);
+                        // 设置相对于主摄像机的位置（在主摄像机位置）
+                        tempGameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
+                        tempGameObject.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
+                        Camera camera = tempGameObject.AddComponent<Camera>();
+                        camera.orthographic = true; // 正交投影（2D小地图常用）
+                        camera.orthographicSize = 20f; // 正交视野大小
+                        camera.clearFlags = CameraClearFlags.SolidColor; // 纯色清除
+                        camera.backgroundColor = new Color(0, 0, 0, 0.24f); // 半透明黑色背景（#0000003C）
+                        camera.cullingMask = ~0; // 渲染所有层
+                        camera.depth = -1f; // 渲染顺序，小于MainCamera(0)，先渲染
+                        camera.targetTexture = GetMiniMap(); // 输出到RenderTexture
+                        tempGameObject.SetActive(true); // 小地图摄像机需要激活才能渲染画面
                         Debug.Log($"预制体已创建: {name}");
                     }
                     else
                     {
-                        runtimePrefab.Add(name, tempGameObject); //存入预制体字典
+                        // 如果从场景中找到,确保它有正确的设置
+                        Camera camera = tempGameObject.GetComponent<Camera>();
+                        if (camera != null)
+                        {
+                            // 确保摄像机有targetTexture
+                            if (camera.targetTexture == null)
+                            {
+                                camera.targetTexture = new RenderTexture(512, 512, 16, RenderTextureFormat.ARGB32);
+                                camera.targetTexture.name = "MinimapRenderTexture";
+                                Debug.Log("已为场景中存在的MinimapCamera创建targetTexture");
+                            }
+                            // 确保摄像机已激活
+                            if (!tempGameObject.activeSelf)
+                            {
+                                tempGameObject.SetActive(true);
+                            }
+                        }
                     }
+                    runtimePrefab.Add(name, tempGameObject);
                 }
                 return runtimePrefab.Get(name) as GameObject;
             }
         }
 
+        /// <summary>
+        /// 获取MinimapCanvas预制体.作为单例直接使用.
+        /// 如不存在,会创建名为"MinimapCanvas"的游戏物体并添加Canvas组件和RawImage子对象.
+        /// 首次创建的预制体不激活.
+        /// </summary>
+        public static GameObject MinimapCanvas
+        {
+            get
+            {
+                GameObject rawImageGO;
+                string name = "MinimapCanvas";
+                if (!runtimePrefab.ContainsKey(name))
+                {
+                    GameObject tempGameObject = GameObject.Find(name);
+                    if (tempGameObject == null)
+                    {
+                        tempGameObject = new GameObject(name);
+                        tempGameObject.SetActive(false);
+                        tempGameObject.transform.SetParent(MainCamera.transform);
+                        Canvas canvas = tempGameObject.AddComponent<Canvas>();
+                        canvas.renderMode = RenderMode.ScreenSpaceOverlay; // 渲染在屏幕空间，叠加于场景之上
+                        canvas.sortingOrder = 0; // 0~100,决定UI渲染顺序,数值越大越靠上(遮挡其他UI)
+                        CanvasScaler scaler = tempGameObject.AddComponent<CanvasScaler>();
+                        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; // 跟随屏幕分辨率缩放
+                        scaler.referenceResolution = new Vector2(1920f, 1080f); // 参考分辨率
+                        tempGameObject.AddComponent<GraphicRaycaster>(); // 允许射线检测UI
+
+                        // 创建RawImage子对象显示小地图画面
+                        rawImageGO = new GameObject("MinimapRawImage");
+                        rawImageGO.transform.SetParent(tempGameObject.transform);
+                        rawImageGO.transform.localPosition = new Vector3(0f, 0f, 0f);
+                        rawImageGO.transform.localScale = new Vector3(1f, 1f, 1f);
+                        rawImageGO.layer = 5; // UI层
+
+                        RawImage rawImage = rawImageGO.AddComponent<RawImage>();
+                        // 小地图放在右上角,轴心点为右上角 (1, 1)，方便计算偏移
+                        rawImage.rectTransform.pivot = new Vector2(1f, 1f);
+                        rawImage.rectTransform.anchorMin = new Vector2(1f, 1f);
+                        rawImage.rectTransform.anchorMax = new Vector2(1f, 1f);
+                        // 固定尺寸：宽 480, 高 270
+                        rawImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 480f);
+                        rawImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 270f);
+
+                        // 设置RawImage显示MinimapCamera的渲染纹理
+                        Camera minimapCamera = MinimapCamera.GetComponent<Camera>();
+                        // depth: 主摄像机(MainCamera)=0，小地图相机=-1先渲染，UI覆盖在最上层=1
+                        minimapCamera.depth = 1f;
+                        minimapCamera.useOcclusionCulling = false; // 关闭遮挡剔除，省性能
+                        if (minimapCamera != null)
+                        {
+                            Debug.Log($"MinimapCamera 存在: {minimapCamera.name}");
+                            Debug.Log($"targetTexture: {minimapCamera.targetTexture}");
+                            rawImage.texture = minimapCamera.targetTexture ?? GetMiniMap();
+                        }
+                        else
+                        {
+                            Debug.LogError("MinimapCamera 组件未找到!");
+                            rawImage.texture = GetMiniMap();
+                        }
+
+                        tempGameObject.SetActive(true);
+                        Debug.Log($"预制体已创建: {name}");
+                    }
+                    else
+                    {
+                        // 场景中找到MinimapCanvas,确保RawImage正确绑定到RenderTexture
+                        rawImageGO = tempGameObject.transform.Find("MinimapRawImage")?.gameObject;
+                        if (rawImageGO != null)
+                        {
+                            RawImage rawImage = rawImageGO.GetComponent<RawImage>();
+                            if (rawImage != null)
+                            {
+                                Camera minimapCamera = MinimapCamera.GetComponent<Camera>();
+                                rawImage.texture = (minimapCamera != null && minimapCamera.targetTexture != null)
+                                    ? minimapCamera.targetTexture
+                                    : GetMiniMap();
+                            }
+                        }
+                        if (!tempGameObject.activeSelf)
+                        {
+                            tempGameObject.SetActive(true);
+                        }
+                    }
+                    tempGameObject.layer = 5;
+                    rawImageGO.layer = 5;
+                    runtimePrefab.Add(name, tempGameObject);
+                }
+                return runtimePrefab.Get(name) as GameObject;
+            }
+        }
+
+        /// <summary>
+        /// 获取MainCamera预制体.作为单例直接使用.
+        /// 如不存在,会创建名为"MainCamera"的游戏物体并添加Camera组件.
+        /// 首次创建的预制体不激活.
+        /// </summary>
+        public static GameObject MainCamera
+        {
+            get
+            {
+                return GetOrCreatePrefab("MainCamera", go =>
+                {
+                    // 主摄像机位置在正后方（Z=-20）
+                    go.transform.SetPositionAndRotation(new Vector3(0f, 0f, -20f), Quaternion.identity);
+                    go.transform.parent = group.transform;
+                    Camera camera = go.AddComponent<Camera>();
+                    camera.tag = "MainCamera"; // 设置标签以便Camera.main能识别
+                    camera.clearFlags = CameraClearFlags.SolidColor; // 纯色背景，确保光源生效
+                    camera.backgroundColor = new Color(0.2f, 0.4f, 0.6f, 1f); // 蓝色背景（天空色）
+                    // cullingMask使用位运算指定渲染层：(1 << 层序号) 表示包含该层
+                    // Default(0) | TransparentFX(1) | IgnoreRaycast(2) | Water(4) | UI(5)
+                    camera.cullingMask = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 4) | (1 << 5);
+                    camera.depth = 0f; // 相机渲染顺序，数值越大越后渲染（-1为小地图相机）
+                    camera.nearClipPlane = 0.3f; // 近裁剪面
+                    camera.farClipPlane = 1000f; // 远裁剪面
+                    camera.allowMSAA = true; // 开启多重采样抗锯齿
+                    go.SetActive(true); // 主摄像机需要立即激活
+                    Debug.Log($"预制体已创建: MainCamera");
+                });
+            }
+        }
+
+        /// <summary>
+        /// 获取MapEditor画布.作为单例直接使用.
+        /// 如不存在,会创建名为"MapEditorCanvas"的游戏物体并添加Canvas组件及所有UI元素.
+        /// </summary>
+        public static GameObject MapEditorCanvas
+        {
+            get
+            {
+                return GetOrCreatePrefab("MapEditorCanvas", go =>
+                {
+                    go.transform.parent = group.transform;
+                    Canvas canvas = go.AddComponent<Canvas>();
+                    canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                    canvas.sortingOrder = 1000; // 高排序层级确保显示在最上层
+                    CanvasScaler scaler = go.AddComponent<CanvasScaler>();
+                    scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                    scaler.referenceResolution = new Vector2(1920, 1080);
+                    go.AddComponent<GraphicRaycaster>();
+                    // 创建MapEditor所需的UI元素
+                    CreateMapEditorUI(go);
+                    go.SetActive(false); // 默认隐藏,按M键显示
+                    Debug.Log($"预制体已创建: MapEditorCanvas");
+                });
+            }
+        }
+
+        /// <summary>
+        /// 创建MapEditor的UI元素
+        /// </summary>
+        private static void CreateMapEditorUI(GameObject parent)
+        {
+            //加载中文字体
+            TMP_FontAsset font = Resources.Load<TMP_FontAsset>("Fonts/FZYaSongS-M-GB-Regular-SDF");
+            if (font == null)
+            {
+                //尝试获取TextMeshPro的默认字体设置
+                font = TMP_Settings.defaultFontAsset;
+                if (font == null)
+                {
+                    Debug.LogWarning("未能找到FZYaSongS-M-GB -Regular-SDF字体和TextMeshPro默认字体，将使用内置默认字体");
+                }
+            }
+
+            //创建背景面板
+            GameObject panel = new GameObject("Panel");
+            panel.transform.SetParent(parent.transform);
+            RectTransform panelRect = panel.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.02f, 0.02f);
+            panelRect.anchorMax = new Vector2(0.35f, 0.98f);
+            panelRect.offsetMin = Vector2.zero;
+            panelRect.offsetMax = Vector2.zero;
+            Image panelImage = panel.AddComponent<Image>();
+            panelImage.color = new Color(0.15f, 0.15f, 0.15f, 0.9f);
+
+            //创建顶部提示标签
+            GameObject labelHeadTip = new GameObject("label_headTip");
+            labelHeadTip.transform.SetParent(panel.transform);
+            RectTransform labelRect = labelHeadTip.AddComponent<RectTransform>();
+            labelRect.anchorMin = new Vector2(0.05f, 0.92f);
+            labelRect.anchorMax = new Vector2(0.95f, 0.98f);
+            labelRect.offsetMin = Vector2.zero;
+            labelRect.offsetMax = Vector2.zero;
+            TextMeshProUGUI labelText = labelHeadTip.AddComponent<TextMeshProUGUI>();
+            if (labelText != null && font != null)
+            {
+                labelText.font = font;
+            }
+            if (labelText != null)
+            {
+                labelText.text = "地图编辑器 [M键切换]";
+                labelText.color = Color.red;
+                labelText.fontSize = 18;
+                labelText.alignment = TextAlignmentOptions.Center;
+            }
+
+            //创建功能选择下拉框
+            GameObject comboBox = new GameObject("comboBox_selectFunc");
+            comboBox.transform.SetParent(panel.transform);
+            RectTransform comboRect = comboBox.AddComponent<RectTransform>();
+            comboRect.anchorMin = new Vector2(0.05f, 0.82f);
+            comboRect.anchorMax = new Vector2(0.95f, 0.88f);
+            comboRect.offsetMin = Vector2.zero;
+            comboRect.offsetMax = Vector2.zero;
+            TMP_Dropdown dropdown = comboBox.AddComponent<TMP_Dropdown>();
+            dropdown.options.Add(new TMP_Dropdown.OptionData("地图编辑"));
+            dropdown.options.Add(new TMP_Dropdown.OptionData("纹理编辑"));
+            dropdown.value = 0;
+
+            // 设置下拉框的字体（在添加选项后，itemText才会被初始化）
+            if (dropdown.itemText != null && font != null)
+            {
+                dropdown.itemText.font = font;
+            }
+            if (dropdown.captionText != null && font != null)
+            {
+                dropdown.captionText.font = font;
+            }
+
+            //创建工作ID输入框
+            GameObject textBoxID = new GameObject("textBox_workID");
+            textBoxID.transform.SetParent(panel.transform);
+            RectTransform textRect = textBoxID.AddComponent<RectTransform>();
+            textRect.anchorMin = new Vector2(0.05f, 0.72f);
+            textRect.anchorMax = new Vector2(0.45f, 0.78f);
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+            TMP_InputField inputField = textBoxID.AddComponent<TMP_InputField>();
+
+            //创建输入框的文本组件（必须先创建这个才能设置fontAsset）
+            GameObject textComponentGO = new GameObject("Text Component");
+            textComponentGO.transform.SetParent(textBoxID.transform);
+            TextMeshProUGUI textComponent = textComponentGO.AddComponent<TextMeshProUGUI>();
+            if (textComponent != null && font != null)
+            {
+                textComponent.font = font;
+            }
+            if (textComponent != null)
+            {
+                inputField.textComponent = textComponent;
+            }
+
+            //创建placeholder文本组件
+            GameObject placeholderGO = new GameObject("Placeholder");
+            placeholderGO.transform.SetParent(textBoxID.transform);
+            TextMeshProUGUI placeholderText = placeholderGO.AddComponent<TextMeshProUGUI>();
+            if (placeholderText != null && font != null)
+            {
+                placeholderText.font = font;
+            }
+            if (placeholderText != null)
+            {
+                placeholderText.text = "输入编号";
+                placeholderText.color = new Color(0.5f, 0.5f, 0.5f); //灰色提示文字
+                inputField.placeholder = placeholderText;
+            }
+
+            inputField.text = "0";
+
+            //创建运行按钮
+            GameObject buttonRun = new GameObject("button_run");
+            buttonRun.transform.SetParent(panel.transform);
+            RectTransform btnRect = buttonRun.AddComponent<RectTransform>();
+            btnRect.anchorMin = new Vector2(0.55f, 0.72f);
+            btnRect.anchorMax = new Vector2(0.75f, 0.78f);
+            btnRect.offsetMin = Vector2.zero;
+            btnRect.offsetMax = Vector2.zero;
+            Button btn = buttonRun.AddComponent<Button>();
+            Image btnImage = buttonRun.AddComponent<Image>();
+            btnImage.color = new Color(0.3f, 0.6f, 0.3f);
+            TextMeshProUGUI btnText = buttonRun.AddComponent<TextMeshProUGUI>();
+            if (btnText != null && font != null)
+            {
+                btnText.font = font;
+            }
+            if (btnText != null)
+            {
+                btnText.text = "加载";
+                btnText.alignment = TextAlignmentOptions.Center;
+            }
+
+            //创建外部路径输入框
+            GameObject textBoxPath = new GameObject("textBox_outsideResPath");
+            textBoxPath.transform.SetParent(panel.transform);
+            RectTransform pathRect = textBoxPath.AddComponent<RectTransform>();
+            pathRect.anchorMin = new Vector2(0.05f, 0.62f);
+            pathRect.anchorMax = new Vector2(0.95f, 0.68f);
+            pathRect.offsetMin = Vector2.zero;
+            pathRect.offsetMax = Vector2.zero;
+            TMP_InputField pathInput = textBoxPath.AddComponent<TMP_InputField>();
+
+            //创建输入框的文本组件（必须先创建这个才能设置fontAsset）
+            GameObject pathTextGO = new GameObject("Text Component");
+            pathTextGO.transform.SetParent(textBoxPath.transform);
+            TextMeshProUGUI pathText = pathTextGO.AddComponent<TextMeshProUGUI>();
+            if (pathText != null && font != null)
+            {
+                pathText.font = font;
+            }
+            if (pathText != null)
+            {
+                pathInput.textComponent = pathText;
+            }
+
+            pathInput.text = UnityEngine.Application.dataPath + "/Resources/ColliderFiles/MapCollider.txt";
+            pathInput.readOnly = true;
+
+            //创建地图编辑器模式勾选框
+            GameObject checkBoxMap = new GameObject("checkBox_mapEditorMode");
+            checkBoxMap.transform.SetParent(panel.transform);
+            RectTransform mapRect = checkBoxMap.AddComponent<RectTransform>();
+            mapRect.anchorMin = new Vector2(0.05f, 0.52f);
+            mapRect.anchorMax = new Vector2(0.45f, 0.58f);
+            mapRect.offsetMin = Vector2.zero;
+            mapRect.offsetMax = Vector2.zero;
+            Toggle mapToggle = checkBoxMap.AddComponent<Toggle>();
+            TextMeshProUGUI mapLabel = checkBoxMap.AddComponent<TextMeshProUGUI>();
+            if (mapLabel != null && font != null)
+            {
+                mapLabel.font = font;
+            }
+            if (mapLabel != null)
+            {
+                mapLabel.text = "纹理模式";
+                mapLabel.alignment = TextAlignmentOptions.Left;
+            }
+
+            //创建碰撞显示勾选框
+            GameObject checkBoxCollider = new GameObject("checkBox_showCollider");
+            checkBoxCollider.transform.SetParent(panel.transform);
+            RectTransform colliderRect = checkBoxCollider.AddComponent<RectTransform>();
+            colliderRect.anchorMin = new Vector2(0.55f, 0.52f);
+            colliderRect.anchorMax = new Vector2(0.95f, 0.58f);
+            colliderRect.offsetMin = Vector2.zero;
+            colliderRect.offsetMax = Vector2.zero;
+            Toggle colliderToggle = checkBoxCollider.AddComponent<Toggle>();
+            TextMeshProUGUI colliderLabel = checkBoxCollider.AddComponent<TextMeshProUGUI>();
+            if (colliderLabel != null && font != null)
+            {
+                colliderLabel.font = font;
+            }
+            if (colliderLabel != null)
+            {
+                colliderLabel.text = "显示碰撞";
+                colliderLabel.alignment = TextAlignmentOptions.Left;
+            }
+
+            //创建外部保存按钮
+            GameObject buttonSave = new GameObject("button_outsideSave");
+            buttonSave.transform.SetParent(panel.transform);
+            RectTransform saveRect = buttonSave.AddComponent<RectTransform>();
+            saveRect.anchorMin = new Vector2(0.05f, 0.42f);
+            saveRect.anchorMax = new Vector2(0.95f, 0.48f);
+            saveRect.offsetMin = Vector2.zero;
+            saveRect.offsetMax = Vector2.zero;
+            Button saveBtn = buttonSave.AddComponent<Button>();
+            Image saveImage = buttonSave.AddComponent<Image>();
+            saveImage.color = new Color(0.6f, 0.3f, 0.3f);
+            TextMeshProUGUI saveText = buttonSave.AddComponent<TextMeshProUGUI>();
+            if (saveText != null && font != null)
+            {
+                saveText.font = font;
+            }
+            if (saveText != null)
+            {
+                saveText.text = "保存碰撞文件 [Enter]";
+                saveText.alignment = TextAlignmentOptions.Center;
+            }
+
+            //创建操作说明标签
+            GameObject labelHelp = new GameObject("label_help");
+            labelHelp.transform.SetParent(panel.transform);
+            RectTransform helpRect = labelHelp.AddComponent<RectTransform>();
+            helpRect.anchorMin = new Vector2(0.05f, 0.02f);
+            helpRect.anchorMax = new Vector2(0.95f, 0.35f);
+            helpRect.offsetMin = Vector2.zero;
+            helpRect.offsetMax = Vector2.zero;
+            TextMeshProUGUI helpText = labelHelp.AddComponent<TextMeshProUGUI>();
+            if (helpText != null && font != null)
+            {
+                helpText.font = font;
+            }
+            if (helpText != null)
+            {
+                helpText.text = "操作说明:\n" +
+                               "1键 - 人碰撞(A0)\n" +
+                               "2键 - 车碰撞(A1)\n" +
+                               "3键 - 人车碰撞\n" +
+                               "左键 - 添加标记\n" +
+                               "右键 - 移除标记\n" +
+                               "Enter - 保存文件\n" +
+                               "`键 - 切换界面";
+                helpText.color = Color.white;
+                helpText.fontSize = 14;
+                helpText.alignment = TextAlignmentOptions.TopLeft;
+            }
+        }
+
         #region 功能函数
+
+        /// <summary>
+        /// 获取或创建预制体通用方法.
+        /// </summary>
+        /// <param name="name">预制体名称</param>
+        /// <param name="onCreate">对象不存在时,创建后的配置回调(仅在新创建时调用)</param>
+        /// <returns>预制体GameObject</returns>
+        private static GameObject GetOrCreatePrefab(string name, System.Action<GameObject> onCreate = null)
+        {
+            if (runtimePrefab.ContainsKey(name))
+                return runtimePrefab.Get(name) as GameObject;
+
+            GameObject go = GameObject.Find(name);
+            if (go == null)
+            {
+                go = new GameObject(name);
+                onCreate?.Invoke(go);
+            }
+            runtimePrefab.Add(name, go);
+            return go;
+        }
 
         /// <summary>
         /// 读取素材的总动作
@@ -358,6 +852,436 @@ namespace SpriteSpace
         }
 
         #endregion
+
+        /// <summary>
+        /// 获取GameMenuCanvas预制体.作为单例直接使用.
+        /// 如不存在,会创建名为"GameMenuCanvas"的游戏物体并添加Canvas组件及所有UI元素.
+        /// </summary>
+        public static GameObject GameMenuCanvas
+        {
+            get
+            {
+                string name = "GameMenuCanvas";
+                if (!runtimePrefab.ContainsKey(name))
+                {
+                    GameObject tempGameObject = GameObject.Find(name);
+                    if (tempGameObject == null)
+                    {
+                        tempGameObject = new GameObject(name);
+                        tempGameObject.SetActive(false);
+                        tempGameObject.transform.parent = group.transform;
+                        Canvas canvas = tempGameObject.AddComponent<Canvas>();
+                        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                        canvas.sortingOrder = 200; // 确保菜单在最上层
+                        CanvasScaler scaler = tempGameObject.AddComponent<CanvasScaler>();
+                        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                        scaler.referenceResolution = new Vector2(1920f, 1080f);
+                        tempGameObject.AddComponent<GraphicRaycaster>();
+
+                        //创建GameMenu所需的UI元素
+                        CreateGameMenuUI(tempGameObject);
+
+                        runtimePrefab.Add(name, tempGameObject);
+                        Debug.Log($"预制体已创建: {name}");
+                    }
+                    else
+                    {
+                        runtimePrefab.Add(name, tempGameObject);
+                    }
+                }
+                return runtimePrefab.Get(name) as GameObject;
+            }
+        }
+
+        /// <summary>
+        /// 创建游戏菜单的UI元素
+        /// </summary>
+        private static void CreateGameMenuUI(GameObject parent)
+        {
+            //加载中文字体
+            TMP_FontAsset font = Resources.Load<TMP_FontAsset>("Fonts/FZYaSongS-M-GB-Regular-SDF");
+            if (font == null)
+            {
+                font = TMP_Settings.defaultFontAsset;
+                if (font == null)
+                {
+                    Debug.LogWarning("未能找到字体，将使用内置默认字体");
+                }
+            }
+
+            //创建半透明背景
+            GameObject bgPanel = new GameObject("BackgroundPanel");
+            bgPanel.transform.SetParent(parent.transform);
+            RectTransform bgRect = bgPanel.AddComponent<RectTransform>();
+            bgRect.anchorMin = Vector2.zero;
+            bgRect.anchorMax = Vector2.one;
+            bgRect.offsetMin = Vector2.zero;
+            bgRect.offsetMax = Vector2.zero;
+            Image bgImage = bgPanel.AddComponent<Image>();
+            bgImage.color = new Color(0f, 0f, 0f, 0.7f); // 半透明黑色背景
+
+            //创建设置面板
+            GameObject panel = new GameObject("SettingsPanel");
+            panel.transform.SetParent(parent.transform);
+            RectTransform panelRect = panel.AddComponent<RectTransform>();
+            panelRect.anchorMin = new Vector2(0.35f, 0.25f);
+            panelRect.anchorMax = new Vector2(0.65f, 0.75f);
+            panelRect.offsetMin = Vector2.zero;
+            panelRect.offsetMax = Vector2.zero;
+            Image panelImage = panel.AddComponent<Image>();
+            panelImage.color = new Color(0.2f, 0.2f, 0.25f, 0.95f);
+
+            //创建标题
+            GameObject titleObj = new GameObject("Title");
+            titleObj.transform.SetParent(panel.transform);
+            RectTransform titleRect = titleObj.AddComponent<RectTransform>();
+            titleRect.anchorMin = new Vector2(0.05f, 0.85f);
+            titleRect.anchorMax = new Vector2(0.95f, 0.95f);
+            titleRect.offsetMin = Vector2.zero;
+            titleRect.offsetMax = Vector2.zero;
+            TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
+            if (titleText != null && font != null)
+            {
+                titleText.font = font;
+            }
+            if (titleText != null)
+            {
+                titleText.text = "游戏设置 [F1键切换]";
+                titleText.color = Color.yellow;
+                titleText.fontSize = 24;
+                titleText.alignment = TextAlignmentOptions.Center;
+            }
+
+            //创建小地图设置标签
+            GameObject minimapLabelObj = new GameObject("MinimapLabel");
+            minimapLabelObj.transform.SetParent(panel.transform);
+            RectTransform minimapLabelRect = minimapLabelObj.AddComponent<RectTransform>();
+            minimapLabelRect.anchorMin = new Vector2(0.05f, 0.72f);
+            minimapLabelRect.anchorMax = new Vector2(0.95f, 0.78f);
+            minimapLabelRect.offsetMin = Vector2.zero;
+            minimapLabelRect.offsetMax = Vector2.zero;
+            TextMeshProUGUI minimapLabel = minimapLabelObj.AddComponent<TextMeshProUGUI>();
+            if (minimapLabel != null && font != null)
+            {
+                minimapLabel.font = font;
+            }
+            if (minimapLabel != null)
+            {
+                minimapLabel.text = "小地图设置";
+                minimapLabel.color = Color.white;
+                minimapLabel.fontSize = 18;
+                minimapLabel.alignment = TextAlignmentOptions.Left;
+            }
+
+            //创建小地图缩放标签
+            GameObject zoomLabelObj = new GameObject("ZoomLabel");
+            zoomLabelObj.transform.SetParent(panel.transform);
+            RectTransform zoomLabelRect = zoomLabelObj.AddComponent<RectTransform>();
+            zoomLabelRect.anchorMin = new Vector2(0.05f, 0.58f);
+            zoomLabelRect.anchorMax = new Vector2(0.4f, 0.64f);
+            zoomLabelRect.offsetMin = Vector2.zero;
+            zoomLabelRect.offsetMax = Vector2.zero;
+            TextMeshProUGUI zoomLabel = zoomLabelObj.AddComponent<TextMeshProUGUI>();
+            if (zoomLabel != null && font != null)
+            {
+                zoomLabel.font = font;
+            }
+            if (zoomLabel != null)
+            {
+                zoomLabel.text = "缩放大小:";
+                zoomLabel.color = Color.white;
+                zoomLabel.fontSize = 16;
+                zoomLabel.alignment = TextAlignmentOptions.Left;
+            }
+
+            //创建缩放值显示
+            GameObject zoomValueObj = new GameObject("ZoomValue");
+            zoomValueObj.transform.SetParent(panel.transform);
+            RectTransform zoomValueRect = zoomValueObj.AddComponent<RectTransform>();
+            zoomValueRect.anchorMin = new Vector2(0.75f, 0.58f);
+            zoomValueRect.anchorMax = new Vector2(0.95f, 0.64f);
+            zoomValueRect.offsetMin = Vector2.zero;
+            zoomValueRect.offsetMax = Vector2.zero;
+            TextMeshProUGUI zoomValue = zoomValueObj.AddComponent<TextMeshProUGUI>();
+            if (zoomValue != null && font != null)
+            {
+                zoomValue.font = font;
+            }
+            if (zoomValue != null)
+            {
+                zoomValue.text = "50%";
+                zoomValue.color = Color.cyan;
+                zoomValue.fontSize = 16;
+                zoomValue.alignment = TextAlignmentOptions.Right;
+            }
+
+            //创建缩放滑块
+            GameObject sliderObj = new GameObject("ZoomSlider");
+            sliderObj.transform.SetParent(panel.transform);
+            RectTransform sliderRect = sliderObj.AddComponent<RectTransform>();
+            sliderRect.anchorMin = new Vector2(0.05f, 0.50f);
+            sliderRect.anchorMax = new Vector2(0.95f, 0.56f);
+            sliderRect.offsetMin = Vector2.zero;
+            sliderRect.offsetMax = Vector2.zero;
+            Slider zoomSlider = sliderObj.AddComponent<Slider>();
+            zoomSlider.minValue = 10f;
+            zoomSlider.maxValue = 200f;
+            zoomSlider.value = 50f;
+            zoomSlider.fillRect = sliderObj.GetComponent<RectTransform>();
+
+            //创建全屏复选框
+            GameObject fullscreenObj = new GameObject("FullscreenToggle");
+            fullscreenObj.transform.SetParent(panel.transform);
+            RectTransform fullscreenRect = fullscreenObj.AddComponent<RectTransform>();
+            fullscreenRect.anchorMin = new Vector2(0.05f, 0.38f);
+            fullscreenRect.anchorMax = new Vector2(0.95f, 0.46f);
+            fullscreenRect.offsetMin = Vector2.zero;
+            fullscreenRect.offsetMax = Vector2.zero;
+            Toggle fullscreenToggle = fullscreenObj.AddComponent<Toggle>();
+            TextMeshProUGUI fullscreenLabel = fullscreenObj.AddComponent<TextMeshProUGUI>();
+            if (fullscreenLabel != null && font != null)
+            {
+                fullscreenLabel.font = font;
+            }
+            if (fullscreenLabel != null)
+            {
+                fullscreenLabel.text = "小地图全屏显示";
+                fullscreenLabel.color = Color.white;
+                fullscreenLabel.fontSize = 16;
+                fullscreenLabel.alignment = TextAlignmentOptions.Left;
+            }
+
+            //创建关闭按钮
+            GameObject closeBtnObj = new GameObject("CloseButton");
+            closeBtnObj.transform.SetParent(panel.transform);
+            RectTransform closeBtnRect = closeBtnObj.AddComponent<RectTransform>();
+            closeBtnRect.anchorMin = new Vector2(0.35f, 0.08f);
+            closeBtnRect.anchorMax = new Vector2(0.65f, 0.16f);
+            closeBtnRect.offsetMin = Vector2.zero;
+            closeBtnRect.offsetMax = Vector2.zero;
+            Button closeBtn = closeBtnObj.AddComponent<Button>();
+            Image closeBtnImage = closeBtnObj.AddComponent<Image>();
+            closeBtnImage.color = new Color(0.6f, 0.3f, 0.3f);
+            TextMeshProUGUI closeBtnText = closeBtnObj.AddComponent<TextMeshProUGUI>();
+            if (closeBtnText != null && font != null)
+            {
+                closeBtnText.font = font;
+            }
+            if (closeBtnText != null)
+            {
+                closeBtnText.text = "关闭 [F1]";
+                closeBtnText.color = Color.white;
+                closeBtnText.fontSize = 18;
+                closeBtnText.alignment = TextAlignmentOptions.Center;
+            }
+
+            //保存UI引用供外部访问
+            minimapZoomSlider = zoomSlider;
+            minimapZoomValueText = zoomValue;
+            minimapFullscreenToggle = fullscreenToggle;
+
+            //监听缩放滑块变化
+            zoomSlider.onValueChanged.AddListener((value) =>
+            {
+                int percent = Mathf.RoundToInt(value);
+                if (minimapZoomValueText != null)
+                {
+                    minimapZoomValueText.text = percent + "%";
+                }
+                ApplyMinimapZoom(value);
+            });
+
+            //监听全屏复选框变化
+            fullscreenToggle.onValueChanged.AddListener((isFullscreen) =>
+            {
+                ApplyMinimapFullscreen(isFullscreen);
+            });
+        }
+
+        /// <summary>
+        /// 小地图缩放滑块引用
+        /// </summary>
+        private static Slider minimapZoomSlider;
+
+        /// <summary>
+        /// 小地图缩放值文本引用
+        /// </summary>
+        private static TextMeshProUGUI minimapZoomValueText;
+
+        /// <summary>
+        /// 小地图全屏复选框引用
+        /// </summary>
+        private static Toggle minimapFullscreenToggle;
+
+        /// <summary>
+        /// 应用小地图缩放
+        /// </summary>
+        /// <param name="zoomValue">缩放值(10-200)</param>
+        public static void ApplyMinimapZoom(float zoomValue)
+        {
+            GameObject minimapCanvas = MinimapCanvas;
+            if (minimapCanvas != null)
+            {
+                GameObject rawImageObj = minimapCanvas.transform.Find("MinimapRawImage")?.gameObject;
+                if (rawImageObj != null)
+                {
+                    RectTransform rect = rawImageObj.GetComponent<RectTransform>();
+                    if (rect != null)
+                    {
+                        // 根据缩放值调整RawImage大小
+                        float scale = zoomValue / 50f; // 以50为基准
+                        rect.localScale = new Vector3(scale, scale, 1f);
+                        Debug.Log($"小地图缩放已调整为: {zoomValue}%");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 应用小地图全屏/窗口模式
+        /// </summary>
+        /// <param name="isFullscreen">是否为全屏模式</param>
+        public static void ApplyMinimapFullscreen(bool isFullscreen)
+        {
+            GameObject minimapCanvas = MinimapCanvas;
+            if (minimapCanvas != null)
+            {
+                GameObject rawImageObj = minimapCanvas.transform.Find("MinimapRawImage")?.gameObject;
+                if (rawImageObj != null)
+                {
+                    RectTransform rect = rawImageObj.GetComponent<RectTransform>();
+                    if (rect != null)
+                    {
+                        if (isFullscreen)
+                        {
+                            // 全屏模式
+                            rect.anchorMin = Vector2.zero;
+                            rect.anchorMax = Vector2.one;
+                            rect.offsetMin = Vector2.zero;
+                            rect.offsetMax = Vector2.zero;
+                            rect.localScale = Vector3.one;
+                            Debug.Log("小地图已切换为全屏模式");
+                        }
+                        else
+                        {
+                            // 窗口模式（右上角）
+                            rect.anchorMin = new Vector2(0.78f, 0.78f);
+                            rect.anchorMax = new Vector2(0.98f, 0.98f);
+                            rect.offsetMin = Vector2.zero;
+                            rect.offsetMax = Vector2.zero;
+                            float zoomValue = minimapZoomSlider != null ? minimapZoomSlider.value : 50f;
+                            ApplyMinimapZoom(zoomValue);
+                            Debug.Log("小地图已切换为窗口模式");
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 获取小地图缩放值
+        /// </summary>
+        /// <returns>当前缩放值</returns>
+        public static float GetMinimapZoom()
+        {
+            return minimapZoomSlider != null ? minimapZoomSlider.value : 50f;
+        }
+
+        /// <summary>
+        /// 获取小地图是否全屏
+        /// </summary>
+        /// <returns>是否全屏</returns>
+        public static bool IsMinimapFullscreen()
+        {
+            return minimapFullscreenToggle != null && minimapFullscreenToggle.isOn;
+        }
+
+        /// <summary>
+        /// 获取小地图渲染纹理。如果不存在则创建，存在则直接返回。
+        /// </summary>
+        public static RenderTexture GetMiniMap()
+        {
+            // 1. 检查是否已存在且有效
+            if (minimap != null && minimap.IsCreated())
+            {
+                return minimap;
+            }
+
+            // 2. 清理无效引用
+            if (minimap != null)
+            {
+                minimap = null;
+            }
+
+            // 3. 使用描述符配置（兼容写法）
+            RenderTextureDescriptor descriptor = new RenderTextureDescriptor(480, 270);
+
+            // 【修改点】使用 RenderTextureFormat 枚举，而不是 GraphicsFormat
+            descriptor.colorFormat = RenderTextureFormat.ARGB32;
+
+            // 【修改点】深度格式也使用整数或默认值，避免使用 GraphicsFormat
+            // 如果必须指定 D32_SFloat_S8_UInt，旧版 API 可能不支持直接设置
+            // 这里使用 depth=32 让 Unity 自动选择最佳深度格式（通常包含模板缓冲）
+            descriptor.depthBufferBits = 32;
+
+            descriptor.msaaSamples = 1;       // 无抗锯齿
+            descriptor.useMipMap = false;     // 禁用 Mipmap
+            descriptor.autoGenerateMips = false;
+
+            // 4. 创建纹理
+            minimap = new RenderTexture(descriptor);
+            minimap.name = "MinimapRT_Compatible";
+
+            // 5. 设置运行时属性
+            minimap.filterMode = FilterMode.Bilinear;
+            minimap.wrapMode = TextureWrapMode.Clamp;
+            minimap.enableRandomWrite = false; // 普通小地图关闭随机写入以节省性能
+
+            // 6. 显式创建
+            minimap.Create();
+
+            return minimap;
+        }
+
+        /// <summary>
+        /// 手动释放资源（用于场景切换或不再需要时）
+        /// </summary>
+        public static void Release()
+        {
+            if (minimap != null)
+            {
+                minimap.Release();
+                minimap = null;
+            }
+        }
+
+        /// <summary>
+        /// 创建EventSystem用于处理UI交互事件
+        /// </summary>
+        private static void CreateEventSystem()
+        {
+            //检查是否已存在EventSystem
+            if (Object.FindObjectOfType<EventSystem>() != null)
+            {
+                Debug.Log("EventSystem已存在，无需创建");
+                return;
+            }
+
+            //创建EventSystem对象
+            GameObject eventSystemGO = new GameObject("EventSystem");
+            DontDestroyOnLoad(eventSystemGO);
+            eventSystemGO.transform.parent = group.transform;
+
+            //添加EventSystem组件
+            EventSystem eventSystem = eventSystemGO.AddComponent<EventSystem>();
+            eventSystem.firstSelectedGameObject = MainCamera;
+
+            //添加StandaloneInputModule组件（处理鼠标/键盘输入）
+            InputSystemUIInputModule inputModule = eventSystemGO.AddComponent<InputSystemUIInputModule>();
+
+
+            Debug.Log("EventSystem已创建");
+        }
 
     }
 }

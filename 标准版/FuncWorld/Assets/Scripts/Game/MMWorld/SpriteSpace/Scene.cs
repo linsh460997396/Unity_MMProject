@@ -11,15 +11,19 @@ namespace SpriteSpace
     /// </summary>
     public class Scene : MonoBehaviour
     {
+        /// <summary>
+        /// 主摄像机对象缓存
+        /// </summary>
+        [NonSerialized] public Camera mainCamera;
+
         //编辑器拖拽带法线的材质球到此
         [NonSerialized] public Material material;
         //编辑器拖Sprite-Unlit-Default到此,或不启用URP时用别的
         [NonSerialized] public Material minimapMaterial;
 
-        public GameObject minimapCameraGO;
-        public GameObject minimapCanvasGO;
-
         //编辑器拖游戏物体到此,会自动识别到组件
+        [NonSerialized] public GameObject minimapCameraGO;
+        [NonSerialized] public GameObject minimapCanvasGO;
         [NonSerialized] public Camera minimapCamera;
         [NonSerialized] public Canvas minimapCanvas;
 
@@ -135,6 +139,8 @@ namespace SpriteSpace
 
             material = SpriteSpacePrefab.material;
             minimapMaterial = material;
+            minimapCameraGO = SpriteSpacePrefab.MinimapCamera;
+            minimapCanvasGO = SpriteSpacePrefab.MinimapCanvas;
             minimapCamera = minimapCameraGO.GetComponent<Camera>();
             minimapCanvas = minimapCanvasGO.GetComponent<Canvas>();
 
@@ -161,6 +167,30 @@ namespace SpriteSpace
             //处理玩家输入
             inputActions.HandlePlayerInput();
 
+            // 按F键切换AI/玩家控制模式
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                ToggleAIControl();
+            }
+
+            // 按M键切换地图编辑器显示
+            if (Input.GetKeyDown(KeyCode.M))
+            {
+                ToggleMapEditor();
+            }
+
+            // 按N键切换小地图显示/隐藏
+            if (Input.GetKeyDown(KeyCode.N))
+            {
+                ToggleMinimap();
+            }
+
+            // 按F1键切换游戏菜单显示/隐藏
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                ToggleGameMenu();
+            }
+
             var timeBak = time;
             //按设计帧率驱动游戏逻辑
             timePool += Time.deltaTime;
@@ -182,6 +212,61 @@ namespace SpriteSpace
 
             //同步绘制
             stage.Draw();
+        }
+
+        /// <summary>
+        /// 切换AI/玩家控制模式
+        /// </summary>
+        private void ToggleAIControl()
+        {
+            if (player != null)
+            {
+                player.isAIControl = !player.isAIControl;
+                string mode = player.isAIControl ? "AI控制" : "玩家控制";
+                Debug.Log($"控制模式已切换: {mode}");
+            }
+        }
+
+        /// <summary>
+        /// 切换地图编辑器显示/隐藏
+        /// </summary>
+        private void ToggleMapEditor()
+        {
+            GameObject mapEditorCanvas = SpriteSpacePrefab.MapEditorCanvas;
+            if (mapEditorCanvas != null)
+            {
+                bool isActive = !mapEditorCanvas.activeSelf;
+                mapEditorCanvas.SetActive(isActive);
+                Debug.Log($"地图编辑器已{(isActive ? "打开" : "关闭")}");
+            }
+        }
+
+        /// <summary>
+        /// 切换小地图显示/隐藏
+        /// </summary>
+        private void ToggleMinimap()
+        {
+            GameObject minimapCanvas = SpriteSpacePrefab.MinimapCanvas;
+            if (minimapCanvas != null)
+            {
+                bool isActive = !minimapCanvas.activeSelf;
+                minimapCanvas.SetActive(isActive);
+                Debug.Log($"小地图已{(isActive ? "显示" : "隐藏")}");
+            }
+        }
+
+        /// <summary>
+        /// 切换游戏菜单显示/隐藏
+        /// </summary>
+        private void ToggleGameMenu()
+        {
+            GameObject gameMenuCanvas = SpriteSpacePrefab.GameMenuCanvas;
+            if (gameMenuCanvas != null)
+            {
+                bool isActive = !gameMenuCanvas.activeSelf;
+                gameMenuCanvas.SetActive(isActive);
+                Debug.Log($"游戏菜单已{(isActive ? "打开" : "关闭")}");
+            }
         }
 
         /// <summary>
@@ -228,44 +313,35 @@ namespace SpriteSpace
 
         public void InitCamera()
         {
-            if (Camera.main != null)
+            //使用SpriteSpacePrefab创建的主摄像机
+            mainCamera = SpriteSpacePrefab.MainCamera.GetComponent<Camera>();
+            
+            if (mainCamera != null)
             {
                 if (CPEngine.horizontalMode)
                 {
                     //2D横板模式用正交投影
-                    Camera.main.orthographic = true;
-                    Camera.main.orthographicSize = Camera.main.orthographicSize * designWidthToCameraRatio;
-                    //Debug.Log("[horizontalMode]正交镜头:摄像机默认正交尺寸=" + Camera.main.orthographicSize);
-                    Camera.main.gameObject.transform.position = new Vector3(0, 0, -20);
+                    mainCamera.orthographic = true;
+                    mainCamera.orthographicSize = 10f * designWidthToCameraRatio; //默认正交尺寸
+                    mainCamera.gameObject.transform.position = new Vector3(0, 0, -20);
                 }
                 else if (CPEngine.singleLayerTerrainMode)
                 {
                     //3D单层地形模式用正交投影
-                    Camera.main.orthographic = true;
-                    Camera.main.orthographicSize = Camera.main.orthographicSize * designWidthToCameraRatio;
-                    Debug.Log("[CPEngine.singleLayerTerrainMode]正交镜头:摄像机默认正交尺寸 = " + Camera.main.orthographicSize);
-                    Camera.main.gameObject.transform.rotation = Quaternion.Euler(90, 0, 0); //原横板模式设计的摄像机绕X轴顺时针转90度以俯视X-Z平面
-                    Camera.main.gameObject.transform.position = new Vector3(0, 20, 0);
+                    mainCamera.orthographic = true;
+                    mainCamera.orthographicSize = 10f * designWidthToCameraRatio;
+                    Debug.Log("[CPEngine.singleLayerTerrainMode]正交镜头:摄像机默认正交尺寸 = " + mainCamera.orthographicSize);
+                    mainCamera.gameObject.transform.rotation = Quaternion.Euler(90, 0, 0); //原横板模式设计的摄像机绕X轴顺时针转90度以俯视X-Z平面
+                    mainCamera.gameObject.transform.position = new Vector3(0, 20, 0);
                 }
                 else
                 {
                     Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
-
-                    ////正常3D模式的镜头应另行支持鼠标旋转屏
-                    //Camera.main.gameObject.transform.rotation = Quaternion.Euler(90, 0, 0);
-                    //Camera.main.gameObject.transform.position = new Vector3(0, 20, 0);
-                    //Camera.main.orthographic = false;
-                    ////if (designWidthToCameraRatio != 1f)
-                    ////{
-                    ////    //3D透视投影用到的是视野大小,若设计分辨率到摄像头坐标的转换系数不为1则调整摄像机的视野大小
-                    ////    Camera.main.fieldOfView = Camera.main.fieldOfView * designWidthToCameraRatio;
-                    ////}
-                    //Debug.Log("[正常3D模式]透视镜头:摄像机默认视野大小=" + Camera.main.fieldOfView);
                 }
             }
             else
             {
-                Debug.LogError("没有找到主摄像机！");
+                Debug.LogError("主摄像机组件获取失败！");
             }
         }
     }

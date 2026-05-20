@@ -65,7 +65,7 @@ namespace SpriteSpace
             scene = scene_;
             player = scene_.player;
             monstersGridContainer = new(scene.gridNumRows, scene.gridNumCols, scene.gridSize);
-            camTrans = Camera.main.transform;
+            camTrans = scene_.mainCamera != null ? scene_.mainCamera.transform : Camera.main?.transform;
         }
 
 
@@ -314,7 +314,8 @@ namespace SpriteSpace
             float maxX = scene.gridWidth - 0.5f;
             float maxY = scene.gridHeight - 0.5f;
             // 通过相机视口计算真实边界
-            float halfHeight = Camera.main.orthographicSize * Screen.height / Screen.width;
+            Camera mainCam = scene.mainCamera != null ? scene.mainCamera : Camera.main;
+            float halfHeight = mainCam != null ? mainCam.orthographicSize * Screen.height / Screen.width : 5.4f;
             //Debug.Log("halfHeight=" + halfHeight);
 
             switch (Random.Range(0, 4))
