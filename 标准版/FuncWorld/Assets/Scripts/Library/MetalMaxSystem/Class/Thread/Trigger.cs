@@ -14,7 +14,7 @@ namespace MetalMaxSystem
 
         /// <summary>
         /// 触发器自动复位事件对象(用来控制触发线程信号).提供该属性方便随时读取.
-        /// 属性动作AutoResetEvent_Trigger.Set()可让触发器线程终止(效果等同Trigger.TimerState = true)
+        /// 属性动作AutoResetEvent_Trigger.Set()可让触发器线程终止(效果等同Trigger.TimerStop = true)
         /// </summary>
         public AutoResetEvent AutoResetEvent_Trigger { get; private set; }
 
@@ -41,7 +41,7 @@ namespace MetalMaxSystem
         /// <summary>
         /// 常规触发器的状态属性,手动设置为false则计时器工作时将收到信号退出循环(不执行Update事件),计时器所在父线程将运行End和Destory事件
         /// </summary>
-        public bool TimerState { get; set; }
+        public bool TimerStop { get; set; }
 
         /// <summary>
         /// 事件委托列表,用来存储多个事件委托,用对象类型的键来取出,内部属性,用户不需要操作
@@ -156,7 +156,7 @@ namespace MetalMaxSystem
         {
             InvokeCount = 0;
             InvokeCountMax = 0;
-            TimerState = false;
+            TimerStop = false;
         }
 
         /// <summary>
@@ -167,7 +167,7 @@ namespace MetalMaxSystem
         {
             InvokeCount = 0;
             InvokeCountMax = invokeCountMax;
-            TimerState = false;
+            TimerStop = false;
         }
 
         #endregion
@@ -175,12 +175,12 @@ namespace MetalMaxSystem
         //非静态(实例)方法可以访问类中的任何成员
 
         /// <summary>
-        /// 计时器实例创建时以参数填入、被反复执行的函数,Update事件被执行时创建计时器的父线程将暂停,直到本函数确认到TimerState为真,退出计时器循环,并通知计时器所在父线程恢复运行(将执行End和Destory事件)
+        /// 计时器实例创建时以参数填入、被反复执行的函数,Update事件被执行时创建计时器的父线程将暂停,直到本函数确认到TimerStop为真,退出计时器循环,并通知计时器所在父线程恢复运行(将执行End和Destory事件)
         /// </summary>
         /// <param name="state"></param>
         private void CheckStatus(object state)
         {
-            if (TimerState)
+            if (TimerStop)
             {
                 ((AutoResetEvent)state).Set();
             }
@@ -381,11 +381,7 @@ namespace MetalMaxSystem
 //ulong count = trigger.InvokeCount;  // 获取Update执行次数
 
 //// 5. 停止（方式一：设置状态标志）
-//trigger.TimerState = true;
-
-//// 5. 停止（方式二：达到执行次数上限）
+//trigger.TimerStop = true;
+//// 5. 停止（方式二：设置执行次数上限）
 //trigger.InvokeCountMax = 100;  // 执行100次后自动停止
-
-//// 6. 创建新实例重新启动
-//trigger = new Trigger();
-//trigger.Run(isBackground: true);
+//Trigger trigger = new Trigger(100); // 或选择在创建时确定次数

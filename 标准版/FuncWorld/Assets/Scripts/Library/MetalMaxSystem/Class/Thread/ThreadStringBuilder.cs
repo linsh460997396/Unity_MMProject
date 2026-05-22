@@ -10,7 +10,8 @@ namespace MetalMaxSystem
     public static class ThreadStringBuilder
     {
         // 定义 ThreadLocal 变量
-        // 这里的 () => new StringBuilder(256) 是工厂函数,仅在首次访问时执行
+        // 这里的 () => new StringBuilder(256) 是工厂函数,仅在首次访问时执行,256表示初始容量(字符数)
+        // StringBuilder的容量会自动扩展
         private static ThreadLocal<StringBuilder> _threadLocalBuilder = new ThreadLocal<StringBuilder>(() => new StringBuilder(256));
 
         // 获取当前线程复用的 StringBuilder
@@ -90,6 +91,58 @@ namespace MetalMaxSystem
             sb.Append(str1);
             sb.Append(sep1);
             sb.Append(val1);
+            return sb.ToString();
+        }
+
+        // 无分隔符版本 - 直接拼接string和int
+        /// <summary>
+        /// 组合string + int(1层).
+        /// 例如:key + index1
+        /// </summary>
+        public static string Concat(string str1, int val1)
+        {
+            var sb = Get();
+            sb.Append(str1);
+            sb.Append(val1);
+            return sb.ToString();
+        }
+        /// <summary>
+        /// 组合string + int + int(2层).
+        /// 例如:key + index1 + index2
+        /// </summary>
+        public static string Concat(string str1, int val1, int val2)
+        {
+            var sb = Get();
+            sb.Append(str1);
+            sb.Append(val1);
+            sb.Append(val2);
+            return sb.ToString();
+        }
+        /// <summary>
+        /// 组合string + int + int + int(3层).
+        /// 例如:key + index1 + index2 + index3
+        /// </summary>
+        public static string Concat(string str1, int val1, int val2, int val3)
+        {
+            var sb = Get();
+            sb.Append(str1);
+            sb.Append(val1);
+            sb.Append(val2);
+            sb.Append(val3);
+            return sb.ToString();
+        }
+        /// <summary>
+        /// 组合string + int + int + int + int(4层).
+        /// 例如:key + index1 + index2 + index3 + index4
+        /// </summary>
+        public static string Concat(string str1, int val1, int val2, int val3, int val4)
+        {
+            var sb = Get();
+            sb.Append(str1);
+            sb.Append(val1);
+            sb.Append(val2);
+            sb.Append(val3);
+            sb.Append(val4);
             return sb.ToString();
         }
 

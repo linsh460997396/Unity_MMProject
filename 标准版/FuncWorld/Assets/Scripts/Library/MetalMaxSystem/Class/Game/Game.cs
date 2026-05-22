@@ -327,7 +327,7 @@ namespace MetalMaxSystem
         /// <param name="value">值</param>
         public static void CatalogFieldValueSet(int catalog, string entry, string fieldPath, int player, string value)
         {
-            MMCore.DataTableStringSave0(true, catalog.ToString() + "_" + entry + "_" + fieldPath + "_" + player, value);
+            UserDataTable<string>.Save0(true, catalog.ToString() + "_" + entry + "_" + fieldPath + "_" + player, value);
         }
 
         /// <summary>
@@ -340,7 +340,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string CatalogFieldValueGet(int catalog, string entry, string fieldPath, int player)
         {
-            return MMCore.DataTableStringLoad0(true, catalog.ToString() + "_" + entry + "_" + fieldPath + "_" + player);
+            return UserDataTable<string>.Load0(true, catalog.ToString() + "_" + entry + "_" + fieldPath + "_" + player);
         }
 
         /// <summary>

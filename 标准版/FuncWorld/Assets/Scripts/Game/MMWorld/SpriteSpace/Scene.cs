@@ -126,6 +126,12 @@ namespace SpriteSpace
 
         void Start()
         {
+            // 如果SpriteSpace还没初始化，提前返回
+            if (!MMWorld.Main_MMWorld.frameworksInitialized)
+            {
+                return;
+            }
+
             frameDelay = 1f / tps;
             gridWidth = gridNumCols * gridSize;
             gridHeight = gridNumRows * gridSize;
@@ -164,6 +170,8 @@ namespace SpriteSpace
         }
         void Update()
         {
+            if (inputActions == null || stage == null) return;
+
             //处理玩家输入
             inputActions.HandlePlayerInput();
 
@@ -211,7 +219,7 @@ namespace SpriteSpace
             #endregion
 
             //同步绘制
-            stage.Draw();
+            if (stage != null) stage.Draw();
         }
 
         /// <summary>
@@ -283,8 +291,7 @@ namespace SpriteSpace
         /// </summary>
         void OnDestroy()
         {
-            stage.Destroy();
-            GO.Destroy();
+            if (stage != null) stage.Destroy();
         }
         /// <summary>
         /// 设置舞台.
@@ -293,7 +300,7 @@ namespace SpriteSpace
         /// <param name="oldDestroy">默认true会摧毁当前舞台,可设置false以保留/param>
         public void SetStage(Stage newStage, bool oldDestroy = true)
         {
-            if (oldDestroy) stage.Destroy();//清理旧舞台
+            if (oldDestroy && stage != null) stage.Destroy();//清理旧舞台
             stage = newStage;//设置新的舞台
         }
         /// <summary>

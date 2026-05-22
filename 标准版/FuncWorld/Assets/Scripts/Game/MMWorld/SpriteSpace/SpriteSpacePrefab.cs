@@ -82,7 +82,7 @@ namespace SpriteSpace
             var minimapCanvas = MinimapCanvas;
 
             //创建EventSystem用于UI交互
-            CreateEventSystem();
+            GetEventSystem();
 
             initialized = true;
         }
@@ -367,7 +367,7 @@ namespace SpriteSpace
             if (labelText != null)
             {
                 labelText.text = "地图编辑器 [M键切换]";
-                labelText.color = Color.red;
+                labelText.color = Color.white;
                 labelText.fontSize = 18;
                 labelText.alignment = TextAlignmentOptions.Center;
             }
@@ -380,7 +380,10 @@ namespace SpriteSpace
             comboRect.anchorMax = new Vector2(0.95f, 0.88f);
             comboRect.offsetMin = Vector2.zero;
             comboRect.offsetMax = Vector2.zero;
+            Image comboBg = comboBox.AddComponent<Image>();
+            comboBg.color = new Color(0.3f, 0.3f, 0.3f);
             TMP_Dropdown dropdown = comboBox.AddComponent<TMP_Dropdown>();
+            dropdown.targetGraphic = comboBg;
             dropdown.options.Add(new TMP_Dropdown.OptionData("地图编辑"));
             dropdown.options.Add(new TMP_Dropdown.OptionData("纹理编辑"));
             dropdown.value = 0;
@@ -403,11 +406,18 @@ namespace SpriteSpace
             textRect.anchorMax = new Vector2(0.45f, 0.78f);
             textRect.offsetMin = Vector2.zero;
             textRect.offsetMax = Vector2.zero;
+            Image inputBg = textBoxID.AddComponent<Image>();
+            inputBg.color = new Color(0.2f, 0.2f, 0.2f);
             TMP_InputField inputField = textBoxID.AddComponent<TMP_InputField>();
 
             //创建输入框的文本组件（必须先创建这个才能设置fontAsset）
             GameObject textComponentGO = new GameObject("Text Component");
             textComponentGO.transform.SetParent(textBoxID.transform);
+            RectTransform textCompRect = textComponentGO.AddComponent<RectTransform>();
+            textCompRect.anchorMin = Vector2.zero;
+            textCompRect.anchorMax = Vector2.one;
+            textCompRect.offsetMin = new Vector2(10, 5);
+            textCompRect.offsetMax = new Vector2(-10, -5);
             TextMeshProUGUI textComponent = textComponentGO.AddComponent<TextMeshProUGUI>();
             if (textComponent != null && font != null)
             {
@@ -415,12 +425,19 @@ namespace SpriteSpace
             }
             if (textComponent != null)
             {
+                textComponent.color = Color.white;
+                textComponent.alignment = TextAlignmentOptions.Left;
                 inputField.textComponent = textComponent;
             }
 
             //创建placeholder文本组件
             GameObject placeholderGO = new GameObject("Placeholder");
             placeholderGO.transform.SetParent(textBoxID.transform);
+            RectTransform placeholderRect = placeholderGO.AddComponent<RectTransform>();
+            placeholderRect.anchorMin = Vector2.zero;
+            placeholderRect.anchorMax = Vector2.one;
+            placeholderRect.offsetMin = new Vector2(10, 5);
+            placeholderRect.offsetMax = new Vector2(-10, -5);
             TextMeshProUGUI placeholderText = placeholderGO.AddComponent<TextMeshProUGUI>();
             if (placeholderText != null && font != null)
             {
@@ -430,6 +447,7 @@ namespace SpriteSpace
             {
                 placeholderText.text = "输入编号";
                 placeholderText.color = new Color(0.5f, 0.5f, 0.5f); //灰色提示文字
+                placeholderText.alignment = TextAlignmentOptions.Left;
                 inputField.placeholder = placeholderText;
             }
 
@@ -443,10 +461,18 @@ namespace SpriteSpace
             btnRect.anchorMax = new Vector2(0.75f, 0.78f);
             btnRect.offsetMin = Vector2.zero;
             btnRect.offsetMax = Vector2.zero;
-            Button btn = buttonRun.AddComponent<Button>();
             Image btnImage = buttonRun.AddComponent<Image>();
             btnImage.color = new Color(0.3f, 0.6f, 0.3f);
-            TextMeshProUGUI btnText = buttonRun.AddComponent<TextMeshProUGUI>();
+            Button btn = buttonRun.AddComponent<Button>();
+            btn.targetGraphic = btnImage;
+
+            // 创建按钮文本子对象
+            GameObject btnTextGO = new GameObject("Text");
+            btnTextGO.transform.SetParent(buttonRun.transform);
+            RectTransform btnTextRect = btnTextGO.AddComponent<RectTransform>();
+            btnTextRect.anchorMin = Vector2.zero;
+            btnTextRect.anchorMax = Vector2.one;
+            TextMeshProUGUI btnText = btnTextGO.AddComponent<TextMeshProUGUI>();
             if (btnText != null && font != null)
             {
                 btnText.font = font;
@@ -455,6 +481,7 @@ namespace SpriteSpace
             {
                 btnText.text = "加载";
                 btnText.alignment = TextAlignmentOptions.Center;
+                btnText.color = Color.white;
             }
 
             //创建外部路径输入框
@@ -465,11 +492,18 @@ namespace SpriteSpace
             pathRect.anchorMax = new Vector2(0.95f, 0.68f);
             pathRect.offsetMin = Vector2.zero;
             pathRect.offsetMax = Vector2.zero;
+            Image pathBg = textBoxPath.AddComponent<Image>();
+            pathBg.color = new Color(0.2f, 0.2f, 0.2f);
             TMP_InputField pathInput = textBoxPath.AddComponent<TMP_InputField>();
 
             //创建输入框的文本组件（必须先创建这个才能设置fontAsset）
             GameObject pathTextGO = new GameObject("Text Component");
             pathTextGO.transform.SetParent(textBoxPath.transform);
+            RectTransform pathTextRect = pathTextGO.AddComponent<RectTransform>();
+            pathTextRect.anchorMin = Vector2.zero;
+            pathTextRect.anchorMax = Vector2.one;
+            pathTextRect.offsetMin = new Vector2(10, 5);
+            pathTextRect.offsetMax = new Vector2(-10, -5);
             TextMeshProUGUI pathText = pathTextGO.AddComponent<TextMeshProUGUI>();
             if (pathText != null && font != null)
             {
@@ -477,6 +511,8 @@ namespace SpriteSpace
             }
             if (pathText != null)
             {
+                pathText.color = Color.white;
+                pathText.alignment = TextAlignmentOptions.Left;
                 pathInput.textComponent = pathText;
             }
 
@@ -492,7 +528,41 @@ namespace SpriteSpace
             mapRect.offsetMin = Vector2.zero;
             mapRect.offsetMax = Vector2.zero;
             Toggle mapToggle = checkBoxMap.AddComponent<Toggle>();
-            TextMeshProUGUI mapLabel = checkBoxMap.AddComponent<TextMeshProUGUI>();
+
+            // 创建Toggle背景
+            GameObject mapBg = new GameObject("Background");
+            mapBg.transform.SetParent(checkBoxMap.transform);
+            RectTransform mapBgRect = mapBg.AddComponent<RectTransform>();
+            mapBgRect.anchorMin = new Vector2(0, 0.5f);
+            mapBgRect.anchorMax = new Vector2(0, 0.5f);
+            mapBgRect.sizeDelta = new Vector2(20, 20);
+            mapBgRect.pivot = new Vector2(0.5f, 0.5f);
+            mapBgRect.anchoredPosition = new Vector2(10, 0);
+            Image mapBgImg = mapBg.AddComponent<Image>();
+            mapBgImg.color = new Color(0.2f, 0.2f, 0.2f);
+            mapToggle.targetGraphic = mapBgImg;
+
+            // 创建Toggle勾选框
+            GameObject mapCheck = new GameObject("Checkmark");
+            mapCheck.transform.SetParent(mapBg.transform);
+            RectTransform mapCheckRect = mapCheck.AddComponent<RectTransform>();
+            mapCheckRect.anchorMin = Vector2.zero;
+            mapCheckRect.anchorMax = Vector2.one;
+            mapCheckRect.offsetMin = new Vector2(3, 3);
+            mapCheckRect.offsetMax = new Vector2(-3, -3);
+            Image mapCheckImg = mapCheck.AddComponent<Image>();
+            mapCheckImg.color = Color.white;
+            mapToggle.graphic = mapCheckImg;
+
+            // 创建标签
+            GameObject mapLabelGO = new GameObject("Label");
+            mapLabelGO.transform.SetParent(checkBoxMap.transform);
+            RectTransform mapLabelRect = mapLabelGO.AddComponent<RectTransform>();
+            mapLabelRect.anchorMin = Vector2.zero;
+            mapLabelRect.anchorMax = Vector2.one;
+            mapLabelRect.offsetMin = new Vector2(40, 0);
+            mapLabelRect.offsetMax = Vector2.zero;
+            TextMeshProUGUI mapLabel = mapLabelGO.AddComponent<TextMeshProUGUI>();
             if (mapLabel != null && font != null)
             {
                 mapLabel.font = font;
@@ -501,6 +571,7 @@ namespace SpriteSpace
             {
                 mapLabel.text = "纹理模式";
                 mapLabel.alignment = TextAlignmentOptions.Left;
+                mapLabel.color = Color.white;
             }
 
             //创建碰撞显示勾选框
@@ -512,7 +583,41 @@ namespace SpriteSpace
             colliderRect.offsetMin = Vector2.zero;
             colliderRect.offsetMax = Vector2.zero;
             Toggle colliderToggle = checkBoxCollider.AddComponent<Toggle>();
-            TextMeshProUGUI colliderLabel = checkBoxCollider.AddComponent<TextMeshProUGUI>();
+
+            // 创建Toggle背景
+            GameObject colliderBg = new GameObject("Background");
+            colliderBg.transform.SetParent(checkBoxCollider.transform);
+            RectTransform colliderBgRect = colliderBg.AddComponent<RectTransform>();
+            colliderBgRect.anchorMin = new Vector2(0, 0.5f);
+            colliderBgRect.anchorMax = new Vector2(0, 0.5f);
+            colliderBgRect.sizeDelta = new Vector2(20, 20);
+            colliderBgRect.pivot = new Vector2(0.5f, 0.5f);
+            colliderBgRect.anchoredPosition = new Vector2(10, 0);
+            Image colliderBgImg = colliderBg.AddComponent<Image>();
+            colliderBgImg.color = new Color(0.2f, 0.2f, 0.2f);
+            colliderToggle.targetGraphic = colliderBgImg;
+
+            // 创建Toggle勾选框
+            GameObject colliderCheck = new GameObject("Checkmark");
+            colliderCheck.transform.SetParent(colliderBg.transform);
+            RectTransform colliderCheckRect = colliderCheck.AddComponent<RectTransform>();
+            colliderCheckRect.anchorMin = Vector2.zero;
+            colliderCheckRect.anchorMax = Vector2.one;
+            colliderCheckRect.offsetMin = new Vector2(3, 3);
+            colliderCheckRect.offsetMax = new Vector2(-3, -3);
+            Image colliderCheckImg = colliderCheck.AddComponent<Image>();
+            colliderCheckImg.color = Color.white;
+            colliderToggle.graphic = colliderCheckImg;
+
+            // 创建标签
+            GameObject colliderLabelGO = new GameObject("Label");
+            colliderLabelGO.transform.SetParent(checkBoxCollider.transform);
+            RectTransform colliderLabelRect = colliderLabelGO.AddComponent<RectTransform>();
+            colliderLabelRect.anchorMin = Vector2.zero;
+            colliderLabelRect.anchorMax = Vector2.one;
+            colliderLabelRect.offsetMin = new Vector2(40, 0);
+            colliderLabelRect.offsetMax = Vector2.zero;
+            TextMeshProUGUI colliderLabel = colliderLabelGO.AddComponent<TextMeshProUGUI>();
             if (colliderLabel != null && font != null)
             {
                 colliderLabel.font = font;
@@ -521,6 +626,7 @@ namespace SpriteSpace
             {
                 colliderLabel.text = "显示碰撞";
                 colliderLabel.alignment = TextAlignmentOptions.Left;
+                colliderLabel.color = Color.white;
             }
 
             //创建外部保存按钮
@@ -531,10 +637,18 @@ namespace SpriteSpace
             saveRect.anchorMax = new Vector2(0.95f, 0.48f);
             saveRect.offsetMin = Vector2.zero;
             saveRect.offsetMax = Vector2.zero;
-            Button saveBtn = buttonSave.AddComponent<Button>();
             Image saveImage = buttonSave.AddComponent<Image>();
             saveImage.color = new Color(0.6f, 0.3f, 0.3f);
-            TextMeshProUGUI saveText = buttonSave.AddComponent<TextMeshProUGUI>();
+            Button saveBtn = buttonSave.AddComponent<Button>();
+            saveBtn.targetGraphic = saveImage;
+
+            // 创建按钮文本子对象
+            GameObject saveTextGO = new GameObject("Text");
+            saveTextGO.transform.SetParent(buttonSave.transform);
+            RectTransform saveTextRect = saveTextGO.AddComponent<RectTransform>();
+            saveTextRect.anchorMin = Vector2.zero;
+            saveTextRect.anchorMax = Vector2.one;
+            TextMeshProUGUI saveText = saveTextGO.AddComponent<TextMeshProUGUI>();
             if (saveText != null && font != null)
             {
                 saveText.font = font;
@@ -543,6 +657,7 @@ namespace SpriteSpace
             {
                 saveText.text = "保存碰撞文件 [Enter]";
                 saveText.alignment = TextAlignmentOptions.Center;
+                saveText.color = Color.white;
             }
 
             //创建操作说明标签
@@ -572,6 +687,36 @@ namespace SpriteSpace
                 helpText.fontSize = 14;
                 helpText.alignment = TextAlignmentOptions.TopLeft;
             }
+
+            // ==================== 按钮点击事件 ====================
+
+            // 加载按钮点击事件
+            btn.onClick.AddListener(() =>
+            {
+                Debug.Log("[MapEditor] 点击了【加载】按钮");
+                string idStr = inputField.text;
+                Debug.Log($"[MapEditor] 加载地图ID: {idStr}");
+                // 这里可以添加实际的加载逻辑
+            });
+
+            // 保存按钮点击事件
+            saveBtn.onClick.AddListener(() =>
+            {
+                Debug.Log("[MapEditor] 点击了【保存碰撞文件】按钮");
+                // 这里可以添加实际的保存逻辑
+            });
+
+            // 纹理模式Toggle事件
+            mapToggle.onValueChanged.AddListener((isOn) =>
+            {
+                Debug.Log($"[MapEditor] 纹理模式Toggle: {(isOn ? "开启" : "关闭")}");
+            });
+
+            // 显示碰撞Toggle事件
+            colliderToggle.onValueChanged.AddListener((isOn) =>
+            {
+                Debug.Log($"[MapEditor] 显示碰撞Toggle: {(isOn ? "开启" : "关闭")}");
+            });
         }
 
         #region 功能函数
@@ -1038,7 +1183,41 @@ namespace SpriteSpace
             fullscreenRect.offsetMin = Vector2.zero;
             fullscreenRect.offsetMax = Vector2.zero;
             Toggle fullscreenToggle = fullscreenObj.AddComponent<Toggle>();
-            TextMeshProUGUI fullscreenLabel = fullscreenObj.AddComponent<TextMeshProUGUI>();
+
+            // 创建Toggle背景
+            GameObject fsBg = new GameObject("Background");
+            fsBg.transform.SetParent(fullscreenObj.transform);
+            RectTransform fsBgRect = fsBg.AddComponent<RectTransform>();
+            fsBgRect.anchorMin = new Vector2(0, 0.5f);
+            fsBgRect.anchorMax = new Vector2(0, 0.5f);
+            fsBgRect.sizeDelta = new Vector2(20, 20);
+            fsBgRect.pivot = new Vector2(0.5f, 0.5f);
+            fsBgRect.anchoredPosition = new Vector2(10, 0);
+            Image fsBgImg = fsBg.AddComponent<Image>();
+            fsBgImg.color = new Color(0.2f, 0.2f, 0.2f);
+            fullscreenToggle.targetGraphic = fsBgImg;
+
+            // 创建Toggle勾选框
+            GameObject fsCheck = new GameObject("Checkmark");
+            fsCheck.transform.SetParent(fsBg.transform);
+            RectTransform fsCheckRect = fsCheck.AddComponent<RectTransform>();
+            fsCheckRect.anchorMin = Vector2.zero;
+            fsCheckRect.anchorMax = Vector2.one;
+            fsCheckRect.offsetMin = new Vector2(3, 3);
+            fsCheckRect.offsetMax = new Vector2(-3, -3);
+            Image fsCheckImg = fsCheck.AddComponent<Image>();
+            fsCheckImg.color = Color.white;
+            fullscreenToggle.graphic = fsCheckImg;
+
+            // 创建标签
+            GameObject fsLabelGO = new GameObject("Label");
+            fsLabelGO.transform.SetParent(fullscreenObj.transform);
+            RectTransform fsLabelRect = fsLabelGO.AddComponent<RectTransform>();
+            fsLabelRect.anchorMin = Vector2.zero;
+            fsLabelRect.anchorMax = Vector2.one;
+            fsLabelRect.offsetMin = new Vector2(40, 0);
+            fsLabelRect.offsetMax = Vector2.zero;
+            TextMeshProUGUI fullscreenLabel = fsLabelGO.AddComponent<TextMeshProUGUI>();
             if (fullscreenLabel != null && font != null)
             {
                 fullscreenLabel.font = font;
@@ -1055,14 +1234,22 @@ namespace SpriteSpace
             GameObject closeBtnObj = new GameObject("CloseButton");
             closeBtnObj.transform.SetParent(panel.transform);
             RectTransform closeBtnRect = closeBtnObj.AddComponent<RectTransform>();
-            closeBtnRect.anchorMin = new Vector2(0.35f, 0.08f);
-            closeBtnRect.anchorMax = new Vector2(0.65f, 0.16f);
+            closeBtnRect.anchorMin = new Vector2(0.05f, 0.08f);
+            closeBtnRect.anchorMax = new Vector2(0.35f, 0.16f);
             closeBtnRect.offsetMin = Vector2.zero;
             closeBtnRect.offsetMax = Vector2.zero;
-            Button closeBtn = closeBtnObj.AddComponent<Button>();
             Image closeBtnImage = closeBtnObj.AddComponent<Image>();
             closeBtnImage.color = new Color(0.6f, 0.3f, 0.3f);
-            TextMeshProUGUI closeBtnText = closeBtnObj.AddComponent<TextMeshProUGUI>();
+            Button closeBtn = closeBtnObj.AddComponent<Button>();
+            closeBtn.targetGraphic = closeBtnImage;
+
+            // 创建按钮文本子对象
+            GameObject closeBtnTextGO = new GameObject("Text");
+            closeBtnTextGO.transform.SetParent(closeBtnObj.transform);
+            RectTransform closeBtnTextRect = closeBtnTextGO.AddComponent<RectTransform>();
+            closeBtnTextRect.anchorMin = Vector2.zero;
+            closeBtnTextRect.anchorMax = Vector2.one;
+            TextMeshProUGUI closeBtnText = closeBtnTextGO.AddComponent<TextMeshProUGUI>();
             if (closeBtnText != null && font != null)
             {
                 closeBtnText.font = font;
@@ -1074,6 +1261,110 @@ namespace SpriteSpace
                 closeBtnText.fontSize = 18;
                 closeBtnText.alignment = TextAlignmentOptions.Center;
             }
+
+            //创建退出游戏按钮
+            GameObject quitBtnObj = new GameObject("QuitButton");
+            quitBtnObj.transform.SetParent(panel.transform);
+            RectTransform quitBtnRect = quitBtnObj.AddComponent<RectTransform>();
+            quitBtnRect.anchorMin = new Vector2(0.65f, 0.08f);
+            quitBtnRect.anchorMax = new Vector2(0.95f, 0.16f);
+            quitBtnRect.offsetMin = Vector2.zero;
+            quitBtnRect.offsetMax = Vector2.zero;
+            Image quitBtnImage = quitBtnObj.AddComponent<Image>();
+            quitBtnImage.color = new Color(0.8f, 0.2f, 0.2f);
+            Button quitBtn = quitBtnObj.AddComponent<Button>();
+            quitBtn.targetGraphic = quitBtnImage;
+
+            // 创建按钮文本子对象
+            GameObject quitBtnTextGO = new GameObject("Text");
+            quitBtnTextGO.transform.SetParent(quitBtnObj.transform);
+            RectTransform quitBtnTextRect = quitBtnTextGO.AddComponent<RectTransform>();
+            quitBtnTextRect.anchorMin = Vector2.zero;
+            quitBtnTextRect.anchorMax = Vector2.one;
+            TextMeshProUGUI quitBtnText = quitBtnTextGO.AddComponent<TextMeshProUGUI>();
+            if (quitBtnText != null && font != null)
+            {
+                quitBtnText.font = font;
+            }
+            if (quitBtnText != null)
+            {
+                quitBtnText.text = "退出游戏";
+                quitBtnText.color = Color.white;
+                quitBtnText.fontSize = 18;
+                quitBtnText.alignment = TextAlignmentOptions.Center;
+            }
+
+            //创建返回开局菜单按钮
+            GameObject returnBtnObj = new GameObject("ReturnButton");
+            returnBtnObj.transform.SetParent(panel.transform);
+            RectTransform returnBtnRect = returnBtnObj.AddComponent<RectTransform>();
+            returnBtnRect.anchorMin = new Vector2(0.05f, 0.20f);
+            returnBtnRect.anchorMax = new Vector2(0.35f, 0.28f);
+            returnBtnRect.offsetMin = Vector2.zero;
+            returnBtnRect.offsetMax = Vector2.zero;
+            Image returnBtnImage = returnBtnObj.AddComponent<Image>();
+            returnBtnImage.color = new Color(0.3f, 0.5f, 0.8f);
+            Button returnBtn = returnBtnObj.AddComponent<Button>();
+            returnBtn.targetGraphic = returnBtnImage;
+
+            // 创建按钮文本子对象
+            GameObject returnBtnTextGO = new GameObject("Text");
+            returnBtnTextGO.transform.SetParent(returnBtnObj.transform);
+            RectTransform returnBtnTextRect = returnBtnTextGO.AddComponent<RectTransform>();
+            returnBtnTextRect.anchorMin = Vector2.zero;
+            returnBtnTextRect.anchorMax = Vector2.one;
+            TextMeshProUGUI returnBtnText = returnBtnTextGO.AddComponent<TextMeshProUGUI>();
+            if (returnBtnText != null && font != null)
+            {
+                returnBtnText.font = font;
+            }
+            if (returnBtnText != null)
+            {
+                returnBtnText.text = "返回开局";
+                returnBtnText.color = Color.white;
+                returnBtnText.fontSize = 18;
+                returnBtnText.alignment = TextAlignmentOptions.Center;
+            }
+
+            // 添加返回开局菜单按钮点击事件
+            returnBtn.onClick.AddListener(() =>
+            {
+                Debug.Log("[F1菜单] 返回开局菜单");
+                // 隐藏F1菜单
+                GameObject functionMenu = runtimePrefab.Get("FunctionMenu") as GameObject;
+                if (functionMenu != null)
+                {
+                    functionMenu.SetActive(false);
+                }
+                // 显示开局菜单（由MMWorldInitializer确保存在）
+                MMWorld.GameStartMenu menu = FindObjectOfType<MMWorld.GameStartMenu>();
+                if (menu != null)
+                {
+                    menu.ShowStartMenu();
+                }
+            });
+
+            // 添加关闭按钮点击事件
+            closeBtn.onClick.AddListener(() =>
+            {
+                Debug.Log("[F1菜单] 关闭菜单");
+                GameObject functionMenu = runtimePrefab.Get("FunctionMenu") as GameObject;
+                if (functionMenu != null)
+                {
+                    functionMenu.SetActive(false);
+                }
+            });
+
+            // 添加退出游戏按钮点击事件
+            quitBtn.onClick.AddListener(() =>
+            {
+                Debug.Log("[F1菜单] 退出游戏");
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#else
+                Application.Quit();
+#endif
+            });
 
             //保存UI引用供外部访问
             minimapZoomSlider = zoomSlider;
@@ -1094,6 +1385,7 @@ namespace SpriteSpace
             //监听全屏复选框变化
             fullscreenToggle.onValueChanged.AddListener((isFullscreen) =>
             {
+                Debug.Log($"[F1菜单] 小地图全屏显示: {(isFullscreen ? "开启" : "关闭")}");
                 ApplyMinimapFullscreen(isFullscreen);
             });
         }
@@ -1256,31 +1548,35 @@ namespace SpriteSpace
         }
 
         /// <summary>
-        /// 创建EventSystem用于处理UI交互事件
+        /// 获取或创建EventSystem用于处理UI交互事件
         /// </summary>
-        private static void CreateEventSystem()
+        public static GameObject GetEventSystem()
         {
-            //检查是否已存在EventSystem
-            if (Object.FindObjectOfType<EventSystem>() != null)
+            EventSystem existingEventSystem = Object.FindObjectOfType<EventSystem>();
+            if (existingEventSystem != null)
             {
                 Debug.Log("EventSystem已存在，无需创建");
-                return;
+                return existingEventSystem.gameObject;
             }
 
             //创建EventSystem对象
             GameObject eventSystemGO = new GameObject("EventSystem");
             DontDestroyOnLoad(eventSystemGO);
-            eventSystemGO.transform.parent = group.transform;
+            
+            // 添加到group下（如果group存在）
+            if (group != null)
+            {
+                eventSystemGO.transform.parent = group.transform;
+            }
 
             //添加EventSystem组件
-            EventSystem eventSystem = eventSystemGO.AddComponent<EventSystem>();
-            eventSystem.firstSelectedGameObject = MainCamera;
-
+            eventSystemGO.AddComponent<EventSystem>();
+            
             //添加StandaloneInputModule组件（处理鼠标/键盘输入）
-            InputSystemUIInputModule inputModule = eventSystemGO.AddComponent<InputSystemUIInputModule>();
-
+            eventSystemGO.AddComponent<InputSystemUIInputModule>();
 
             Debug.Log("EventSystem已创建");
+            return eventSystemGO;
         }
 
     }

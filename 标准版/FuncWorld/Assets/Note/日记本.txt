@@ -1429,3 +1429,52 @@ Thread前后台建议↓注意:前台不会因窗口关闭而中断任务,后台
 Debug.WriteLine($"Key={key}, Player={player}");
 //String.Format
 Debug.WriteLine(string.Format("Key={0}, Player={1}", key, player));
+
+public static void ThreadWait(string key)
+{
+    while (UserDataTable<bool>.Load0(true, string.Concat("MMCore_ThreadWait_", key)) == true)
+    {
+        Thread.Sleep(dataTableThreadWaitPeriod); //将调用该函数的当前线程挂起
+    }
+}
+// 优化方案1：使用 ManualResetEventSlim（推荐）
+private static readonly ConcurrentDictionary<string, ManualResetEventSlim> _waitEvents = new ConcurrentDictionary<string, ManualResetEventSlim>();
+public static void ThreadWait(string key)
+{
+    var evt = _waitEvents.GetOrAdd(key, _ => new ManualResetEventSlim(true));
+    evt.Wait();
+}
+public static void ThreadWaitSet(string key, bool val)
+{
+    if (_waitEvents.TryGetValue(key, out var evt))
+    {
+        if (val) evt.Reset();
+        else evt.Set();
+    }
+}
+// 优化方案2：短等待使用 SpinWait
+public static void ThreadWait(string key)
+{
+    var spinWait = new SpinWait();
+    while (UserDataTable<bool>.Load0(true, string.Concat("MMCore_ThreadWait_", key)) == true)
+    {
+        spinWait.SpinOnce();
+    }
+}
+Thread.Sleep、ManualResetEventSlim、SpinWait核心机制对比
+底层行为&内核态切换
+‌Thread.Sleep‌：线程放弃时间片，进入操作系统等待态；哪怕Sleep(0)也触发上下文切换。
+‌ManualResetEventSlim‌：混合模式，短等待用户态自旋，长等待内核态阻塞，信号通知唤醒。
+‌SpinWait‌：纯用户态自旋，不主动让出CPU，条件满足或内部策略触发Yield/Sleep。
+CPU占用
+‌Thread.Sleep‌：极低，睡眠不占CPU周期
+‌ManualResetEventSlim‌：低，阻塞不占CPU，仅唤醒有轻微开销
+‌SpinWait‌：高，等待期间持续占用CPU核心空转
+响应延迟
+‌Thread.Sleep‌：高，受系统时钟精度限制，Windows通常约15ms，无法微秒唤醒
+‌ManualResetEventSlim‌：中低，快于Sleep，因内核操作慢于纯自旋
+‌SpinWait‌：极低，无上下文切换，适合微秒级短等待
+线程状态转换
+‌Thread.Sleep‌：运行→等待→就绪
+‌ManualResetEventSlim‌：运行→等待/自旋→就绪
+‌SpinWait‌：运行→运行（自旋）→就绪（触发Yield后）

@@ -32,6 +32,7 @@ using Mathf = UnityEngine.Mathf;
 using Debug = UnityEngine.Debug;
 using Vector2F = UnityEngine.Vector2;
 using Vector3F = UnityEngine.Vector3;
+using Unity.VisualScripting;
 #else
 //其他.Net环境,如纯VS2022下C#环境Framwork4.8、Net5+及加载插件MonoGame、XNA的情况
 using System.Diagnostics;
@@ -186,10 +187,6 @@ namespace MetalMaxSystem
 
         //全键共用序号时,键盘按键=0~98不变,鼠标按键:99 = mouseButtonLeft,100 = mouseButtonMiddle,101 = mouseButtonRight,102 =mouseButtonXButton1,103 = mouseButtonXButton2
 
-        //其他常量
-
-        //暂无
-
         //键鼠函数引用上限及单键注册上限
 
         /// <summary>
@@ -209,18 +206,6 @@ namespace MetalMaxSystem
         /// </summary>
         public const int c_regMouseMax = 24;
 
-        //主副循环入口函数引用上限及单入口注册上限
-
-        /// <summary>
-        /// 主副循环入口句柄上限.主副循环均有5个事件入口,分别是Awake、Start、Update、End、Destroy,故两循环共10入口.
-        /// </summary>
-        private const int c_entryMax = 10;//内部使用,无需给用户使用
-        /// <summary>
-        /// 每个入口可注册函数上限.它是委托变量可多播,只需1个元素就能+=多个委托函数.
-        /// 但为了预防误操作或其他特殊情况,也可增加到2或更多(不建议太多,以免占用过多内存资源).
-        /// </summary>
-        private const int c_regEntryMax = 1;//内部使用,无需给用户使用
-
         #endregion
 
         #region "全局和局部变量"(主要存放不同作用域下的无属性字段)
@@ -228,23 +213,9 @@ namespace MetalMaxSystem
         //类只有字段没变量说法,但理论上公有静态字段是该程序在内存中唯一的全局变量,无论类实例化多次或多线程从模板调用,它只生成一次副本直到程序结束才清理
         //而非静态(实例)类每次实例化都复制一份模板去形成多个副本,私有实例字段相当于类的局部变量
         //不标Static则类及其成员在结束时垃圾回收,标Static则副本唯一且程序结束才从内存消失
-        //静态局部变量在函数结束时不参与垃圾回收,以便相同函数重复访问
-        //静态数据是从模板形成的内存中唯一的可修改副本(不同类同名也不一样,要考虑命名空间和类名路径,无需担心重复)
-        //数组元素数量上限均+1是习惯问题,防止某些循环以数组判断时最后退出还+1导致超限
-
-        #region 内部键鼠事件相关字段
-
-        /// <summary>
-        /// 内部键鼠事件监听服务实例(由RecordService监听底层钩子并记录状态)
-        /// </summary>
-        private static RecordService recordService;
-
-        /// <summary>
-        /// 内部键鼠事件是否已启动
-        /// </summary>
-        private static bool keyMouseEventState = false;
-
-        #endregion
+        //函数内声明的静态局部变量在函数结束时也不参与垃圾回收,以便相同函数重复访问
+        //静态数据是从模板形成的内存中唯一的可修改副本(不同类中声明同一名称也不一样,有命名空间和类名路径分隔,无需担心重复)
+        //数组元素数量上限均+1是习惯,防止某些循环以数组判断时最后退出还+1导致超限
 
         /// <summary>
         /// MMCore.Write或WriteLine中的文件写入器
@@ -256,6 +227,24 @@ namespace MetalMaxSystem
         public static bool writeTell = false;
 
         /// <summary>
+        /// 内部键鼠事件监听服务实例(由RecordService监听底层钩子并记录状态)
+        /// </summary>
+        private static RecordService recordService;
+        /// <summary>
+        /// 内部键鼠事件是否已启动
+        /// </summary>
+        private static bool keyMouseEventState = false;
+
+        /// <summary>
+        /// 静态随机数生成器(避免频繁创建Random实例)
+        /// </summary>
+        private static readonly Random _random = new Random();
+        /// <summary>
+        /// 随机数生成器的线程同步锁
+        /// </summary>
+        private static readonly object _randomLock = new object();
+
+        /// <summary>
         /// 键盘按键已注册数量(每个数组元素算1个,即使它们+=多个委托函数)
         /// </summary>
         private static int[] keyEventFuncrefGroupNum = new int[c_keyMax + 1];//内部使用
@@ -265,7 +254,39 @@ namespace MetalMaxSystem
         /// </summary>
         private static int[] mouseEventFuncrefGroupNum = new int[c_mouseMax + 1];//内部使用
 
-        //以下字段做成了属性来用
+        #region 哈希表声明(更多类型请使用UserDataTable<T>、DataTable<T>、TDataTable<T>)
+
+        //效率:字典 > 哈希表 >> 字典.ToString() > 跨线程字典
+
+        #region 哈希表(可跨线程读写,但不支持泛型)
+        /// <summary>
+        /// 全局哈希表(不排泄,直到程序结束)
+        /// </summary>
+        private static Hashtable globalHashTable = new Hashtable();//内部使用
+        /// <summary>
+        /// 临时哈希表(函数或动作集结束时应手动排泄)
+        /// </summary>
+        private static Hashtable localHashTable = new Hashtable();//内部使用
+        #endregion
+
+        #endregion
+
+        /// <summary>
+        /// 键盘按键事件引用委托类型变量数组[c_keyMax + 1, c_regKeyMax + 1],用于自定义委托函数注册
+        /// </summary>
+        private static KeyMouseEventFuncref[,] keyEventFuncrefGroup = new KeyMouseEventFuncref[c_keyMax + 1, c_regKeyMax + 1];//内部使用
+        /// <summary>
+        /// 鼠标按键事件引用委托类型变量数组[c_mouseMax + 1, c_regMouseMax + 1],用于自定义委托函数注册
+        /// </summary>
+        private static KeyMouseEventFuncref[,] mouseEventFuncrefGroup = new KeyMouseEventFuncref[c_mouseMax + 1, c_regMouseMax + 1];//内部使用
+
+        #endregion
+
+        #region 字段及其属性方法
+
+        //字段及其属性方法(避免不安全读写,private保护和隐藏字段,设计成只允许通过public修饰的属性方法间接去安全读写)
+        //本库前缀单个_开头字段表示其拥有属性方法(若有双_开头表示自定义类型如委托)
+
         private static bool[] _stopKeyMouseEvent = new bool[Game.c_maxPlayers + 1];
         /// <summary>
         /// 用户按键事件禁用状态(用于过场、剧情对话、特殊技能如禁锢时强制停用用户的按键事件)
@@ -283,329 +304,43 @@ namespace MetalMaxSystem
             }
         }
 
+        private static Trigger _mainUpdate;
         /// <summary>
-        /// 主副循环每个入口的已注册数量(每个数组元素算1个,即使它们+=多个委托函数)
+        /// 主计时器循环线程.是运行内置事件的核心周期触发器,默认运行间隔=0.0625s(现实时间)
         /// </summary>
-        private static int[] entryEventFuncrefGroupNum = new int[c_entryMax + 1];//内部使用
-
-        private static bool[] _stopEntryEvent = new bool[Game.c_maxPlayers + 1];
-        /// <summary>
-        /// 主副循环事件禁用状态(用于特殊情况如个人处理队列过多、玩家间未同步时间过长情况下停用用户主副循环事件)
-        /// </summary>
-        public static bool[] StopEntryEvent
+        public static Trigger MainUpdate
         {
             get
             {
-                return _stopEntryEvent;
+                if (_mainUpdate == null)
+                {
+                    _mainUpdate = new Trigger();
+                }
+                return _mainUpdate;
             }
-
             set
             {
-                _stopEntryEvent = value;
+                _mainUpdate = value;
             }
         }
 
-        #region 哈希表&字典声明(更多类型请使用DataTable<T>、DataTableConcurrent<T>)
-
-        //效率:字典 > 哈希表 >> 字典.ToString() > 跨线程字典
-
-        #region 哈希表(可跨线程读写,但不支持泛型)
+        private static Trigger _subUpdate;
         /// <summary>
-        /// 全局哈希表(不排泄,直到程序结束)
+        /// 副计时器循环线程.是运行内置事件的备用周期触发器,默认运行间隔=1s(现实时间)
         /// </summary>
-        private static Hashtable globalHashTable = new Hashtable();//内部使用
-        /// <summary>
-        /// 临时哈希表(函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Hashtable localHashTable = new Hashtable();//内部使用
-        #endregion
-
-        #region 字典(单线程读写,跨线程仅只读安全)
-
-        #region 值类型
-
-        /// <summary>
-        /// 全局字典<string,int> (不排泄,直到程序结束)
-        /// </summary>
-        private static Dictionary<string, int> globalDictionaryInt = new Dictionary<string, int>();//内部使用
-        /// <summary>
-        /// 临时字典<string,int> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Dictionary<string, int> localDictionaryInt = new Dictionary<string, int>();//内部使用
-
-        /// <summary>
-        /// 全局字典<string,long> (不排泄,直到程序结束)
-        /// </summary>
-        private static Dictionary<string, long> globalDictionaryLong = new Dictionary<string, long>();//内部使用
-        /// <summary>
-        /// 临时字典<string,long> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Dictionary<string, long> localDictionaryLong = new Dictionary<string, long>();//内部使用
-
-        /// <summary>
-        /// 全局字典<string,char> (不排泄,直到程序结束)
-        /// </summary>
-        private static Dictionary<string, char> globalDictionaryChar = new Dictionary<string, char>();//内部使用
-        /// <summary>
-        /// 临时字典<string,char> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Dictionary<string, char> localDictionaryChar = new Dictionary<string, char>();//内部使用
-
-        /// <summary>
-        /// 全局字典<string,float> (不排泄,直到程序结束)
-        /// </summary>
-        private static Dictionary<string, float> globalDictionaryFloat = new Dictionary<string, float>();//内部使用
-        /// <summary>
-        /// 临时字典<string,float> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Dictionary<string, float> localDictionaryFloat = new Dictionary<string, float>();//内部使用
-
-        /// <summary>
-        /// 全局字典<string,double> (不排泄,直到程序结束)
-        /// </summary>
-        private static Dictionary<string, double> globalDictionaryDouble = new Dictionary<string, double>();//内部使用
-        /// <summary>
-        /// 临时字典<string,double> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Dictionary<string, double> localDictionaryDouble = new Dictionary<string, double>();//内部使用
-
-        /// <summary>
-        /// 全局字典<string,bool> (不排泄,直到程序结束)
-        /// </summary>
-        private static Dictionary<string, bool> globalDictionaryBool = new Dictionary<string, bool>();//内部使用
-        /// <summary>
-        /// 临时字典<string,bool> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Dictionary<string, bool> localDictionaryBool = new Dictionary<string, bool>();//内部使用
-
-        /// <summary>
-        /// 全局字典<string,byte> (不排泄,直到程序结束)
-        /// </summary>
-        private static Dictionary<string, byte> globalDictionaryByte = new Dictionary<string, byte>();//内部使用
-        /// <summary>
-        /// 临时字典<string,byte> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Dictionary<string, byte> localDictionaryByte = new Dictionary<string, byte>();//内部使用
-
-        /// <summary>
-        /// 全局字典<string,Vector> (不排泄,直到程序结束)
-        /// </summary>
-        private static Dictionary<string, Vector2F> globalDictionaryVector = new Dictionary<string, Vector2F>();//内部使用
-        /// <summary>
-        /// 临时字典<string,Vector> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Dictionary<string, Vector2F> localDictionaryVector = new Dictionary<string, Vector2F>();//内部使用
-
-        #endregion
-
-        #region 引用类型
-
-        /// <summary>
-        /// 全局字典<string,Object> (不排泄,直到程序结束)
-        /// </summary>
-        private static Dictionary<string, object> globalDictionaryObject = new Dictionary<string, object>();//内部使用
-        /// <summary>
-        /// 临时字典<string,Object> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Dictionary<string, object> localDictionaryObject = new Dictionary<string, object>();//内部使用
-
-        /// <summary>
-        /// 全局字典<string,Timer> (不排泄,直到程序结束)
-        /// </summary>
-        private static Dictionary<string, Timer> globalDictionaryTimer = new Dictionary<string, Timer>();//内部使用
-        /// <summary>
-        /// 临时字典<string,Timer> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Dictionary<string, Timer> localDictionaryTimer = new Dictionary<string, Timer>();//内部使用
-
-        /// <summary>
-        /// 全局字典<string,string> (不排泄,直到程序结束)
-        /// </summary>
-        private static Dictionary<string, string> globalDictionaryString = new Dictionary<string, string>();//内部使用
-        /// <summary>
-        /// 临时字典<string,string> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static Dictionary<string, string> localDictionaryString = new Dictionary<string, string>();//内部使用
-
-        #endregion
-
-        #endregion
-
-        #region 跨线程字典(专为并发访问设计的线程安全集合)
-
-        #region 值类型
-
-        /// <summary>
-        /// 全局跨线程字典<string,int> (不排泄,直到程序结束)
-        /// </summary>
-        private static ConcurrentDictionary<string, int> globalCDictionaryInt = new ConcurrentDictionary<string, int>();//内部使用
-        /// <summary>
-        /// 临时跨线程字典<string,int> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static ConcurrentDictionary<string, int> localCDictionaryInt = new ConcurrentDictionary<string, int>();//内部使用
-
-        /// <summary>
-        /// 全局跨线程字典<string,long> (不排泄,直到程序结束)
-        /// </summary>
-        private static ConcurrentDictionary<string, long> globalCDictionaryLong = new ConcurrentDictionary<string, long>();//内部使用
-        /// <summary>
-        /// 临时跨线程字典<string,long> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static ConcurrentDictionary<string, long> localCDictionaryLong = new ConcurrentDictionary<string, long>();//内部使用
-
-        /// <summary>
-        /// 全局跨线程字典<string,char> (不排泄,直到程序结束)
-        /// </summary>
-        private static ConcurrentDictionary<string, char> globalCDictionaryChar = new ConcurrentDictionary<string, char>();//内部使用
-        /// <summary>
-        /// 临时跨线程字典<string,char> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static ConcurrentDictionary<string, char> localCDictionaryChar = new ConcurrentDictionary<string, char>();//内部使用
-
-        /// <summary>
-        /// 全局跨线程字典<string,float> (不排泄,直到程序结束)
-        /// </summary>
-        private static ConcurrentDictionary<string, float> globalCDictionaryFloat = new ConcurrentDictionary<string, float>();//内部使用
-        /// <summary>
-        /// 临时跨线程字典<string,float> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static ConcurrentDictionary<string, float> localCDictionaryFloat = new ConcurrentDictionary<string, float>();//内部使用
-
-        /// <summary>
-        /// 全局跨线程字典<string,double> (不排泄,直到程序结束)
-        /// </summary>
-        private static ConcurrentDictionary<string, double> globalCDictionaryDouble = new ConcurrentDictionary<string, double>();//内部使用
-        /// <summary>
-        /// 临时跨线程字典<string,double> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static ConcurrentDictionary<string, double> localCDictionaryDouble = new ConcurrentDictionary<string, double>();//内部使用
-
-        /// <summary>
-        /// 全局跨线程字典<string,bool> (不排泄,直到程序结束)
-        /// </summary>
-        private static ConcurrentDictionary<string, bool> globalCDictionaryBool = new ConcurrentDictionary<string, bool>();//内部使用
-        /// <summary>
-        /// 临时跨线程字典<string,bool> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static ConcurrentDictionary<string, bool> localCDictionaryBool = new ConcurrentDictionary<string, bool>();//内部使用
-
-        /// <summary>
-        /// 全局跨线程字典<string,byte> (不排泄,直到程序结束)
-        /// </summary>
-        private static ConcurrentDictionary<string, byte> globalCDictionaryByte = new ConcurrentDictionary<string, byte>();//内部使用
-        /// <summary>
-        /// 临时跨线程字典<string,byte> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static ConcurrentDictionary<string, byte> localCDictionaryByte = new ConcurrentDictionary<string, byte>();//内部使用
-
-        /// <summary>
-        /// 全局跨线程字典<string,Vector> (不排泄,直到程序结束)
-        /// </summary>
-        private static ConcurrentDictionary<string, Vector2F> globalCDictionaryVector = new ConcurrentDictionary<string, Vector2F>();//内部使用
-        /// <summary>
-        /// 临时跨线程字典<string,Vector> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static ConcurrentDictionary<string, Vector2F> localCDictionaryVector = new ConcurrentDictionary<string, Vector2F>();//内部使用
-
-        #endregion
-
-        #region 引用类型
-
-        /// <summary>
-        /// 全局跨线程字典<string,Object> (不排泄,直到程序结束)
-        /// </summary>
-        private static ConcurrentDictionary<string, object> globalCDictionaryObject = new ConcurrentDictionary<string, object>();//内部使用
-        /// <summary>
-        /// 临时跨线程字典<string,Object> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static ConcurrentDictionary<string, object> localCDictionaryObject = new ConcurrentDictionary<string, object>();//内部使用
-
-        /// <summary>
-        /// 全局跨线程字典<string,Timer> (不排泄,直到程序结束)
-        /// </summary>
-        private static ConcurrentDictionary<string, Timer> globalCDictionaryTimer = new ConcurrentDictionary<string, Timer>();//内部使用
-        /// <summary>
-        /// 临时跨线程字典<string,Timer> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static ConcurrentDictionary<string, Timer> localCDictionaryTimer = new ConcurrentDictionary<string, Timer>();//内部使用
-
-        /// <summary>
-        /// 全局跨线程字典<string,string> (不排泄,直到程序结束)
-        /// </summary>
-        private static ConcurrentDictionary<string, string> globalCDictionaryString = new ConcurrentDictionary<string, string>();//内部使用
-        /// <summary>
-        /// 临时跨线程字典<string,string> (函数或动作集结束时应手动排泄)
-        /// </summary>
-        private static ConcurrentDictionary<string, string> localCDictionaryString = new ConcurrentDictionary<string, string>();//内部使用
-
-        #endregion
-
-        #endregion
-
-        #endregion
-
-        //声明用于存放键盘、鼠标"按键事件引用类型"委托变量的二维数组集合(单元素也是集合能+=多个委托函数),C#自带委托列表类型能继续存储这些委托类型变量
-
-        /// <summary>
-        /// 键盘按键事件引用委托类型变量数组[c_keyMax + 1, c_regKeyMax + 1],用于自定义委托函数注册
-        /// </summary>
-        private static KeyMouseEventFuncref[,] keyEventFuncrefGroup = new KeyMouseEventFuncref[c_keyMax + 1, c_regKeyMax + 1];//内部使用
-        /// <summary>
-        /// 鼠标按键事件引用委托类型变量数组[c_mouseMax + 1, c_regMouseMax + 1],用于自定义委托函数注册
-        /// </summary>
-        private static KeyMouseEventFuncref[,] mouseEventFuncrefGroup = new KeyMouseEventFuncref[c_mouseMax + 1, c_regMouseMax + 1];//内部使用
-
-        //声明用于存放"主副循环入口事件引用类型"委托变量二维数组集合
-
-        /// <summary>
-        /// 主副循环入口事件引用委托类型变量数组[c_entryMax, c_regEntryMax],用于自定义委托函数注册.
-        /// 当前固定容量[10,2]对应数组索引[0~9,1],因索引0不被使用所以实际只能注册1个.
-        /// </summary>
-        private static EntryEventFuncref[,] entryEventFuncrefGroup = new EntryEventFuncref[c_entryMax, c_regEntryMax + 1];//内部使用
-
-        #endregion
-
-        #region 构造函数
-
-        /// <summary>
-        /// 核心类
-        /// </summary>
-        static MMCore()
-        {
-            //这里可给字段进行第二次赋值或安排其他动作(字段的首次赋值是在声明时,同一次初始化执行顺序受动作所在上下文影响)
-        }
-
-        #endregion
-
-        #region 字段及其属性方法
-
-        //字段及其属性方法(避免不安全读写,private保护和隐藏字段,设计成只允许通过public修饰的属性方法间接去安全读写)
-        //本库前缀单个_开头字段表示其拥有属性方法(若有双_开头表示自定义类型如委托)
-
-        private static bool _dataTableHashType = false;
-        /// <summary>
-        /// 数据表类型.用于快捷数据表类型切换,默认false采用字典,为true时切换为哈希表.
-        /// 可增加更多类型来测试读写效率.
-        /// </summary>
-        public static bool DataTableHashType
+        public static Trigger SubUpdate
         {
             get
             {
-                return _dataTableHashType;
+                if (_subUpdate == null)
+                {
+                    _subUpdate = new Trigger();
+                }
+                return _subUpdate;
             }
             set
             {
-                _dataTableHashType = value;
-
-                //if (!isDataTableTypeSet)
-                //{
-                //    _dataTableHashType = value;
-                //    isDataTableTypeSet = true;
-                //}
-                //else
-                //{
-                //    throw new InvalidOperationException("DataTableHashType can only be set once."); //设计为只允许被改变一次的情况,请在入口或使用数据表前进行设置
-                //}
+                _subUpdate = value;
             }
         }
 
@@ -646,7 +381,87 @@ namespace MetalMaxSystem
 
         #endregion
 
+        #region 构造函数
+
+        /// <summary>
+        /// 核心类
+        /// </summary>
+        static MMCore()
+        {
+            //这里可给字段进行第二次赋值或安排其他动作(字段的首次赋值是在声明时,同一次初始化执行顺序受动作所在上下文影响)
+        }
+
+        #endregion
+
         #region Functions 数学公式
+
+        /// <summary>
+        /// 随机整数(不含最大值)
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns>返回[min,max)之间的随机整数</returns>
+        public static int RandomInt(int min, int max)
+        {
+            // System.Random r = new System.Random(Guid.NewGuid().GetHashCode());
+            // if (min <= max)
+            // {
+            //     return r.Next(min, max);
+            // }
+            // else
+            // {
+            //     return r.Next(max, min);
+            lock (_randomLock)
+            {
+                if (min <= max)
+                {
+                    return _random.Next(min, max);
+                }
+                return _random.Next(max, min);
+            }
+        }
+
+        /// <summary>
+        /// 随机实数(不含最大值)
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns>返回[min,max)之间的随机实数</returns>
+        public static double RandomDouble(double min, double max)
+        {
+            // System.Random r = new System.Random(Guid.NewGuid().GetHashCode());
+            // if (min <= max)
+            // {
+            //     return min + (max - min) * r.NextDouble();
+            // }
+            // else
+            // {
+            //     return max + (min - max) * r.NextDouble();
+            lock (_randomLock)
+            {
+                if (min <= max)
+                {
+                    return min + (max - min) * _random.NextDouble();
+                }
+                return max + (min - max) * _random.NextDouble();
+            }
+        }
+
+        /// <summary>
+        /// 随机角度
+        /// </summary>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns>返回[0,360)之间的随机角度</returns>
+        public static double RandomAngle()
+        {
+            // System.Random r = new System.Random(Guid.NewGuid().GetHashCode());
+            // return 360 * r.NextDouble();
+            lock (_randomLock)
+            {
+                return 360 * _random.NextDouble();
+            }
+        }
 
         /// <summary>
         /// 度转弧度
@@ -666,56 +481,6 @@ namespace MetalMaxSystem
         public static float RadianToDegree(float radian)
         {
             return (float)(radian * (180.0 / Mathf.PI));
-        }
-
-        /// <summary>
-        /// 随机角度
-        /// </summary>
-        /// <param name="min"></param>
-        /// <param name="max"></param>
-        /// <returns>返回[0,360)之间的随机角度</returns>
-        public static double RandomAngle()
-        {
-            System.Random r = new System.Random(Guid.NewGuid().GetHashCode());
-            return 360 * r.NextDouble();
-        }
-
-        /// <summary>
-        /// 随机实数(不含最大值)
-        /// </summary>
-        /// <param name="min"></param>
-        /// <param name="max"></param>
-        /// <returns>返回[min,max)之间的随机实数</returns>
-        public static double RandomDouble(double min, double max)
-        {
-            System.Random r = new System.Random(Guid.NewGuid().GetHashCode());
-            if (min <= max)
-            {
-                return min + (max - min) * r.NextDouble();
-            }
-            else
-            {
-                return max + (min - max) * r.NextDouble();
-            }
-        }
-
-        /// <summary>
-        /// 随机整数(不含最大值)
-        /// </summary>
-        /// <param name="min"></param>
-        /// <param name="max"></param>
-        /// <returns>返回[min,max)之间的随机整数</returns>
-        public static int RandomInt(int min, int max)
-        {
-            System.Random r = new System.Random(Guid.NewGuid().GetHashCode());
-            if (min <= max)
-            {
-                return r.Next(min, max);
-            }
-            else
-            {
-                return r.Next(max, min);
-            }
         }
 
         /// <summary>
@@ -1158,20 +923,19 @@ namespace MetalMaxSystem
         public static string ConvertStringToHOMixed(string input, double r)
         {
             string result = "";
-            //创建一个System.Random对象
-            System.Random random = new System.Random(Guid.NewGuid().GetHashCode());
-            foreach (byte b in Encoding.UTF8.GetBytes(input))
+            lock (_randomLock)
             {
-                //根据随机数和触发概率决定是否执行动作
-                if (random.NextDouble() < r)
+                foreach (byte b in Encoding.UTF8.GetBytes(input))
                 {
-                    //result += $"\\pixelX{b:X2}";
-                    result += string.Format("\\pixelX{0:X2}", b);
-                }
-                else
-                {
-                    //result += $"\\0{Convert.ToString(b, 8)}";
-                    result += string.Format("\\0{Convert.ToString(b, 8)}", b);
+                    //根据随机数和触发概率决定是否执行动作
+                    if (_random.NextDouble() < r)
+                    {
+                        result += string.Format("\\pixelX{0:X2}", b);
+                    }
+                    else
+                    {
+                        result += string.Format("\\0{Convert.ToString(b, 8)}", b);
+                    }
                 }
             }
             return result;
@@ -2712,4702 +2476,16 @@ namespace MetalMaxSystem
             }
         }
 
-#if WINDOWS && !(UNITY_EDITOR || UNITY_STANDALONE || MONOGAME) && (NETFRAMEWORK || NET5_0_OR_GREATER)
-        /// <summary>
-        /// 用WinRAR解压带密码的压缩包
-        /// </summary>
-        /// <param name="zipFilePath">压缩包路径</param>
-        /// <param name="unZipPath">解压后目录的路径</param>
-        /// <param name="password">压缩包密码</param>
-        /// <returns></returns>
-        public static bool UnZip(string zipFilePath, string unZipPath, string password)
-        {
-            if (!IsOwnWinRAR())
-            {
-                MMCore.Tell("本机并未安装WinRAR,请安装该压缩软件!", "温馨提示");
-                return false;
-            }
-
-            Process Process1 = new Process();
-            Process1.StartInfo.FileName = "WinRAR.exe";
-            Process1.StartInfo.CreateNoWindow = true;
-            Process1.StartInfo.Arguments = " pixelX -p" + password + " " + zipFilePath + " " + unZipPath;
-            Process1.Start();
-            if (Process1.HasExited)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// 判断系统上是否安装WinRAR
-        /// </summary>
-        /// <returns></returns>
-        public static bool IsOwnWinRAR()
-        {
-            RegistryKey the_Reg =
-                Registry.LocalMachine.OpenSubKey(
-                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\WinRAR.exe");
-            return !string.IsNullOrEmpty(the_Reg.GetValue("").ToString());
-
-        }
-#endif
-
         #endregion
 
         #region Functions 数据表功能
 
-        //注:用户与基础数据表通用键名,用户数据表的键名默认添加前缀"HD_"进行区分,用数据表设计其他功能时应再次添加不重复前缀以免与用户数据表键区重叠(参互动管理功能)
+        //字典及跨线程字典,另详DataTable、CDataTable、TDataTable类
 
-        #region 用户快捷数据表(哈希表和字典二选一,默认采用字典,尚未添加跨线程字典,建议中途不要再切换否则请直接使用基础数据表)
+        #region 哈希表
 
-        //建议使用泛型字典,值与引用类型尽量不混用,引用类型可以互转但值类型尽可能多
-
-        #region 引用类型
-
-        #region Object
-
-        /// <summary>
-        /// 判断数据表键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableObjectKeyExists(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableKeyExists(place, key);
-                default:
-                    return DictionaryObjectKeyExists(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 判断数据表值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DataTableObjectValueExists(bool place, object value)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableValueExists(place, value);
-                default:
-                    return DictionaryObjectValueExists(place, value);
-            }
-
-        }
-
-        /// <summary>
-        /// 获取数据表键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static object DataTableObjectGetValue(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableGetValue(place, key);
-                default:
-                    return DictionaryObjectGetValue(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DataTableObjectClear0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear0(place, key);
-                    break;
-                default:
-                    DictionaryObjectClear0(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DataTableObjectClear1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear1(place, key, lp_1);
-                    break;
-                default:
-                    DictionaryObjectClear1(place, key, lp_1);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DataTableObjectClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear2(place, key, lp_1, lp_2);
-                    break;
-                default:
-                    DictionaryObjectClear2(place, key, lp_1, lp_2);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DataTableObjectClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-                default:
-                    DictionaryObjectClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DataTableObjectClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-                default:
-                    DictionaryObjectClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 移除数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DataTableObjectRemove(bool place, string key)//内部函数
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableRemove(place, key);
-                    break;
-                default:
-                    DictionaryObjectRemove(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DataTableObjectSave0(bool place, string key, object val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave0(place, key, val);
-                    break;
-                default:
-                    DictionaryObjectSave0(place, key, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DataTableObjectSave1(bool place, string key, int lp_1, object val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave1(place, key, lp_1, val);
-                    break;
-                default:
-                    DictionaryObjectSave1(place, key, lp_1, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DataTableObjectSave2(bool place, string key, int lp_1, int lp_2, object val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave2(place, key, lp_1, lp_2, val);
-                    break;
-                default:
-                    DictionaryObjectSave2(place, key, lp_1, lp_2, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DataTableObjectSave3(bool place, string key, int lp_1, int lp_2, int lp_3, object val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-                default:
-                    DictionaryObjectSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DataTableObjectSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, object val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-                default:
-                    DictionaryObjectSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static object DataTableObjectLoad0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableLoad0(place, key);
-                default:
-                    return DictionaryObjectLoad0(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static object DataTableObjectLoad1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryObjectLoad1(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static object DataTableObjectLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryObjectLoad2(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static object DataTableObjectLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryObjectLoad3(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static object DataTableObjectLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryObjectLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        #endregion
-
-        #region String
-
-        /// <summary>
-        /// 判断数据表键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableStringKeyExists(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableKeyExists(place, key);
-                default:
-                    return DictionaryStringKeyExists(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 判断数据表值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DataTableStringValueExists(bool place, string value)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableValueExists(place, value);
-                default:
-                    return DictionaryStringValueExists(place, value);
-            }
-        }
-
-        /// <summary>
-        /// 获取数据表键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static string DataTableStringGetValue(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableGetValue(place, key).ToString();
-                default:
-                    return DictionaryStringGetValue(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DataTableStringClear0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear0(place, key);
-                    break;
-                default:
-                    DictionaryStringClear0(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DataTableStringClear1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear1(place, key, lp_1);
-                    break;
-                default:
-                    DictionaryStringClear1(place, key, lp_1);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DataTableStringClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear2(place, key, lp_1, lp_2);
-                    break;
-                default:
-                    DictionaryStringClear2(place, key, lp_1, lp_2);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DataTableStringClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-                default:
-                    DictionaryStringClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DataTableStringClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-                default:
-                    DictionaryStringClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 移除数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DataTableStringRemove(bool place, string key)//内部函数
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableRemove(place, key);
-                    break;
-                default:
-                    DictionaryStringRemove(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DataTableStringSave0(bool place, string key, string val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave0(place, key, val);
-                    break;
-                default:
-                    DictionaryStringSave0(place, key, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DataTableStringSave1(bool place, string key, int lp_1, string val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave1(place, key, lp_1, val);
-                    break;
-                default:
-                    DictionaryStringSave1(place, key, lp_1, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DataTableStringSave2(bool place, string key, int lp_1, int lp_2, string val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave2(place, key, lp_1, lp_2, val);
-                    break;
-                default:
-                    DictionaryStringSave2(place, key, lp_1, lp_2, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DataTableStringSave3(bool place, string key, int lp_1, int lp_2, int lp_3, string val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-                default:
-                    DictionaryStringSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DataTableStringSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, string val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-                default:
-                    DictionaryStringSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-            }
-        }
-#if !NETFRAMEWORK && NET8_0_OR_GREATER
-        #region
-#nullable enable
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static string? DataTableStringLoad0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableLoad0(place, key)?.ToString();
-                default:
-                    return DictionaryStringLoad0(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static string? DataTableStringLoad1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableLoad1(place, key, lp_1)?.ToString();
-                default:
-                    return DictionaryStringLoad1(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static string? DataTableStringLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableLoad2(place, key, lp_1, lp_2)?.ToString();
-                default:
-                    return DictionaryStringLoad2(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static string? DataTableStringLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableLoad3(place, key, lp_1, lp_2, lp_3)?.ToString();
-                default:
-                    return DictionaryStringLoad3(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static string? DataTableStringLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4)?.ToString();
-                default:
-                    return DictionaryStringLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-#nullable restore
-        #endregion
-#else
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static string DataTableStringLoad0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    if (HashTableLoad0(place, key) != null)
-                    {
-                        return HashTableLoad0(place, key).ToString();
-                    }
-                    else
-                    {
-                        return string.Empty;
-                    }
-                default:
-                    return DictionaryStringLoad0(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static string DataTableStringLoad1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    if (HashTableLoad1(place, key, lp_1) != null)
-                    {
-                        return HashTableLoad1(place, key, lp_1).ToString();
-                    }
-                    else
-                    {
-                        return string.Empty;
-                    }
-                default:
-                    return DictionaryStringLoad1(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static string DataTableStringLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    if (HashTableLoad2(place, key, lp_1, lp_2) != null)
-                    {
-                        return HashTableLoad2(place, key, lp_1, lp_2).ToString();
-                    }
-                    else
-                    {
-                        return string.Empty;
-                    }
-                default:
-                    return DictionaryStringLoad2(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static string DataTableStringLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    if (HashTableLoad3(place, key, lp_1, lp_2, lp_3) != null)
-                    {
-                        return HashTableLoad3(place, key, lp_1, lp_2, lp_3).ToString();
-                    }
-                    else
-                    {
-                        return string.Empty;
-                    }
-                default:
-                    return DictionaryStringLoad3(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static string DataTableStringLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    if (HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4) != null)
-                    {
-                        return HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4).ToString();
-                    }
-                    else
-                    {
-                        return string.Empty;
-                    }
-                default:
-                    return DictionaryStringLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-#endif
-
-        #endregion
-
-        #endregion
-
-        #region 值类型
-
-        #region Int
-
-        /// <summary>
-        /// 判断数据表键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableIntKeyExists(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableKeyExists(place, key);
-                default:
-                    return DictionaryIntKeyExists(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 判断数据表值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DataTableIntValueExists(bool place, int value)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableValueExists(place, value);
-                default:
-                    return DictionaryIntValueExists(place, value);
-            }
-        }
-
-        /// <summary>
-        /// 获取数据表键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static int DataTableIntGetValue(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (int)HashTableGetValue(place, key);
-                default:
-                    return DictionaryIntGetValue(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DataTableIntClear0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear0(place, key);
-                    break;
-                default:
-                    DictionaryIntClear0(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DataTableIntClear1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear1(place, key, lp_1);
-                    break;
-                default:
-                    DictionaryIntClear1(place, key, lp_1);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DataTableIntClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear2(place, key, lp_1, lp_2);
-                    break;
-                default:
-                    DictionaryIntClear2(place, key, lp_1, lp_2);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DataTableIntClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-                default:
-                    DictionaryIntClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DataTableIntClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-                default:
-                    DictionaryIntClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 移除数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DataTableIntRemove(bool place, string key)//内部函数
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableRemove(place, key);
-                    break;
-                default:
-                    DictionaryIntRemove(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DataTableIntSave0(bool place, string key, int val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave0(place, key, val);
-                    break;
-                default:
-                    DictionaryIntSave0(place, key, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DataTableIntSave1(bool place, string key, int lp_1, int val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave1(place, key, lp_1, val);
-                    break;
-                default:
-                    DictionaryIntSave1(place, key, lp_1, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DataTableIntSave2(bool place, string key, int lp_1, int lp_2, int val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave2(place, key, lp_1, lp_2, val);
-                    break;
-                default:
-                    DictionaryIntSave2(place, key, lp_1, lp_2, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DataTableIntSave3(bool place, string key, int lp_1, int lp_2, int lp_3, int val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-                default:
-                    DictionaryIntSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DataTableIntSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, int val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-                default:
-                    DictionaryIntSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static int? DataTableIntLoad0_N(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (int?)HashTableLoad0(place, key);
-                default:
-                    return DictionaryIntLoad0_N(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static int? DataTableIntLoad1_N(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (int?)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryIntLoad1_N(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static int? DataTableIntLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (int?)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryIntLoad2_N(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static int? DataTableIntLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (int?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryIntLoad3_N(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static int? DataTableIntLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (int?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryIntLoad4_N(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static int DataTableIntLoad0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (int)HashTableLoad0(place, key);
-                default:
-                    return DictionaryIntLoad0(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static int DataTableIntLoad1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (int)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryIntLoad1(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static int DataTableIntLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (int)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryIntLoad2(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static int DataTableIntLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (int)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryIntLoad3(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static int DataTableIntLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (int)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryIntLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        #endregion
-
-        #region Long
-
-        /// <summary>
-        /// 判断数据表键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableLongKeyExists(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableKeyExists(place, key);
-                default:
-                    return DictionaryLongKeyExists(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 判断数据表值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DataTableLongValueExists(bool place, long value)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableValueExists(place, value);
-                default:
-                    return DictionaryLongValueExists(place, value);
-            }
-        }
-
-        /// <summary>
-        /// 获取数据表键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static long DataTableLongGetValue(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (long)HashTableGetValue(place, key);
-                default:
-                    return DictionaryLongGetValue(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DataTableLongClear0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear0(place, key);
-                    break;
-                default:
-                    DictionaryLongClear0(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DataTableLongClear1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear1(place, key, lp_1);
-                    break;
-                default:
-                    DictionaryLongClear1(place, key, lp_1);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DataTableLongClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear2(place, key, lp_1, lp_2);
-                    break;
-                default:
-                    DictionaryLongClear2(place, key, lp_1, lp_2);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DataTableLongClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-                default:
-                    DictionaryLongClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DataTableLongClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-                default:
-                    DictionaryLongClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 移除数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DataTableLongRemove(bool place, string key)//内部函数
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableRemove(place, key);
-                    break;
-                default:
-                    DictionaryLongRemove(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DataTableLongSave0(bool place, string key, long val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave0(place, key, val);
-                    break;
-                default:
-                    DictionaryLongSave0(place, key, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DataTableLongSave1(bool place, string key, int lp_1, long val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave1(place, key, lp_1, val);
-                    break;
-                default:
-                    DictionaryLongSave1(place, key, lp_1, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DataTableLongSave2(bool place, string key, int lp_1, int lp_2, long val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave2(place, key, lp_1, lp_2, val);
-                    break;
-                default:
-                    DictionaryLongSave2(place, key, lp_1, lp_2, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DataTableLongSave3(bool place, string key, int lp_1, int lp_2, int lp_3, long val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-                default:
-                    DictionaryLongSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DataTableLongSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, long val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-                default:
-                    DictionaryLongSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static long? DataTableLongLoad0_N(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (long?)HashTableLoad0(place, key);
-                default:
-                    return DictionaryLongLoad0_N(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static long? DataTableLongLoad1_N(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (long?)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryLongLoad1_N(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static long? DataTableLongLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (long?)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryLongLoad2_N(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static long? DataTableLongLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (long?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryLongLoad3_N(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static long? DataTableLongLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (long?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryLongLoad4_N(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static long DataTableLongLoad0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (long)HashTableLoad0(place, key);
-                default:
-                    return DictionaryLongLoad0(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static long DataTableLongLoad1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (long)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryLongLoad1(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static long DataTableLongLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (long)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryLongLoad2(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static long DataTableLongLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (long)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryLongLoad3(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static long DataTableLongLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (long)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryLongLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        #endregion
-
-        #region Char
-
-        /// <summary>
-        /// 判断数据表键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableCharKeyExists(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableKeyExists(place, key);
-                default:
-                    return DictionaryCharKeyExists(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 判断数据表值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DataTableCharValueExists(bool place, char value)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableValueExists(place, value);
-                default:
-                    return DictionaryCharValueExists(place, value);
-            }
-        }
-
-        /// <summary>
-        /// 获取数据表键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static char DataTableCharGetValue(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (char)HashTableGetValue(place, key);
-                default:
-                    return DictionaryCharGetValue(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DataTableCharClear0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear0(place, key);
-                    break;
-                default:
-                    DictionaryCharClear0(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DataTableCharClear1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear1(place, key, lp_1);
-                    break;
-                default:
-                    DictionaryCharClear1(place, key, lp_1);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DataTableCharClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear2(place, key, lp_1, lp_2);
-                    break;
-                default:
-                    DictionaryCharClear2(place, key, lp_1, lp_2);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DataTableCharClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-                default:
-                    DictionaryCharClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DataTableCharClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-                default:
-                    DictionaryCharClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 移除数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DataTableCharRemove(bool place, string key)//内部函数
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableRemove(place, key);
-                    break;
-                default:
-                    DictionaryCharRemove(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DataTableCharSave0(bool place, string key, char val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave0(place, key, val);
-                    break;
-                default:
-                    DictionaryCharSave0(place, key, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DataTableCharSave1(bool place, string key, int lp_1, char val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave1(place, key, lp_1, val);
-                    break;
-                default:
-                    DictionaryCharSave1(place, key, lp_1, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DataTableCharSave2(bool place, string key, int lp_1, int lp_2, char val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave2(place, key, lp_1, lp_2, val);
-                    break;
-                default:
-                    DictionaryCharSave2(place, key, lp_1, lp_2, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DataTableCharSave3(bool place, string key, int lp_1, int lp_2, int lp_3, char val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-                default:
-                    DictionaryCharSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DataTableCharSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, char val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-                default:
-                    DictionaryCharSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static char? DataTableCharLoad0_N(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (char?)HashTableLoad0(place, key);
-                default:
-                    return DictionaryCharLoad0_N(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static char? DataTableCharLoad1_N(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (char?)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryCharLoad1_N(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static char? DataTableCharLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (char?)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryCharLoad2_N(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static char? DataTableCharLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (char?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryCharLoad3_N(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static char? DataTableCharLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (char?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryCharLoad4_N(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static char DataTableCharLoad0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (char)HashTableLoad0(place, key);
-                default:
-                    return DictionaryCharLoad0(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static char DataTableCharLoad1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (char)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryCharLoad1(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static char DataTableCharLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (char)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryCharLoad2(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static char DataTableCharLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (char)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryCharLoad3(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static char DataTableCharLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (char)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryCharLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        #endregion
-
-        #region Float
-
-        /// <summary>
-        /// 判断数据表键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableFloatKeyExists(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableKeyExists(place, key);
-                default:
-                    return DictionaryFloatKeyExists(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 判断数据表值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DataTableFloatValueExists(bool place, float value)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableValueExists(place, value);
-                default:
-                    return DictionaryFloatValueExists(place, value);
-            }
-        }
-
-        /// <summary>
-        /// 获取数据表键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static float DataTableFloatGetValue(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (float)HashTableGetValue(place, key);
-                default:
-                    return DictionaryFloatGetValue(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DataTableFloatClear0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear0(place, key);
-                    break;
-                default:
-                    DictionaryFloatClear0(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DataTableFloatClear1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear1(place, key, lp_1);
-                    break;
-                default:
-                    DictionaryFloatClear1(place, key, lp_1);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DataTableFloatClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear2(place, key, lp_1, lp_2);
-                    break;
-                default:
-                    DictionaryFloatClear2(place, key, lp_1, lp_2);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DataTableFloatClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-                default:
-                    DictionaryFloatClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DataTableFloatClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-                default:
-                    DictionaryFloatClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 移除数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DataTableFloatRemove(bool place, string key)//内部函数
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableRemove(place, key);
-                    break;
-                default:
-                    DictionaryFloatRemove(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DataTableFloatSave0(bool place, string key, float val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave0(place, key, val);
-                    break;
-                default:
-                    DictionaryFloatSave0(place, key, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DataTableFloatSave1(bool place, string key, int lp_1, float val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave1(place, key, lp_1, val);
-                    break;
-                default:
-                    DictionaryFloatSave1(place, key, lp_1, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DataTableFloatSave2(bool place, string key, int lp_1, int lp_2, float val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave2(place, key, lp_1, lp_2, val);
-                    break;
-                default:
-                    DictionaryFloatSave2(place, key, lp_1, lp_2, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DataTableFloatSave3(bool place, string key, int lp_1, int lp_2, int lp_3, float val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-                default:
-                    DictionaryFloatSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DataTableFloatSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, float val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-                default:
-                    DictionaryFloatSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static float? DataTableFloatLoad0_N(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (float?)HashTableLoad0(place, key);
-                default:
-                    return DictionaryFloatLoad0_N(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static float? DataTableFloatLoad1_N(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (float?)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryFloatLoad1_N(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static float? DataTableFloatLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (float?)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryFloatLoad2_N(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static float? DataTableFloatLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (float?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryFloatLoad3_N(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static float? DataTableFloatLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (float?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryFloatLoad4_N(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static float DataTableFloatLoad0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (float)HashTableLoad0(place, key);
-                default:
-                    return DictionaryFloatLoad0(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static float DataTableFloatLoad1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (float)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryFloatLoad1(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static float DataTableFloatLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (float)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryFloatLoad2(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static float DataTableFloatLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (float)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryFloatLoad3(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static float DataTableFloatLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (float)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryFloatLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        #endregion
-
-        #region Double
-
-        /// <summary>
-        /// 判断数据表键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableDoubleKeyExists(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableKeyExists(place, key);
-                default:
-                    return DictionaryDoubleKeyExists(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 判断数据表值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DataTableDoubleValueExists(bool place, double value)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableValueExists(place, value);
-                default:
-                    return DictionaryDoubleValueExists(place, value);
-            }
-        }
-
-        /// <summary>
-        /// 获取数据表键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static double DataTableDoubleGetValue(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (double)HashTableGetValue(place, key);
-                default:
-                    return DictionaryDoubleGetValue(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DataTableDoubleClear0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear0(place, key);
-                    break;
-                default:
-                    DictionaryDoubleClear0(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DataTableDoubleClear1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear1(place, key, lp_1);
-                    break;
-                default:
-                    DictionaryDoubleClear1(place, key, lp_1);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DataTableDoubleClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear2(place, key, lp_1, lp_2);
-                    break;
-                default:
-                    DictionaryDoubleClear2(place, key, lp_1, lp_2);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DataTableDoubleClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-                default:
-                    DictionaryDoubleClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DataTableDoubleClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-                default:
-                    DictionaryDoubleClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 移除数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DataTableDoubleRemove(bool place, string key)//内部函数
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableRemove(place, key);
-                    break;
-                default:
-                    DictionaryDoubleRemove(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DataTableDoubleSave0(bool place, string key, double val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave0(place, key, val);
-                    break;
-                default:
-                    DictionaryDoubleSave0(place, key, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DataTableDoubleSave1(bool place, string key, int lp_1, double val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave1(place, key, lp_1, val);
-                    break;
-                default:
-                    DictionaryDoubleSave1(place, key, lp_1, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DataTableDoubleSave2(bool place, string key, int lp_1, int lp_2, double val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave2(place, key, lp_1, lp_2, val);
-                    break;
-                default:
-                    DictionaryDoubleSave2(place, key, lp_1, lp_2, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DataTableDoubleSave3(bool place, string key, int lp_1, int lp_2, int lp_3, double val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-                default:
-                    DictionaryDoubleSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DataTableDoubleSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, double val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-                default:
-                    DictionaryDoubleSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static double? DataTableDoubleLoad0_N(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (double?)HashTableLoad0(place, key);
-                default:
-                    return DictionaryDoubleLoad0_N(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static double? DataTableDoubleLoad1_N(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (double?)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryDoubleLoad1_N(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static double? DataTableDoubleLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (double?)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryDoubleLoad2_N(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static double? DataTableDoubleLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (double?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryDoubleLoad3_N(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static double? DataTableDoubleLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (double?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryDoubleLoad4_N(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static double DataTableDoubleLoad0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (double)HashTableLoad0(place, key);
-                default:
-                    return DictionaryDoubleLoad0(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static double DataTableDoubleLoad1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (double)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryDoubleLoad1(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static double DataTableDoubleLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (double)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryDoubleLoad2(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static double DataTableDoubleLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (double)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryDoubleLoad3(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static double DataTableDoubleLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (double)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryDoubleLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        #endregion
-
-        #region Bool
-
-        /// <summary>
-        /// 判断数据表键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableBoolKeyExists(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableKeyExists(place, key);
-                default:
-                    return DictionaryBoolKeyExists(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 判断数据表值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DataTableBoolValueExists(bool place, bool value)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableValueExists(place, value);
-                default:
-                    return DictionaryBoolValueExists(place, value);
-            }
-        }
-
-        /// <summary>
-        /// 获取数据表键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableBoolGetValue(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (bool)HashTableGetValue(place, key);
-                default:
-                    return DictionaryBoolGetValue(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DataTableBoolClear0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear0(place, key);
-                    break;
-                default:
-                    DictionaryBoolClear0(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DataTableBoolClear1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear1(place, key, lp_1);
-                    break;
-                default:
-                    DictionaryBoolClear1(place, key, lp_1);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DataTableBoolClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear2(place, key, lp_1, lp_2);
-                    break;
-                default:
-                    DictionaryBoolClear2(place, key, lp_1, lp_2);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DataTableBoolClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-                default:
-                    DictionaryBoolClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DataTableBoolClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-                default:
-                    DictionaryBoolClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 移除数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DataTableBoolRemove(bool place, string key)//内部函数
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableRemove(place, key);
-                    break;
-                default:
-                    DictionaryBoolRemove(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DataTableBoolSave0(bool place, string key, bool val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave0(place, key, val);
-                    break;
-                default:
-                    DictionaryBoolSave0(place, key, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DataTableBoolSave1(bool place, string key, int lp_1, bool val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave1(place, key, lp_1, val);
-                    break;
-                default:
-                    DictionaryBoolSave1(place, key, lp_1, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DataTableBoolSave2(bool place, string key, int lp_1, int lp_2, bool val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave2(place, key, lp_1, lp_2, val);
-                    break;
-                default:
-                    DictionaryBoolSave2(place, key, lp_1, lp_2, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DataTableBoolSave3(bool place, string key, int lp_1, int lp_2, int lp_3, bool val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-                default:
-                    DictionaryBoolSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DataTableBoolSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, bool val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-                default:
-                    DictionaryBoolSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool? DataTableBoolLoad0_N(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (bool?)HashTableLoad0(place, key);
-                default:
-                    return DictionaryBoolLoad0_N(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static bool? DataTableBoolLoad1_N(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (bool?)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryBoolLoad1_N(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static bool? DataTableBoolLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (bool?)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryBoolLoad2_N(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static bool? DataTableBoolLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (bool?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryBoolLoad3_N(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static bool? DataTableBoolLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (bool?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryBoolLoad4_N(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableBoolLoad0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (bool)HashTableLoad0(place, key);
-                default:
-                    return DictionaryBoolLoad0(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static bool DataTableBoolLoad1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (bool)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryBoolLoad1(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static bool DataTableBoolLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (bool)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryBoolLoad2(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static bool DataTableBoolLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (bool)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryBoolLoad3(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static bool DataTableBoolLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (bool)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryBoolLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        #endregion
-
-        #region Byte
-
-        /// <summary>
-        /// 判断数据表键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableByteKeyExists(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableKeyExists(place, key);
-                default:
-                    return DictionaryByteKeyExists(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 判断数据表值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DataTableByteValueExists(bool place, byte value)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableValueExists(place, value);
-                default:
-                    return DictionaryByteValueExists(place, value);
-            }
-        }
-
-        /// <summary>
-        /// 获取数据表键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static byte DataTableByteGetValue(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (byte)HashTableGetValue(place, key);
-                default:
-                    return DictionaryByteGetValue(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DataTableByteClear0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear0(place, key);
-                    break;
-                default:
-                    DictionaryByteClear0(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DataTableByteClear1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear1(place, key, lp_1);
-                    break;
-                default:
-                    DictionaryByteClear1(place, key, lp_1);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DataTableByteClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear2(place, key, lp_1, lp_2);
-                    break;
-                default:
-                    DictionaryByteClear2(place, key, lp_1, lp_2);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DataTableByteClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-                default:
-                    DictionaryByteClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DataTableByteClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-                default:
-                    DictionaryByteClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 移除数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DataTableByteRemove(bool place, string key)//内部函数
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableRemove(place, key);
-                    break;
-                default:
-                    DictionaryByteRemove(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DataTableByteSave0(bool place, string key, byte val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave0(place, key, val);
-                    break;
-                default:
-                    DictionaryByteSave0(place, key, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DataTableByteSave1(bool place, string key, int lp_1, byte val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave1(place, key, lp_1, val);
-                    break;
-                default:
-                    DictionaryByteSave1(place, key, lp_1, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DataTableByteSave2(bool place, string key, int lp_1, int lp_2, byte val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave2(place, key, lp_1, lp_2, val);
-                    break;
-                default:
-                    DictionaryByteSave2(place, key, lp_1, lp_2, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DataTableByteSave3(bool place, string key, int lp_1, int lp_2, int lp_3, byte val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-                default:
-                    DictionaryByteSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DataTableByteSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, byte val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-                default:
-                    DictionaryByteSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static byte? DataTableByteLoad0_N(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (byte?)HashTableLoad0(place, key);
-                default:
-                    return DictionaryByteLoad0_N(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static byte? DataTableByteLoad1_N(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (byte?)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryByteLoad1_N(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static byte? DataTableByteLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (byte?)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryByteLoad2_N(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static byte? DataTableByteLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (byte?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryByteLoad3_N(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static byte? DataTableByteLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (byte?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryByteLoad4_N(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static byte DataTableByteLoad0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (byte)HashTableLoad0(place, key);
-                default:
-                    return DictionaryByteLoad0(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static byte DataTableByteLoad1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (byte)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryByteLoad1(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static byte DataTableByteLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (byte)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryByteLoad2(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static byte DataTableByteLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (byte)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryByteLoad3(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static byte DataTableByteLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (byte)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryByteLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        #endregion
-
-        #region Vector2F
-
-        /// <summary>
-        /// 判断数据表键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DataTableVectorKeyExists(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableKeyExists(place, key);
-                default:
-                    return DictionaryVectorKeyExists(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 判断数据表值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DataTableVectorValueExists(bool place, Vector2F value)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return HashTableValueExists(place, value);
-                default:
-                    return DictionaryVectorValueExists(place, value);
-            }
-        }
-
-        /// <summary>
-        /// 获取数据表键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static Vector2F DataTableVectorGetValue(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (Vector2F)HashTableGetValue(place, key);
-                default:
-                    return DictionaryVectorGetValue(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DataTableVectorClear0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear0(place, key);
-                    break;
-                default:
-                    DictionaryVectorClear0(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DataTableVectorClear1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear1(place, key, lp_1);
-                    break;
-                default:
-                    DictionaryVectorClear1(place, key, lp_1);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DataTableVectorClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear2(place, key, lp_1, lp_2);
-                    break;
-                default:
-                    DictionaryVectorClear2(place, key, lp_1, lp_2);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DataTableVectorClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-                default:
-                    DictionaryVectorClear3(place, key, lp_1, lp_2, lp_3);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 从数据表中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DataTableVectorClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-                default:
-                    DictionaryVectorClear4(place, key, lp_1, lp_2, lp_3, lp_4);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 移除数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DataTableVectorRemove(bool place, string key)//内部函数
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableRemove(place, key);
-                    break;
-                default:
-                    DictionaryVectorRemove(place, key);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DataTableVectorSave0(bool place, string key, Vector2F val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave0(place, key, val);
-                    break;
-                default:
-                    DictionaryVectorSave0(place, key, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DataTableVectorSave1(bool place, string key, int lp_1, Vector2F val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave1(place, key, lp_1, val);
-                    break;
-                default:
-                    DictionaryVectorSave1(place, key, lp_1, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DataTableVectorSave2(bool place, string key, int lp_1, int lp_2, Vector2F val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave2(place, key, lp_1, lp_2, val);
-                    break;
-                default:
-                    DictionaryVectorSave2(place, key, lp_1, lp_2, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DataTableVectorSave3(bool place, string key, int lp_1, int lp_2, int lp_3, Vector2F val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-                default:
-                    DictionaryVectorSave3(place, key, lp_1, lp_2, lp_3, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 保存数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DataTableVectorSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, Vector2F val)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    HashTableSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-                default:
-                    DictionaryVectorSave4(place, key, lp_1, lp_2, lp_3, lp_4, val);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static Vector2F? DataTableVectorLoad0_N(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (Vector2F?)HashTableLoad0(place, key);
-                default:
-                    return DictionaryVectorLoad0_N(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static Vector2F? DataTableVectorLoad1_N(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (Vector2F?)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryVectorLoad1_N(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static Vector2F? DataTableVectorLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (Vector2F?)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryVectorLoad2_N(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static Vector2F? DataTableVectorLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (Vector2F?)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryVectorLoad3_N(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static Vector2F? DataTableVectorLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (Vector2F?)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryVectorLoad4_N(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回new Vector2F(0,0)</returns>
-        public static Vector2F DataTableVectorLoad0(bool place, string key)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (Vector2F)HashTableLoad0(place, key);
-                default:
-                    return DictionaryVectorLoad0(place, key);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns></returns>
-        public static Vector2F DataTableVectorLoad1(bool place, string key, int lp_1)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (Vector2F)HashTableLoad1(place, key, lp_1);
-                default:
-                    return DictionaryVectorLoad1(place, key, lp_1);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns></returns>
-        public static Vector2F DataTableVectorLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (Vector2F)HashTableLoad2(place, key, lp_1, lp_2);
-                default:
-                    return DictionaryVectorLoad2(place, key, lp_1, lp_2);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns></returns>
-        public static Vector2F DataTableVectorLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (Vector2F)HashTableLoad3(place, key, lp_1, lp_2, lp_3);
-                default:
-                    return DictionaryVectorLoad3(place, key, lp_1, lp_2, lp_3);
-            }
-        }
-
-        /// <summary>
-        /// 读取数据表键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns></returns>
-        public static Vector2F DataTableVectorLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            switch (DataTableHashType)
-            {
-                case true:
-                    return (Vector2F)HashTableLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-                default:
-                    return DictionaryVectorLoad4(place, key, lp_1, lp_2, lp_3, lp_4);
-            }
-        }
-
-        #endregion
-
-        #endregion
-
-        #endregion
-
-        #region 基础数据表(提供哈希表、字典、跨线程字典)
-
-        #region 哈希表(任意类型,支持跨线程读写)
-
-        //使用哈希表设计存取任意类型(不支持泛型)
+        //Hashtable在在多线程可直接操作读但写默认不安全,多写时需开启内部锁保证线程数据同步,用Hashtable.Synchronized方法保安全
+        //Hashtable不支持泛型,在查找不存在键时返回空
 
         /// <summary>
         /// 添加哈希表键值对(重复添加则覆盖)
@@ -7415,7 +2493,7 @@ namespace MetalMaxSystem
         /// <param name="place">true=全局,false=临时</param>
         /// <param name="key"></param>
         /// <param name="val"></param>
-        private static void HashTableSet(bool place, string key, object val)//内部使用
+        private static void HashTableSet(bool place, string key, object val)
         {
             if (place)
             {
@@ -7539,7 +2617,7 @@ namespace MetalMaxSystem
         /// </summary>
         /// <param name="place"></param>
         /// <param name="key"></param>
-        private static void HashTableRemove(bool place, string key)//内部函数
+        private static void HashTableRemove(bool place, string key)
         {
             if (place) { globalHashTable.Remove(key); }
             else { localHashTable.Remove(key); }
@@ -7697,7184 +2775,9 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region 字典(不可跨线程写入)
-
-        //使用字典设计存取指定类型(采用泛型时尽可能多分类来防止装箱耗时,尽量存到指定类型,引用类型之间的互转除外,但平时大量遍历且常用的也可以拆分出来)
-
-        #region 值类型
-
-        #region Int字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void DictionaryIntSet(bool place, string key, int val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalDictionaryInt[key] = val;
-
-                //if (globalDictionaryInt.Contains(key)) 
-                //{
-                //   globalDictionaryInt.Remove(key);
-                //}
-                //globalDictionaryInt.Add(key, val);
-
-            }
-            else
-            {
-                //存入局部字典
-                localDictionaryInt[key] = val;
-
-                //if (localDictionaryInt.Contains(key)) { localDictionaryInt.Remove(key); }
-                //localDictionaryInt.Add(key, val);
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DictionaryIntKeyExists(bool place, string key)
-        {
-            if (place) { return globalDictionaryInt.ContainsKey(key); }
-            else { return localDictionaryInt.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DictionaryIntValueExists(bool place, int value)
-        {
-            if (place) { return globalDictionaryInt.ContainsValue(value); }
-            else { return localDictionaryInt.ContainsValue(value); }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static int DictionaryIntGetValue(bool place, string key)
-        {
-            if (place) { return globalDictionaryInt[key]; }
-            else { return localDictionaryInt[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DictionaryIntClear0(bool place, string key)
-        {
-            DictionaryIntRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DictionaryIntClear1(bool place, string key, int lp_1)
-        {
-            DictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DictionaryIntClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            DictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DictionaryIntClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            DictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DictionaryIntClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            DictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DictionaryIntRemove(bool place, string key)//内部函数
-        {
-            if (place) { globalDictionaryInt.Remove(key); }
-            else { localDictionaryInt.Remove(key); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DictionaryIntSave0(bool place, string key, int val)
-        {
-            DictionaryIntSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DictionaryIntSave1(bool place, string key, int lp_1, int val)
-        {
-            DictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DictionaryIntSave2(bool place, string key, int lp_1, int lp_2, int val)
-        {
-            DictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DictionaryIntSave3(bool place, string key, int lp_1, int lp_2, int lp_3, int val)
-        {
-            DictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DictionaryIntSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, int val)
-        {
-            DictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static int? DictionaryIntLoad0_N(bool place, string key)
-        {
-            if ((DictionaryIntKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return DictionaryIntGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static int? DictionaryIntLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static int? DictionaryIntLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static int? DictionaryIntLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static int? DictionaryIntLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回0</returns>
-        public static int DictionaryIntLoad0(bool place, string key)
-        {
-            if ((DictionaryIntKeyExists(place, key) == false))
-            {
-                return 0;
-            }
-            return DictionaryIntGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回0</returns>
-        public static int DictionaryIntLoad1(bool place, string key, int lp_1)
-        {
-            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return 0;
-            }
-            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回0</returns>
-        public static int DictionaryIntLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return 0;
-            }
-            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回0</returns>
-        public static int DictionaryIntLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return 0;
-            }
-            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回0</returns>
-        public static int DictionaryIntLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return 0;
-            }
-            return DictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
         #endregion
 
-        #region Long字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void DictionaryLongSet(bool place, string key, long val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalDictionaryLong[key] = val;
-
-                //if (globalDictionaryLong.Contains(key)) 
-                //{
-                //   globalDictionaryLong.Remove(key);
-                //}
-                //globalDictionaryLong.Add(key, val);
-
-            }
-            else
-            {
-                //存入局部字典
-                localDictionaryLong[key] = val;
-
-                //if (localDictionaryLong.Contains(key)) { localDictionaryLong.Remove(key); }
-                //localDictionaryLong.Add(key, val);
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DictionaryLongKeyExists(bool place, string key)
-        {
-            if (place) { return globalDictionaryLong.ContainsKey(key); }
-            else { return localDictionaryLong.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DictionaryLongValueExists(bool place, long value)
-        {
-            if (place) { return globalDictionaryLong.ContainsValue(value); }
-            else { return localDictionaryLong.ContainsValue(value); }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static long DictionaryLongGetValue(bool place, string key)
-        {
-            if (place) { return globalDictionaryLong[key]; }
-            else { return localDictionaryLong[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DictionaryLongClear0(bool place, string key)
-        {
-            DictionaryLongRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DictionaryLongClear1(bool place, string key, int lp_1)
-        {
-            DictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DictionaryLongClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            DictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DictionaryLongClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            DictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DictionaryLongClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            DictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DictionaryLongRemove(bool place, string key)//内部函数
-        {
-            if (place) { globalDictionaryLong.Remove(key); }
-            else { localDictionaryLong.Remove(key); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DictionaryLongSave0(bool place, string key, long val)
-        {
-            DictionaryLongSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DictionaryLongSave1(bool place, string key, int lp_1, long val)
-        {
-            DictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DictionaryLongSave2(bool place, string key, int lp_1, int lp_2, long val)
-        {
-            DictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DictionaryLongSave3(bool place, string key, int lp_1, int lp_2, int lp_3, long val)
-        {
-            DictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DictionaryLongSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, long val)
-        {
-            DictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static long? DictionaryLongLoad0_N(bool place, string key)
-        {
-            if ((DictionaryLongKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return DictionaryLongGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static long? DictionaryLongLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static long? DictionaryLongLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static long? DictionaryLongLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static long? DictionaryLongLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回0</returns>
-        public static long DictionaryLongLoad0(bool place, string key)
-        {
-            if ((DictionaryLongKeyExists(place, key) == false))
-            {
-                return 0;
-            }
-            return DictionaryLongGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回0</returns>
-        public static long DictionaryLongLoad1(bool place, string key, int lp_1)
-        {
-            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return 0;
-            }
-            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回0</returns>
-        public static long DictionaryLongLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return 0;
-            }
-            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回0</returns>
-        public static long DictionaryLongLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return 0;
-            }
-            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回0</returns>
-        public static long DictionaryLongLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return 0;
-            }
-            return DictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Char字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void DictionaryCharSet(bool place, string key, char val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalDictionaryChar[key] = val;
-
-                //if (globalDictionaryChar.Contains(key)) 
-                //{
-                //   globalDictionaryChar.Remove(key);
-                //}
-                //globalDictionaryChar.Add(key, val);
-
-            }
-            else
-            {
-                //存入局部字典
-                localDictionaryChar[key] = val;
-
-                //if (localDictionaryChar.Contains(key)) { localDictionaryChar.Remove(key); }
-                //localDictionaryChar.Add(key, val);
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DictionaryCharKeyExists(bool place, string key)
-        {
-            if (place) { return globalDictionaryChar.ContainsKey(key); }
-            else { return localDictionaryChar.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DictionaryCharValueExists(bool place, char value)
-        {
-            if (place) { return globalDictionaryChar.ContainsValue(value); }
-            else { return localDictionaryChar.ContainsValue(value); }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static char DictionaryCharGetValue(bool place, string key)
-        {
-            if (place) { return globalDictionaryChar[key]; }
-            else { return localDictionaryChar[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DictionaryCharClear0(bool place, string key)
-        {
-            DictionaryCharRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DictionaryCharClear1(bool place, string key, int lp_1)
-        {
-            DictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DictionaryCharClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            DictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DictionaryCharClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            DictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DictionaryCharClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            DictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DictionaryCharRemove(bool place, string key)//内部函数
-        {
-            if (place) { globalDictionaryChar.Remove(key); }
-            else { localDictionaryChar.Remove(key); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DictionaryCharSave0(bool place, string key, char val)
-        {
-            DictionaryCharSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DictionaryCharSave1(bool place, string key, int lp_1, char val)
-        {
-            DictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DictionaryCharSave2(bool place, string key, int lp_1, int lp_2, char val)
-        {
-            DictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DictionaryCharSave3(bool place, string key, int lp_1, int lp_2, int lp_3, char val)
-        {
-            DictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DictionaryCharSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, char val)
-        {
-            DictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static char? DictionaryCharLoad0_N(bool place, string key)
-        {
-            if ((DictionaryCharKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return DictionaryCharGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static char? DictionaryCharLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static char? DictionaryCharLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static char? DictionaryCharLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static char? DictionaryCharLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回' '</returns>
-        public static char DictionaryCharLoad0(bool place, string key)
-        {
-            if ((DictionaryCharKeyExists(place, key) == false))
-            {
-                return ' ';
-            }
-            return DictionaryCharGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回' '</returns>
-        public static char DictionaryCharLoad1(bool place, string key, int lp_1)
-        {
-            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return ' ';
-            }
-            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回' '</returns>
-        public static char DictionaryCharLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return ' ';
-            }
-            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回' '</returns>
-        public static char DictionaryCharLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return ' ';
-            }
-            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回' '</returns>
-        public static char DictionaryCharLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return ' ';
-            }
-            return DictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Float字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void DictionaryFloatSet(bool place, string key, float val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalDictionaryFloat[key] = val;
-
-                //if (globalDictionaryFloat.Contains(key)) 
-                //{
-                //   globalDictionaryFloat.Remove(key);
-                //}
-                //globalDictionaryFloat.Add(key, val);
-
-            }
-            else
-            {
-                //存入局部字典
-                localDictionaryFloat[key] = val;
-
-                //if (localDictionaryFloat.Contains(key)) { localDictionaryFloat.Remove(key); }
-                //localDictionaryFloat.Add(key, val);
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DictionaryFloatKeyExists(bool place, string key)
-        {
-            if (place) { return globalDictionaryFloat.ContainsKey(key); }
-            else { return localDictionaryFloat.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DictionaryFloatValueExists(bool place, float value)
-        {
-            if (place) { return globalDictionaryFloat.ContainsValue(value); }
-            else { return localDictionaryFloat.ContainsValue(value); }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static float DictionaryFloatGetValue(bool place, string key)
-        {
-            if (place) { return globalDictionaryFloat[key]; }
-            else { return localDictionaryFloat[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DictionaryFloatClear0(bool place, string key)
-        {
-            DictionaryFloatRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DictionaryFloatClear1(bool place, string key, int lp_1)
-        {
-            DictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DictionaryFloatClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            DictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DictionaryFloatClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            DictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DictionaryFloatClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            DictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DictionaryFloatRemove(bool place, string key)//内部函数
-        {
-            if (place) { globalDictionaryFloat.Remove(key); }
-            else { localDictionaryFloat.Remove(key); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DictionaryFloatSave0(bool place, string key, float val)
-        {
-            DictionaryFloatSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DictionaryFloatSave1(bool place, string key, int lp_1, float val)
-        {
-            DictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DictionaryFloatSave2(bool place, string key, int lp_1, int lp_2, float val)
-        {
-            DictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DictionaryFloatSave3(bool place, string key, int lp_1, int lp_2, int lp_3, float val)
-        {
-            DictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DictionaryFloatSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, float val)
-        {
-            DictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static float? DictionaryFloatLoad0_N(bool place, string key)
-        {
-            if ((DictionaryFloatKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return DictionaryFloatGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static float? DictionaryFloatLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static float? DictionaryFloatLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static float? DictionaryFloatLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static float? DictionaryFloatLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回0.0f</returns>
-        public static float DictionaryFloatLoad0(bool place, string key)
-        {
-            if ((DictionaryFloatKeyExists(place, key) == false))
-            {
-                return 0.0f;
-            }
-            return DictionaryFloatGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回0.0f</returns>
-        public static float DictionaryFloatLoad1(bool place, string key, int lp_1)
-        {
-            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return 0.0f;
-            }
-            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回0.0f</returns>
-        public static float DictionaryFloatLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return 0.0f;
-            }
-            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回0.0f</returns>
-        public static float DictionaryFloatLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return 0.0f;
-            }
-            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回0.0f</returns>
-        public static float DictionaryFloatLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return 0.0f;
-            }
-            return DictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Double字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void DictionaryDoubleSet(bool place, string key, double val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalDictionaryDouble[key] = val;
-
-                //if (globalDictionaryDouble.Contains(key)) 
-                //{
-                //   globalDictionaryDouble.Remove(key);
-                //}
-                //globalDictionaryDouble.Add(key, val);
-
-            }
-            else
-            {
-                //存入局部字典
-                localDictionaryDouble[key] = val;
-
-                //if (localDictionaryDouble.Contains(key)) { localDictionaryDouble.Remove(key); }
-                //localDictionaryDouble.Add(key, val);
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DictionaryDoubleKeyExists(bool place, string key)
-        {
-            if (place) { return globalDictionaryDouble.ContainsKey(key); }
-            else { return localDictionaryDouble.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DictionaryDoubleValueExists(bool place, double value)
-        {
-            if (place) { return globalDictionaryDouble.ContainsValue(value); }
-            else { return localDictionaryDouble.ContainsValue(value); }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static double DictionaryDoubleGetValue(bool place, string key)
-        {
-            if (place) { return globalDictionaryDouble[key]; }
-            else { return localDictionaryDouble[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DictionaryDoubleClear0(bool place, string key)
-        {
-            DictionaryDoubleRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DictionaryDoubleClear1(bool place, string key, int lp_1)
-        {
-            DictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DictionaryDoubleClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            DictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DictionaryDoubleClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            DictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DictionaryDoubleClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            DictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DictionaryDoubleRemove(bool place, string key)//内部函数
-        {
-            if (place) { globalDictionaryDouble.Remove(key); }
-            else { localDictionaryDouble.Remove(key); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DictionaryDoubleSave0(bool place, string key, double val)
-        {
-            DictionaryDoubleSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DictionaryDoubleSave1(bool place, string key, int lp_1, double val)
-        {
-            DictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DictionaryDoubleSave2(bool place, string key, int lp_1, int lp_2, double val)
-        {
-            DictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DictionaryDoubleSave3(bool place, string key, int lp_1, int lp_2, int lp_3, double val)
-        {
-            DictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DictionaryDoubleSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, double val)
-        {
-            DictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static double? DictionaryDoubleLoad0_N(bool place, string key)
-        {
-            if (DictionaryDoubleKeyExists(place, key) == false)
-            {
-                return null;
-            }
-            return DictionaryDoubleGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static double? DictionaryDoubleLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static double? DictionaryDoubleLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static double? DictionaryDoubleLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static double? DictionaryDoubleLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回0.0</returns>
-        public static double DictionaryDoubleLoad0(bool place, string key)
-        {
-            if (DictionaryDoubleKeyExists(place, key) == false)
-            {
-                return 0.0;
-            }
-            return DictionaryDoubleGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回0.0</returns>
-        public static double DictionaryDoubleLoad1(bool place, string key, int lp_1)
-        {
-            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return 0.0;
-            }
-            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回0.0</returns>
-        public static double DictionaryDoubleLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return 0.0;
-            }
-            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回0.0</returns>
-        public static double DictionaryDoubleLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return 0.0;
-            }
-            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回0.0</returns>
-        public static double DictionaryDoubleLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return 0.0;
-            }
-            return DictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Bool字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void DictionaryBoolSet(bool place, string key, bool val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalDictionaryBool[key] = val;
-
-                //if (globalDictionaryBool.Contains(key)) 
-                //{
-                //   globalDictionaryBool.Remove(key);
-                //}
-                //globalDictionaryBool.Add(key, val);
-
-            }
-            else
-            {
-                //存入局部字典
-                localDictionaryBool[key] = val;
-
-                //if (localDictionaryBool.Contains(key)) { localDictionaryBool.Remove(key); }
-                //localDictionaryBool.Add(key, val);
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DictionaryBoolKeyExists(bool place, string key)
-        {
-            if (place)
-            {
-                return globalDictionaryBool.ContainsKey(key);
-            }
-            else { return localDictionaryBool.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DictionaryBoolValueExists(bool place, bool value)
-        {
-            if (place) { return globalDictionaryBool.ContainsValue(value); }
-            else { return localDictionaryBool.ContainsValue(value); }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DictionaryBoolGetValue(bool place, string key)
-        {
-            if (place) { return globalDictionaryBool[key]; }
-            else { return localDictionaryBool[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DictionaryBoolClear0(bool place, string key)
-        {
-            DictionaryBoolRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DictionaryBoolClear1(bool place, string key, int lp_1)
-        {
-            DictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DictionaryBoolClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            DictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DictionaryBoolClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            DictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DictionaryBoolClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            DictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DictionaryBoolRemove(bool place, string key)//内部函数
-        {
-            if (place) { globalDictionaryBool.Remove(key); }
-            else { localDictionaryBool.Remove(key); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DictionaryBoolSave0(bool place, string key, bool val)
-        {
-            DictionaryBoolSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DictionaryBoolSave1(bool place, string key, int lp_1, bool val)
-        {
-            DictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DictionaryBoolSave2(bool place, string key, int lp_1, int lp_2, bool val)
-        {
-            DictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DictionaryBoolSave3(bool place, string key, int lp_1, int lp_2, int lp_3, bool val)
-        {
-            DictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DictionaryBoolSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, bool val)
-        {
-            DictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static bool? DictionaryBoolLoad0_N(bool place, string key)
-        {
-            if ((DictionaryBoolKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return DictionaryBoolGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static bool? DictionaryBoolLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static bool? DictionaryBoolLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static bool? DictionaryBoolLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static bool? DictionaryBoolLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回false</returns>
-        public static bool DictionaryBoolLoad0(bool place, string key)
-        {
-            if ((DictionaryBoolKeyExists(place, key) == false))
-            {
-                return false;
-            }
-            return DictionaryBoolGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回false</returns>
-        public static bool DictionaryBoolLoad1(bool place, string key, int lp_1)
-        {
-            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return false;
-            }
-            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回false</returns>
-        public static bool DictionaryBoolLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return false;
-            }
-            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回false</returns>
-        public static bool DictionaryBoolLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return false;
-            }
-            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回false</returns>
-        public static bool DictionaryBoolLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return false;
-            }
-            return DictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Byte字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void DictionaryByteSet(bool place, string key, byte val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalDictionaryByte[key] = val;
-
-                //if (globalDictionaryByte.Contains(key)) 
-                //{
-                //   globalDictionaryByte.Remove(key);
-                //}
-                //globalDictionaryByte.Add(key, val);
-
-            }
-            else
-            {
-                //存入局部字典
-                localDictionaryByte[key] = val;
-
-                //if (localDictionaryByte.Contains(key)) { localDictionaryByte.Remove(key); }
-                //localDictionaryByte.Add(key, val);
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DictionaryByteKeyExists(bool place, string key)
-        {
-            if (place) { return globalDictionaryByte.ContainsKey(key); }
-            else { return localDictionaryByte.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DictionaryByteValueExists(bool place, byte value)
-        {
-            if (place) { return globalDictionaryByte.ContainsValue(value); }
-            else { return localDictionaryByte.ContainsValue(value); }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static byte DictionaryByteGetValue(bool place, string key)
-        {
-            if (place) { return globalDictionaryByte[key]; }
-            else { return localDictionaryByte[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DictionaryByteClear0(bool place, string key)
-        {
-            DictionaryByteRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DictionaryByteClear1(bool place, string key, int lp_1)
-        {
-            DictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DictionaryByteClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            DictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DictionaryByteClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            DictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DictionaryByteClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            DictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DictionaryByteRemove(bool place, string key)//内部函数
-        {
-            if (place) { globalDictionaryByte.Remove(key); }
-            else { localDictionaryByte.Remove(key); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DictionaryByteSave0(bool place, string key, byte val)
-        {
-            DictionaryByteSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DictionaryByteSave1(bool place, string key, int lp_1, byte val)
-        {
-            DictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DictionaryByteSave2(bool place, string key, int lp_1, int lp_2, byte val)
-        {
-            DictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DictionaryByteSave3(bool place, string key, int lp_1, int lp_2, int lp_3, byte val)
-        {
-            DictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DictionaryByteSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, byte val)
-        {
-            DictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static byte? DictionaryByteLoad0_N(bool place, string key)
-        {
-            if ((DictionaryByteKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return DictionaryByteGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static byte? DictionaryByteLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static byte? DictionaryByteLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static byte? DictionaryByteLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static byte? DictionaryByteLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回0</returns>
-        public static byte DictionaryByteLoad0(bool place, string key)
-        {
-            if ((DictionaryByteKeyExists(place, key) == false))
-            {
-                return 0;
-            }
-            return DictionaryByteGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回0</returns>
-        public static byte DictionaryByteLoad1(bool place, string key, int lp_1)
-        {
-            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return 0;
-            }
-            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回0</returns>
-        public static byte DictionaryByteLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return 0;
-            }
-            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回0</returns>
-        public static byte DictionaryByteLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return 0;
-            }
-            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回0</returns>
-        public static byte DictionaryByteLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return 0;
-            }
-            return DictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Vector2F字典
-
-        //C#中结构体是值类型
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void DictionaryVectorSet(bool place, string key, Vector2F val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalDictionaryVector[key] = val;
-
-                //if (globalDictionaryVector.Contains(key)) 
-                //{
-                //   globalDictionaryVector.Remove(key);
-                //}
-                //globalDictionaryVector.Add(key, val);
-
-            }
-            else
-            {
-                //存入局部字典
-                localDictionaryVector[key] = val;
-
-                //if (localDictionaryVector.Contains(key)) { localDictionaryVector.Remove(key); }
-                //localDictionaryVector.Add(key, val);
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DictionaryVectorKeyExists(bool place, string key)
-        {
-            if (place) { return globalDictionaryVector.ContainsKey(key); }
-            else { return localDictionaryVector.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DictionaryVectorValueExists(bool place, Vector2F value)
-        {
-            if (place) { return globalDictionaryVector.ContainsValue(value); }
-            else { return localDictionaryVector.ContainsValue(value); }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static Vector2F DictionaryVectorGetValue(bool place, string key)
-        {
-            if (place) { return globalDictionaryVector[key]; }
-            else { return localDictionaryVector[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DictionaryVectorClear0(bool place, string key)
-        {
-            DictionaryVectorRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DictionaryVectorClear1(bool place, string key, int lp_1)
-        {
-            DictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DictionaryVectorClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            DictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DictionaryVectorClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            DictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DictionaryVectorClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            DictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DictionaryVectorRemove(bool place, string key)//内部函数
-        {
-            if (place) { globalDictionaryVector.Remove(key); }
-            else { localDictionaryVector.Remove(key); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DictionaryVectorSave0(bool place, string key, Vector2F val)
-        {
-            DictionaryVectorSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DictionaryVectorSave1(bool place, string key, int lp_1, Vector2F val)
-        {
-            DictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DictionaryVectorSave2(bool place, string key, int lp_1, int lp_2, Vector2F val)
-        {
-            DictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DictionaryVectorSave3(bool place, string key, int lp_1, int lp_2, int lp_3, Vector2F val)
-        {
-            DictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DictionaryVectorSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, Vector2F val)
-        {
-            DictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static Vector2F? DictionaryVectorLoad0_N(bool place, string key)
-        {
-            if ((DictionaryVectorKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return DictionaryVectorGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static Vector2F? DictionaryVectorLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static Vector2F? DictionaryVectorLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static Vector2F? DictionaryVectorLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static Vector2F? DictionaryVectorLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回new Vector2F(0,0)</returns>
-        public static Vector2F DictionaryVectorLoad0(bool place, string key)
-        {
-            if ((DictionaryVectorKeyExists(place, key) == false))
-            {
-                return new Vector2F(0, 0);
-            }
-            return DictionaryVectorGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回new Vector2F(0,0)</returns>
-        public static Vector2F DictionaryVectorLoad1(bool place, string key, int lp_1)
-        {
-            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return new Vector2F(0, 0);
-            }
-            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回new Vector2F(0,0)</returns>
-        public static Vector2F DictionaryVectorLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return new Vector2F(0, 0);
-            }
-            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回new Vector2F(0,0)</returns>
-        public static Vector2F DictionaryVectorLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return new Vector2F(0, 0);
-            }
-            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回new Vector2F(0,0)</returns>
-        public static Vector2F DictionaryVectorLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return new Vector2F(0, 0);
-            }
-            return DictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #endregion
-
-        #region 引用类型
-
-        #region Object字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void DictionaryObjectSet(bool place, string key, object val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalDictionaryObject[key] = val;
-
-                //if (globalDictionaryObject.Contains(key)) 
-                //{
-                //   globalDictionaryObject.Remove(key);
-                //}
-                //globalDictionaryObject.Add(key, val);
-
-            }
-            else
-            {
-                //存入局部字典
-                localDictionaryObject[key] = val;
-
-                //if (localDictionaryObject.Contains(key)) { localDictionaryObject.Remove(key); }
-                //localDictionaryObject.Add(key, val);
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DictionaryObjectKeyExists(bool place, string key)
-        {
-            if (place) { return globalDictionaryObject.ContainsKey(key); }
-            else { return localDictionaryObject.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DictionaryObjectValueExists(bool place, object value)
-        {
-            if (place) { return globalDictionaryObject.ContainsValue(value); }
-            else { return localDictionaryObject.ContainsValue(value); }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static object DictionaryObjectGetValue(bool place, string key)
-        {
-            if (place) { return globalDictionaryObject[key]; }
-            else { return localDictionaryObject[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DictionaryObjectClear0(bool place, string key)
-        {
-            DictionaryObjectRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DictionaryObjectClear1(bool place, string key, int lp_1)
-        {
-            DictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DictionaryObjectClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            DictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DictionaryObjectClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            DictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DictionaryObjectClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            DictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DictionaryObjectRemove(bool place, string key)//内部函数
-        {
-            if (place) { globalDictionaryObject.Remove(key); }
-            else { localDictionaryObject.Remove(key); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DictionaryObjectSave0(bool place, string key, object val)
-        {
-            DictionaryObjectSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DictionaryObjectSave1(bool place, string key, int lp_1, object val)
-        {
-            DictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DictionaryObjectSave2(bool place, string key, int lp_1, int lp_2, object val)
-        {
-            DictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DictionaryObjectSave3(bool place, string key, int lp_1, int lp_2, int lp_3, object val)
-        {
-            DictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DictionaryObjectSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, object val)
-        {
-            DictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static object DictionaryObjectLoad0(bool place, string key)
-        {
-            if ((DictionaryObjectKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return DictionaryObjectGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static object DictionaryObjectLoad1(bool place, string key, int lp_1)
-        {
-            if ((DictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return DictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static object DictionaryObjectLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return DictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static object DictionaryObjectLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return DictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static object DictionaryObjectLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return DictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region String字典
-
-        //C#中字符串是引用类型
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void DictionaryStringSet(bool place, string key, string val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalDictionaryString[key] = val;
-
-                //if (globalDictionaryString.Contains(key)) 
-                //{
-                //   globalDictionaryString.Remove(key);
-                //}
-                //globalDictionaryString.Add(key, val);
-
-            }
-            else
-            {
-                //存入局部字典
-                localDictionaryString[key] = val;
-
-                //if (localDictionaryString.Contains(key)) { localDictionaryString.Remove(key); }
-                //localDictionaryString.Add(key, val);
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool DictionaryStringKeyExists(bool place, string key)
-        {
-            if (place) { return globalDictionaryString.ContainsKey(key); }
-            else { return localDictionaryString.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool DictionaryStringValueExists(bool place, string value)
-        {
-            if (place) { return globalDictionaryString.ContainsValue(value); }
-            else { return localDictionaryString.ContainsValue(value); }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static string DictionaryStringGetValue(bool place, string key)
-        {
-            if (place) { return globalDictionaryString[key]; }
-            else { return localDictionaryString[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void DictionaryStringClear0(bool place, string key)
-        {
-            DictionaryStringRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void DictionaryStringClear1(bool place, string key, int lp_1)
-        {
-            DictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void DictionaryStringClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            DictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void DictionaryStringClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            DictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void DictionaryStringClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            DictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static void DictionaryStringRemove(bool place, string key)//内部函数
-        {
-            if (place) { globalDictionaryString.Remove(key); }
-            else { localDictionaryString.Remove(key); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void DictionaryStringSave0(bool place, string key, string val)
-        {
-            DictionaryStringSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void DictionaryStringSave1(bool place, string key, int lp_1, string val)
-        {
-            DictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void DictionaryStringSave2(bool place, string key, int lp_1, int lp_2, string val)
-        {
-            DictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void DictionaryStringSave3(bool place, string key, int lp_1, int lp_2, int lp_3, string val)
-        {
-            DictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void DictionaryStringSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, string val)
-        {
-            DictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static string DictionaryStringLoad0(bool place, string key)
-        {
-            if ((DictionaryStringKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return DictionaryStringGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static string DictionaryStringLoad1(bool place, string key, int lp_1)
-        {
-            if ((DictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return DictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static string DictionaryStringLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((DictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return DictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static string DictionaryStringLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((DictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return DictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static string DictionaryStringLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((DictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return DictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #endregion
-
-        #endregion
-
-        #region 跨线程字典
-
-        //使用字典设计存取指定类型
-
-        #region 值类型
-
-        #region Int字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void CDictionaryIntSet(bool place, string key, int val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalCDictionaryInt[key] = val;
-            }
-            else
-            {
-                //存入局部字典
-                localCDictionaryInt[key] = val;
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool CDictionaryIntKeyExists(bool place, string key)
-        {
-            if (place) { return globalCDictionaryInt.ContainsKey(key); }
-            else { return localCDictionaryInt.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool CDictionaryIntValueExists(bool place, string key, int value)
-        {
-            bool torf;
-            int tempValue = 0;
-            if (place) { torf = globalCDictionaryInt.TryGetValue(key, out tempValue); }
-            else { torf = localCDictionaryInt.TryGetValue(key, out tempValue); }
-            if (torf) { return tempValue == value; } else { return false; }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static int CDictionaryIntGetValue(bool place, string key)
-        {
-            if (place) { return globalCDictionaryInt[key]; }
-            else { return localCDictionaryInt[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void CDictionaryIntClear0(bool place, string key)
-        {
-            CDictionaryIntRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void CDictionaryIntClear1(bool place, string key, int lp_1)
-        {
-            CDictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void CDictionaryIntClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            CDictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void CDictionaryIntClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            CDictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void CDictionaryIntClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            CDictionaryIntRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static bool CDictionaryIntRemove(bool place, string key)//内部函数
-        {
-            int torf = 0;
-            if (place) { return globalCDictionaryInt.TryRemove(key, out torf); }
-            else { return localCDictionaryInt.TryRemove(key, out torf); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryIntSave0(bool place, string key, int val)
-        {
-            CDictionaryIntSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryIntSave1(bool place, string key, int lp_1, int val)
-        {
-            CDictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryIntSave2(bool place, string key, int lp_1, int lp_2, int val)
-        {
-            CDictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryIntSave3(bool place, string key, int lp_1, int lp_2, int lp_3, int val)
-        {
-            CDictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryIntSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, int val)
-        {
-            CDictionaryIntSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static int? CDictionaryIntLoad0_N(bool place, string key)
-        {
-            if ((CDictionaryIntKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return CDictionaryIntGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static int? CDictionaryIntLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static int? CDictionaryIntLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static int? CDictionaryIntLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static int? CDictionaryIntLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回0</returns>
-        public static int CDictionaryIntLoad0(bool place, string key)
-        {
-            if ((CDictionaryIntKeyExists(place, key) == false))
-            {
-                return 0;
-            }
-            return CDictionaryIntGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回0</returns>
-        public static int CDictionaryIntLoad1(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回0</returns>
-        public static int CDictionaryIntLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回0</returns>
-        public static int CDictionaryIntLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回0</returns>
-        public static int CDictionaryIntLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryIntKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryIntGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Long字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void CDictionaryLongSet(bool place, string key, long val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalCDictionaryLong[key] = val;
-            }
-            else
-            {
-                //存入局部字典
-                localCDictionaryLong[key] = val;
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool CDictionaryLongKeyExists(bool place, string key)
-        {
-            if (place) { return globalCDictionaryLong.ContainsKey(key); }
-            else { return localCDictionaryLong.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool CDictionaryLongValueExists(bool place, string key, long value)
-        {
-            bool torf;
-            long tempValue = 0L;
-            if (place) { torf = globalCDictionaryLong.TryGetValue(key, out tempValue); }
-            else { torf = localCDictionaryLong.TryGetValue(key, out tempValue); }
-            if (torf) { return tempValue == value; } else { return false; }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static long CDictionaryLongGetValue(bool place, string key)
-        {
-            if (place) { return globalCDictionaryLong[key]; }
-            else { return localCDictionaryLong[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void CDictionaryLongClear0(bool place, string key)
-        {
-            CDictionaryLongRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void CDictionaryLongClear1(bool place, string key, int lp_1)
-        {
-            CDictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void CDictionaryLongClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            CDictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void CDictionaryLongClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            CDictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void CDictionaryLongClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            CDictionaryLongRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static bool CDictionaryLongRemove(bool place, string key)//内部函数
-        {
-            long torf = 0L;
-            if (place) { return globalCDictionaryLong.TryRemove(key, out torf); }
-            else { return localCDictionaryLong.TryRemove(key, out torf); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryLongSave0(bool place, string key, long val)
-        {
-            CDictionaryLongSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryLongSave1(bool place, string key, int lp_1, long val)
-        {
-            CDictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryLongSave2(bool place, string key, int lp_1, int lp_2, long val)
-        {
-            CDictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryLongSave3(bool place, string key, int lp_1, int lp_2, int lp_3, long val)
-        {
-            CDictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryLongSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, long val)
-        {
-            CDictionaryLongSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static long? CDictionaryLongLoad0_N(bool place, string key)
-        {
-            if ((CDictionaryLongKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return CDictionaryLongGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static long? CDictionaryLongLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static long? CDictionaryLongLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static long? CDictionaryLongLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static long? CDictionaryLongLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回0</returns>
-        public static long CDictionaryLongLoad0(bool place, string key)
-        {
-            if ((CDictionaryLongKeyExists(place, key) == false))
-            {
-                return 0;
-            }
-            return CDictionaryLongGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回0</returns>
-        public static long CDictionaryLongLoad1(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回0</returns>
-        public static long CDictionaryLongLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回0</returns>
-        public static long CDictionaryLongLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回0</returns>
-        public static long CDictionaryLongLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryLongKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryLongGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Char字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void CDictionaryCharSet(bool place, string key, char val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalCDictionaryChar[key] = val;
-            }
-            else
-            {
-                //存入局部字典
-                localCDictionaryChar[key] = val;
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool CDictionaryCharKeyExists(bool place, string key)
-        {
-            if (place) { return globalCDictionaryChar.ContainsKey(key); }
-            else { return localCDictionaryChar.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool CDictionaryCharValueExists(bool place, string key, char value)
-        {
-            bool torf;
-            //char tempValue = '\0';
-            char tempValue = new char();//注意未初始化值使用会导致编译错误
-            if (place) { torf = globalCDictionaryChar.TryGetValue(key, out tempValue); }
-            else { torf = localCDictionaryChar.TryGetValue(key, out tempValue); }
-            if (torf) { return tempValue == value; } else { return false; }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static char CDictionaryCharGetValue(bool place, string key)
-        {
-            if (place) { return globalCDictionaryChar[key]; }
-            else { return localCDictionaryChar[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void CDictionaryCharClear0(bool place, string key)
-        {
-            CDictionaryCharRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void CDictionaryCharClear1(bool place, string key, int lp_1)
-        {
-            CDictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void CDictionaryCharClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            CDictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void CDictionaryCharClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            CDictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void CDictionaryCharClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            CDictionaryCharRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static bool CDictionaryCharRemove(bool place, string key)//内部函数
-        {
-            char torf = new char();//注意未初始化值使用会导致编译错误
-            if (place) { return globalCDictionaryChar.TryRemove(key, out torf); }
-            else { return localCDictionaryChar.TryRemove(key, out torf); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryCharSave0(bool place, string key, char val)
-        {
-            CDictionaryCharSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryCharSave1(bool place, string key, int lp_1, char val)
-        {
-            CDictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryCharSave2(bool place, string key, int lp_1, int lp_2, char val)
-        {
-            CDictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryCharSave3(bool place, string key, int lp_1, int lp_2, int lp_3, char val)
-        {
-            CDictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryCharSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, char val)
-        {
-            CDictionaryCharSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static char? CDictionaryCharLoad0_N(bool place, string key)
-        {
-            if ((CDictionaryCharKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return CDictionaryCharGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static char? CDictionaryCharLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static char? CDictionaryCharLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static char? CDictionaryCharLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static char? CDictionaryCharLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回' '</returns>
-        public static char CDictionaryCharLoad0(bool place, string key)
-        {
-            if ((CDictionaryCharKeyExists(place, key) == false))
-            {
-                return ' ';
-            }
-            return CDictionaryCharGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回' '</returns>
-        public static char CDictionaryCharLoad1(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return ' ';
-            }
-            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回' '</returns>
-        public static char CDictionaryCharLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return ' ';
-            }
-            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回' '</returns>
-        public static char CDictionaryCharLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return ' ';
-            }
-            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回' '</returns>
-        public static char CDictionaryCharLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryCharKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return ' ';
-            }
-            return CDictionaryCharGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Float字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void CDictionaryFloatSet(bool place, string key, float val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalCDictionaryFloat[key] = val;
-            }
-            else
-            {
-                //存入局部字典
-                localCDictionaryFloat[key] = val;
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool CDictionaryFloatKeyExists(bool place, string key)
-        {
-            if (place) { return globalCDictionaryFloat.ContainsKey(key); }
-            else { return localCDictionaryFloat.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool CDictionaryFloatValueExists(bool place, string key, float value)
-        {
-            bool torf;
-            float tempValue = 0f;
-            if (place) { torf = globalCDictionaryFloat.TryGetValue(key, out tempValue); }
-            else { torf = localCDictionaryFloat.TryGetValue(key, out tempValue); }
-            if (torf) { return tempValue == value; } else { return false; }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static float CDictionaryFloatGetValue(bool place, string key)
-        {
-            if (place) { return globalCDictionaryFloat[key]; }
-            else { return localCDictionaryFloat[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void CDictionaryFloatClear0(bool place, string key)
-        {
-            CDictionaryFloatRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void CDictionaryFloatClear1(bool place, string key, int lp_1)
-        {
-            CDictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void CDictionaryFloatClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            CDictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void CDictionaryFloatClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            CDictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void CDictionaryFloatClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            CDictionaryFloatRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static bool CDictionaryFloatRemove(bool place, string key)//内部函数
-        {
-            float torf = 0f;
-            if (place) { return globalCDictionaryFloat.TryRemove(key, out torf); }
-            else { return localCDictionaryFloat.TryRemove(key, out torf); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryFloatSave0(bool place, string key, float val)
-        {
-            CDictionaryFloatSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryFloatSave1(bool place, string key, int lp_1, float val)
-        {
-            CDictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryFloatSave2(bool place, string key, int lp_1, int lp_2, float val)
-        {
-            CDictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryFloatSave3(bool place, string key, int lp_1, int lp_2, int lp_3, float val)
-        {
-            CDictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryFloatSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, float val)
-        {
-            CDictionaryFloatSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static float? CDictionaryFloatLoad0_N(bool place, string key)
-        {
-            if ((CDictionaryFloatKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return CDictionaryFloatGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static float? CDictionaryFloatLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static float? CDictionaryFloatLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static float? CDictionaryFloatLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static float? CDictionaryFloatLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回0.0f</returns>
-        public static float CDictionaryFloatLoad0(bool place, string key)
-        {
-            if ((CDictionaryFloatKeyExists(place, key) == false))
-            {
-                return 0.0f;
-            }
-            return CDictionaryFloatGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回0.0f</returns>
-        public static float CDictionaryFloatLoad1(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return 0.0f;
-            }
-            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回0.0f</returns>
-        public static float CDictionaryFloatLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return 0.0f;
-            }
-            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回0.0f</returns>
-        public static float CDictionaryFloatLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return 0.0f;
-            }
-            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回0.0f</returns>
-        public static float CDictionaryFloatLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryFloatKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return 0.0f;
-            }
-            return CDictionaryFloatGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Double字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void CDictionaryDoubleSet(bool place, string key, double val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalCDictionaryDouble[key] = val;
-            }
-            else
-            {
-                //存入局部字典
-                localCDictionaryDouble[key] = val;
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool CDictionaryDoubleKeyExists(bool place, string key)
-        {
-            if (place) { return globalCDictionaryDouble.ContainsKey(key); }
-            else { return localCDictionaryDouble.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool CDictionaryDoubleValueExists(bool place, string key, double value)
-        {
-            bool torf;
-            double tempValue = 0d;
-            if (place) { torf = globalCDictionaryDouble.TryGetValue(key, out tempValue); }
-            else { torf = localCDictionaryDouble.TryGetValue(key, out tempValue); }
-            if (torf) { return tempValue == value; } else { return false; }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static double CDictionaryDoubleGetValue(bool place, string key)
-        {
-            if (place) { return globalCDictionaryDouble[key]; }
-            else { return localCDictionaryDouble[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void CDictionaryDoubleClear0(bool place, string key)
-        {
-            CDictionaryDoubleRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void CDictionaryDoubleClear1(bool place, string key, int lp_1)
-        {
-            CDictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void CDictionaryDoubleClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            CDictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void CDictionaryDoubleClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            CDictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void CDictionaryDoubleClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            CDictionaryDoubleRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static bool CDictionaryDoubleRemove(bool place, string key)//内部函数
-        {
-            double torf = 0d;
-            if (place) { return globalCDictionaryDouble.TryRemove(key, out torf); }
-            else { return localCDictionaryDouble.TryRemove(key, out torf); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryDoubleSave0(bool place, string key, double val)
-        {
-            CDictionaryDoubleSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryDoubleSave1(bool place, string key, int lp_1, double val)
-        {
-            CDictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryDoubleSave2(bool place, string key, int lp_1, int lp_2, double val)
-        {
-            CDictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryDoubleSave3(bool place, string key, int lp_1, int lp_2, int lp_3, double val)
-        {
-            CDictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryDoubleSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, double val)
-        {
-            CDictionaryDoubleSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static double? CDictionaryDoubleLoad0_N(bool place, string key)
-        {
-            if (CDictionaryDoubleKeyExists(place, key) == false)
-            {
-                return null;
-            }
-            return CDictionaryDoubleGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static double? CDictionaryDoubleLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static double? CDictionaryDoubleLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static double? CDictionaryDoubleLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static double? CDictionaryDoubleLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回0.0</returns>
-        public static double CDictionaryDoubleLoad0(bool place, string key)
-        {
-            if (CDictionaryDoubleKeyExists(place, key) == false)
-            {
-                return 0.0;
-            }
-            return CDictionaryDoubleGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回0.0</returns>
-        public static double CDictionaryDoubleLoad1(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return 0.0;
-            }
-            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回0.0</returns>
-        public static double CDictionaryDoubleLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return 0.0;
-            }
-            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回0.0</returns>
-        public static double CDictionaryDoubleLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return 0.0;
-            }
-            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回0.0</returns>
-        public static double CDictionaryDoubleLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryDoubleKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return 0.0;
-            }
-            return CDictionaryDoubleGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Bool字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void CDictionaryBoolSet(bool place, string key, bool val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalCDictionaryBool[key] = val;
-            }
-            else
-            {
-                //存入局部字典
-                localCDictionaryBool[key] = val;
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool CDictionaryBoolKeyExists(bool place, string key)
-        {
-            if (place)
-            {
-                return globalCDictionaryBool.ContainsKey(key);
-            }
-            else { return localCDictionaryBool.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool CDictionaryBoolValueExists(bool place, string key, bool value)
-        {
-            bool torf;
-            bool tempValue = false;
-            if (place) { torf = globalCDictionaryBool.TryGetValue(key, out tempValue); }
-            else { torf = localCDictionaryBool.TryGetValue(key, out tempValue); }
-            if (torf) { return tempValue == value; } else { return false; }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool CDictionaryBoolGetValue(bool place, string key)
-        {
-            if (place) { return globalCDictionaryBool[key]; }
-            else { return localCDictionaryBool[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void CDictionaryBoolClear0(bool place, string key)
-        {
-            CDictionaryBoolRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void CDictionaryBoolClear1(bool place, string key, int lp_1)
-        {
-            CDictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void CDictionaryBoolClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            CDictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void CDictionaryBoolClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            CDictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void CDictionaryBoolClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            CDictionaryBoolRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static bool CDictionaryBoolRemove(bool place, string key)//内部函数
-        {
-            bool torf = false;
-            if (place) { return globalCDictionaryBool.TryRemove(key, out torf); }
-            else { return localCDictionaryBool.TryRemove(key, out torf); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryBoolSave0(bool place, string key, bool val)
-        {
-            CDictionaryBoolSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryBoolSave1(bool place, string key, int lp_1, bool val)
-        {
-            CDictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryBoolSave2(bool place, string key, int lp_1, int lp_2, bool val)
-        {
-            CDictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryBoolSave3(bool place, string key, int lp_1, int lp_2, int lp_3, bool val)
-        {
-            CDictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryBoolSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, bool val)
-        {
-            CDictionaryBoolSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static bool? CDictionaryBoolLoad0_N(bool place, string key)
-        {
-            if ((CDictionaryBoolKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return CDictionaryBoolGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static bool? CDictionaryBoolLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static bool? CDictionaryBoolLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static bool? CDictionaryBoolLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static bool? CDictionaryBoolLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回false</returns>
-        public static bool CDictionaryBoolLoad0(bool place, string key)
-        {
-            if ((CDictionaryBoolKeyExists(place, key) == false))
-            {
-                return false;
-            }
-            return CDictionaryBoolGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回false</returns>
-        public static bool CDictionaryBoolLoad1(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return false;
-            }
-            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回false</returns>
-        public static bool CDictionaryBoolLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return false;
-            }
-            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回false</returns>
-        public static bool CDictionaryBoolLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return false;
-            }
-            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回false</returns>
-        public static bool CDictionaryBoolLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryBoolKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return false;
-            }
-            return CDictionaryBoolGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Byte字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void CDictionaryByteSet(bool place, string key, byte val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalCDictionaryByte[key] = val;
-            }
-            else
-            {
-                //存入局部字典
-                localCDictionaryByte[key] = val;
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool CDictionaryByteKeyExists(bool place, string key)
-        {
-            if (place) { return globalCDictionaryByte.ContainsKey(key); }
-            else { return localCDictionaryByte.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool CDictionaryByteValueExists(bool place, string key, byte value)
-        {
-            bool torf;
-            byte tempValue = new byte();
-            if (place) { torf = globalCDictionaryByte.TryGetValue(key, out tempValue); }
-            else { torf = localCDictionaryByte.TryGetValue(key, out tempValue); }
-            if (torf) { return tempValue == value; } else { return false; }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static byte CDictionaryByteGetValue(bool place, string key)
-        {
-            if (place) { return globalCDictionaryByte[key]; }
-            else { return localCDictionaryByte[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void CDictionaryByteClear0(bool place, string key)
-        {
-            CDictionaryByteRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void CDictionaryByteClear1(bool place, string key, int lp_1)
-        {
-            CDictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void CDictionaryByteClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            CDictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void CDictionaryByteClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            CDictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void CDictionaryByteClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            CDictionaryByteRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static bool CDictionaryByteRemove(bool place, string key)//内部函数
-        {
-            byte torf = new byte();
-            if (place) { return globalCDictionaryByte.TryRemove(key, out torf); }
-            else { return localCDictionaryByte.TryRemove(key, out torf); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryByteSave0(bool place, string key, byte val)
-        {
-            CDictionaryByteSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryByteSave1(bool place, string key, int lp_1, byte val)
-        {
-            CDictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryByteSave2(bool place, string key, int lp_1, int lp_2, byte val)
-        {
-            CDictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryByteSave3(bool place, string key, int lp_1, int lp_2, int lp_3, byte val)
-        {
-            CDictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryByteSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, byte val)
-        {
-            CDictionaryByteSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static byte? CDictionaryByteLoad0_N(bool place, string key)
-        {
-            if ((CDictionaryByteKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return CDictionaryByteGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static byte? CDictionaryByteLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static byte? CDictionaryByteLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static byte? CDictionaryByteLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static byte? CDictionaryByteLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回0</returns>
-        public static byte CDictionaryByteLoad0(bool place, string key)
-        {
-            if ((CDictionaryByteKeyExists(place, key) == false))
-            {
-                return 0;
-            }
-            return CDictionaryByteGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回0</returns>
-        public static byte CDictionaryByteLoad1(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回0</returns>
-        public static byte CDictionaryByteLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回0</returns>
-        public static byte CDictionaryByteLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回0</returns>
-        public static byte CDictionaryByteLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryByteKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return 0;
-            }
-            return CDictionaryByteGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region Vector2F字典
-
-        //C#中结构体是值类型
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void CDictionaryVectorSet(bool place, string key, Vector2F val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalCDictionaryVector[key] = val;
-            }
-            else
-            {
-                //存入局部字典
-                localCDictionaryVector[key] = val;
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool CDictionaryVectorKeyExists(bool place, string key)
-        {
-            if (place) { return globalCDictionaryVector.ContainsKey(key); }
-            else { return localCDictionaryVector.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool CDictionaryVectorValueExists(bool place, string key, Vector2F value)
-        {
-            bool torf;
-            Vector2F tempValue = new Vector2F();
-            if (place) { torf = globalCDictionaryVector.TryGetValue(key, out tempValue); }
-            else { torf = localCDictionaryVector.TryGetValue(key, out tempValue); }
-            if (torf) { return tempValue == value; } else { return false; }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static Vector2F CDictionaryVectorGetValue(bool place, string key)
-        {
-            if (place) { return globalCDictionaryVector[key]; }
-            else { return localCDictionaryVector[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void CDictionaryVectorClear0(bool place, string key)
-        {
-            CDictionaryVectorRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void CDictionaryVectorClear1(bool place, string key, int lp_1)
-        {
-            CDictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void CDictionaryVectorClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            CDictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void CDictionaryVectorClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            CDictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void CDictionaryVectorClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            CDictionaryVectorRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static bool CDictionaryVectorRemove(bool place, string key)//内部函数
-        {
-            Vector2F torf = new Vector2F();
-            if (place) { return globalCDictionaryVector.TryRemove(key, out torf); }
-            else { return localCDictionaryVector.TryRemove(key, out torf); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryVectorSave0(bool place, string key, Vector2F val)
-        {
-            CDictionaryVectorSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryVectorSave1(bool place, string key, int lp_1, Vector2F val)
-        {
-            CDictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryVectorSave2(bool place, string key, int lp_1, int lp_2, Vector2F val)
-        {
-            CDictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryVectorSave3(bool place, string key, int lp_1, int lp_2, int lp_3, Vector2F val)
-        {
-            CDictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryVectorSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, Vector2F val)
-        {
-            CDictionaryVectorSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static Vector2F? CDictionaryVectorLoad0_N(bool place, string key)
-        {
-            if ((CDictionaryVectorKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return CDictionaryVectorGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static Vector2F? CDictionaryVectorLoad1_N(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static Vector2F? CDictionaryVectorLoad2_N(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static Vector2F? CDictionaryVectorLoad3_N(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static Vector2F? CDictionaryVectorLoad4_N(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回new Vector2F(0,0)</returns>
-        public static Vector2F CDictionaryVectorLoad0(bool place, string key)
-        {
-            if ((CDictionaryVectorKeyExists(place, key) == false))
-            {
-                return new Vector2F(0, 0);
-            }
-            return CDictionaryVectorGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回new Vector2F(0,0)</returns>
-        public static Vector2F CDictionaryVectorLoad1(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return new Vector2F(0, 0);
-            }
-            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回new Vector2F(0,0)</returns>
-        public static Vector2F CDictionaryVectorLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return new Vector2F(0, 0);
-            }
-            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回new Vector2F(0,0)</returns>
-        public static Vector2F CDictionaryVectorLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return new Vector2F(0, 0);
-            }
-            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回new Vector2F(0,0)</returns>
-        public static Vector2F CDictionaryVectorLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryVectorKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return new Vector2F(0, 0);
-            }
-            return CDictionaryVectorGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #endregion
-
-        #region 引用类型
-
-        #region Object字典
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void CDictionaryObjectSet(bool place, string key, object val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalCDictionaryObject[key] = val;
-            }
-            else
-            {
-                //存入局部字典
-                localCDictionaryObject[key] = val;
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool CDictionaryObjectKeyExists(bool place, string key)
-        {
-            if (place) { return globalCDictionaryObject.ContainsKey(key); }
-            else { return localCDictionaryObject.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool CDictionaryObjectValueExists(bool place, string key, object value)
-        {
-            bool torf;
-            object tempValue = null;
-            if (place) { torf = globalCDictionaryObject.TryGetValue(key, out tempValue); }
-            else { torf = localCDictionaryObject.TryGetValue(key, out tempValue); }
-            if (torf) { return tempValue == value; } else { return false; }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static object CDictionaryObjectGetValue(bool place, string key)
-        {
-            if (place) { return globalCDictionaryObject[key]; }
-            else { return localCDictionaryObject[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void CDictionaryObjectClear0(bool place, string key)
-        {
-            CDictionaryObjectRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void CDictionaryObjectClear1(bool place, string key, int lp_1)
-        {
-            CDictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void CDictionaryObjectClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            CDictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void CDictionaryObjectClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            CDictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void CDictionaryObjectClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            CDictionaryObjectRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static bool CDictionaryObjectRemove(bool place, string key)//内部函数
-        {
-            object torf = null;
-            if (place) { return globalCDictionaryObject.TryRemove(key, out torf); }
-            else { return localCDictionaryObject.TryRemove(key, out torf); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryObjectSave0(bool place, string key, object val)
-        {
-            CDictionaryObjectSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryObjectSave1(bool place, string key, int lp_1, object val)
-        {
-            CDictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryObjectSave2(bool place, string key, int lp_1, int lp_2, object val)
-        {
-            CDictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryObjectSave3(bool place, string key, int lp_1, int lp_2, int lp_3, object val)
-        {
-            CDictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryObjectSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, object val)
-        {
-            CDictionaryObjectSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static object CDictionaryObjectLoad0(bool place, string key)
-        {
-            if ((CDictionaryObjectKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return CDictionaryObjectGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static object CDictionaryObjectLoad1(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return CDictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static object CDictionaryObjectLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return CDictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static object CDictionaryObjectLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return CDictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static object CDictionaryObjectLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryObjectKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return CDictionaryObjectGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #region String字典
-
-        //C#中字符串是引用类型
-
-        /// <summary>
-        /// 添加字典键值对(重复添加则覆盖)
-        /// </summary>
-        /// <param name="place">true=全局,false=局部</param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        private static void CDictionaryStringSet(bool place, string key, string val)//内部使用
-        {
-            if (place)
-            {
-                //存入全局字典
-                globalCDictionaryString[key] = val;
-            }
-            else
-            {
-                //存入局部字典
-                localCDictionaryString[key] = val;
-            }
-        }
-
-        /// <summary>
-        /// 判断字典键是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool CDictionaryStringKeyExists(bool place, string key)
-        {
-            if (place) { return globalCDictionaryString.ContainsKey(key); }
-            else { return localCDictionaryString.ContainsKey(key); }
-        }
-
-        /// <summary>
-        /// 判断字典值是否存在
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        public static bool CDictionaryStringValueExists(bool place, string key, string value)
-        {
-            bool torf;
-            string tempValue = null;
-            if (place) { torf = globalCDictionaryString.TryGetValue(key, out tempValue); }
-            else { torf = localCDictionaryString.TryGetValue(key, out tempValue); }
-            if (torf) { return tempValue == value; } else { return false; }
-        }
-
-        /// <summary>
-        /// 获取字典键对应的值
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static string CDictionaryStringGetValue(bool place, string key)
-        {
-            if (place) { return globalCDictionaryString[key]; }
-            else { return localCDictionaryString[key]; }
-        }
-
-        /// <summary>
-        /// 从字典中移除Key
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        public static void CDictionaryStringClear0(bool place, string key)
-        {
-            CDictionaryStringRemove(place, key);
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[],模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        public static void CDictionaryStringClear1(bool place, string key, int lp_1)
-        {
-            CDictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,],模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        public static void CDictionaryStringClear2(bool place, string key, int lp_1, int lp_2)
-        {
-            CDictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,],模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        public static void CDictionaryStringClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            CDictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 从字典中移除Key[,,,],模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        public static void CDictionaryStringClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            CDictionaryStringRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        /// <summary>
-        /// 移除字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        private static bool CDictionaryStringRemove(bool place, string key)//内部函数
-        {
-            string torf = null;
-            if (place) { return globalCDictionaryString.TryRemove(key, out torf); }
-            else { return localCDictionaryString.TryRemove(key, out torf); }
-        }
-
-        /// <summary>
-        /// 保存字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryStringSave0(bool place, string key, string val)
-        {
-            CDictionaryStringSet(place, key, val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryStringSave1(bool place, string key, int lp_1, string val)
-        {
-            CDictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryStringSave2(bool place, string key, int lp_1, int lp_2, string val)
-        {
-            CDictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryStringSave3(bool place, string key, int lp_1, int lp_2, int lp_3, string val)
-        {
-            CDictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
-        }
-
-        /// <summary>
-        /// 保存字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <param name="val"></param>
-        public static void CDictionaryStringSave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, string val)
-        {
-            CDictionaryStringSet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
-        }
-
-        /// <summary>
-        /// 读取字典键值对
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <returns>错误时返回null</returns>
-        public static string CDictionaryStringLoad0(bool place, string key)
-        {
-            if ((CDictionaryStringKeyExists(place, key) == false))
-            {
-                return null;
-            }
-            return CDictionaryStringGetValue(place, key);
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟1维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <returns>错误时返回null</returns>
-        public static string CDictionaryStringLoad1(bool place, string key, int lp_1)
-        {
-            if ((CDictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1)) == false))
-            {
-                return null;
-            }
-            return CDictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟2维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <returns>错误时返回null</returns>
-        public static string CDictionaryStringLoad2(bool place, string key, int lp_1, int lp_2)
-        {
-            if ((CDictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2)) == false))
-            {
-                return null;
-            }
-            return CDictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟3维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <returns>错误时返回null</returns>
-        public static string CDictionaryStringLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
-        {
-            if ((CDictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3)) == false))
-            {
-                return null;
-            }
-            return CDictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
-        }
-
-        /// <summary>
-        /// 读取字典键值对,模拟4维数组
-        /// </summary>
-        /// <param name="place"></param>
-        /// <param name="key"></param>
-        /// <param name="lp_1"></param>
-        /// <param name="lp_2"></param>
-        /// <param name="lp_3"></param>
-        /// <param name="lp_4"></param>
-        /// <returns>错误时返回null</returns>
-        public static string CDictionaryStringLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
-        {
-            if ((CDictionaryStringKeyExists(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4)) == false))
-            {
-                return null;
-            }
-            return CDictionaryStringGetValue(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
-        }
-
-        #endregion
-
-        #endregion
-
-        #endregion
-
-        #endregion
-
-        #endregion
-
-        //数据表使用过程涉及高频字符串组合或类型转换,需注意进行优化.
+        //数据表使用过程涉及高频字符串组合或类型转换,非纯字符串组合可用ThreadStringBuilder优化.
 
         #region Functions 互动管理(默认使用用户快捷数据表)
 
@@ -14888,7 +2791,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void ThreadWait(string key)
         {
-            while (DataTableBoolLoad0(true, string.Concat("MMCore_ThreadWait_", key)) == true)
+            while (UserDataTable<bool>.Load0(true, string.Concat("MMCore_ThreadWait_", key)) == true)
             {
                 Thread.Sleep(dataTableThreadWaitPeriod); //将调用该函数的当前线程挂起
             }
@@ -14901,7 +2804,7 @@ namespace MetalMaxSystem
         /// <param name="period"></param>
         public static void ThreadWait(string key, int period)
         {
-            while (DataTableBoolLoad0(true, string.Concat("MMCore_ThreadWait_", key)) == true)
+            while (UserDataTable<bool>.Load0(true, string.Concat("MMCore_ThreadWait_", key)) == true)
             {
                 Thread.Sleep(period); //将调用该函数的当前线程挂起
             }
@@ -14914,7 +2817,7 @@ namespace MetalMaxSystem
         /// <param name="val">函数动作完成,所写入存储区闲置时填false,反之填true</param>
         private static void ThreadWaitSet(string key, bool val)
         {
-            DataTableBoolSave0(true, string.Concat("MMCore_ThreadWait_", key), val);
+            UserDataTable<bool>.Save0(true, string.Concat("MMCore_ThreadWait_", key), val);
         }
 
         /// <summary>
@@ -14923,7 +2826,7 @@ namespace MetalMaxSystem
         /// <param name="key"></param>
         public static void ThreadWait(bool place, string key)
         {
-            while (DataTableBoolLoad0(place, string.Concat("MMCore_ThreadWait_", key)) == true)
+            while (UserDataTable<bool>.Load0(place, string.Concat("MMCore_ThreadWait_", key)) == true)
             {
                 Thread.Sleep(dataTableThreadWaitPeriod); //将调用该函数的当前线程挂起
             }
@@ -14936,7 +2839,7 @@ namespace MetalMaxSystem
         /// <param name="period"></param>
         public static void ThreadWait(bool place, string key, int period)
         {
-            while (DataTableBoolLoad0(place, string.Concat("MMCore_ThreadWait_", key)) == true)
+            while (UserDataTable<bool>.Load0(place, string.Concat("MMCore_ThreadWait_", key)) == true)
             {
                 Thread.Sleep(period); //将调用该函数的当前线程挂起
             }
@@ -14949,7 +2852,7 @@ namespace MetalMaxSystem
         /// <param name="val">函数动作完成,所写入存储区闲置时填false,反之填true</param>
         private static void ThreadWaitSet(bool place, string key, bool val)
         {
-            DataTableBoolSave0(place, string.Concat("MMCore_ThreadWait_", key), val);
+            UserDataTable<bool>.Save0(place, string.Concat("MMCore_ThreadWait_", key), val);
         }
 
         #endregion
@@ -14982,19 +2885,32 @@ namespace MetalMaxSystem
         /// <returns>返回一个Object的已注册标签</returns>
         private static int HD_RegObjectTagAndReturn(object lp_object)//内部使用
         {
-            int lv_jBNum = objectJBNum;
-            if (lv_jBNum == 0 || !objectTag.ContainsKey(lp_object))
-            { //若最大句柄为0或虽最大句柄不为0但对象从未注册过,则最大句柄+1并作为对象句柄
-                objectJBNum++; lv_jBNum++;
-                //双向的映射关系
-                objectTag[lp_object] = lv_jBNum;
-                tagObject[lv_jBNum] = lp_object;
-                return lv_jBNum;
+            // int lv_jBNum = objectJBNum;
+            // if (lv_jBNum == 0 || !objectTag.ContainsKey(lp_object))
+            // { //若最大句柄为0或虽最大句柄不为0但对象从未注册过,则最大句柄+1并作为对象句柄
+            //     objectJBNum++; lv_jBNum++;
+            //     //双向的映射关系
+            //     objectTag[lp_object] = lv_jBNum;
+            //     tagObject[lv_jBNum] = lp_object;
+            //     return lv_jBNum;
+            // }
+            // else
+            // { //这是一个重复注册的对象,直接返回其句柄
+            //     return objectTag[lp_object];
+            // }
+            //使用TryGetValue避免重复查找字典
+            if (objectTag.TryGetValue(lp_object, out int existingTag))
+            {
+                //对象已注册,直接返回其句柄
+                return existingTag;
             }
-            else
-            { //这是一个重复注册的对象,直接返回其句柄
-                return objectTag[lp_object];
-            }
+            
+            //新注册:最大句柄+1并作为对象句柄
+            objectJBNum++;
+            int newTag = objectJBNum;
+            objectTag[lp_object] = newTag;
+            tagObject[newTag] = lp_object;
+            return newTag;
         }
 
         /// <summary>
@@ -15004,15 +2920,12 @@ namespace MetalMaxSystem
         /// <returns>返回一个Object的已注册标签,错误返回0</returns>
         public static int HD_ReturnObjectTag(object lp_object)
         {
-            int lv_jBNum = objectJBNum;
-            if (lv_jBNum == 0 || !objectTag.ContainsKey(lp_object))
-            { //若最大句柄为0或虽最大句柄不为0但对象从未注册过
-                return lv_jBNum;
+            //使用TryGetValue避免重复查找字典
+            if (objectTag.TryGetValue(lp_object, out int existingTag))
+            {
+                return existingTag;
             }
-            else
-            { //这是一个已注册的对象,直接返回其句柄
-                return objectTag[lp_object];
-            }
+            return objectJBNum;
         }
 
         /// <summary>
@@ -15058,7 +2971,7 @@ namespace MetalMaxSystem
             int auto_var;
             //Variable Initialization
             lv_str = (lp_key + "HD_Object");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             //Implementation
             ThreadWait(lv_str);
             lv_tag = HD_RegObjectTagAndReturn(lp_object);
@@ -15068,13 +2981,13 @@ namespace MetalMaxSystem
                 //首次注册
                 lv_i = (lv_num + 1);
                 //在组中的元素数量
-                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
+                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
                 //在组中的元素位置记录句柄字符
-                DataTableIntSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                UserDataTable<int>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
                 //对象句柄有效状态
-                DataTableBoolSave0(true, (("HD_IfObjectTag") + "_" + lv_tagStr), true);
+                UserDataTable<bool>.Save0(true, (("HD_IfObjectTag") + "_" + lv_tagStr), true);
                 //对象在组中的注册状态
-                DataTableBoolSave1(true, ("IfObjectGTag" + lv_str), lv_tag, true);
+                UserDataTable<bool>.Save1(true, ("IfObjectGTag" + lv_str), lv_tag, true);
             }
             else
             {
@@ -15085,7 +2998,7 @@ namespace MetalMaxSystem
                     for (; auto_var <= auto_ae; auto_var += 1)
                     {
                         lv_i = auto_var;
-                        if (DataTableIntLoad1(true, lv_str + "Tag", lv_i) == lv_tag)
+                        if (UserDataTable<int>.Load1(true, lv_str + "Tag", lv_i) == lv_tag)
                         {
                             break;
                         }
@@ -15095,20 +3008,20 @@ namespace MetalMaxSystem
                             {
                                 lv_i = (lv_num + 1);
                                 //在组中的元素数量
-                                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
+                                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
                                 //在组中的元素位置记录句柄字符
-                                DataTableIntSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                                UserDataTable<int>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
                                 //对象句柄有效状态
-                                DataTableBoolSave0(true, (("HD_IfObjectTag") + "_" + lv_tagStr), true);
+                                UserDataTable<bool>.Save0(true, (("HD_IfObjectTag") + "_" + lv_tagStr), true);
                                 //对象在组中的注册状态
-                                DataTableBoolSave1(true, ("IfObjectGTag" + lv_str), lv_tag, true);
+                                UserDataTable<bool>.Save1(true, ("IfObjectGTag" + lv_str), lv_tag, true);
                             }
                         }
                     }
                 }
             }
-            DataTableStringSave0(true, ("HD_ObjectState" + "_" + lv_tagStr), lp_inherentStats);
-            DataTableStringSave0(true, ("HD_ObjectCV" + "_" + lv_tagStr), lp_inherentCustomValue);
+            UserDataTable<string>.Save0(true, ("HD_ObjectState" + "_" + lv_tagStr), lp_inherentStats);
+            UserDataTable<string>.Save0(true, ("HD_ObjectCV" + "_" + lv_tagStr), lp_inherentCustomValue);
         }
 
         /// <summary>
@@ -15130,7 +3043,7 @@ namespace MetalMaxSystem
             int auto_var;
             //Variable Initialization
             lv_str = (lp_key + "HD_Object");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             //Implementation
             ThreadWait(lv_str);
             lv_tag = HD_RegObjectTagAndReturn(lp_object);
@@ -15139,10 +3052,10 @@ namespace MetalMaxSystem
             {
                 //首次注册
                 lv_i = (lv_num + 1);
-                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
-                DataTableIntSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
-                DataTableBoolSave0(true, (("HD_IfObjectTag") + "_" + lv_tagStr), true);
-                DataTableBoolSave1(true, ("IfObjectGTag" + lv_str), lv_tag, true);
+                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
+                UserDataTable<int>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                UserDataTable<bool>.Save0(true, (("HD_IfObjectTag") + "_" + lv_tagStr), true);
+                UserDataTable<bool>.Save1(true, ("IfObjectGTag" + lv_str), lv_tag, true);
             }
             else
             {
@@ -15153,7 +3066,7 @@ namespace MetalMaxSystem
                     for (; auto_var <= auto_ae; auto_var += 1)
                     {
                         lv_i = auto_var;
-                        if (DataTableIntLoad1(true, lv_str + "Tag", lv_i) == lv_tag)
+                        if (UserDataTable<int>.Load1(true, lv_str + "Tag", lv_i) == lv_tag)
                         {
                             break;
                         }
@@ -15162,19 +3075,19 @@ namespace MetalMaxSystem
                             if ((lv_i == lv_num))
                             {
                                 lv_i = (lv_num + 1);
-                                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
-                                DataTableIntSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
-                                DataTableBoolSave0(true, (("HD_IfObjectTag") + "_" + lv_tagStr), true);
-                                DataTableBoolSave1(true, ("IfObjectGTag" + lv_str), lv_tag, true);
+                                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
+                                UserDataTable<int>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                                UserDataTable<bool>.Save0(true, (("HD_IfObjectTag") + "_" + lv_tagStr), true);
+                                UserDataTable<bool>.Save1(true, ("IfObjectGTag" + lv_str), lv_tag, true);
                             }
                         }
                     }
                 }
             }
             //从未注册过则进行首次修改为true
-            if ((DataTableBoolKeyExists(true, ("HD_ObjectState" + "_" + lv_tag.ToString())) == false))
+            if ((UserDataTable<bool>.KeyExists(true, ("HD_ObjectState" + "_" + lv_tag.ToString())) == false))
             {
-                DataTableStringSave1(true, (("HD_ObjectState")), lv_tag, "true");
+                UserDataTable<string>.Save1(true, (("HD_ObjectState")), lv_tag, "true");
             }
         }
 
@@ -15197,32 +3110,32 @@ namespace MetalMaxSystem
             lv_tag = HD_ReturnObjectTag(lp_object);
             if (lv_tag == 0) { return; } //若对象没有注册过直接返回
             lv_str = (lp_key + "HD_Object");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tagStr = lv_tag.ToString();
             //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
             {
-                if ((DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_a) == lv_tag))
+                if ((UserDataTable<int>.Load1(true, (lp_key + "HD_ObjectTag"), lv_a) == lv_tag))
                 {
                     lv_num -= 1;
                     //摧毁对象句柄有效状态
-                    DataTableBoolClear0(true, "HD_IfObjectTag_" + lv_tagStr);
+                    UserDataTable<bool>.Clear0(true, "HD_IfObjectTag_" + lv_tagStr);
                     //摧毁对象在组中的注册状态(在其他组仍可能存在,可结合对象句柄有效状态一起判断)
-                    DataTableBoolClear0(true, "IfObjectGTag" + lv_str + "_" + lv_tagStr);
+                    UserDataTable<bool>.Clear0(true, "IfObjectGTag" + lv_str + "_" + lv_tagStr);
                     //摧毁对象自身固有状态和固有自定义值
-                    DataTableStringClear0(true, "HD_ObjectCV_" + lv_tagStr);
-                    DataTableStringClear0(true, "HD_ObjectState_" + lv_tagStr);
+                    UserDataTable<string>.Clear0(true, "HD_ObjectCV_" + lv_tagStr);
+                    UserDataTable<string>.Clear0(true, "HD_ObjectState_" + lv_tagStr);
                     //摧毁对象在组中的固有状态和固有自定义值
-                    DataTableStringClear0(true, "HD_ObjectCV" + lv_str + "_" + lv_tagStr);
-                    DataTableStringClear0(true, "HD_ObjectState" + lv_str + "_" + lv_tagStr);
+                    UserDataTable<string>.Clear0(true, "HD_ObjectCV" + lv_str + "_" + lv_tagStr);
+                    UserDataTable<string>.Clear0(true, "HD_ObjectState" + lv_str + "_" + lv_tagStr);
                     //刷新组中的元素数量
-                    DataTableIntSave0(true, (lp_key + "HD_ObjectNum"), lv_num);
+                    UserDataTable<int>.Save0(true, (lp_key + "HD_ObjectNum"), lv_num);
                     for (lv_b = lv_a; lv_b <= lv_num; lv_b += 1)
                     {
-                        lv_c = DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_b + 1);
-                        DataTableIntSave1(true, (lp_key + "HD_ObjectTag"), lv_b, lv_c);
+                        lv_c = UserDataTable<int>.Load1(true, (lp_key + "HD_ObjectTag"), lv_b + 1);
+                        UserDataTable<int>.Save1(true, (lp_key + "HD_ObjectTag"), lv_b, lv_c);
                     }
                     //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                     lv_a -= 1;
@@ -15250,27 +3163,27 @@ namespace MetalMaxSystem
             lv_tag = HD_ReturnObjectTag(lp_object);
             if (lv_tag == 0) { return; } //若对象没有注册过直接返回
             lv_str = (lp_key + "HD_Object");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tagStr = lv_tag.ToString();
             //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
             {
-                if ((DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_a) == lv_tag))
+                if ((UserDataTable<int>.Load1(true, (lp_key + "HD_ObjectTag"), lv_a) == lv_tag))
                 {
                     lv_num -= 1;
                     //摧毁对象在组中的注册状态(在其他组仍可能存在,可结合对象句柄有效状态一起判断)
-                    DataTableBoolClear0(true, "IfObjectGTag" + lv_str + "_" + lv_tagStr);
+                    UserDataTable<bool>.Clear0(true, "IfObjectGTag" + lv_str + "_" + lv_tagStr);
                     //摧毁对象自身固有状态和固有自定义值
-                    DataTableStringClear0(true, "HD_ObjectCV" + lv_str + "_" + lv_tagStr);
-                    DataTableStringClear0(true, "HD_ObjectState" + lv_str + "_" + lv_tagStr);
+                    UserDataTable<string>.Clear0(true, "HD_ObjectCV" + lv_str + "_" + lv_tagStr);
+                    UserDataTable<string>.Clear0(true, "HD_ObjectState" + lv_str + "_" + lv_tagStr);
                     //刷新组中的元素数量
-                    DataTableIntSave0(true, (lp_key + "HD_ObjectNum"), lv_num);
+                    UserDataTable<int>.Save0(true, (lp_key + "HD_ObjectNum"), lv_num);
                     for (lv_b = lv_a; lv_b <= lv_num; lv_b += 1)
                     {
-                        lv_c = DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_b + 1);
-                        DataTableIntSave1(true, (lp_key + "HD_ObjectTag"), lv_b, lv_c);
+                        lv_c = UserDataTable<int>.Load1(true, (lp_key + "HD_ObjectTag"), lv_b + 1);
+                        UserDataTable<int>.Save1(true, (lp_key + "HD_ObjectTag"), lv_b, lv_c);
                     }
                     //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                     lv_a -= 1;
@@ -15291,7 +3204,7 @@ namespace MetalMaxSystem
             int lv_num;
             //Variable Initialization
             lv_str = (lp_key + "HD_Object");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             //Implementation
             return lv_num;
         }
@@ -15319,7 +3232,7 @@ namespace MetalMaxSystem
             lv_tag = HD_ReturnObjectTag(lp_object);
             if (lv_tag == 0) { return 0; } //若对象没有注册过直接返回0
             lv_str = (lp_key + "HD_Object");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_torf = -1;
             //Implementation
             for (auto_i = 1; auto_i <= auto_n; auto_i += 1)
@@ -15337,7 +3250,7 @@ namespace MetalMaxSystem
                         for (; auto_var <= auto_ae; auto_var += 1)
                         {
                             lv_i = auto_var;
-                            if ((DataTableIntLoad1(true, (lv_str + "Tag"), lv_i) == lv_tag))
+                            if ((UserDataTable<int>.Load1(true, (lv_str + "Tag"), lv_i) == lv_tag))
                             {
                                 lv_torf = lv_i;
                                 break;
@@ -15362,7 +3275,7 @@ namespace MetalMaxSystem
             int lv_tag;
             //Variable Initialization
             lv_str = (lp_key + "HD_Object");
-            lv_tag = DataTableIntLoad1(true, (lv_str + "Tag"), lp_regNum);
+            lv_tag = UserDataTable<int>.Load1(true, (lv_str + "Tag"), lp_regNum);
             //Implementation
             return HD_ReturnObjectFromTag(lv_tag);
         }
@@ -15399,7 +3312,7 @@ namespace MetalMaxSystem
             string lv_tagStr;
             //Variable Initialization
             lv_str = (lp_key + "HD_Object");
-            lv_tagStr = DataTableIntLoad1(true, (lv_str + "Tag"), lp_regNum).ToString();
+            lv_tagStr = UserDataTable<int>.Load1(true, (lv_str + "Tag"), lp_regNum).ToString();
             //Implementation
             return lv_tagStr;
         }
@@ -15417,7 +3330,7 @@ namespace MetalMaxSystem
             int lv_tag;
             //Variable Initialization
             lv_str = (lp_key + "HD_Object");
-            lv_tag = DataTableIntLoad1(true, (lv_str + "Tag"), lp_regNum);
+            lv_tag = UserDataTable<int>.Load1(true, (lv_str + "Tag"), lp_regNum);
             //Implementation
             return lv_tag;
         }
@@ -15437,7 +3350,7 @@ namespace MetalMaxSystem
             lv_str = (lp_key + "HD_Object");
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
             //Implementation
-            DataTableStringSave0(true, ("State" + lv_str + "_" + lv_tagStr), lp_stats);
+            UserDataTable<string>.Save0(true, ("State" + lv_str + "_" + lv_tagStr), lp_stats);
         }
 
         /// <summary>
@@ -15455,7 +3368,7 @@ namespace MetalMaxSystem
             //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
-            lv_stats = DataTableStringLoad0(true, ("State" + lv_str + "_" + lv_tagStr));
+            lv_stats = UserDataTable<string>.Load0(true, ("State" + lv_str + "_" + lv_tagStr));
             //Implementation
             return lv_stats;
         }
@@ -15475,7 +3388,7 @@ namespace MetalMaxSystem
             lv_str = (lp_key + "HD_Object");
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
             //Implementation
-            DataTableStringSave0(true, ("CV" + lv_str + "_" + lv_tagStr), lp_customValue);
+            UserDataTable<string>.Save0(true, ("CV" + lv_str + "_" + lv_tagStr), lp_customValue);
         }
 
         /// <summary>
@@ -15493,7 +3406,7 @@ namespace MetalMaxSystem
             //Variable Initialization
             lv_str = (lp_key + "HD_Object");
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
-            lv_customValue = DataTableStringLoad0(true, ("CV" + lv_str + "_" + lv_tagStr));
+            lv_customValue = UserDataTable<string>.Load0(true, ("CV" + lv_str + "_" + lv_tagStr));
             //Implementation
             return lv_customValue;
         }
@@ -15510,7 +3423,7 @@ namespace MetalMaxSystem
             string lv_stats;
             //Variable Initialization
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
-            lv_stats = DataTableStringLoad0(true, ("HD_ObjectState" + "_" + lv_tagStr));
+            lv_stats = UserDataTable<string>.Load0(true, ("HD_ObjectState" + "_" + lv_tagStr));
             //Implementation
             return lv_stats;
         }
@@ -15527,7 +3440,7 @@ namespace MetalMaxSystem
             string lv_customValue;
             //Variable Initialization
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
-            lv_customValue = DataTableStringLoad0(true, ("HD_ObjectCV" + "_" + lv_tagStr));
+            lv_customValue = UserDataTable<string>.Load0(true, ("HD_ObjectCV" + "_" + lv_tagStr));
             //Implementation
             return lv_customValue;
         }
@@ -15544,7 +3457,7 @@ namespace MetalMaxSystem
             //Variable Initialization
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
             //Implementation
-            DataTableDoubleSave0(true, ("HD_CDDouble_Object_" + lv_tagStr), lp_realNumTag);
+            UserDataTable<double>.Save0(true, ("HD_CDDouble_Object_" + lv_tagStr), lp_realNumTag);
         }
 
         /// <summary>
@@ -15559,7 +3472,7 @@ namespace MetalMaxSystem
             //Variable Initialization
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
             //Implementation
-            return DataTableDoubleLoad0(true, ("HD_CDDouble_Object_" + lv_tagStr));
+            return UserDataTable<double>.Load0(true, ("HD_CDDouble_Object_" + lv_tagStr));
         }
 
         /// <summary>
@@ -15574,7 +3487,7 @@ namespace MetalMaxSystem
             //Variable Initialization
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
             //Implementation
-            return DataTableBoolLoad0(true, ("HD_IfObjectTag" + "_" + lv_tagStr));
+            return UserDataTable<bool>.Load0(true, ("HD_IfObjectTag" + "_" + lv_tagStr));
         }
 
         /// <summary>
@@ -15592,7 +3505,7 @@ namespace MetalMaxSystem
             lv_str = (lp_key + "HD_Object");
             lv_tagStr = HD_ReturnObjectTag(lp_object).ToString();
             //Implementation
-            return DataTableBoolLoad0(true, ("IfObjectGTag" + lv_str + "_" + lv_tagStr));
+            return UserDataTable<bool>.Load0(true, ("IfObjectGTag" + lv_str + "_" + lv_tagStr));
         }
 
         /// <summary>
@@ -15627,7 +3540,7 @@ namespace MetalMaxSystem
             lv_str = (lp_key + "HD_Object");
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_intStackOutSize = 0;
             //Implementation
             autoB_ae = lv_num;
@@ -15641,9 +3554,9 @@ namespace MetalMaxSystem
                 if ((lv_intStackOutSize == 0))
                 {
                     lv_intStackOutSize += 1;
-                    DataTableIntSave1(false, "HD_ObjStackOutTag", 1, lv_tag);
-                    DataTableIntSave1(false, "HD_ObjStackOutTagValue", 1, lv_tagValue);
-                    DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", 1, lv_a);
+                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", 1, lv_tag);
+                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", 1, lv_tagValue);
+                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", 1, lv_a);
                     //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+",IteraOrig="+IntToString(lv_a));
                 }
                 else
@@ -15657,20 +3570,20 @@ namespace MetalMaxSystem
                         if (lp_big == false)
                         {
                             //Console.WriteLine("小值靠前");
-                            if (lv_tagValue < DataTableIntLoad1(false, "HD_ObjStackOutTagValue", lv_b))
+                            if (lv_tagValue < UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", lv_b))
                             {
                                 lv_intStackOutSize += 1;
                                 autoHD_ae = (lv_b + 1);
                                 lv_c = lv_intStackOutSize;
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
-                                    DataTableIntSave1(false, "HD_ObjStackOutTag", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTag", (lv_c - 1)));
-                                    DataTableIntSave1(false, "HD_ObjStackOutTagValue", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTagValue", (lv_c - 1)));
-                                    DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTag", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1)));
                                 }
-                                DataTableIntSave1(false, "HD_ObjStackOutTag", lv_b, lv_tag);
-                                DataTableIntSave1(false, "HD_ObjStackOutTagValue", lv_b, lv_tagValue);
-                                DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", lv_b, lv_a);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", lv_b, lv_tag);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", lv_b, lv_tagValue);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", lv_b, lv_a);
                                 lv_bool = true;
                                 break;
                             }
@@ -15678,9 +3591,9 @@ namespace MetalMaxSystem
                         else
                         {
                             //Console.WriteLine("大值靠前"+",当前lv_b=" +IntToString(lv_b));
-                            if (lv_tagValue > DataTableIntLoad1(false, "HD_ObjStackOutTagValue", lv_b))
+                            if (lv_tagValue > UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", lv_b))
                             {
-                                //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnObjectTagFromRegNum(lv_b, lp_key))+"值"+IntToString(DataTableIntLoad1(false, "HD_ObjStackOutTagValue", lv_b)));
+                                //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnObjectTagFromRegNum(lv_b, lp_key))+"值"+IntToString(UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", lv_b)));
                                 //Console.WriteLine("生效的lv_b:" + IntToString(lv_b));
                                 lv_intStackOutSize += 1;
                                 //Console.WriteLine("lv_intStackOutSize:" + IntToString(lv_intStackOutSize));
@@ -15691,18 +3604,18 @@ namespace MetalMaxSystem
                                 //Console.WriteLine("递减For lv_c=" + IntToString(lv_c) +"≥"+IntToString(autoHD_ae));
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
-                                    DataTableIntSave1(false, "HD_ObjStackOutTag", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTag", (lv_c - 1)));
-                                    //Console.WriteLine("交换元素" + IntToString(DataTableIntLoad1(false, "HD_ObjStackOutTag", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
-                                    DataTableIntSave1(false, "HD_ObjStackOutTagValue", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTagValue", (lv_c - 1)));
-                                    //Console.WriteLine("交换值" + IntToString(DataTableIntLoad1(false, "HD_ObjStackOutTagValue", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
-                                    DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1)));
-                                    //Console.WriteLine("交换新序值" + IntToString(DataTableIntLoad1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTag", (lv_c - 1)));
+                                    //Console.WriteLine("交换元素" + IntToString(UserDataTable<int>.Load1(false, "HD_ObjStackOutTag", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", (lv_c - 1)));
+                                    //Console.WriteLine("交换值" + IntToString(UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1)));
+                                    //Console.WriteLine("交换新序值" + IntToString(UserDataTable<int>.Load1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
                                 }
-                                DataTableIntSave1(false, "HD_ObjStackOutTag", lv_b, lv_tag);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", lv_b, lv_tag);
                                 //Console.WriteLine("lv_tagStr=" + IntToString(lv_tagStr) +"存到lv_b="+IntToString(lv_b) +"位置");
-                                DataTableIntSave1(false, "HD_ObjStackOutTagValue", lv_b, lv_tagValue);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", lv_b, lv_tagValue);
                                 //Console.WriteLine("lv_tagValue=" + IntToString(lv_tagValue) +"存到lv_b="+IntToString(lv_b) +"位置");
-                                DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", lv_b, lv_a);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", lv_b, lv_a);
                                 //Console.WriteLine("值IteraOrig=lv_a=" + IntToString(lv_a) +"存到序号lv_b="+IntToString(lv_b) +"位置");
                                 lv_bool = true;
                                 break;
@@ -15712,11 +3625,11 @@ namespace MetalMaxSystem
                     if ((lv_bool == false))
                     {
                         lv_intStackOutSize += 1;
-                        DataTableIntSave1(false, "HD_ObjStackOutTag", lv_intStackOutSize, lv_tag);
+                        UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", lv_intStackOutSize, lv_tag);
                         //Console.WriteLine("lv_tagStr=" + IntToString(lv_tagStr) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
-                        DataTableIntSave1(false, "HD_ObjStackOutTagValue", lv_intStackOutSize, lv_tagValue);
+                        UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", lv_intStackOutSize, lv_tagValue);
                         //Console.WriteLine("lv_tagValue=" + IntToString(lv_tagValue) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
-                        DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", lv_intStackOutSize, lv_a);
+                        UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", lv_intStackOutSize, lv_a);
                         //Console.WriteLine("IteraOrig=lv_a=" + IntToString(lv_tagValue) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
                     }
                 }
@@ -15727,17 +3640,17 @@ namespace MetalMaxSystem
             for (; ((autoE_ai >= 0 && lv_a <= autoE_ae) || (autoE_ai < 0 && lv_a >= autoE_ae)); lv_a += autoE_ai)
             {
                 //从序号里取出元素Tag、自定义值、新老句柄,让元素交换
-                //lv_tagStr = DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_a).ToString(); //原始序号元素
-                lv_tag = DataTableIntLoad1(false, "HD_ObjStackOutTag", lv_a);
+                //lv_tagStr = UserDataTable<int>.Load1(true, (lp_key + "HD_ObjectTag"), lv_a).ToString(); //原始序号元素
+                lv_tag = UserDataTable<int>.Load1(false, "HD_ObjStackOutTag", lv_a);
                 lv_tagValuestr = HD_ReturnObjectCV(HD_ReturnObjectFromTag(lv_tag), lp_cVStr);
                 lv_tagValue = Convert.ToInt32(lv_tagValuestr);
                 //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr));
-                lv_b = DataTableIntLoad1(false, "HD_ObjStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
+                lv_b = UserDataTable<int>.Load1(false, "HD_ObjStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
                                                                                      //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号:" + IntToString(lv_tagStr));
                 if (lv_a != lv_b)
                 {
                     //Console.WriteLine("lv_a:"+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
-                    DataTableIntSave1(true, (lp_key + "HD_ObjectTag"), lv_a, lv_tag); //lv_tag放入新序号
+                    UserDataTable<int>.Save1(true, (lp_key + "HD_ObjectTag"), lv_a, lv_tag); //lv_tag放入新序号
                                                                                       //Console.WriteLine("元素"+IntToString(lv_tagStr) +"放入lv_b=" + IntToString(lv_b)+"位置");
                 }
             }
@@ -15776,7 +3689,7 @@ namespace MetalMaxSystem
             lv_str = (lp_key + "HD_Object");
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_intStackOutSize = 0;
             //Implementation
             autoB_ae = lv_num;
@@ -15789,9 +3702,9 @@ namespace MetalMaxSystem
                 if ((lv_intStackOutSize == 0))
                 {
                     lv_intStackOutSize += 1;
-                    DataTableIntSave1(false, "HD_ObjStackOutTag", 1, lv_tag);
-                    DataTableIntSave1(false, "HD_ObjStackOutTagValue", 1, lv_tagValue);
-                    DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", 1, lv_a);
+                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", 1, lv_tag);
+                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", 1, lv_tagValue);
+                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", 1, lv_a);
                     //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+",IteraOrig="+IntToString(lv_a));
                 }
                 else
@@ -15805,20 +3718,20 @@ namespace MetalMaxSystem
                         if (lp_big == false)
                         {
                             //Console.WriteLine("小值靠前");
-                            if (lv_tagValue < DataTableIntLoad1(false, "HD_ObjStackOutTagValue", lv_b))
+                            if (lv_tagValue < UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", lv_b))
                             {
                                 lv_intStackOutSize += 1;
                                 autoHD_ae = (lv_b + 1);
                                 lv_c = lv_intStackOutSize;
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
-                                    DataTableIntSave1(false, "HD_ObjStackOutTag", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTag", (lv_c - 1)));
-                                    DataTableIntSave1(false, "HD_ObjStackOutTagValue", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTagValue", (lv_c - 1)));
-                                    DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTag", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1)));
                                 }
-                                DataTableIntSave1(false, "HD_ObjStackOutTag", lv_b, lv_tag);
-                                DataTableIntSave1(false, "HD_ObjStackOutTagValue", lv_b, lv_tagValue);
-                                DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", lv_b, lv_a);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", lv_b, lv_tag);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", lv_b, lv_tagValue);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", lv_b, lv_a);
                                 lv_bool = true;
                                 break;
                             }
@@ -15826,9 +3739,9 @@ namespace MetalMaxSystem
                         else
                         {
                             //Console.WriteLine("大值靠前"+",当前lv_b=" +IntToString(lv_b));
-                            if (lv_tagValue > DataTableIntLoad1(false, "HD_ObjStackOutTagValue", lv_b))
+                            if (lv_tagValue > UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", lv_b))
                             {
-                                //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnObjectTagFromRegNum(lv_b, lp_key))+"值"+IntToString(DataTableIntLoad1(false, "HD_ObjStackOutTagValue", lv_b)));
+                                //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnObjectTagFromRegNum(lv_b, lp_key))+"值"+IntToString(UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", lv_b)));
                                 //Console.WriteLine("生效的lv_b:" + IntToString(lv_b));
                                 lv_intStackOutSize += 1;
                                 //Console.WriteLine("lv_intStackOutSize:" + IntToString(lv_intStackOutSize));
@@ -15839,18 +3752,18 @@ namespace MetalMaxSystem
                                 //Console.WriteLine("递减For lv_c=" + IntToString(lv_c) +"≥"+IntToString(autoHD_ae));
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
-                                    DataTableIntSave1(false, "HD_ObjStackOutTag", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTag", (lv_c - 1)));
-                                    //Console.WriteLine("交换元素" + IntToString(DataTableIntLoad1(false, "HD_ObjStackOutTag", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
-                                    DataTableIntSave1(false, "HD_ObjStackOutTagValue", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTagValue", (lv_c - 1)));
-                                    //Console.WriteLine("交换值" + IntToString(DataTableIntLoad1(false, "HD_ObjStackOutTagValue", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
-                                    DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", lv_c, DataTableIntLoad1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1)));
-                                    //Console.WriteLine("交换新序值" + IntToString(DataTableIntLoad1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTag", (lv_c - 1)));
+                                    //Console.WriteLine("交换元素" + IntToString(UserDataTable<int>.Load1(false, "HD_ObjStackOutTag", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", (lv_c - 1)));
+                                    //Console.WriteLine("交换值" + IntToString(UserDataTable<int>.Load1(false, "HD_ObjStackOutTagValue", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", lv_c, UserDataTable<int>.Load1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1)));
+                                    //Console.WriteLine("交换新序值" + IntToString(UserDataTable<int>.Load1(false, "HD_ObjStackOutTagIteraOrig", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
                                 }
-                                DataTableIntSave1(false, "HD_ObjStackOutTag", lv_b, lv_tag);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", lv_b, lv_tag);
                                 //Console.WriteLine("lv_tagStr=" + IntToString(lv_tagStr) +"存到lv_b="+IntToString(lv_b) +"位置");
-                                DataTableIntSave1(false, "HD_ObjStackOutTagValue", lv_b, lv_tagValue);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", lv_b, lv_tagValue);
                                 //Console.WriteLine("lv_tagValue=" + IntToString(lv_tagValue) +"存到lv_b="+IntToString(lv_b) +"位置");
-                                DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", lv_b, lv_a);
+                                UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", lv_b, lv_a);
                                 //Console.WriteLine("值IteraOrig=lv_a=" + IntToString(lv_a) +"存到序号lv_b="+IntToString(lv_b) +"位置");
                                 lv_bool = true;
                                 break;
@@ -15860,11 +3773,11 @@ namespace MetalMaxSystem
                     if ((lv_bool == false))
                     {
                         lv_intStackOutSize += 1;
-                        DataTableIntSave1(false, "HD_ObjStackOutTag", lv_intStackOutSize, lv_tag);
+                        UserDataTable<int>.Save1(false, "HD_ObjStackOutTag", lv_intStackOutSize, lv_tag);
                         //Console.WriteLine("lv_tagStr=" + IntToString(lv_tagStr) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
-                        DataTableIntSave1(false, "HD_ObjStackOutTagValue", lv_intStackOutSize, lv_tagValue);
+                        UserDataTable<int>.Save1(false, "HD_ObjStackOutTagValue", lv_intStackOutSize, lv_tagValue);
                         //Console.WriteLine("lv_tagValue=" + IntToString(lv_tagValue) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
-                        DataTableIntSave1(false, "HD_ObjStackOutTagIteraOrig", lv_intStackOutSize, lv_a);
+                        UserDataTable<int>.Save1(false, "HD_ObjStackOutTagIteraOrig", lv_intStackOutSize, lv_a);
                         //Console.WriteLine("IteraOrig=lv_a=" + IntToString(lv_tagValue) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
                     }
                 }
@@ -15875,16 +3788,16 @@ namespace MetalMaxSystem
             for (; ((autoE_ai >= 0 && lv_a <= autoE_ae) || (autoE_ai < 0 && lv_a >= autoE_ae)); lv_a += autoE_ai)
             {
                 //从序号里取出元素Tag、自定义值、新老句柄,让元素交换
-                //lv_tagStr = DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_a).ToString(); //原始序号元素
-                lv_tag = DataTableIntLoad1(false, "HD_ObjStackOutTag", lv_a);
+                //lv_tagStr = UserDataTable<int>.Load1(true, (lp_key + "HD_ObjectTag"), lv_a).ToString(); //原始序号元素
+                lv_tag = UserDataTable<int>.Load1(false, "HD_ObjStackOutTag", lv_a);
                 lv_tagValue = lv_tag;
                 //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr));
-                lv_b = DataTableIntLoad1(false, "HD_ObjStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
+                lv_b = UserDataTable<int>.Load1(false, "HD_ObjStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
                                                                                      //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号:" + IntToString(lv_tagStr));
                 if (lv_a != lv_b)
                 {
                     //Console.WriteLine("lv_a:"+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
-                    DataTableIntSave1(true, (lp_key + "HD_ObjectTag"), lv_a, lv_tag); //lv_tag放入新序号
+                    UserDataTable<int>.Save1(true, (lp_key + "HD_ObjectTag"), lv_a, lv_tag); //lv_tag放入新序号
                                                                                       //Console.WriteLine("元素"+IntToString(lv_tagStr) +"放入lv_b=" + IntToString(lv_b)+"位置");
                 }
             }
@@ -15930,7 +3843,7 @@ namespace MetalMaxSystem
         /// <returns>错误时返回0</returns>
         public static int HD_ReturnObjectGNumMax(string lp_gs)
         {
-            return DataTableIntLoad0(true, lp_gs + "HD_ObjectNum");
+            return UserDataTable<int>.Load0(true, lp_gs + "HD_ObjectNum");
         }
 
         /// <summary>
@@ -16083,9 +3996,9 @@ namespace MetalMaxSystem
             //组中添加对象,不对其固有状态和固有自定义值进行任何修改,所以使用Simple
             HD_RegObject_Simple(lp_object, lp_gs);
             //高级方法设置组专用状态
-            if (DataTableStringKeyExists(true, ("State" + lp_gs + "HD_Object_" + HD_RegObjectTagAndReturnStr(lp_object))) == false)
+            if (UserDataTable<string>.KeyExists(true, ("State" + lp_gs + "HD_Object_" + HD_RegObjectTagAndReturnStr(lp_object))) == false)
             {
-                DataTableStringSave0(true, ("State" + lp_gs + "HD_Object_" + HD_RegObjectTagAndReturnStr(lp_object)), "true");
+                UserDataTable<string>.Save0(true, ("State" + lp_gs + "HD_Object_" + HD_RegObjectTagAndReturnStr(lp_object)), "true");
                 //Console.WriteLine(lp_gs + "=>" + HD_RegObjectTagAndReturnStr(lp_object));
             }
         }
@@ -16158,12 +4071,12 @@ namespace MetalMaxSystem
             object lv_object;
             for (; (lv_ai >= 0 && lv_va <= lv_ae) || (lv_ai < 0 && lv_va >= lv_ae); lv_va += lv_ai)
             {
-                DataTableObjectSave0(false, "HD_ObjectGFor" + lv_vs + lv_va.ToString(), HD_ReturnObjectFromRegNum(lv_va, lv_vs));
+                UserDataTable<object>.Save0(false, "HD_ObjectGFor" + lv_vs + lv_va.ToString(), HD_ReturnObjectFromRegNum(lv_va, lv_vs));
             }
             lv_va = lp_start;
             for (; (lv_ai >= 0 && lv_va <= lv_ae) || (lv_ai < 0 && lv_va >= lv_ae); lv_va += lv_ai)
             {
-                lv_object = DataTableObjectLoad0(false, "HD_ObjectGFor" + lv_vs + lv_va.ToString());
+                lv_object = UserDataTable<object>.Load0(false, "HD_ObjectGFor" + lv_vs + lv_va.ToString());
                 lp_funcref(lv_object);//用户填写的所有动作
             }
         }
@@ -16267,18 +4180,18 @@ namespace MetalMaxSystem
             int lv_a;
             //Variable Initialization
             lv_str = (lp_key + "HD_Object");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
             {
-                lv_tagStr = DataTableIntLoad1(true, (lp_key + "HD_ObjectTag"), lv_a).ToString();
+                lv_tagStr = UserDataTable<int>.Load1(true, (lp_key + "HD_ObjectTag"), lv_a).ToString();
                 lv_num -= 1;
-                DataTableBoolClear0(true, "IfObjectGTag" + lv_str + "_" + lv_tagStr);
-                DataTableStringClear0(true, "HD_ObjectCV" + lv_str + "_" + lv_tagStr);
-                DataTableStringClear0(true, "HD_ObjectState" + lv_str + "_" + lv_tagStr);
-                DataTableIntSave0(true, (lp_key + "HD_ObjectNum"), lv_num);
+                UserDataTable<bool>.Clear0(true, "IfObjectGTag" + lv_str + "_" + lv_tagStr);
+                UserDataTable<string>.Clear0(true, "HD_ObjectCV" + lv_str + "_" + lv_tagStr);
+                UserDataTable<string>.Clear0(true, "HD_ObjectState" + lv_str + "_" + lv_tagStr);
+                UserDataTable<int>.Save0(true, (lp_key + "HD_ObjectNum"), lv_num);
             }
             ThreadWaitSet(true, lv_str, false);
         }
@@ -16319,7 +4232,7 @@ namespace MetalMaxSystem
 
             //Variable Initialization
             lv_str = (lp_key + "HD_String");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tag = lp_string;
 
             //Implementation
@@ -16327,10 +4240,10 @@ namespace MetalMaxSystem
             if ((lv_num == 0))
             {
                 lv_i = (lv_num + 1);
-                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
-                DataTableStringSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
-                DataTableBoolSave0(true, (("HD_IfStringTag") + "_" + lv_tag), true); //保存标签的有效状态
-                DataTableBoolSave0(true, (("IfStringGTag" + lv_str) + "_" + lv_tag), true); //保存标签在区域的已注册状态
+                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
+                UserDataTable<string>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                UserDataTable<bool>.Save0(true, (("HD_IfStringTag") + "_" + lv_tag), true); //保存标签的有效状态
+                UserDataTable<bool>.Save0(true, (("IfStringGTag" + lv_str) + "_" + lv_tag), true); //保存标签在区域的已注册状态
             }
             else
             {
@@ -16341,7 +4254,7 @@ namespace MetalMaxSystem
                     for (; auto_var <= auto_ae; auto_var += 1)
                     {
                         lv_i = auto_var;
-                        if ((DataTableStringLoad1(true, (lv_str + "Tag"), lv_i) == lv_tag))
+                        if ((UserDataTable<string>.Load1(true, (lv_str + "Tag"), lv_i) == lv_tag))
                         {
                             break;
                         }
@@ -16350,10 +4263,10 @@ namespace MetalMaxSystem
                             if ((lv_i == lv_num))
                             {
                                 lv_i = (lv_num + 1);
-                                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
-                                DataTableStringSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
-                                DataTableBoolSave0(true, (("HD_IfStringTag") + "_" + lv_tag), true);
-                                DataTableBoolSave0(true, (("IfStringGTag" + lv_str) + "_" + lv_tag), true);
+                                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
+                                UserDataTable<string>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                                UserDataTable<bool>.Save0(true, (("HD_IfStringTag") + "_" + lv_tag), true);
+                                UserDataTable<bool>.Save0(true, (("IfStringGTag" + lv_str) + "_" + lv_tag), true);
                             }
 
                         }
@@ -16361,8 +4274,8 @@ namespace MetalMaxSystem
                 }
 
             }
-            DataTableStringSave0(true, ("HD_StringState" + "_" + lv_tag), lp_inherentStats);
-            DataTableStringSave0(true, ("HD_StringCV" + "_" + lv_tag), lp_inherentCustomValue);
+            UserDataTable<string>.Save0(true, ("HD_StringState" + "_" + lv_tag), lp_inherentStats);
+            UserDataTable<string>.Save0(true, ("HD_StringCV" + "_" + lv_tag), lp_inherentCustomValue);
         }
 
         /// <summary>
@@ -16384,7 +4297,7 @@ namespace MetalMaxSystem
 
             //Variable Initialization
             lv_str = (lp_key + "HD_String");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tag = lp_string;
 
             //Implementation
@@ -16392,10 +4305,10 @@ namespace MetalMaxSystem
             if ((lv_num == 0))
             {
                 lv_i = (lv_num + 1);
-                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
-                DataTableStringSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
-                DataTableBoolSave0(true, (("HD_IfStringTag") + "_" + lv_tag), true);
-                DataTableBoolSave0(true, (("IfStringGTag" + lv_str) + "_" + lv_tag), true);
+                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
+                UserDataTable<string>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                UserDataTable<bool>.Save0(true, (("HD_IfStringTag") + "_" + lv_tag), true);
+                UserDataTable<bool>.Save0(true, (("IfStringGTag" + lv_str) + "_" + lv_tag), true);
             }
             else
             {
@@ -16406,7 +4319,7 @@ namespace MetalMaxSystem
                     for (; auto_var <= auto_ae; auto_var += 1)
                     {
                         lv_i = auto_var;
-                        if ((DataTableStringLoad1(true, (lv_str + "Tag"), lv_i) == lv_tag))
+                        if ((UserDataTable<string>.Load1(true, (lv_str + "Tag"), lv_i) == lv_tag))
                         {
                             break;
                         }
@@ -16415,10 +4328,10 @@ namespace MetalMaxSystem
                             if ((lv_i == lv_num))
                             {
                                 lv_i = (lv_num + 1);
-                                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
-                                DataTableStringSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
-                                DataTableBoolSave0(true, (("HD_IfStringTag") + "_" + lv_tag), true);
-                                DataTableBoolSave0(true, (("IfStringGTag" + lv_str) + "_" + lv_tag), true);
+                                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
+                                UserDataTable<string>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                                UserDataTable<bool>.Save0(true, (("HD_IfStringTag") + "_" + lv_tag), true);
+                                UserDataTable<bool>.Save0(true, (("IfStringGTag" + lv_str) + "_" + lv_tag), true);
                             }
 
                         }
@@ -16426,9 +4339,9 @@ namespace MetalMaxSystem
                 }
             }
             //从未注册过则进行首次修改为true
-            if ((DataTableBoolKeyExists(true, ("HD_StringState" + "_" + lv_tag)) == false))
+            if ((UserDataTable<bool>.KeyExists(true, ("HD_StringState" + "_" + lv_tag)) == false))
             {
-                DataTableStringSave0(true, ("HD_StringState" + "_" + lv_tag), "true");
+                UserDataTable<string>.Save0(true, ("HD_StringState" + "_" + lv_tag), "true");
             }
         }
 
@@ -16448,7 +4361,7 @@ namespace MetalMaxSystem
             string lv_c;
             //Variable Initialization
             lv_str = (lp_key + "HD_String");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tag = lp_string;
             //Implementation
             if ((lv_tag != null))
@@ -16457,20 +4370,20 @@ namespace MetalMaxSystem
                 ThreadWaitSet(true, lv_str, true);
                 for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
                 {
-                    if ((DataTableStringLoad1(true, (lv_str + "Tag"), lv_a) == lv_tag))
+                    if ((UserDataTable<string>.Load1(true, (lv_str + "Tag"), lv_a) == lv_tag))
                     {
                         lv_num -= 1;
-                        DataTableBoolClear0(true, "HD_IfStringTag_" + lv_tag);
-                        DataTableBoolClear0(true, "IfStringGTag" + lv_str + "_" + lv_tag);
-                        DataTableStringClear0(true, "HD_StringCV_" + lv_tag);
-                        DataTableStringClear0(true, "HD_StringState_" + lv_tag);
-                        DataTableStringClear0(true, "HD_StringCV" + lv_str + "_" + lv_tag);
-                        DataTableStringClear0(true, "HD_StringState" + lv_str + "_" + lv_tag);
-                        DataTableIntSave0(true, (lp_key + "HD_StringNum"), lv_num);
+                        UserDataTable<bool>.Clear0(true, "HD_IfStringTag_" + lv_tag);
+                        UserDataTable<bool>.Clear0(true, "IfStringGTag" + lv_str + "_" + lv_tag);
+                        UserDataTable<string>.Clear0(true, "HD_StringCV_" + lv_tag);
+                        UserDataTable<string>.Clear0(true, "HD_StringState_" + lv_tag);
+                        UserDataTable<string>.Clear0(true, "HD_StringCV" + lv_str + "_" + lv_tag);
+                        UserDataTable<string>.Clear0(true, "HD_StringState" + lv_str + "_" + lv_tag);
+                        UserDataTable<int>.Save0(true, (lp_key + "HD_StringNum"), lv_num);
                         for (lv_b = lv_a; lv_b <= lv_num; lv_b += 1)
                         {
-                            lv_c = DataTableStringLoad1(true, (lp_key + "HD_StringTag"), lv_b + 1);
-                            DataTableStringSave1(true, (lp_key + "HD_StringTag"), lv_b, lv_c);
+                            lv_c = UserDataTable<string>.Load1(true, (lp_key + "HD_StringTag"), lv_b + 1);
+                            UserDataTable<string>.Save1(true, (lp_key + "HD_StringTag"), lv_b, lv_c);
                         }
                         //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                         lv_a -= 1;
@@ -16497,7 +4410,7 @@ namespace MetalMaxSystem
 
             //Variable Initialization
             lv_str = (lp_key + "HD_String");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tag = lp_string;
 
             //Implementation
@@ -16505,17 +4418,17 @@ namespace MetalMaxSystem
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
             {
-                if ((DataTableStringLoad1(true, (lp_key + "HD_StringTag"), lv_a) == lv_tag))
+                if ((UserDataTable<string>.Load1(true, (lp_key + "HD_StringTag"), lv_a) == lv_tag))
                 {
                     lv_num -= 1;
-                    DataTableBoolClear0(true, "IfStringGTag" + lv_str + "_" + lv_tag);
-                    DataTableStringClear0(true, "HD_StringCV" + lv_str + "_" + lv_tag);
-                    DataTableStringClear0(true, "HD_StringState" + lv_str + "_" + lv_tag);
-                    DataTableIntSave0(true, (lp_key + "HD_StringNum"), lv_num);
+                    UserDataTable<bool>.Clear0(true, "IfStringGTag" + lv_str + "_" + lv_tag);
+                    UserDataTable<string>.Clear0(true, "HD_StringCV" + lv_str + "_" + lv_tag);
+                    UserDataTable<string>.Clear0(true, "HD_StringState" + lv_str + "_" + lv_tag);
+                    UserDataTable<int>.Save0(true, (lp_key + "HD_StringNum"), lv_num);
                     for (lv_b = lv_a; lv_b <= lv_num; lv_b += 1)
                     {
-                        lv_c = DataTableStringLoad1(true, (lp_key + "HD_StringTag"), lv_b + 1);
-                        DataTableStringSave1(true, (lp_key + "HD_StringTag"), lv_b, lv_c);
+                        lv_c = UserDataTable<string>.Load1(true, (lp_key + "HD_StringTag"), lv_b + 1);
+                        UserDataTable<string>.Save1(true, (lp_key + "HD_StringTag"), lv_b, lv_c);
                     }
                     //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                     lv_a -= 1;
@@ -16531,7 +4444,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnStringNumMax(string lp_key)
         {
-            return DataTableIntLoad0(true, lp_key + "HD_StringNum");
+            return UserDataTable<int>.Load0(true, lp_key + "HD_StringNum");
         }
 
         /// <summary>
@@ -16554,7 +4467,7 @@ namespace MetalMaxSystem
 
             //Variable Initialization
             lv_str = (lp_key + "HD_String");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tag = lp_string;
             lv_i = 0;
 
@@ -16572,7 +4485,7 @@ namespace MetalMaxSystem
                     for (; auto_var <= auto_ae; auto_var += 1)
                     {
                         lv_i = auto_var;
-                        if ((DataTableStringLoad1(true, (lv_str + "Tag"), lv_i) == lv_tag))
+                        if ((UserDataTable<string>.Load1(true, (lv_str + "Tag"), lv_i) == lv_tag))
                         {
                             break;
                         }
@@ -16598,7 +4511,7 @@ namespace MetalMaxSystem
             //Variable Declarations And Initialization
             string lv_str = (lp_key + "HD_String");
             //Implementation
-            return DataTableStringLoad1(true, (lv_str + "Tag"), lp_regNum);
+            return UserDataTable<string>.Load1(true, (lv_str + "Tag"), lp_regNum);
         }
 
         /// <summary>
@@ -16610,7 +4523,7 @@ namespace MetalMaxSystem
         public static void HD_SetStringState(string lp_string, string lp_key, string lp_stats)
         {
             string lv_str = (lp_key + "HD_String");
-            DataTableStringSave0(true, ("State" + lv_str + "_" + lp_string), lp_stats);
+            UserDataTable<string>.Save0(true, ("State" + lv_str + "_" + lp_string), lp_stats);
         }
 
         /// <summary>
@@ -16622,7 +4535,7 @@ namespace MetalMaxSystem
         public static string HD_ReturnStringState(string lp_string, string lp_key)
         {
             string lv_str = (lp_key + "HD_String");
-            return DataTableStringLoad0(true, ("State" + lv_str + "_" + lp_string));
+            return UserDataTable<string>.Load0(true, ("State" + lv_str + "_" + lp_string));
         }
 
         /// <summary>
@@ -16634,7 +4547,7 @@ namespace MetalMaxSystem
         public static void HD_SetStringCV(string lp_string, string lp_key, string lp_customValue)
         {
             string lv_str = (lp_key + "HD_String");
-            DataTableStringSave0(true, ("CV" + lv_str + "_" + lp_string), lp_customValue);
+            UserDataTable<string>.Save0(true, ("CV" + lv_str + "_" + lp_string), lp_customValue);
         }
 
         /// <summary>
@@ -16646,7 +4559,7 @@ namespace MetalMaxSystem
         public static string HD_ReturnStringCV(string lp_string, string lp_key)
         {
             string lv_str = (lp_key + "HD_String");
-            return DataTableStringLoad0(true, ("CV" + lv_str + "_" + lp_string));
+            return UserDataTable<string>.Load0(true, ("CV" + lv_str + "_" + lp_string));
         }
 
         /// <summary>
@@ -16656,7 +4569,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnStringState_Only(string lp_string)
         {
-            return DataTableStringLoad0(true, ("HD_StringState" + "_" + lp_string));
+            return UserDataTable<string>.Load0(true, ("HD_StringState" + "_" + lp_string));
         }
 
         /// <summary>
@@ -16666,7 +4579,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnStringCV_Only(string lp_string)
         {
-            return DataTableStringLoad0(true, ("HD_StringCV" + "_" + lp_string));
+            return UserDataTable<string>.Load0(true, ("HD_StringCV" + "_" + lp_string));
         }
 
         /// <summary>
@@ -16676,7 +4589,7 @@ namespace MetalMaxSystem
         /// <param name="lp_realNumTag">实数标记</param>
         public static void HD_SetStringDouble(string lp_string, double lp_realNumTag)
         {
-            DataTableDoubleSave0(true, ("HD_CDDouble_String_" + lp_string), lp_realNumTag);
+            UserDataTable<double>.Save0(true, ("HD_CDDouble_String_" + lp_string), lp_realNumTag);
         }
 
         /// <summary>
@@ -16686,7 +4599,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double HD_ReturnStringDouble(string lp_string)
         {
-            return DataTableDoubleLoad0(true, ("HD_CDDouble_String_" + lp_string));
+            return UserDataTable<double>.Load0(true, ("HD_CDDouble_String_" + lp_string));
         }
 
         /// <summary>
@@ -16696,7 +4609,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool HD_ReturnIfStringTag(string lp_string)
         {
-            return DataTableBoolLoad0(true, ("HD_IfStringTag" + "_" + lp_string));
+            return UserDataTable<bool>.Load0(true, ("HD_IfStringTag" + "_" + lp_string));
         }
 
         /// <summary>
@@ -16708,7 +4621,7 @@ namespace MetalMaxSystem
         public static bool HD_ReturnIfStringTagKey(string lp_string, string lp_key)
         {
             string lv_str = (lp_key + "HD_String");
-            return DataTableBoolLoad0(true, ("IfStringGTag" + lv_str + "_" + lp_string));
+            return UserDataTable<bool>.Load0(true, ("IfStringGTag" + lv_str + "_" + lp_string));
         }
 
         /// <summary>
@@ -16750,7 +4663,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnStringGNumMax(string lp_gs)
         {
-            return DataTableIntLoad0(true, lp_gs + "HD_StringNum");
+            return UserDataTable<int>.Load0(true, lp_gs + "HD_StringNum");
         }
 
         /// <summary>
@@ -16893,9 +4806,9 @@ namespace MetalMaxSystem
         {
             //组中添加对象,不对其固有状态和固有自定义值进行任何修改,所以使用Simple
             HD_RegString_Simple(lp_string, lp_gs);
-            if (DataTableStringKeyExists(true, ("State" + lp_gs + "HD_String_" + lp_string)) == false)
+            if (UserDataTable<string>.KeyExists(true, ("State" + lp_gs + "HD_String_" + lp_string)) == false)
             {
-                DataTableStringSave0(true, ("State" + lp_gs + "HD_String_" + lp_string), "true");
+                UserDataTable<string>.Save0(true, ("State" + lp_gs + "HD_String_" + lp_string), "true");
                 //Console.WriteLine(lp_gs + "=>" + lp_string);
             }
         }
@@ -16968,12 +4881,12 @@ namespace MetalMaxSystem
             string lv_str;
             for (; (lv_ai >= 0 && lv_va <= lv_ae) || (lv_ai < 0 && lv_va >= lv_ae); lv_va += lv_ai)
             {
-                DataTableStringSave0(false, "HD_StringGFor" + lv_vs + lv_va.ToString(), HD_ReturnStringFromRegNum(lv_va, lv_vs));
+                UserDataTable<string>.Save0(false, "HD_StringGFor" + lv_vs + lv_va.ToString(), HD_ReturnStringFromRegNum(lv_va, lv_vs));
             }
             lv_va = lp_start;
             for (; (lv_ai >= 0 && lv_va <= lv_ae) || (lv_ai < 0 && lv_va >= lv_ae); lv_va += lv_ai)
             {
-                lv_str = DataTableStringLoad0(false, "HD_StringGFor" + lv_vs + lv_va.ToString());
+                lv_str = UserDataTable<string>.Load0(false, "HD_StringGFor" + lv_vs + lv_va.ToString());
                 lp_funcref(lv_str);//用户填写的所有动作
             }
         }
@@ -17078,18 +4991,18 @@ namespace MetalMaxSystem
             int lv_a;
             //Variable Initialization
             lv_str = (lp_key + "HD_String");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
             {
-                lv_tag = DataTableStringLoad1(true, (lp_key + "HD_StringTag"), lv_a);
+                lv_tag = UserDataTable<string>.Load1(true, (lp_key + "HD_StringTag"), lv_a);
                 lv_num -= 1;
-                DataTableBoolClear0(true, "IfStringGTag" + lv_str + "_" + lv_tag);
-                DataTableStringClear0(true, "HD_StringCV" + lv_str + "_" + lv_tag);
-                DataTableStringClear0(true, "HD_StringState" + lv_str + "_" + lv_tag);
-                DataTableIntSave0(true, (lp_key + "HD_StringNum"), lv_num);
+                UserDataTable<bool>.Clear0(true, "IfStringGTag" + lv_str + "_" + lv_tag);
+                UserDataTable<string>.Clear0(true, "HD_StringCV" + lv_str + "_" + lv_tag);
+                UserDataTable<string>.Clear0(true, "HD_StringState" + lv_str + "_" + lv_tag);
+                UserDataTable<int>.Save0(true, (lp_key + "HD_StringNum"), lv_num);
             }
             ThreadWaitSet(true, lv_str, false);
         }
@@ -17129,7 +5042,7 @@ namespace MetalMaxSystem
 
             //Variable Initialization
             lv_str = (lp_key + "HD_Int");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tag = lp_integer;
 
             //Implementation
@@ -17137,10 +5050,10 @@ namespace MetalMaxSystem
             if ((lv_num == 0))
             {
                 lv_i = (lv_num + 1);
-                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
-                DataTableIntSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
-                DataTableBoolSave1(true, ("HD_IfIntTag"), lv_tag, true);
-                DataTableBoolSave1(true, ("IfIntGTag" + lv_str), lv_tag, true);
+                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
+                UserDataTable<int>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                UserDataTable<bool>.Save1(true, ("HD_IfIntTag"), lv_tag, true);
+                UserDataTable<bool>.Save1(true, ("IfIntGTag" + lv_str), lv_tag, true);
             }
             else
             {
@@ -17151,7 +5064,7 @@ namespace MetalMaxSystem
                     for (; auto_var <= auto_ae; auto_var += 1)
                     {
                         lv_i = auto_var;
-                        if ((DataTableIntLoad1(true, (lv_str + "Tag"), lv_i) == lv_tag))
+                        if ((UserDataTable<int>.Load1(true, (lv_str + "Tag"), lv_i) == lv_tag))
                         {
                             break;
                         }
@@ -17160,10 +5073,10 @@ namespace MetalMaxSystem
                             if ((lv_i == lv_num))
                             {
                                 lv_i = (lv_num + 1);
-                                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
-                                DataTableIntSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
-                                DataTableBoolSave1(true, ("HD_IfIntTag"), lv_tag, true);
-                                DataTableBoolSave1(true, ("IfIntGTag" + lv_str), lv_tag, true);
+                                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
+                                UserDataTable<int>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                                UserDataTable<bool>.Save1(true, ("HD_IfIntTag"), lv_tag, true);
+                                UserDataTable<bool>.Save1(true, ("IfIntGTag" + lv_str), lv_tag, true);
                             }
 
                         }
@@ -17171,8 +5084,8 @@ namespace MetalMaxSystem
                 }
 
             }
-            DataTableStringSave1(true, (("HD_IntState")), lv_tag, lp_inherentStats);
-            DataTableStringSave1(true, (("HD_IntCV")), lv_tag, lp_inherentCustomValue);
+            UserDataTable<string>.Save1(true, (("HD_IntState")), lv_tag, lp_inherentStats);
+            UserDataTable<string>.Save1(true, (("HD_IntCV")), lv_tag, lp_inherentCustomValue);
         }
 
         /// <summary>
@@ -17194,7 +5107,7 @@ namespace MetalMaxSystem
 
             //Variable Initialization
             lv_str = (lp_key + "HD_Int");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tag = lp_integer;
 
             //Implementation
@@ -17202,10 +5115,10 @@ namespace MetalMaxSystem
             if ((lv_num == 0))
             {
                 lv_i = (lv_num + 1);
-                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
-                DataTableIntSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
-                DataTableBoolSave1(true, ("HD_IfIntTag"), lv_tag, true);
-                DataTableBoolSave1(true, ("IfIntGTag" + lv_str), lv_tag, true);
+                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
+                UserDataTable<int>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                UserDataTable<bool>.Save1(true, ("HD_IfIntTag"), lv_tag, true);
+                UserDataTable<bool>.Save1(true, ("IfIntGTag" + lv_str), lv_tag, true);
             }
             else
             {
@@ -17216,7 +5129,7 @@ namespace MetalMaxSystem
                     for (; auto_var <= auto_ae; auto_var += 1)
                     {
                         lv_i = auto_var;
-                        if ((DataTableIntLoad1(true, (lv_str + "Tag"), lv_i) == lv_tag))
+                        if ((UserDataTable<int>.Load1(true, (lv_str + "Tag"), lv_i) == lv_tag))
                         {
                             break;
                         }
@@ -17225,10 +5138,10 @@ namespace MetalMaxSystem
                             if ((lv_i == lv_num))
                             {
                                 lv_i = (lv_num + 1);
-                                DataTableIntSave0(true, (lv_str + "Num"), lv_i);
-                                DataTableIntSave1(true, (lv_str + "Tag"), lv_i, lv_tag);
-                                DataTableBoolSave1(true, ("HD_IfIntTag"), lv_tag, true);
-                                DataTableBoolSave1(true, ("IfIntGTag" + lv_str), lv_tag, true);
+                                UserDataTable<int>.Save0(true, (lv_str + "Num"), lv_i);
+                                UserDataTable<int>.Save1(true, (lv_str + "Tag"), lv_i, lv_tag);
+                                UserDataTable<bool>.Save1(true, ("HD_IfIntTag"), lv_tag, true);
+                                UserDataTable<bool>.Save1(true, ("IfIntGTag" + lv_str), lv_tag, true);
                             }
 
                         }
@@ -17237,9 +5150,9 @@ namespace MetalMaxSystem
 
             }
             //从未注册过则进行首次修改为true
-            if ((DataTableBoolKeyExists(true, ("HD_IntState" + "_" + lv_tag.ToString())) == false))
+            if ((UserDataTable<bool>.KeyExists(true, ("HD_IntState" + "_" + lv_tag.ToString())) == false))
             {
-                DataTableStringSave1(true, (("HD_IntState")), lv_tag, "true");
+                UserDataTable<string>.Save1(true, (("HD_IntState")), lv_tag, "true");
             }
         }
 
@@ -17261,7 +5174,7 @@ namespace MetalMaxSystem
             //Automatic Variable Declarations
             //Variable Initialization
             lv_str = (lp_key + "HD_Int");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tag = lp_integer;
 
             //Implementation
@@ -17269,20 +5182,20 @@ namespace MetalMaxSystem
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
             {
-                if ((DataTableIntLoad1(true, (lv_str + "Tag"), lv_a) == lv_tag))
+                if ((UserDataTable<int>.Load1(true, (lv_str + "Tag"), lv_a) == lv_tag))
                 {
                     lv_num -= 1;
-                    DataTableBoolClear1(true, "HD_IfIntTag", lv_tag);
-                    DataTableBoolClear1(true, "IfIntGTag" + lv_str, lv_tag);
-                    DataTableStringClear1(true, "HD_IntCV", lv_tag);
-                    DataTableStringClear1(true, "HD_IntState", lv_tag);
-                    DataTableStringClear1(true, "HD_IntCV" + lv_str, lv_tag);
-                    DataTableStringClear1(true, "HD_IntState" + lv_str, lv_tag);
-                    DataTableIntSave0(true, (lp_key + "HD_IntNum"), lv_num);
+                    UserDataTable<bool>.Clear1(true, "HD_IfIntTag", lv_tag);
+                    UserDataTable<bool>.Clear1(true, "IfIntGTag" + lv_str, lv_tag);
+                    UserDataTable<string>.Clear1(true, "HD_IntCV", lv_tag);
+                    UserDataTable<string>.Clear1(true, "HD_IntState", lv_tag);
+                    UserDataTable<string>.Clear1(true, "HD_IntCV" + lv_str, lv_tag);
+                    UserDataTable<string>.Clear1(true, "HD_IntState" + lv_str, lv_tag);
+                    UserDataTable<int>.Save0(true, (lp_key + "HD_IntNum"), lv_num);
                     for (lv_b = lv_a; lv_b <= lv_num; lv_b += 1)
                     {
-                        lv_c = DataTableIntLoad1(true, (lp_key + "HD_IntTag"), lv_b + 1);
-                        DataTableIntSave1(true, (lp_key + "HD_IntTag"), lv_b, lv_c);
+                        lv_c = UserDataTable<int>.Load1(true, (lp_key + "HD_IntTag"), lv_b + 1);
+                        UserDataTable<int>.Save1(true, (lp_key + "HD_IntTag"), lv_b, lv_c);
                     }
                     //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                     lv_a -= 1;
@@ -17309,7 +5222,7 @@ namespace MetalMaxSystem
             //Automatic Variable Declarations
             //Variable Initialization
             lv_str = (lp_key + "HD_Int");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tag = lp_integer;
 
             //Implementation
@@ -17317,17 +5230,17 @@ namespace MetalMaxSystem
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
             {
-                if ((DataTableIntLoad1(true, (lp_key + "HD_IntTag"), lv_a) == lv_tag))
+                if ((UserDataTable<int>.Load1(true, (lp_key + "HD_IntTag"), lv_a) == lv_tag))
                 {
                     lv_num -= 1;
-                    DataTableBoolClear1(true, "IfIntGTag" + lv_str, lv_tag);
-                    DataTableStringClear1(true, "HD_IntCV" + lv_str, lv_tag);
-                    DataTableStringClear1(true, "HD_IntState" + lv_str, lv_tag);
-                    DataTableIntSave0(true, (lp_key + "HD_IntNum"), lv_num);
+                    UserDataTable<bool>.Clear1(true, "IfIntGTag" + lv_str, lv_tag);
+                    UserDataTable<string>.Clear1(true, "HD_IntCV" + lv_str, lv_tag);
+                    UserDataTable<string>.Clear1(true, "HD_IntState" + lv_str, lv_tag);
+                    UserDataTable<int>.Save0(true, (lp_key + "HD_IntNum"), lv_num);
                     for (lv_b = lv_a; lv_b <= lv_num; lv_b += 1)
                     {
-                        lv_c = DataTableIntLoad1(true, (lp_key + "HD_IntTag"), lv_b + 1);
-                        DataTableIntSave1(true, (lp_key + "HD_IntTag"), lv_b, lv_c);
+                        lv_c = UserDataTable<int>.Load1(true, (lp_key + "HD_IntTag"), lv_b + 1);
+                        UserDataTable<int>.Save1(true, (lp_key + "HD_IntTag"), lv_b, lv_c);
                     }
                     //注销后触发序号重列,这里-1可以让挑选回滚,以再次检查重排后的当前挑选序号
                     lv_a -= 1;
@@ -17344,7 +5257,7 @@ namespace MetalMaxSystem
         public static int HD_ReturnIntNumMax(string lp_key)
         {
             string lv_str = (lp_key + "HD_Int");
-            return DataTableIntLoad0(true, (lv_str + "Num"));
+            return UserDataTable<int>.Load0(true, (lv_str + "Num"));
         }
 
         /// <summary>
@@ -17367,7 +5280,7 @@ namespace MetalMaxSystem
 
             //Variable Initialization
             lv_str = (lp_key + "HD_Int");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_tag = lp_integer;
 
             //Implementation
@@ -17384,7 +5297,7 @@ namespace MetalMaxSystem
                     for (; auto_var <= auto_ae; auto_var += 1)
                     {
                         lv_i = auto_var;
-                        if ((DataTableIntLoad1(true, (lv_str + "Tag"), lv_i) == lv_tag))
+                        if ((UserDataTable<int>.Load1(true, (lv_str + "Tag"), lv_i) == lv_tag))
                         {
                             break;
                         }
@@ -17412,7 +5325,7 @@ namespace MetalMaxSystem
             int lv_tag;
             //Variable Initialization
             lv_str = (lp_key + "HD_Int");
-            lv_tag = DataTableIntLoad1(true, (lv_str + "Tag"), lp_regNum);
+            lv_tag = UserDataTable<int>.Load1(true, (lv_str + "Tag"), lp_regNum);
             //Implementation
             return lv_tag;
         }
@@ -17432,7 +5345,7 @@ namespace MetalMaxSystem
             lv_str = (lp_key + "HD_Int");
             lv_tag = lp_integer;
             //Implementation
-            DataTableStringSave1(true, ("State" + lv_str), lv_tag, lp_stats);
+            UserDataTable<string>.Save1(true, ("State" + lv_str), lv_tag, lp_stats);
         }
 
         /// <summary>
@@ -17451,7 +5364,7 @@ namespace MetalMaxSystem
             //Variable Initialization
             lv_str = (lp_key + "HD_Int");
             lv_tag = lp_integer;
-            lv_stats = DataTableStringLoad1(true, ("State" + lv_str), lv_tag);
+            lv_stats = UserDataTable<string>.Load1(true, ("State" + lv_str), lv_tag);
 
             //Implementation
             return lv_stats;
@@ -17465,7 +5378,7 @@ namespace MetalMaxSystem
         /// <param name="lp_customValue">自定义值</param>
         public static void HD_SetIntCV(int lp_integer, string lp_key, string lp_customValue)
         {
-            DataTableStringSave1(true, string.Concat("CV", lp_key, "HD_Int"), lp_integer, lp_customValue);
+            UserDataTable<string>.Save1(true, string.Concat("CV", lp_key, "HD_Int"), lp_integer, lp_customValue);
         }
 
         /// <summary>
@@ -17476,7 +5389,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static string HD_ReturnIntCV(int lp_integer, string lp_key)
         {
-            return DataTableStringLoad1(true, string.Concat("CV", lp_key, "HD_Int"), lp_integer);
+            return UserDataTable<string>.Load1(true, string.Concat("CV", lp_key, "HD_Int"), lp_integer);
         }
 
         /// <summary>
@@ -17491,7 +5404,7 @@ namespace MetalMaxSystem
             string lv_stats;
             //Variable Initialization
             lv_tag = lp_integer;
-            lv_stats = DataTableStringLoad1(true, ("HD_IntState"), lv_tag);
+            lv_stats = UserDataTable<string>.Load1(true, ("HD_IntState"), lv_tag);
             //Implementation
             return lv_stats;
         }
@@ -17508,7 +5421,7 @@ namespace MetalMaxSystem
             string lv_customValue;
             //Variable Initialization
             lv_tag = lp_integer;
-            lv_customValue = DataTableStringLoad1(true, (("HD_IntCV")), lv_tag);
+            lv_customValue = UserDataTable<string>.Load1(true, (("HD_IntCV")), lv_tag);
             //Implementation
             return lv_customValue;
         }
@@ -17520,7 +5433,7 @@ namespace MetalMaxSystem
         /// <param name="lp_realNumTag">实数标记</param>
         public static void HD_SetIntDouble(int lp_integer, double lp_realNumTag)
         {
-            DataTableDoubleSave1(true, "HD_CDDouble_Int", lp_integer, lp_realNumTag);
+            UserDataTable<double>.Save1(true, "HD_CDDouble_Int", lp_integer, lp_realNumTag);
         }
 
         /// <summary>
@@ -17530,7 +5443,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static double HD_ReturnIntDouble(int lp_integer)
         {
-            return DataTableDoubleLoad1(true, "HD_CDDouble_Int", lp_integer);
+            return UserDataTable<double>.Load1(true, "HD_CDDouble_Int", lp_integer);
         }
 
         /// <summary>
@@ -17540,7 +5453,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool HD_ReturnIfIntTag(int lp_integer)
         {
-            return DataTableBoolLoad1(true, ("HD_IfIntTag"), lp_integer);
+            return UserDataTable<bool>.Load1(true, ("HD_IfIntTag"), lp_integer);
         }
 
         /// <summary>
@@ -17551,7 +5464,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static bool HD_ReturnIfIntTagKey(int lp_integer, string lp_key)
         {
-            return DataTableBoolLoad1(true, ("IfIntGTag" + (lp_key + "HD_Int")), lp_integer);
+            return UserDataTable<bool>.Load1(true, ("IfIntGTag" + (lp_key + "HD_Int")), lp_integer);
         }
 
         /// <summary>
@@ -17586,7 +5499,7 @@ namespace MetalMaxSystem
             lv_str = (lp_key + "HD_Int");
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_intStackOutSize = 0;
             //Implementation
             autoB_ae = lv_num;
@@ -17600,9 +5513,9 @@ namespace MetalMaxSystem
                 if ((lv_intStackOutSize == 0))
                 {
                     lv_intStackOutSize += 1;
-                    DataTableIntSave1(false, "HD_IntStackOutTag", 1, lv_tag);
-                    DataTableIntSave1(false, "HD_IntStackOutTagValue", 1, lv_tagValue);
-                    DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", 1, lv_a);
+                    UserDataTable<int>.Save1(false, "HD_IntStackOutTag", 1, lv_tag);
+                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", 1, lv_tagValue);
+                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", 1, lv_a);
                     //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+",IteraOrig="+IntToString(lv_a));
                 }
                 else
@@ -17616,20 +5529,20 @@ namespace MetalMaxSystem
                         if (lp_big == false)
                         {
                             //Console.WriteLine("小值靠前");
-                            if (lv_tagValue < DataTableIntLoad1(false, "HD_IntStackOutTagValue", lv_b))
+                            if (lv_tagValue < UserDataTable<int>.Load1(false, "HD_IntStackOutTagValue", lv_b))
                             {
                                 lv_intStackOutSize += 1;
                                 autoHD_ae = (lv_b + 1);
                                 lv_c = lv_intStackOutSize;
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
-                                    DataTableIntSave1(false, "HD_IntStackOutTag", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTag", (lv_c - 1)));
-                                    DataTableIntSave1(false, "HD_IntStackOutTagValue", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTagValue", (lv_c - 1)));
-                                    DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTagIteraOrig", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTag", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTag", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTagValue", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTagIteraOrig", (lv_c - 1)));
                                 }
-                                DataTableIntSave1(false, "HD_IntStackOutTag", lv_b, lv_tag);
-                                DataTableIntSave1(false, "HD_IntStackOutTagValue", lv_b, lv_tagValue);
-                                DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", lv_b, lv_a);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTag", lv_b, lv_tag);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", lv_b, lv_tagValue);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", lv_b, lv_a);
                                 lv_bool = true;
                                 break;
                             }
@@ -17637,9 +5550,9 @@ namespace MetalMaxSystem
                         else
                         {
                             //Console.WriteLine("大值靠前"+",当前lv_b=" +IntToString(lv_b));
-                            if (lv_tagValue > DataTableIntLoad1(false, "HD_IntStackOutTagValue", lv_b))
+                            if (lv_tagValue > UserDataTable<int>.Load1(false, "HD_IntStackOutTagValue", lv_b))
                             {
-                                //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnIntTagFromRegNum(lv_b, lp_key))+"值"+IntToString(DataTableIntLoad1(false, "IntStackOutTagValue", lv_b)));
+                                //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnIntTagFromRegNum(lv_b, lp_key))+"值"+IntToString(UserDataTable<int>.Load1(false, "IntStackOutTagValue", lv_b)));
                                 //Console.WriteLine("生效的lv_b:" + IntToString(lv_b));
                                 lv_intStackOutSize += 1;
                                 //Console.WriteLine("lv_intStackOutSize:" + IntToString(lv_intStackOutSize));
@@ -17650,18 +5563,18 @@ namespace MetalMaxSystem
                                 //Console.WriteLine("递减For lv_c=" + IntToString(lv_c) +"≥"+IntToString(autoHD_ae));
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
-                                    DataTableIntSave1(false, "HD_IntStackOutTag", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTag", (lv_c - 1)));
-                                    //Console.WriteLine("交换元素" + IntToString(DataTableIntLoad1(false, "IntStackOutTag", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
-                                    DataTableIntSave1(false, "HD_IntStackOutTagValue", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTagValue", (lv_c - 1)));
-                                    //Console.WriteLine("交换值" + IntToString(DataTableIntLoad1(false, "IntStackOutTagValue", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
-                                    DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTagIteraOrig", (lv_c - 1)));
-                                    //Console.WriteLine("交换新序值" + IntToString(DataTableIntLoad1(false, "IntStackOutTagIteraOrig", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTag", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTag", (lv_c - 1)));
+                                    //Console.WriteLine("交换元素" + IntToString(UserDataTable<int>.Load1(false, "IntStackOutTag", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTagValue", (lv_c - 1)));
+                                    //Console.WriteLine("交换值" + IntToString(UserDataTable<int>.Load1(false, "IntStackOutTagValue", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTagIteraOrig", (lv_c - 1)));
+                                    //Console.WriteLine("交换新序值" + IntToString(UserDataTable<int>.Load1(false, "IntStackOutTagIteraOrig", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
                                 }
-                                DataTableIntSave1(false, "HD_IntStackOutTag", lv_b, lv_tag);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTag", lv_b, lv_tag);
                                 //Console.WriteLine("lv_tagStr=" + IntToString(lv_tagStr) +"存到lv_b="+IntToString(lv_b) +"位置");
-                                DataTableIntSave1(false, "HD_IntStackOutTagValue", lv_b, lv_tagValue);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", lv_b, lv_tagValue);
                                 //Console.WriteLine("lv_tagValue=" + IntToString(lv_tagValue) +"存到lv_b="+IntToString(lv_b) +"位置");
-                                DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", lv_b, lv_a);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", lv_b, lv_a);
                                 //Console.WriteLine("值IteraOrig=lv_a=" + IntToString(lv_a) +"存到序号lv_b="+IntToString(lv_b) +"位置");
                                 lv_bool = true;
                                 break;
@@ -17671,11 +5584,11 @@ namespace MetalMaxSystem
                     if ((lv_bool == false))
                     {
                         lv_intStackOutSize += 1;
-                        DataTableIntSave1(false, "HD_IntStackOutTag", lv_intStackOutSize, lv_tag);
+                        UserDataTable<int>.Save1(false, "HD_IntStackOutTag", lv_intStackOutSize, lv_tag);
                         //Console.WriteLine("lv_tagStr=" + IntToString(lv_tagStr) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
-                        DataTableIntSave1(false, "HD_IntStackOutTagValue", lv_intStackOutSize, lv_tagValue);
+                        UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", lv_intStackOutSize, lv_tagValue);
                         //Console.WriteLine("lv_tagValue=" + IntToString(lv_tagValue) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
-                        DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", lv_intStackOutSize, lv_a);
+                        UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", lv_intStackOutSize, lv_a);
                         //Console.WriteLine("IteraOrig=lv_a=" + IntToString(lv_tagValue) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
                     }
                 }
@@ -17686,17 +5599,17 @@ namespace MetalMaxSystem
             for (; ((autoE_ai >= 0 && lv_a <= autoE_ae) || (autoE_ai < 0 && lv_a >= autoE_ae)); lv_a += autoE_ai)
             {
                 //从序号里取出元素Tag、自定义值、新老句柄,让元素交换
-                //lv_tagStr = DataTableIntLoad1(true, (lp_key + "IntTag"), lv_a).ToString(); //原始序号元素
-                lv_tag = DataTableIntLoad1(false, "HD_IntStackOutTag", lv_a);
+                //lv_tagStr = UserDataTable<int>.Load1(true, (lp_key + "IntTag"), lv_a).ToString(); //原始序号元素
+                lv_tag = UserDataTable<int>.Load1(false, "HD_IntStackOutTag", lv_a);
                 lv_tagValuestr = HD_ReturnIntCV(lv_tag, lp_cVStr);
                 lv_tagValue = Convert.ToInt32(lv_tagValuestr);
                 //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr));
-                lv_b = DataTableIntLoad1(false, "HD_IntStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
+                lv_b = UserDataTable<int>.Load1(false, "HD_IntStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
                                                                                      //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号:" + IntToString(lv_tagStr));
                 if (lv_a != lv_b)
                 {
                     //Console.WriteLine("lv_a:"+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
-                    DataTableIntSave1(true, (lp_key + "HD_IntTag"), lv_a, lv_tag); //lv_tag放入新序号
+                    UserDataTable<int>.Save1(true, (lp_key + "HD_IntTag"), lv_a, lv_tag); //lv_tag放入新序号
                                                                                    //Console.WriteLine("元素"+IntToString(lv_tagStr) +"放入lv_b=" + IntToString(lv_b)+"位置");
                 }
             }
@@ -17735,7 +5648,7 @@ namespace MetalMaxSystem
             lv_str = (lp_key + "HD_Int");
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             lv_intStackOutSize = 0;
             //Implementation
             autoB_ae = lv_num;
@@ -17748,9 +5661,9 @@ namespace MetalMaxSystem
                 if ((lv_intStackOutSize == 0))
                 {
                     lv_intStackOutSize += 1;
-                    DataTableIntSave1(false, "HD_IntStackOutTag", 1, lv_tag);
-                    DataTableIntSave1(false, "HD_IntStackOutTagValue", 1, lv_tagValue);
-                    DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", 1, lv_a);
+                    UserDataTable<int>.Save1(false, "HD_IntStackOutTag", 1, lv_tag);
+                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", 1, lv_tagValue);
+                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", 1, lv_a);
                     //Console.WriteLine("尺寸" + IntToString(lv_intStackOutSize) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue)+",IteraOrig="+IntToString(lv_a));
                 }
                 else
@@ -17764,20 +5677,20 @@ namespace MetalMaxSystem
                         if (lp_big == false)
                         {
                             //Console.WriteLine("小值靠前");
-                            if (lv_tagValue < DataTableIntLoad1(false, "HD_IntStackOutTagValue", lv_b))
+                            if (lv_tagValue < UserDataTable<int>.Load1(false, "HD_IntStackOutTagValue", lv_b))
                             {
                                 lv_intStackOutSize += 1;
                                 autoHD_ae = (lv_b + 1);
                                 lv_c = lv_intStackOutSize;
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
-                                    DataTableIntSave1(false, "HD_IntStackOutTag", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTag", (lv_c - 1)));
-                                    DataTableIntSave1(false, "HD_IntStackOutTagValue", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTagValue", (lv_c - 1)));
-                                    DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTagIteraOrig", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTag", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTag", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTagValue", (lv_c - 1)));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTagIteraOrig", (lv_c - 1)));
                                 }
-                                DataTableIntSave1(false, "HD_IntStackOutTag", lv_b, lv_tag);
-                                DataTableIntSave1(false, "HD_IntStackOutTagValue", lv_b, lv_tagValue);
-                                DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", lv_b, lv_a);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTag", lv_b, lv_tag);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", lv_b, lv_tagValue);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", lv_b, lv_a);
                                 lv_bool = true;
                                 break;
                             }
@@ -17785,9 +5698,9 @@ namespace MetalMaxSystem
                         else
                         {
                             //Console.WriteLine("大值靠前"+",当前lv_b=" +IntToString(lv_b));
-                            if (lv_tagValue > DataTableIntLoad1(false, "HD_IntStackOutTagValue", lv_b))
+                            if (lv_tagValue > UserDataTable<int>.Load1(false, "HD_IntStackOutTagValue", lv_b))
                             {
-                                //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnIntTagFromRegNum(lv_b, lp_key))+"值"+IntToString(DataTableIntLoad1(false, "IntStackOutTagValue", lv_b)));
+                                //Console.WriteLine("Num" + IntToString(lv_a) +"元素"+IntToString(lv_tagStr) +"值"+IntToString(lv_tagValue) + ">第Lv_b="+IntToString(lv_b)+"元素"+IntToString(HD_ReturnIntTagFromRegNum(lv_b, lp_key))+"值"+IntToString(UserDataTable<int>.Load1(false, "IntStackOutTagValue", lv_b)));
                                 //Console.WriteLine("生效的lv_b:" + IntToString(lv_b));
                                 lv_intStackOutSize += 1;
                                 //Console.WriteLine("lv_intStackOutSize:" + IntToString(lv_intStackOutSize));
@@ -17798,18 +5711,18 @@ namespace MetalMaxSystem
                                 //Console.WriteLine("递减For lv_c=" + IntToString(lv_c) +"≥"+IntToString(autoHD_ae));
                                 for (; ((autoHD_ai >= 0 && lv_c <= autoHD_ae) || (autoHD_ai < 0 && lv_c >= autoHD_ae)); lv_c += autoHD_ai)
                                 {
-                                    DataTableIntSave1(false, "HD_IntStackOutTag", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTag", (lv_c - 1)));
-                                    //Console.WriteLine("交换元素" + IntToString(DataTableIntLoad1(false, "IntStackOutTag", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
-                                    DataTableIntSave1(false, "HD_IntStackOutTagValue", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTagValue", (lv_c - 1)));
-                                    //Console.WriteLine("交换值" + IntToString(DataTableIntLoad1(false, "IntStackOutTagValue", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
-                                    DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", lv_c, DataTableIntLoad1(false, "HD_IntStackOutTagIteraOrig", (lv_c - 1)));
-                                    //Console.WriteLine("交换新序值" + IntToString(DataTableIntLoad1(false, "IntStackOutTagIteraOrig", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTag", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTag", (lv_c - 1)));
+                                    //Console.WriteLine("交换元素" + IntToString(UserDataTable<int>.Load1(false, "IntStackOutTag", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTagValue", (lv_c - 1)));
+                                    //Console.WriteLine("交换值" + IntToString(UserDataTable<int>.Load1(false, "IntStackOutTagValue", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
+                                    UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", lv_c, UserDataTable<int>.Load1(false, "HD_IntStackOutTagIteraOrig", (lv_c - 1)));
+                                    //Console.WriteLine("交换新序值" + IntToString(UserDataTable<int>.Load1(false, "IntStackOutTagIteraOrig", (lv_c - 1))) +"从序号"+IntToString(lv_c - 1) +"到"+IntToString(lv_c));
                                 }
-                                DataTableIntSave1(false, "HD_IntStackOutTag", lv_b, lv_tag);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTag", lv_b, lv_tag);
                                 //Console.WriteLine("lv_tagStr=" + IntToString(lv_tagStr) +"存到lv_b="+IntToString(lv_b) +"位置");
-                                DataTableIntSave1(false, "HD_IntStackOutTagValue", lv_b, lv_tagValue);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", lv_b, lv_tagValue);
                                 //Console.WriteLine("lv_tagValue=" + IntToString(lv_tagValue) +"存到lv_b="+IntToString(lv_b) +"位置");
-                                DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", lv_b, lv_a);
+                                UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", lv_b, lv_a);
                                 //Console.WriteLine("值IteraOrig=lv_a=" + IntToString(lv_a) +"存到序号lv_b="+IntToString(lv_b) +"位置");
                                 lv_bool = true;
                                 break;
@@ -17819,11 +5732,11 @@ namespace MetalMaxSystem
                     if ((lv_bool == false))
                     {
                         lv_intStackOutSize += 1;
-                        DataTableIntSave1(false, "HD_IntStackOutTag", lv_intStackOutSize, lv_tag);
+                        UserDataTable<int>.Save1(false, "HD_IntStackOutTag", lv_intStackOutSize, lv_tag);
                         //Console.WriteLine("lv_tagStr=" + IntToString(lv_tagStr) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
-                        DataTableIntSave1(false, "HD_IntStackOutTagValue", lv_intStackOutSize, lv_tagValue);
+                        UserDataTable<int>.Save1(false, "HD_IntStackOutTagValue", lv_intStackOutSize, lv_tagValue);
                         //Console.WriteLine("lv_tagValue=" + IntToString(lv_tagValue) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
-                        DataTableIntSave1(false, "HD_IntStackOutTagIteraOrig", lv_intStackOutSize, lv_a);
+                        UserDataTable<int>.Save1(false, "HD_IntStackOutTagIteraOrig", lv_intStackOutSize, lv_a);
                         //Console.WriteLine("IteraOrig=lv_a=" + IntToString(lv_tagValue) +"存到尺寸="+IntToString(lv_intStackOutSize) +"位置");
                     }
                 }
@@ -17834,16 +5747,16 @@ namespace MetalMaxSystem
             for (; ((autoE_ai >= 0 && lv_a <= autoE_ae) || (autoE_ai < 0 && lv_a >= autoE_ae)); lv_a += autoE_ai)
             {
                 //从序号里取出元素Tag、自定义值、新老句柄,让元素交换
-                //lv_tagStr = DataTableIntLoad1(true, (lp_key + "IntTag"), lv_a).ToString(); //原始序号元素
-                lv_tag = DataTableIntLoad1(false, "HD_IntStackOutTag", lv_a);
+                //lv_tagStr = UserDataTable<int>.Load1(true, (lp_key + "IntTag"), lv_a).ToString(); //原始序号元素
+                lv_tag = UserDataTable<int>.Load1(false, "HD_IntStackOutTag", lv_a);
                 lv_tagValue = lv_tag;
                 //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr));
-                lv_b = DataTableIntLoad1(false, "HD_IntStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
+                lv_b = UserDataTable<int>.Load1(false, "HD_IntStackOutTagIteraOrig", lv_a); //lv_tag的原序号位置
                                                                                      //Console.WriteLine("第"+IntToString(lv_a) +"个元素:" + IntToString(lv_tagStr) + "值"+ IntToString(lv_tagValue)+"原序号:" + IntToString(lv_tagStr));
                 if (lv_a != lv_b)
                 {
                     //Console.WriteLine("lv_a:"+IntToString(lv_a) +"不等于lv_b" + IntToString(lv_b));
-                    DataTableIntSave1(true, (lp_key + "HD_IntTag"), lv_a, lv_tag); //lv_tag放入新序号
+                    UserDataTable<int>.Save1(true, (lp_key + "HD_IntTag"), lv_a, lv_tag); //lv_tag放入新序号
                                                                                    //Console.WriteLine("元素"+IntToString(lv_tagStr) +"放入lv_b=" + IntToString(lv_b)+"位置");
                 }
             }
@@ -17889,7 +5802,7 @@ namespace MetalMaxSystem
         /// <returns></returns>
         public static int HD_ReturnIntGNumMax(string lp_gs)
         {
-            return DataTableIntLoad0(true, lp_gs + "HD_IntNum");
+            return UserDataTable<int>.Load0(true, lp_gs + "HD_IntNum");
         }
 
         /// <summary>
@@ -18040,9 +5953,9 @@ namespace MetalMaxSystem
         {
             //组中添加对象,不对其固有状态和固有自定义值进行任何修改,所以使用Simple
             HD_RegInt_Simple(lp_integer, lp_gs);
-            if (DataTableStringKeyExists(true, ("HD_IntState" + lp_gs + "HD_Int_" + lp_integer.ToString())) == false)
+            if (UserDataTable<string>.KeyExists(true, ("HD_IntState" + lp_gs + "HD_Int_" + lp_integer.ToString())) == false)
             {
-                DataTableStringSave0(true, ("HD_IntState" + lp_gs + "HD_Int_" + lp_integer.ToString()), "true");
+                UserDataTable<string>.Save0(true, ("HD_IntState" + lp_gs + "HD_Int_" + lp_integer.ToString()), "true");
                 //Console.WriteLine(lp_gs + "=>" + HD_RegIntTagAndReturn(lp_integer));
             }
         }
@@ -18115,12 +6028,12 @@ namespace MetalMaxSystem
             int lv_vector;
             for (; (lv_ai >= 0 && lv_va <= lv_ae) || (lv_ai < 0 && lv_va >= lv_ae); lv_va += lv_ai)
             {
-                DataTableIntSave0(false, "HD_IntGFor" + lv_vs + lv_va.ToString(), HD_ReturnIntFromRegNum(lv_va, lv_vs));
+                UserDataTable<int>.Save0(false, "HD_IntGFor" + lv_vs + lv_va.ToString(), HD_ReturnIntFromRegNum(lv_va, lv_vs));
             }
             lv_va = lp_start;
             for (; (lv_ai >= 0 && lv_va <= lv_ae) || (lv_ai < 0 && lv_va >= lv_ae); lv_va += lv_ai)
             {
-                lv_vector = DataTableIntLoad0(false, "HD_IntGFor" + lv_vs + lv_va.ToString());
+                lv_vector = UserDataTable<int>.Load0(false, "HD_IntGFor" + lv_vs + lv_va.ToString());
                 lp_funcref(lv_vector);//用户填写的所有动作
             }
         }
@@ -18224,18 +6137,18 @@ namespace MetalMaxSystem
             int lv_a;
             //Variable Initialization
             lv_str = (lp_key + "HD_Int");
-            lv_num = DataTableIntLoad0(true, (lv_str + "Num"));
+            lv_num = UserDataTable<int>.Load0(true, (lv_str + "Num"));
             //Implementation
             ThreadWait(lv_str);
             ThreadWaitSet(true, lv_str, true);
             for (lv_a = 1; lv_a <= lv_num; lv_a += 1)
             {
-                lv_tagStr = DataTableIntLoad1(true, (lp_key + "HD_IntTag"), lv_a).ToString();
+                lv_tagStr = UserDataTable<int>.Load1(true, (lp_key + "HD_IntTag"), lv_a).ToString();
                 lv_num -= 1;
-                DataTableBoolClear0(true, "IfIntGTag" + lv_str + "_" + lv_tagStr);
-                DataTableStringClear0(true, "HD_IntCV" + lv_str + "_" + lv_tagStr);
-                DataTableStringClear0(true, "HD_IntState" + lv_str + "_" + lv_tagStr);
-                DataTableIntSave0(true, (lp_key + "HD_IntNum"), lv_num);
+                UserDataTable<bool>.Clear0(true, "IfIntGTag" + lv_str + "_" + lv_tagStr);
+                UserDataTable<string>.Clear0(true, "HD_IntCV" + lv_str + "_" + lv_tagStr);
+                UserDataTable<string>.Clear0(true, "HD_IntState" + lv_str + "_" + lv_tagStr);
+                UserDataTable<int>.Save0(true, (lp_key + "HD_IntNum"), lv_num);
             }
             ThreadWaitSet(true, lv_str, false);
         }
@@ -18250,1198 +6163,11 @@ namespace MetalMaxSystem
 
         #endregion
 
-        #region 键鼠事件
-
-        //↓降频版事件转发,推荐注册
-        public static KeyDownEventFuncref KeyDownEvent;
-        public static KeyUpEventFuncref KeyUpEvent;
-        public static MouseMoveEventFuncref MouseMoveEvent;
-        public static MouseDownEventFuncref MouseDownEvent;
-        public static MouseUpEventFuncref MouseUpEvent;
-        public static MouseDoubleClickEventFuncref MouseDoubleClickEvent;
-        public static KeyDoubleClickEventFuncref KeyDoubleClickEvent;
-
-        #region Functions 键鼠事件启停封装
-
-        /// <summary>
-        /// 启动MMCore内部键鼠事件循环.
-        /// RecordService监听底层钩子记录状态,MainUpdate周期间隔读取状态并判断发送事件,避免直接挂底层事件导致阻塞卡顿.
-        /// </summary>
-        /// <param name="player">玩家编号,有效编号1~15</param>
-        /// <param name="isBackground">是否后台线程运行</param>
-        public static void StartKeyMouseEvent(int player = 1, bool isBackground = true)
-        {
-            if (keyMouseEventState || recordService != null) return;
-            keyMouseEventState = true;
-            recordService = (player <= 0 || player >= 16) ? new RecordService() : new RecordService(player);
-            recordService.mainUpdateState = true;
-
-            // 开启底层钩子监听
-            recordService.StartMouseHook();
-            recordService.StartKeyboardHook();
-
-            // 注册UpdateKeyMouseEventLoop到MainUpdate的Update事件
-            MainUpdate.Update += UpdateKeyMouseEventLoop;
-
-            // 启动MainUpdate(50ms周期运行=20Frames Per Second)
-            MainUpdate.Period = 50;
-            MainUpdate.Duetime = 0;
-            MainUpdate.Run(isBackground); //键鼠事件以后台线程运行即可
-        }
-
-        /// <summary>
-        /// 停止MMCore内部键鼠事件循环
-        /// </summary>
-        public static void StopKeyMouseEventLoop()
-        {
-            if (!keyMouseEventState) return;
-            // 通知停止MainUpdate
-            MainUpdate.TimerStop = true;
-            // 注销事件
-            MainUpdate.Update -= UpdateKeyMouseEventLoop;
-            // 停止底层钩子监听
-            recordService.StopMouseHook();
-            recordService.StopKeyboardHook();
-            // 清理资源
-            recordService = null;
-            // 状态重置
-            keyMouseEventState = false;
-        }
-
-        /// <summary>
-        /// 更新键鼠事件(在MainUpdate周期调用).
-        /// 读取RecordService记录的状态并判断是否发送KeyDown/KeyUp/MouseMove/MouseDown/MouseUp事件.
-        /// </summary>
-        private static void UpdateKeyMouseEventLoop()
-        {
-            if (recordService == null || !keyMouseEventState || !recordService.mainUpdateState) return;
-            MouseEventHandler(recordService);
-            KeyboardEventHandler(recordService);
-        }
-
-        private static void MouseEventHandler(RecordService recordService)
-        {
-            switch (recordService.MouseWParam)
-            {
-                case MouseHook.WM_MOUSEMOVE:
-                    //鼠标移动位置(整数UI坐标)
-                    //MouseMove(recordService.PlayerID, recordService.X, recordService.Y); //直接函数测试
-                    MouseMoveEvent?.Invoke(recordService.PlayerID, recordService.X, recordService.Y);
-                    break;
-                case MouseHook.WM_LBUTTONDOWN:
-                    //鼠标左键按下
-                    MouseDownEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonLeft, recordService.X, recordService.Y);
-                    break;
-                case MouseHook.WM_LBUTTONUP:
-                    //鼠标左键弹起
-                    MouseUpEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonLeft, recordService.X, recordService.Y);
-                    break;
-                case MouseHook.WM_RBUTTONDOWN:
-                    //鼠标右键按下
-                    MouseDownEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonRight, recordService.X, recordService.Y);
-                    break;
-                case MouseHook.WM_RBUTTONUP:
-                    //鼠标右键弹起
-                    MouseUpEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonRight, recordService.X, recordService.Y);
-                    break;
-                case MouseHook.WM_LBUTTONDBLCLK:
-                    //鼠标左键双击
-                    MouseDoubleClickEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonLeft, recordService.X, recordService.Y);
-                    break;
-                case MouseHook.WM_RBUTTONDBLCLK:
-                    //鼠标右键双击
-                    MouseDoubleClickEvent?.Invoke(recordService.PlayerID, MMCore.c_mouseButtonRight, recordService.X, recordService.Y);
-                    break;
-            }
-        }
-
-        //↓键盘双击事件专用
-
-        /// <summary>
-        /// 上一次按下按键的虚拟键码,默认-1表示无按键.
-        /// </summary>
-        private static int lastKeyDownValue = -1;
-        /// <summary>
-        /// 上一次按下按键的时间,默认最小值.
-        /// </summary>
-        private static DateTime lastKeyDownTime = DateTime.MinValue;
-        /// <summary>
-        /// 双击事件间隔时间(毫秒)
-        /// </summary>
-        private static int doubleClickIntervalMs = 250;
-
-        private static void KeyboardEventHandler(RecordService recordService)
-        {
-            //热键判断
-            if (recordService.KeyWParam‌ == KeyboardHook.WM_KEYDOWN || recordService.KeyWParam‌ == KeyboardHook.WM_SYSKEYDOWN)
-            {
-                //按下
-                KeyDownEvent?.Invoke(recordService.PlayerID, recordService.VKCode);
-                //键盘双击
-                if (lastKeyDownValue == recordService.VKCode && (DateTime.Now - lastKeyDownTime).TotalMilliseconds <= doubleClickIntervalMs)
-                {
-                    lastKeyDownValue = -1;
-                    lastKeyDownTime = DateTime.MinValue;
-                    KeyDoubleClickEvent?.Invoke(recordService.PlayerID, recordService.VKCode);
-                }
-                else
-                {
-                    lastKeyDownValue = recordService.VKCode;
-                    lastKeyDownTime = DateTime.Now;
-                }
-            }
-            else if (recordService.KeyWParam‌ == KeyboardHook.WM_KEYUP || recordService.KeyWParam‌ == KeyboardHook.WM_SYSKEYUP)
-            {
-                //松开
-                KeyUpEvent?.Invoke(recordService.PlayerID, recordService.VKCode);
-            }
-        }
-
-        #endregion
-
-        #region Functions 键鼠事件动作主体(测试专用,不推荐使用)
-
-        //由MainUpdate监听RecordService实例字段来判断发送,由于底层事件的发送频率过高,应由MainUpdate降频后转发.
-
-        /// <summary>
-        /// 注册底层键鼠事件.由于底层事件的发送频率过高,不推荐注册耗时动作.
-        /// </summary>
-        /// <param name="cover">true:覆盖注册,false:追加注册</param>
-        public static void AddVisualKeyMouseEvent(RecordService keyMouseRecordService, bool cover, KeyDownEventFuncref keyDown, KeyUpEventFuncref keyUp, MouseMoveEventFuncref mouseMove, MouseDownEventFuncref mouseDown, MouseUpEventFuncref mouseUp)
-        {
-            if (cover)
-            {
-                keyMouseRecordService.KeyDownEvent = keyDown;
-                keyMouseRecordService.KeyUpEvent = keyUp;
-                keyMouseRecordService.MouseMoveEvent = mouseMove;
-                keyMouseRecordService.MouseDownEvent = mouseDown;
-                keyMouseRecordService.MouseUpEvent = mouseUp;
-            }
-            {
-                keyMouseRecordService.KeyDownEvent += keyDown;
-                keyMouseRecordService.KeyUpEvent += keyUp;
-                keyMouseRecordService.MouseMoveEvent += mouseMove;
-                keyMouseRecordService.MouseDownEvent += mouseDown;
-                keyMouseRecordService.MouseUpEvent += mouseUp;
-            }
-        }
-
-        /// <summary>
-        /// 注销底层键鼠事件.
-        /// </summary>
-        /// <param name="lp_null">true注销全部,否则仅注销预制键鼠事件</param>
-        public static void DelVisualKeyMouseEvent(RecordService keyMouseRecordService, bool lp_null = false, KeyDownEventFuncref keyDown = null, KeyUpEventFuncref keyUp = null, MouseMoveEventFuncref mouseMove = null, MouseDownEventFuncref mouseDown = null, MouseUpEventFuncref mouseUp = null)
-        {
-            if (lp_null)
-            {
-                keyMouseRecordService.KeyDownEvent = null;
-                keyMouseRecordService.KeyUpEvent = null;
-                keyMouseRecordService.MouseMoveEvent = null;
-                keyMouseRecordService.MouseDownEvent = null;
-                keyMouseRecordService.MouseUpEvent = null;
-            }
-            {
-                keyMouseRecordService.KeyDownEvent -= keyDown;
-                keyMouseRecordService.KeyUpEvent -= keyUp;
-                keyMouseRecordService.MouseMoveEvent -= mouseMove;
-                keyMouseRecordService.MouseDownEvent -= mouseDown;
-                keyMouseRecordService.MouseUpEvent -= mouseUp;
-            }
-        }
-
-        /// <summary>
-        /// 键盘按下事件主要动作(加入按键监听并传参执行)
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="key"></param>
-        public static bool KeyDown(int player, int key)
-        {
-            bool torf = !StopKeyMouseEvent[player];
-            Player.KeyDownState[player, key] = torf;  //当前按键状态值
-            Player.KeyDown[player, key] = true;  //当前按键值
-
-            if (StopKeyMouseEvent[player] == false)
-            {
-                Player.KeyDownLoopOneBitNum[player] += 1; //玩家当前注册的按键队列数量
-                DataTableIntSave2(true, "KeyDownLoopOneBit", player, Player.KeyDownLoopOneBitNum[player], key);
-                //↑存储玩家注册序号对应按键队列键位
-                DataTableBoolSave2(true, "KeyDownLoopOneBitKey", player, key, true); //存储玩家按键队列键位状态
-                //---------------------------------------------------------------------蓄力管理
-                if (chargeEnable == true)
-                {
-                    HD_RegKXL(key, ThreadStringBuilder.Concat("IntGroup_XuLi", player));
-                    HD_SetKeyFloatXL(player, key, 1.0f);
-                }
-                //---------------------------------------------------------------------双击管理
-                if (doubleClickEnable == true)
-                {
-                    float lv_a = HD_ReturnKeyFloatSJ(player, key);
-                    if ((0.0 < lv_a) && (lv_a <= doubleClickTimeLimit))
-                    {
-                        //符合双击标准,发送事件
-                        Send_KeySJEvent(player, key, doubleClickTimeLimit - lv_a);
-                    }
-                    else
-                    {
-                        HD_RegKSJ(key, ThreadStringBuilder.Concat("IntGroup_DoubleClicked", player)); //HD_注册按键
-                        HD_SetKeyFloatSJ(player, key, doubleClickTimeLimit);
-                    }
-                }
-                //---------------------------------------------------------------------
-                KeyDownGlobalEvent(key, true, player);
-            }
-            return torf;
-        }
-
-        /// <summary>
-        /// 键盘弹起事件主要动作(加入按键监听并传参执行)
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public static bool KeyUp(int player, int key)
-        {
-            bool torf = !StopKeyMouseEvent[player];
-            Player.KeyDownState[player, key] = false;  //当前按键状态值,本事件始终为false
-            Player.KeyDown[player, key] = false;  //当前按键值
-
-            if (StopKeyMouseEvent[player] == false)
-            {
-                //直接执行动作或通知延迟弹起函数去执行动作
-                if (DataTableBoolLoad2(true, "KeyDownLoopOneBitKey", player, key) == false)
-                {
-                    //弹起时无该键动作队列(由延迟弹起执行完),则直接执行本次事件动作
-                    KeyUpFunc(player, key);
-                }
-                else
-                {
-                    //弹起时有该键动作队列,通知延迟弹起函数运行(按键队列>0时,清空一次队列并执行它们的动作)
-                    DataTableBoolSave2(true, "KeyDownLoopOneBitEnd", player, key, true);
-                }
-            }
-            return torf;
-        }
-
-        /// <summary>
-        /// 键盘弹起事件处理函数
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        internal static bool KeyUpFunc(int player, int key)
-        {
-            bool torf = true;
-            if (StopKeyMouseEvent[player] == true)
-            {
-                torf = false;
-            }
-            else
-            {
-                KeyDownGlobalEvent(key, false, player);
-            }
-            return torf;
-        }
-
-        /// <summary>
-        /// 鼠标移动事件主要动作(加入按键监听并传参执行)
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="uiX"></param>
-        /// <param name="uiY"></param>
-        public static void MouseMove(int player, int uiX, int uiY)
-        {
-            Vector3F mouseVector = new Vector3F(uiX, uiY, 0f);
-            float unitTerrainHeight = 0f, unitHeight = 0f;
-#if UNITY_EDITOR || UNITY_STANDALONE
-            if (StopKeyMouseEvent[player] == false)
-            {
-                Player.MouseVector2F[player] = new Vector2F(mouseVector.x, mouseVector.y);
-
-                //↓注意取出来的是该点最高位Unit
-                try { unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight")); }
-                catch { }
-                try { unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height")); }
-                catch { }
-
-                Player.MouseVectorX[player] = mouseVector.x;
-                Player.MouseVectorY[player] = mouseVector.y;
-                Player.MouseVectorZ[player] = mouseVector.z;
-                Player.MouseVectorZFixed[player] = mouseVector.z - Game.MapHeight;
-
-                Player.MouseUIX[player] = uiX;
-                Player.MouseUIY[player] = uiY;
-
-                Player.MouseVectorFixed[player] = new Vector3F(mouseVector.x, mouseVector.y, Player.MouseVectorZFixed[player]);
-                Player.MouseVector[player] = mouseVector;
-                //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
-                Player.MouseVectorUnitTerrain[player] = new Vector3F(mouseVector.x, mouseVector.y, mouseVector.z - unitTerrainHeight);
-                Player.MouseVectorTerrain[player] = new Vector3F(mouseVector.x, mouseVector.y, mouseVector.z - unitTerrainHeight - unitHeight);
-
-                //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
-                if (Player.UnitControl[player] != null)
-                {
-                    //计算鼠标与控制单位的2D角度,用于调整角色在二维坐标系四象限内的的朝向
-                    Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, mouseVector);
-                }
-            }
-#else
-            if (StopKeyMouseEvent[player] == false)
-            {
-                Player.MouseVector2F[player] = new Vector2F(mouseVector.X, mouseVector.Y);
-
-                //↓注意取出来的是该点最高位Unit
-                try { unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight")); }
-                catch { }
-                try { unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height")); }
-                catch { }
-
-                Player.MouseVectorX[player] = mouseVector.X;
-                Player.MouseVectorY[player] = mouseVector.Y;
-                Player.MouseVectorZ[player] = mouseVector.Z;
-                Player.MouseVectorZFixed[player] = mouseVector.Z - Game.MapHeight;
-
-                Player.MouseUIX[player] = uiX;
-                Player.MouseUIY[player] = uiY;
-
-                Player.MouseVectorFixed[player] = new Vector3F(mouseVector.X, mouseVector.Y, Player.MouseVectorZFixed[player]);
-                Player.MouseVector[player] = mouseVector;
-                //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
-                Player.MouseVectorUnitTerrain[player] = new Vector3F(mouseVector.X, mouseVector.Y, mouseVector.Z - unitTerrainHeight);
-                Player.MouseVectorTerrain[player] = new Vector3F(mouseVector.X, mouseVector.Y, mouseVector.Z - unitTerrainHeight - unitHeight);
-
-                //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
-                if (Player.UnitControl[player] != null)
-                {
-                    //计算鼠标与控制单位的2D角度,用于调整角色在二维坐标系四象限内的的朝向
-                    Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, mouseVector);
-                }
-            }
-#endif
-        }
-
-        /// <summary>
-        /// 鼠标按下事件主要动作(加入按键监听并传参执行)
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="key"></param>
-        /// <param name="uiX"></param>
-        /// <param name="uiY"></param>
-        /// <returns></returns>
-        public static bool MouseDown(int player, int key, int uiX, int uiY)
-        {
-            Vector3F mouseVector = new Vector3F(uiX, uiY, 0f);
-            float unitTerrainHeight = 0f, unitHeight = 0f;
-
-            bool torf = !StopKeyMouseEvent[player];
-            Player.MouseDownState[player, key] = torf;  //当前按键状态
-            Player.MouseDown[player, key] = true;  //当前按键值
-
-            if (key == c_mouseButtonLeft)
-            {
-                Player.MouseDownLeft[player] = true;
-            }
-            if (key == c_mouseButtonRight)
-            {
-                Player.MouseDownRight[player] = true;
-            }
-            if (key == c_mouseButtonMiddle)
-            {
-                Player.MouseDownMiddle[player] = true;
-            }
-
-#if UNITY_EDITOR || UNITY_STANDALONE
-            if (StopKeyMouseEvent[player] == false)
-            {
-                Player.MouseVector2F[player] = new Vector2F(uiX, uiY);
-
-                //↓注意取出来的是该点最高位Unit
-                try { unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight")); }
-                catch { }
-                try { unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height")); }
-                catch { }
-
-                Player.MouseVectorX[player] = uiX;
-                Player.MouseVectorY[player] = uiY;
-                Player.MouseVectorZ[player] = mouseVector.z;
-                Player.MouseVectorZFixed[player] = mouseVector.z - Game.MapHeight;
-
-                Player.MouseUIX[player] = uiX;
-                Player.MouseUIY[player] = uiY;
-
-                Player.MouseVectorFixed[player] = new Vector3F(uiX, uiY, Player.MouseVectorZFixed[player]);
-                Player.MouseVector[player] = mouseVector;
-                //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
-                Player.MouseVectorUnitTerrain[player] = new Vector3F(uiX, uiY, mouseVector.z - unitTerrainHeight);
-                Player.MouseVectorTerrain[player] = new Vector3F(uiX, uiY, mouseVector.z - unitTerrainHeight - unitHeight);
-
-                //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
-                if (Player.UnitControl[player] != null)
-                {
-                    //计算鼠标与控制单位的2D角度,用于调整角色在二维坐标系四象限内的的朝向
-                    Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, mouseVector);
-                }
-
-                //---------------------------------------------------------------------
-                Player.MouseDownLoopOneBitNum[player] += 1;
-                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], key);
-                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, key, true);
-                //---------------------------------------------------------------------
-                if (chargeDebug == true)
-                {
-                    HD_RegKXL(key, ThreadStringBuilder.Concat("IntGroup_XuLi", player)); //HD_注册按键
-                    HD_SetKeyFloatXL(player, key, 1.0f);
-                }
-                //---------------------------------------------------------------------
-                if (doubleClickDebug == true)
-                {
-                    HD_RegPTwo(Player.MouseVector2F[player], ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player));
-                    float lv_a = HD_ReturnKeyFloatSJ(player, key);
-                    if ((0.0 < lv_a) && (lv_a <= doubleClickTimeLimit) && HD_PTwoRangeTrue(ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player)))
-                    {
-                        //符合双击标准(鼠标双击多个2点验证),发送事件
-                        Send_MouseSJEvent(player, key, doubleClickTimeLimit - lv_a, uiX, uiY, mouseVector);
-                    }
-                    else
-                    {
-                        HD_RegKSJ(key, ThreadStringBuilder.Concat("IntGroup_DoubleClicked", player)); //HD_注册按键
-                        HD_SetKeyFloatSJ(player, key, doubleClickTimeLimit);
-                    }
-                }
-                //---------------------------------------------------------------------
-                MouseDownFunc(player, key, uiX, uiY, mouseVector);
-            }
-#else
-            if (StopKeyMouseEvent[player] == false)
-            {
-                Player.MouseVector2F[player] = new Vector2F(uiX, uiY);
-
-                //↓注意取出来的是该点最高位Unit
-                try { unitTerrainHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.TerrainHeight")); }
-                catch { }
-                try { unitHeight = float.Parse(HD_ReturnObjectCV(Player.MouseVector2F[player], "Unit.Height")); }
-                catch { }
-
-                Player.MouseVectorX[player] = uiX;
-                Player.MouseVectorY[player] = uiY;
-                Player.MouseVectorZ[player] = mouseVector.Z;
-                Player.MouseVectorZFixed[player] = mouseVector.Z - Game.MapHeight;
-
-                Player.MouseUIX[player] = uiX;
-                Player.MouseUIY[player] = uiY;
-
-                Player.MouseVectorFixed[player] = new Vector3F(uiX, uiY, Player.MouseVectorZFixed[player]);
-                Player.MouseVector[player] = mouseVector;
-                //下面2个动作应该要从二维点读取单位(可多个),将最高的单位的头顶坐标填入以修正鼠标Z点
-                Player.MouseVectorUnitTerrain[player] = new Vector3F(uiX, uiY, mouseVector.Z - unitTerrainHeight);
-                Player.MouseVectorTerrain[player] = new Vector3F(uiX, uiY, mouseVector.Z - unitTerrainHeight - unitHeight);
-
-                //玩家控制单位存在时,计算鼠标距离控制单位的2D角度和3D距离
-                if (Player.UnitControl[player] != null)
-                {
-                    //计算鼠标与控制单位的2D角度,用于调整角色在二维坐标系四象限内的的朝向
-                    Player.MouseToUnitControlAngle[player] = AngleBetween(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的2D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange[player] = Distance(Player.UnitControl[player].Vector2F, Player.MouseVector2F[player]);
-                    //计算鼠标与控制单位的3D距离(由于点击的位置是单位头顶位置,2个单位重叠则返回最高位的,所以玩家会点到最高位单位)
-                    Player.MouseToUnitControlRange3F[player] = Distance(Player.UnitControl[player].Vector3F, mouseVector);
-                }
-
-                //---------------------------------------------------------------------
-                Player.MouseDownLoopOneBitNum[player] += 1;
-                DataTableIntSave2(true, "MouseDownLoopOneBit", player, Player.MouseDownLoopOneBitNum[player], key);
-                DataTableBoolSave2(true, "MouseDownLoopOneBitKey", player, key, true);
-                //---------------------------------------------------------------------
-                if (chargeEnable == true)
-                {
-                    HD_RegKXL(key, ThreadStringBuilder.Concat("IntGroup_XuLi", player)); //HD_注册按键
-                    HD_SetKeyFloatXL(player, key, 1.0f);
-                }
-                //---------------------------------------------------------------------
-                if (doubleClickEnable == true)
-                {
-                    HD_RegPTwo(Player.MouseVector2F[player], ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player));
-                    float lv_a = HD_ReturnKeyFloatSJ(player, key);
-                    if ((0.0f < lv_a) && (lv_a <= doubleClickTimeLimit) && HD_PTwoRangeTrue(ThreadStringBuilder.Concat("DoubleClicked_PTwo_", player)))
-                    {
-                        //符合双击标准(鼠标双击多个2点验证),发送事件
-                        Send_MouseSJEvent(player, key, doubleClickTimeLimit - lv_a, uiX, uiY, Player.MouseVector[player]);
-                    }
-                    else
-                    {
-                        HD_RegKSJ(key, ThreadStringBuilder.Concat("IntGroup_DoubleClicked", player)); //HD_注册按键
-                        HD_SetKeyFloatSJ(player, key, doubleClickTimeLimit);
-                    }
-                }
-                //---------------------------------------------------------------------
-                MouseDownFunc(player, key, uiX, uiY, mouseVector);
-            }
-#endif
-            return torf;
-        }
-
-        /// <summary>
-        /// 鼠标按下事件处理函数
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="key"></param>
-        /// <param name="mouseVector">鼠标在3D世界中的坐标</param>
-        /// <param name="uiX"></param>
-        /// <param name="uiY"></param>
-        /// <returns></returns>
-        internal static bool MouseDownFunc(int player, int key, int uiX = 0, int uiY = 0, Vector3F? mouseVector = null)
-        {
-            //Variable Declarations
-            bool torf = true;
-
-            //Implementation
-            if (StopKeyMouseEvent[player] == true)
-            {
-                //阻止按键事件时强制取消按键状态
-                Player.MouseDownState[player, key] = false;
-                if (key == c_mouseButtonLeft)
-                {
-                    Player.MouseDownLeft[player] = false;
-                }
-                if (key == c_mouseButtonRight)
-                {
-                    Player.MouseDownRight[player] = false;
-                }
-                if (key == c_mouseButtonMiddle)
-                {
-                    Player.MouseDownMiddle[player] = false;
-                }
-                torf = false;
-            }
-            else
-            {
-                MouseDownGlobalEvent(key, true, player);
-            }
-            return torf;
-        }
-
-        /// <summary>
-        /// 鼠标弹起事件主要动作(加入按键监听并传参执行)
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="key"></param>
-        /// <param name="uiX"></param>
-        /// <param name="uiY"></param>
-        public static bool MouseUp(int player, int key, int uiX, int uiY)
-        {
-            bool torf = !StopKeyMouseEvent[player];
-            Player.MouseDownState[player, key] = false;  //当前按键状态值,本事件始终为false
-            Player.MouseDown[player, key] = false;  //当前按键值
-            if (key == c_mouseButtonLeft)
-            {
-                Player.MouseDownLeft[player] = false;
-            }
-            if (key == c_mouseButtonRight)
-            {
-                Player.MouseDownRight[player] = false;
-            }
-            if (key == c_mouseButtonMiddle)
-            {
-                Player.MouseDownMiddle[player] = false;
-            }
-
-            if (StopKeyMouseEvent[player] == false)
-            {
-                //直接执行动作或通知延迟弹起函数去执行动作
-                if (DataTableBoolLoad2(true, "MouseDownLoopOneBitKey", player, key) == false)
-                {
-                    //弹起时无该键动作队列(由延迟弹起执行完),则直接执行本次事件动作
-                    MouseUpFunc(player, key);
-                }
-                else
-                {
-                    //弹起时有该键动作队列,通知延迟弹起函数运行(按键队列>0时,清空一次队列并执行它们的动作)
-                    DataTableBoolSave2(true, "MouseDownLoopOneBitEnd", player, key, true);
-                }
-            }
-            return torf;
-        }
-
-        /// <summary>
-        /// 鼠标弹起事件处理函数
-        /// </summary>
-        /// <param name="player"></param>
-        /// <param name="key"></param>
-        internal static bool MouseUpFunc(int player, int key)
-        {
-            bool torf = true;
-            if (StopKeyMouseEvent[player] == true)
-            {
-                torf = false;
-            }
-            else
-            {
-                MouseDownGlobalEvent(key, false, player);
-            }
-            return torf;
-        }
-
-        /// <summary>
-        /// 处理按键队列的延迟弹起.会按序执行键鼠事件动作队列,需加入到每帧执行(并遍历全部玩家).
-        /// </summary>
-        /// <param name="player"></param>
-        public static void KeyMouseUpWait(int player)
-        {
-            int key;
-            int ae, be, a, ai = 1, bi = 1;
-            //玩家有鼠标按键事件动作队列时
-            if (Player.MouseDownLoopOneBitNum[player] > 0)
-            {
-                ae = Player.MouseDownLoopOneBitNum[player];//获取动作队列数量
-                a = 1;
-                for (; ((ai >= 0 && a <= ae) || (ai < 0 && a >= ae)); a += ai)
-                {
-                    key = DataTableIntLoad2(true, "MouseDownLoopOneBit", player, a);//读取玩家指定动作队列按键
-                    if (DataTableBoolLoad2(true, "MouseDownLoopOneBitEnd", player, key) == true)//判断玩家指定按键的动作队列是否结束
-                    {
-                        //若该键的动作队列结束,重置按键状态
-                        if (key == c_mouseButtonLeft)
-                        {
-                            Player.MouseDown[player, c_mouseButtonLeft] = false;
-                        }
-                        if (key == c_mouseButtonRight)
-                        {
-                            Player.MouseDown[player, c_mouseButtonRight] = false;
-                        }
-                        if (key == c_mouseButtonMiddle)
-                        {
-                            Player.MouseDown[player, c_mouseButtonMiddle] = false;
-                        }
-                        //
-                        MouseDownFunc(player, key, Player.MouseUIX[player], Player.MouseUIY[player], Player.MouseVector[player]);
-                    }
-                    DataTableIntClear2(true, "MouseDownLoopOneBit", player, a);
-                    DataTableBoolClear2(true, "MouseDownLoopOneBitKey", player, key);
-                    DataTableBoolClear2(true, "MouseDownLoopOneBitEnd", player, key);
-                }
-                Player.MouseDownLoopOneBitNum[player] = 0; //动作全部执行,全队列清空
-            }
-            //玩家有键盘按键事件动作队列时
-            if (Player.KeyDownLoopOneBitNum[player] > 0)//获取动作队列数量
-            {
-                be = Player.KeyDownLoopOneBitNum[player];
-                a = 1;
-                for (; ((bi >= 0 && a <= be) || (bi < 0 && a >= be)); a += bi)
-                {
-                    key = DataTableIntLoad2(true, "KeyDownLoopOneBit", player, a);//读取玩家指定动作队列按键
-                    if (DataTableBoolLoad2(true, "KeyDownLoopOneBitEnd", player, key) == true)//判断玩家指定按键的动作队列是否结束
-                    {
-                        //若该键的动作队列结束,重置按键状态
-                        Player.KeyDown[player, key] = false;
-                        KeyUpFunc(player, key);
-                    }
-                    DataTableIntClear2(true, "KeyDownLoopOneBit", player, a);
-                    DataTableBoolClear2(true, "KeyDownLoopOneBitKey", player, key);
-                    DataTableBoolClear2(true, "KeyDownLoopOneBitEnd", player, key);
-                }
-                Player.KeyDownLoopOneBitNum[player] = 0; //全键盘队列清空
-            }
-        }
-
-        #region Functions 键鼠事件委托管理(与键鼠事件动作主体将执行的委托小组进行互动).
-
-        //------------------------------------↓KeyDownEventStart↓-----------------------------------------
-
-        /// <summary>
-        /// 将(1个或多个)委托函数注册到键盘按键事件(或者说给委托函数添加指定事件,完成事件注册).
-        /// 注册指定键盘按键的委托函数,每个键盘按键最大注册数量限制(8),超过则什么也不做
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="funcref"></param>
-        public static void RegistKeyEventFuncref(int key, KeyMouseEventFuncref funcref)
-        {
-            ThreadWait("MMCore_KeyEventFuncref_");//注册注销时进行等待
-            ThreadWaitSet("MMCore_KeyEventFuncref_", true);
-            if (keyEventFuncrefGroupNum[key] >= c_regKeyMax)
-            {
-                return;
-            }
-            keyEventFuncrefGroupNum[key] += 1;//注册成功记录+1
-            keyEventFuncrefGroup[key, keyEventFuncrefGroupNum[key]] = funcref;//这里采用等于,设计为覆盖
-            ThreadWaitSet("MMCore_KeyEventFuncref_", false);
-        }
-        /// <summary>
-        /// 注册指定键盘按键的委托函数(登录在指定注册序号num位置)
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="num">不能超过最大注册数量限制(8)</param>
-        /// <param name="funcref"></param>
-        public static void RegistKeyEventFuncref(int key, int num, KeyMouseEventFuncref funcref)
-        {
-            ThreadWait("MMCore_KeyEventFuncref_");//注册注销时进行等待
-            ThreadWaitSet("MMCore_KeyEventFuncref_", true);
-            keyEventFuncrefGroup[key, num] = funcref;
-            ThreadWaitSet("MMCore_KeyEventFuncref_", false);
-        }
-
-        /// <summary>
-        /// 注销指定键盘按键的委托函数(发生序号重排)
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="funcref"></param>
-        public static void RemoveKeyEventFuncref(int key, KeyMouseEventFuncref funcref)
-        {
-            ThreadWait("MMCore_KeyEventFuncref_");
-            ThreadWaitSet("MMCore_KeyEventFuncref_", true);
-            try
-            {
-                int currentCount = keyEventFuncrefGroupNum[key];
-                int a = 1;
-                while (a <= currentCount)
-                {
-                    if (keyEventFuncrefGroup[key, a] == funcref)
-                    {
-                        // 1. 将后续元素前移，覆盖当前被删除的元素
-                        for (int b = a; b < currentCount; b++)
-                        {
-                            keyEventFuncrefGroup[key, b] = keyEventFuncrefGroup[key, b + 1];
-                        }
-                        // 2. 清空最后一个冗余位置（防止内存泄漏或幽灵引用）
-                        keyEventFuncrefGroup[key, currentCount] = null;
-
-                        // 3. 总数减一
-                        currentCount--;
-                        keyEventFuncrefGroupNum[key] = currentCount;
-                    }
-                    else
-                    {
-                        // 只有当不匹配时，才检查下一个索引
-                        a++;
-                    }
-                }
-            }
-            finally
-            {
-                ThreadWaitSet("MMCore_KeyEventFuncref_", false);
-            }
-        }
-
-        /// <summary>
-        /// 返回指定键盘按键注册函数的序号
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="funcref"></param>
-        /// <returns>错误时返回-1</returns>
-        public static int GetKeyEventFuncrefNearestNum(int key, KeyMouseEventFuncref funcref)
-        {
-            int num = -1;
-            for (int a = 1; a <= keyEventFuncrefGroupNum[key]; a += 1)
-            {
-                //遍历检查所填函数注册序号
-                if (keyEventFuncrefGroup[key, a] == funcref)
-                {
-                    //返回最近的函数序号
-                    num = a;
-                    break;
-                }
-            }
-            return num;
-        }
-
-        /// <summary>
-        /// 返回指定键盘按键指定函数的注册数量(>1则注册了多个同样的函数)
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="funcref"></param>
-        /// <returns></returns>
-        public static int GetKeyEventFuncrefCount(int key, KeyMouseEventFuncref funcref)
-        {
-            int count = 0;
-            for (int a = 1; a <= keyEventFuncrefGroupNum[key]; a += 1)
-            {
-                //遍历检查所填函数注册序号
-                if (keyEventFuncrefGroup[key, a] == funcref)
-                {
-                    count += 1;
-                }
-            }
-
-            return count;
-        }
-
-        /// <summary>
-        /// 归并键盘按键指定函数(如存在则移除该函数注册并序号重排,之后重新注册1次)
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="funcref"></param>
-        /// <returns></returns>
-        public static bool RedoKeyEventFuncref(int key, KeyMouseEventFuncref funcref)
-        {
-            ThreadWait("MMCore_KeyEventFuncref_");//注册注销时进行等待
-            ThreadWaitSet("MMCore_KeyEventFuncref_", true);
-            bool result = false;
-            int num = GetKeyEventFuncrefCount(key, funcref);
-            if (num > 1)
-            {
-                result = true;
-                //发现重复函数,移除后重新注册
-                RemoveKeyEventFuncref(key, funcref);
-                RegistKeyEventFuncref(key, funcref);
-            }
-            ThreadWaitSet("MMCore_KeyEventFuncref_", false);
-            return result;
-        }
-
-        /// <summary>
-        /// 全局键盘按键事件,对指定键盘按键执行委托函数动作集合
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="keydown"></param>
-        /// <param name="player"></param>
-        public static void KeyDownGlobalEvent(int key, bool keydown, int player)
-        {
-            for (int a = 1; a <= keyEventFuncrefGroupNum[key]; a += 1)
-            {
-                //这里不开新线程,是否另开线程运行宜由委托函数去写
-                keyEventFuncrefGroup[key, a](keydown, player);//执行键盘按键委托
-            }
-        }
-
-        //--------------------------------------↑KeyDownEventEnd↑-----------------------------------------
-
-        //------------------------------------↓MouseDownEventStart↓---------------------------------------
-
-        /// <summary>
-        /// 将(1个或多个)委托函数注册到鼠标按键事件(或者说给委托函数添加指定事件,完成事件注册).
-        /// 注册指定鼠标键位的委托函数,每个鼠标按键最大注册数量限制(24),超过则什么也不做
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="funcref"></param>
-        public static void RegistMouseEventFuncref(int key, KeyMouseEventFuncref funcref)
-        {
-            ThreadWait("MouseEventFuncref");//注册注销时进行等待
-            ThreadWaitSet("MouseEventFuncref", true);
-            if (mouseEventFuncrefGroupNum[key] >= c_regMouseMax)
-            {
-                return;
-            }
-            mouseEventFuncrefGroupNum[key] += 1;//注册成功记录+1
-            mouseEventFuncrefGroup[key, mouseEventFuncrefGroupNum[key]] = funcref;//这里采用等于,设计为覆盖
-            ThreadWaitSet("MouseEventFuncref", false);
-        }
-        /// <summary>
-        /// 注册指定鼠标键位的委托函数(登录在指定注册序号num位置)
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="num">不能超过最大注册数量限制(24)</param>
-        /// <param name="funcref"></param>
-        public static void RegistMouseEventFuncref(int key, int num, KeyMouseEventFuncref funcref)
-        {
-            ThreadWait("MouseEventFuncref");//注册注销时进行等待
-            ThreadWaitSet("MouseEventFuncref", true);
-            mouseEventFuncrefGroup[key, num] = funcref;
-            ThreadWaitSet("MouseEventFuncref", false);
-        }
-
-        /// <summary>
-        /// 注销指定鼠标键位的委托函数(发生序号重排)
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="funcref"></param>
-        public static void RemoveMouseEventFuncref(int key, KeyMouseEventFuncref funcref)
-        {
-            ThreadWait("MouseEventFuncref");
-            ThreadWaitSet("MouseEventFuncref", true);
-            try
-            {
-                int currentCount = mouseEventFuncrefGroupNum[key];
-                int a = 1;
-                while (a <= currentCount)
-                {
-                    if (mouseEventFuncrefGroup[key, a] == funcref)
-                    {
-                        // 1. 将后续元素前移，覆盖当前被删除的元素
-                        for (int b = a; b < currentCount; b++)
-                        {
-                            mouseEventFuncrefGroup[key, b] = mouseEventFuncrefGroup[key, b + 1];
-                        }
-
-                        // 2. 清空最后一个冗余位置（防止内存泄漏或幽灵引用）
-                        mouseEventFuncrefGroup[key, currentCount] = null;
-
-                        // 3. 总数减一
-                        currentCount--;
-                        mouseEventFuncrefGroupNum[key] = currentCount;
-                    }
-                    else
-                    {
-                        // 只有当不匹配时，才检查下一个索引
-                        a++;
-                    }
-                }
-            }
-            finally
-            {
-                ThreadWaitSet("MouseEventFuncref", false);
-            }
-        }
-
-        /// <summary>
-        /// 返回指定鼠标键位注册函数的序号
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="funcref"></param>
-        /// <returns>错误时返回-1</returns>
-        public static int GetMouseEventFuncrefNearestNum(int key, KeyMouseEventFuncref funcref)
-        {
-            int num = -1;
-            for (int a = 1; a <= mouseEventFuncrefGroupNum[key]; a += 1)
-            {
-                //遍历检查所填函数注册序号
-                if (mouseEventFuncrefGroup[key, a] == funcref)
-                {
-                    //返回最近的函数序号
-                    num = a;
-                    break;
-                }
-            }
-            return num;
-        }
-
-        /// <summary>
-        /// 返回指定鼠标键位指定注册函数的数量(>1则注册了多个同样的函数)
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="funcref"></param>
-        /// <returns></returns>
-        public static int GetMouseEventFuncrefCount(int key, KeyMouseEventFuncref funcref)
-        {
-            int count = 0;
-            for (int a = 1; a <= mouseEventFuncrefGroupNum[key]; a += 1)
-            {
-                //遍历检查所填函数注册序号
-                if (mouseEventFuncrefGroup[key, a] == funcref)
-                {
-                    count += 1;
-                }
-            }
-            return count;
-        }
-
-        /// <summary>
-        /// 归并鼠标按键指定函数(如存在则移除该函数注册并序号重排,之后重新注册1次)
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="funcref"></param>
-        /// <returns></returns>
-        public static bool RedoMouseEventFuncref(int key, KeyMouseEventFuncref funcref)
-        {
-            bool torf = false;
-            int num = GetMouseEventFuncrefCount(key, funcref);
-            if (num > 1)
-            {
-                torf = true;
-                //发现重复函数,移除后重新注册
-                RemoveMouseEventFuncref(key, funcref);
-                RegistMouseEventFuncref(key, funcref);
-            }
-            return torf;
-        }
-
-        /// <summary>
-        /// 全局鼠标按键事件,对指定鼠标按键执行委托函数动作集合
-        /// </summary>
-        /// <param name="key"></param>
-        /// <param name="keydown"></param>
-        /// <param name="player"></param>
-        public static void MouseDownGlobalEvent(int key, bool keydown, int player)
-        {
-            int a = 1;
-            for (; a <= mouseEventFuncrefGroupNum[key]; a += 1)
-            {
-                //这里不开新线程,是否另开线程运行宜由委托函数去写
-                mouseEventFuncrefGroup[key, a](keydown, player);//执行鼠标按键委托
-            }
-        }
-
-        //------------------------------------↑MouseDownEventEnd↑-----------------------------------------
-
-        #endregion
-
-        #endregion
-
-        #region Functions 主副循环入口事件委托管理(仅示范,推荐直接用MainUpdate.Awake/Start/Update/End/Destroy +=)
-
-        //MainUpdate、SubUpdate的循环体执行一个委托小组,这里是框架内部与该小组的管理互动
-
-        //------------------------------------↓EntryFuncStart↓-----------------------------------------
-
-        /// <summary>
-        /// 将1个委托(可多播)注册到主副循环入口事件的委托小组.10个入口每个最大注册1个,超过什么也不做.
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <param name="funcref">委托</param>
-        public static void RegistEntryEventFuncref(Entry entry, EntryEventFuncref funcref)
-        {
-            ThreadWait("EntryEventFuncref");//注册注销时进行等待
-            ThreadWaitSet("EntryEventFuncref", true);
-            if (entryEventFuncrefGroupNum[(int)entry] >= c_regEntryMax)
-            {
-                return;
-            }
-            entryEventFuncrefGroupNum[(int)entry] += 1;//注册成功记录+1
-            entryEventFuncrefGroup[(int)entry, entryEventFuncrefGroupNum[(int)entry]] = funcref;//覆盖小组索引1的委托(索引0不被使用)
-            ThreadWaitSet("EntryEventFuncref", false);
-        }
-
-        /// <summary>
-        /// 将1个委托(可多播)注册到指定主副循环入口事件的委托小组,10个入口每个最大注册1个,超过什么也不做.
-        /// 本函数允许选择覆盖指定注册序号的小组元素(目前仅索引位1可覆盖).
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <param name="regNum">索引必须从1开始</param>
-        /// <param name="funcref">委托</param>
-        public static void RegistEntryEventFuncref(Entry entry, int regNum, EntryEventFuncref funcref)
-        {
-            if (regNum < 1) return;
-            ThreadWait("EntryEventFuncref");//注册注销时进行等待
-            ThreadWaitSet("EntryEventFuncref", true);
-            entryEventFuncrefGroup[(int)entry, regNum] = funcref;
-            ThreadWaitSet("EntryEventFuncref", false);
-        }
-
-        /// <summary>
-        /// 注销主副循环入口事件的委托小组的指定元素(若该入口小组元素超过2个会引发序号重排,若只有1个则直接删除)
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <param name="funcref">委托</param>
-        public static void RemoveEntryEventFuncref(Entry entry, EntryEventFuncref funcref)
-        {
-            ThreadWait("EntryEventFuncref");
-            ThreadWaitSet("EntryEventFuncref", true);
-            try
-            {
-                int entryIndex = (int)entry;
-                int currentCount = entryEventFuncrefGroupNum[entryIndex];
-                int a = 1;
-                while (a <= currentCount)
-                {
-                    if (entryEventFuncrefGroup[entryIndex, a] == funcref)
-                    {
-                        // 1. 将后续元素前移
-                        for (int b = a; b < currentCount; b++)
-                        {
-                            entryEventFuncrefGroup[entryIndex, b] = entryEventFuncrefGroup[entryIndex, b + 1];
-                        }
-
-                        // 2. 清空最后一个冗余位置（防止内存泄漏/幽灵引用）
-                        entryEventFuncrefGroup[entryIndex, currentCount] = null;
-
-                        // 3. 总数减一
-                        currentCount--;
-                        entryEventFuncrefGroupNum[entryIndex] = currentCount;
-                    }
-                    else
-                    {
-                        // 只有不匹配时，才开始下一个索引检查
-                        a++;
-                    }
-                }
-            }
-            finally
-            {
-                ThreadWaitSet("EntryEventFuncref", false);
-            }
-        }
-
-        /// <summary>
-        /// 返回指定委托在主副循环入口事件的委托小组的注册序号
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <param name="funcref"></param>
-        /// <returns>错误时返回-1</returns>
-        public static int GetEntryEventFuncrefNearestNum(Entry entry, EntryEventFuncref funcref)
-        {
-            int num = -1;
-            for (int a = 1; a <= entryEventFuncrefGroupNum[(int)entry]; a += 1)
-            {
-                //遍历检查所填函数注册序号
-                if (entryEventFuncrefGroup[(int)entry, a] == funcref)
-                {
-                    //返回最近的函数序号
-                    num = a;
-                    break;
-                }
-            }
-            return num;
-        }
-
-        /// <summary>
-        /// 返回指定委托在主副循环入口事件的委托小组的注册数量(大于1则注册了多个同样的)
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <param name="funcref"></param>
-        /// <returns></returns>
-        public static int GetEntryEventFuncrefCount(Entry entry, EntryEventFuncref funcref)
-        {
-            int count = 0;
-            for (int a = 1; a <= entryEventFuncrefGroupNum[(int)entry]; a += 1)
-            {
-                //遍历检查所填函数注册序号
-                if (entryEventFuncrefGroup[(int)entry, a] == funcref)
-                {
-                    count += 1;
-                }
-            }
-
-            return count;
-        }
-
-        /// <summary>
-        /// 归并主副循环入口的委托小组的指定委托(如存在则移除干净,之后重新注册1次)
-        /// </summary>
-        /// <param name="entry"></param>
-        /// <param name="funcref"></param>
-        /// <returns></returns>
-        public static bool RedoEntryEventFuncref(Entry entry, EntryEventFuncref funcref)
-        {
-            bool result = false;
-            int num = GetEntryEventFuncrefCount(entry, funcref);
-            if (num > 1)
-            {
-                result = true;
-                RemoveEntryEventFuncref(entry, funcref);
-                RegistEntryEventFuncref(entry, funcref);
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// 全局主副循环入口事件.本函数由MainUpdate、SubUpdate执行时自动调用.
-        /// </summary>
-        /// <param name="entry"></param>
-        public static void EntryGlobalEvent(Entry entry)
-        {
-            for (int a = 1; a <= entryEventFuncrefGroupNum[(int)entry]; a += 1)
-            {
-                entryEventFuncrefGroup[(int)entry, a]();//执行主副循环入口委托
-            }
-        }
-
-        //------------------------------------↑EntryFuncEnd↑-----------------------------------------
-        #endregion
-
-        #endregion
     }
 }
 
 #region 小记
+
 //本库由PC加载时推荐UTF-8(带BOM)编码以及CRLF尾行格式(Unity及MonoGame亦如此)
 
 //C#中实例方法与静态方法在内存都只存储一份,实例方法可使用this等指向实例,若明确不依赖实例则写静态方法为宜(减少以下性能开销)
@@ -19487,133 +6213,5 @@ namespace MetalMaxSystem
 //LibraryImportAttribute是较新特性,在.NET 5及更高版本中引入,用于在编译时生成P/Invoke封送代码而不是在运行时(提高性能并减少启动延迟,无需在运行时解析DLL和函数)
 
 //await关键字只能在async声明的异步函数内用,作用是等待一个异步操作的完成,并且不会阻塞调用线程.
-
-/* 
-
-主副循环入口事件委托管理的作用
-
-### 核心作用
-
-**主副循环入口事件委托是MM框架为游戏/应用提供的一种生命周期钩子机制,允许开发者在游戏主循环的特定阶段注册自定义按键函数,实现逻辑分离和模块化.
-
-### 生命周期阶段
-
-┌─────────────────────────────────────────────────────────┐
-│                    游戏主循环                            │
-├─────────────────────────────────────────────────────────┤
-│  Awake()  →  Start()  →  [ Update() × N ]  →  End()  →  Destroy()  │
-│     ↓           ↓              ↓                ↓            ↓        │
-│   唤醒         启动          每帧更新           结束          销毁      │
-└─────────────────────────────────────────────────────────┘
-
-| 阶段 | 触发时机 | 典型用途 |
-|------|---------|---------|
-| **Awake** | 对象创建时（最早） | 初始化组件、读取配置、预加载资源 |
-| **Start** | 第一次 Update 前 | 数据初始化、订阅事件、建立引用 |
-| **Update** | 每帧循环 | 游戏逻辑、状态更新、物理计算 |
-| **End** | 循环结束时 | 保存状态、清理资源、停止计时器 |
-| **Destroy** | 对象销毁时 | 释放内存、注销委托、写入存档 |
-
-### 工作原理
-
-#### 1. 委托注册机制
-
-// 定义入口枚举
-public enum Entry
-{
-    MainAwake,   // 唤醒入口
-    MainStart,   // 启动入口
-    MainUpdate,  // 更新入口
-    MainEnd,     // 结束入口
-    MainDestroy  // 销毁入口
-}
-
-主副循环入口事件支持两种注册注销方式，容量限制不同：
-
-#### 方式一 事件 += / -= 注册（无限容量）
-线程安全: C#内置事件(event)自带保护机制
-
-// MainUpdate/SubUpdate 的静态事件，支持无限个处理函数（多播委托）
-MainUpdate.Update += PlayerSystem.Update;    // 无限注册
-MainUpdate.Update += EnemySystem.Update;     // 继续添加
-MainUpdate.Update += UISystem.Update;       // 仍可继续
-MainUpdate.Update -= PlayerSystem.Update;  // 注销函数
-//↓在其他事件阶段添加委托
-MainUpdate.Start += MyStartFunction;
-
-#### 方式二：MMCore.RegistEntryEventFuncref 注册（每入口限1个）
-线程安全: 调用注册注销方法时,有ThreadWait保护,当同时大量注册注销时优先处理注销队列
-
-// 每个Entry入口最多注册1个函数，超过则什么也不做
-MMCore.RegistEntryEventFuncref(Entry.MainUpdate, MyUpdateFunction);
-
-两种方式可同时使用,都会执行.
-
-// MainUpdate.cs
-public static void Start()
-{
-    MMCore.EntryGlobalEvent(Entry.MainStart);  // 调用MMCore的入口触发
-}
-
-// MMCore.cs 入口事件的委托小组被遍历执行(具体实现)
-public static void EntryGlobalEvent(Entry entry)
-{
-    int entryIndex = (int)entry;
-    for (int i = 1; i <= entryEventFuncrefGroupNum[entryIndex]; i++)
-    {
-        entryEventFuncrefGroup[entryIndex, i]?.Invoke();  // 执行注册的委托
-    }
-}
-
-### 典型使用场景
-
-#### 1. 模块化解耦
-
-// 不同的系统注册自己的更新逻辑
-MainUpdate.Update += PlayerSystem.Update;    // 玩家系统更新
-SubUpdate.Update += EnemySystem.Update;     // 敌人系统更新
-TimerUpdate t1 = new TimerUpdate(); t1.Update += UISystem.Update;  // UI系统更新
-Trigger t2 = new Trigger(); t2.Update += InventorySystem.Update;  // 背包系统更新
-
-#### 2. 顺序执行控制
-
-MainUpdate.Awake += () => Debug.Log("1. 初始化...");  // 注册序号1
-MainUpdate.Awake += () => Debug.Log("2. 初始化...");  // 注册序号2
-// ↑会按注册顺序依次执行
-
-#### 3. 即时逻辑运算/状态切换
-
-// 游戏暂停时只执行必要更新,其余随时卸载
-MainUpdate.Update -= PhysicsSystem.Update;
-MainUpdate.Update -= AIController.Update;
-
-// 恢复时重新注册
-MainUpdate.Update += PhysicsSystem.Update;
-MainUpdate.Update += AIController.Update;
-
-### 总结
-
-| 特性 | 说明 |
-|------|------|
-| **生命周期钩子** | 提供 Awake/Start/Update/End/Destroy 五个阶段 |
-| **委托注册** | 支持 += / -= 语法注册和注销函数（无限容量） |
-| **MMCore注册** | RegistEntryEventFuncref 每入口限1个 |
-| **线程安全** | 并发访问有保护机制 |
-| **模块解耦** | 各系统独立注册自己的生命周期逻辑 |
-
-这种设计的核心价值是解耦和控制权,用户可精确控制在哪个键鼠事件阶段执行什么逻辑,给玩家键鼠注册多个函数引用.
-由于仅依托C#,可丢到Unity或C#控制台、其他使用C#的引擎中使用.
-
-//最简用法↓
-MMCore.StartKeyMouseEvent();
-MMCore.KeyDownEvent += KeyDown;
-
-public static bool KeyDown(int player, int key)
-{
-    Debug.WriteLine($"Key={key}, Player={player}");
-    return true;
-}
-
-*/
 
 #endregion

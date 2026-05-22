@@ -21,6 +21,7 @@ namespace MetalMaxSystem
     //声明的委托类型首字母大写
     //结尾Funcref 表示无事件event记号的常规委托类型(不安全使用)
     //结尾Handler 表示有事件event记号的事件委托类型(可安全使用)
+    //此处安全指:线程安全且防止外部破坏
 
     /// <summary>
     /// 键鼠常规函数引用(委托类型),特征:void KeyMouseEventFuncref(bool ifKeyDown, int player)
@@ -30,41 +31,29 @@ namespace MetalMaxSystem
     public delegate void KeyMouseEventFuncref(bool ifKeyDown, int player);
 
     /// <summary>
-    /// 主副循环入口常规函数引用(委托类型),特征:void EntryEventFuncref()
-    /// </summary>
-    public delegate void EntryEventFuncref();
-
-    /// <summary>
-    /// 计时器(周期触发器)事件函数引用(委托类型),特征:void TimerEventHandler(object sender, EventArgs e)
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    public delegate void TimerEventHandler(object sender, EventArgs e);
-
-    /// <summary>
     /// 常规触发器事件函数引用(委托类型),特征:void TriggerEventHandler(object sender, EventArgs e)
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    public delegate void TriggerEventHandler(object sender, EventArgs e);
+    public delegate void TriggerEventHandler(object sender = null, EventArgs e = null);
 
     /// <summary>
     /// 子函数动作集合常规函数引用(委托类型),特征:void SubVActionEventFuncref(int lp_var)
     /// </summary>
     /// <param name="lp_var">int</param>
-    public delegate void SubVActionEventFuncref(int lp_var);
+    public delegate void SubVActionEventFuncref(int lp_var = 0);
 
     /// <summary>
     /// 子函数动作集合常规函数引用(委托类型),特征:void SubOActionEventFuncref(object lp_object)
     /// </summary>
     /// <param name="lp_object">object</param>
-    public delegate void SubOActionEventFuncref(object lp_object);
+    public delegate void SubOActionEventFuncref(object lp_object = null);
 
     /// <summary>
     /// 子函数动作集合常规函数引用(委托类型),特征:void SubSActionEventFuncref(string lp_str)
     /// </summary>
     /// <param name="lp_str">string</param>
-    public delegate void SubSActionEventFuncref(string lp_str);
+    public delegate void SubSActionEventFuncref(string lp_str = null);
 
     #region 监听服务预制委托
 
@@ -95,7 +84,7 @@ namespace MetalMaxSystem
     /// <param name="player"></param>
     /// <param name="uiX"></param>
     /// <param name="uiY"></param>
-    public delegate void MouseMoveEventFuncref(int player, int uiX, int uiY);
+    public delegate void MouseMoveEventFuncref(int player, int uiX = 0, int uiY = 0);
     /// <summary>
     /// 监听服务鼠标按下常规函数引用(委托类型),特征:bool MouseDownEventFuncref(int player, int key, int uiX, int uiY)
     /// </summary>
@@ -104,7 +93,7 @@ namespace MetalMaxSystem
     /// <param name="uiX"></param>
     /// <param name="uiY"></param>
     /// <returns></returns>
-    public delegate bool MouseDownEventFuncref(int player, int key, int uiX, int uiY);
+    public delegate bool MouseDownEventFuncref(int player, int key, int uiX = 0, int uiY = 0);
     /// <summary>
     /// 监听服务鼠标双击常规函数引用(委托类型),特征:bool MouseDoubleClickEventFuncref(int player, int key, int uiX, int uiY)
     /// </summary>
@@ -113,7 +102,7 @@ namespace MetalMaxSystem
     /// <param name="uiX"></param>
     /// <param name="uiY"></param>
     /// <returns></returns>
-    public delegate bool MouseDoubleClickEventFuncref(int player, int key, int uiX, int uiY);
+    public delegate bool MouseDoubleClickEventFuncref(int player, int key, int uiX = 0, int uiY = 0);
     /// <summary>
     /// 监听服务鼠标弹起常规函数引用(委托类型),特征:bool MouseUpEventFuncref(int player, int key, int uiX, int uiY)
     /// </summary>
@@ -122,7 +111,7 @@ namespace MetalMaxSystem
     /// <param name="uiX"></param>
     /// <param name="uiY"></param>
     /// <returns></returns>
-    public delegate bool MouseUpEventFuncref(int player, int key, int uiX, int uiY);
+    public delegate bool MouseUpEventFuncref(int player, int key, int uiX = 0, int uiY = 0);
     #endregion
 
     #endregion

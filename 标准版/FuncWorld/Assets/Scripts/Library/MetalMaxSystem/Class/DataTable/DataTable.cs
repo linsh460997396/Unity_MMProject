@@ -9,7 +9,7 @@ namespace MetalMaxSystem
     /// <typeparam name="T">字典中存储的值的类型</typeparam>
     public static class DataTable<T>
     {
-        //根据T不同,每次调用DataTable<T>都会创建一个新的静态类实例,因此每个T都有独立的字典存储空间.
+        //根据T不同,每次调用DataTable<T>都会创建一个新的静态类实例,因此每个T类型都有独立的字典存储空间.
 
         private static Dictionary<string, T> _globalDictionary = new Dictionary<string, T>();
         /// <summary>
@@ -41,7 +41,7 @@ namespace MetalMaxSystem
         /// <param name="place">true=全局, false=局部</param>
         /// <param name="key">键</param>
         /// <param name="value">值</param>
-        private static void DictionarySet(bool place, string key, T value)
+        private static void Set(bool place, string key, T value)
         {
             if (place)
             {
@@ -61,7 +61,7 @@ namespace MetalMaxSystem
         /// <param name="place">true=全局, false=局部</param>
         /// <param name="key">键</param>
         /// <returns>是否存在</returns>
-        public static bool DictionaryKeyExists(bool place, string key)
+        public static bool KeyExists(bool place, string key)
         {
             if (place) { return _globalDictionary.ContainsKey(key); }
             else { return _localDictionary.ContainsKey(key); }
@@ -73,7 +73,7 @@ namespace MetalMaxSystem
         /// <param name="place">true=全局, false=局部</param>
         /// <param name="value">值</param>
         /// <returns>是否存在</returns>
-        public static bool DictionaryValueExists(bool place, T value)
+        public static bool ValueExists(bool place, T value)
         {
             if (place) { return _globalDictionary.ContainsValue(value); }
             else { return _localDictionary.ContainsValue(value); }
@@ -85,7 +85,7 @@ namespace MetalMaxSystem
         /// <param name="place">true=全局, false=局部</param>
         /// <param name="key">键</param>
         /// <returns>对应的值</returns>
-        public static T DictionaryGetValue(bool place, string key)
+        public static T GetValue(bool place, string key)
         {
             if (place) { return _globalDictionary[key]; }
             else { return _localDictionary[key]; }
@@ -96,7 +96,7 @@ namespace MetalMaxSystem
         /// </summary>
         /// <param name="place">true=全局, false=局部</param>
         /// <param name="key">键</param>
-        private static void DictionaryRemove(bool place, string key)
+        private static void Remove(bool place, string key)
         {
             if (place) { _globalDictionary.Remove(key); }
             else { _localDictionary.Remove(key); }
@@ -111,9 +111,9 @@ namespace MetalMaxSystem
         /// </summary>
         /// <param name="place">true=全局, false=局部</param>
         /// <param name="key">键</param>
-        public static void DictionaryClear0(bool place, string key)
+        public static void Clear0(bool place, string key)
         {
-            DictionaryRemove(place, key);
+            Remove(place, key);
         }
 
         /// <summary>
@@ -122,9 +122,9 @@ namespace MetalMaxSystem
         /// <param name="place">true=全局, false=局部</param>
         /// <param name="key">键前缀</param>
         /// <param name="lp_1">第一维索引</param>
-        public static void DictionaryClear1(bool place, string key, int lp_1)
+        public static void Clear1(bool place, string key, int lp_1)
         {
-            DictionaryRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
+            Remove(place, ThreadStringBuilder.Concat(key, '_', lp_1));
         }
 
         /// <summary>
@@ -134,9 +134,9 @@ namespace MetalMaxSystem
         /// <param name="key">键前缀</param>
         /// <param name="lp_1">第一维索引</param>
         /// <param name="lp_2">第二维索引</param>
-        public static void DictionaryClear2(bool place, string key, int lp_1, int lp_2)
+        public static void Clear2(bool place, string key, int lp_1, int lp_2)
         {
-            DictionaryRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
+            Remove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2));
         }
 
         /// <summary>
@@ -147,9 +147,9 @@ namespace MetalMaxSystem
         /// <param name="lp_1">第一维索引</param>
         /// <param name="lp_2">第二维索引</param>
         /// <param name="lp_3">第三维索引</param>
-        public static void DictionaryClear3(bool place, string key, int lp_1, int lp_2, int lp_3)
+        public static void Clear3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
-            DictionaryRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
+            Remove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3));
         }
 
         /// <summary>
@@ -161,9 +161,9 @@ namespace MetalMaxSystem
         /// <param name="lp_2">第二维索引</param>
         /// <param name="lp_3">第三维索引</param>
         /// <param name="lp_4">第四维索引</param>
-        public static void DictionaryClear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
+        public static void Clear4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
-            DictionaryRemove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
+            Remove(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4));
         }
 
         #endregion
@@ -176,9 +176,9 @@ namespace MetalMaxSystem
         /// <param name="place">true=全局, false=局部</param>
         /// <param name="key">键</param>
         /// <param name="val">值</param>
-        public static void DictionarySave0(bool place, string key, T val)
+        public static void Save0(bool place, string key, T val)
         {
-            DictionarySet(place, key, val);
+            Set(place, key, val);
         }
 
         /// <summary>
@@ -188,9 +188,9 @@ namespace MetalMaxSystem
         /// <param name="key">键前缀</param>
         /// <param name="lp_1">第一维索引</param>
         /// <param name="val">值</param>
-        public static void DictionarySave1(bool place, string key, int lp_1, T val)
+        public static void Save1(bool place, string key, int lp_1, T val)
         {
-            DictionarySet(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
+            Set(place, ThreadStringBuilder.Concat(key, '_', lp_1), val);
         }
 
         /// <summary>
@@ -201,9 +201,9 @@ namespace MetalMaxSystem
         /// <param name="lp_1">第一维索引</param>
         /// <param name="lp_2">第二维索引</param>
         /// <param name="val">值</param>
-        public static void DictionarySave2(bool place, string key, int lp_1, int lp_2, T val)
+        public static void Save2(bool place, string key, int lp_1, int lp_2, T val)
         {
-            DictionarySet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
+            Set(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2), val);
         }
 
         /// <summary>
@@ -215,9 +215,9 @@ namespace MetalMaxSystem
         /// <param name="lp_2">第二维索引</param>
         /// <param name="lp_3">第三维索引</param>
         /// <param name="val">值</param>
-        public static void DictionarySave3(bool place, string key, int lp_1, int lp_2, int lp_3, T val)
+        public static void Save3(bool place, string key, int lp_1, int lp_2, int lp_3, T val)
         {
-            DictionarySet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
+            Set(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3), val);
         }
 
         /// <summary>
@@ -230,9 +230,9 @@ namespace MetalMaxSystem
         /// <param name="lp_3">第三维索引</param>
         /// <param name="lp_4">第四维索引</param>
         /// <param name="val">值</param>
-        public static void DictionarySave4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, T val)
+        public static void Save4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4, T val)
         {
-            DictionarySet(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
+            Set(place, ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4), val);
         }
 
         #endregion
@@ -245,13 +245,13 @@ namespace MetalMaxSystem
         /// <param name="place">true=全局, false=局部</param>
         /// <param name="key">键</param>
         /// <returns>错误时返回default(T)</returns>
-        public static T DictionaryLoad0(bool place, string key)
+        public static T Load0(bool place, string key)
         {
-            if (!DictionaryKeyExists(place, key))
+            if (!KeyExists(place, key))
             {
                 return default(T);
             }
-            return DictionaryGetValue(place, key);
+            return GetValue(place, key);
         }
 
         /// <summary>
@@ -261,14 +261,14 @@ namespace MetalMaxSystem
         /// <param name="key">键前缀</param>
         /// <param name="lp_1">第一维索引</param>
         /// <returns>错误时返回default(T)</returns>
-        public static T DictionaryLoad1(bool place, string key, int lp_1)
+        public static T Load1(bool place, string key, int lp_1)
         {
             string fullKey = ThreadStringBuilder.Concat(key, '_', lp_1);
-            if (!DictionaryKeyExists(place, fullKey))
+            if (!KeyExists(place, fullKey))
             {
                 return default(T);
             }
-            return DictionaryGetValue(place, fullKey);
+            return GetValue(place, fullKey);
         }
 
         /// <summary>
@@ -279,14 +279,14 @@ namespace MetalMaxSystem
         /// <param name="lp_1">第一维索引</param>
         /// <param name="lp_2">第二维索引</param>
         /// <returns>错误时返回default(T)</returns>
-        public static T DictionaryLoad2(bool place, string key, int lp_1, int lp_2)
+        public static T Load2(bool place, string key, int lp_1, int lp_2)
         {
             string fullKey = ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2);
-            if (!DictionaryKeyExists(place, fullKey))
+            if (!KeyExists(place, fullKey))
             {
                 return default(T);
             }
-            return DictionaryGetValue(place, fullKey);
+            return GetValue(place, fullKey);
         }
 
         /// <summary>
@@ -298,14 +298,14 @@ namespace MetalMaxSystem
         /// <param name="lp_2">第二维索引</param>
         /// <param name="lp_3">第三维索引</param>
         /// <returns>错误时返回default(T)</returns>
-        public static T DictionaryLoad3(bool place, string key, int lp_1, int lp_2, int lp_3)
+        public static T Load3(bool place, string key, int lp_1, int lp_2, int lp_3)
         {
             string fullKey = ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3);
-            if (!DictionaryKeyExists(place, fullKey))
+            if (!KeyExists(place, fullKey))
             {
                 return default(T);
             }
-            return DictionaryGetValue(place, fullKey);
+            return GetValue(place, fullKey);
         }
 
         /// <summary>
@@ -318,14 +318,14 @@ namespace MetalMaxSystem
         /// <param name="lp_3">第三维索引</param>
         /// <param name="lp_4">第四维索引</param>
         /// <returns>错误时返回default(T)</returns>
-        public static T DictionaryLoad4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
+        public static T Load4(bool place, string key, int lp_1, int lp_2, int lp_3, int lp_4)
         {
             string fullKey = ThreadStringBuilder.Concat(key, '_', lp_1, '_', lp_2, '_', lp_3, '_', lp_4);
-            if (!DictionaryKeyExists(place, fullKey))
+            if (!KeyExists(place, fullKey))
             {
                 return default(T);
             }
-            return DictionaryGetValue(place, fullKey);
+            return GetValue(place, fullKey);
         }
 
         #endregion
