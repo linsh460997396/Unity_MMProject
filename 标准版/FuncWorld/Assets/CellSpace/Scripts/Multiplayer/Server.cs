@@ -65,7 +65,7 @@ namespace CellSpace
                 // >> You can check whether the request for voxel data is valid here <<
                 // if (true) {
                 CellChunk chunk = CellChunkManager.SpawnChunkFromServer(chunkx, chunky, chunkz).GetComponent<CellChunk>(); // get the chunk (spawn it if it's not spawned already)
-                chunk.Lifetime = 0f; // refresh the chunk's lifetime
+                chunk.lifetime = 0f; // refresh the chunk's lifetime
                 string data = CellChunkDataFiles.CompressData(chunk); // get data from the chunk and compress it
                 byte[] dataBytes = GetBytes(data); // convert to byte array (sending strings over RPC doesn'transform work too well)
                 GetComponent<NetworkView>().RPC("ReceiveCellData", player, chunkx, chunky, chunkz, dataBytes); // send compressed data to the player who requested it   
@@ -78,7 +78,7 @@ namespace CellSpace
             // >> You can check whether the request for voxel data is valid here <<
             // if (true) {
             CellChunk chunk = CellChunkManager.SpawnChunkFromServer(chunkx, chunky).GetComponent<CellChunk>(); // get the chunk (spawn it if it's not spawned already)
-            chunk.Lifetime = 0f; // refresh the chunk's lifetime
+            chunk.lifetime = 0f; // refresh the chunk's lifetime
             string data = CellChunkDataFiles.CompressData(chunk); // get data from the chunk and compress it
             byte[] dataBytes = GetBytes(data); // convert to byte array (sending strings over RPC doesn'transform work too well)
             GetComponent<NetworkView>().RPC("ReceiveCellData", player, chunkx, chunky, dataBytes); // send compressed data to the player who requested it   
@@ -232,7 +232,7 @@ namespace CellSpace
             else
             {
                 CellChunk chunk = CellChunkManager.SpawnChunkFromServer(chunkx, chunky, chunkz).GetComponent<CellChunk>();// if chunk is not loaded, load it
-                chunk.Lifetime = 0f; // refresh the chunk's lifetime
+                chunk.lifetime = 0f; // refresh the chunk's lifetime
                 if (isChangeBlock)
                 {
                     GetComponent<Client>().ReceiveChangeBlock(Network.player, x, y, z, chunkx, chunky, chunkz, data);
@@ -246,7 +246,7 @@ namespace CellSpace
         void ApplyOnServer(int x, int y, int chunkx, int chunky, int data, bool isChangeBlock)
         { // updates the voxel data stored on the server with the change sent by client
             CellChunk chunk = CellChunkManager.SpawnChunkFromServer(chunkx, chunky).GetComponent<CellChunk>();// if chunk is not loaded, load it
-            chunk.Lifetime = 0f; // refresh the chunk's lifetime
+            chunk.lifetime = 0f; // refresh the chunk's lifetime
             if (isChangeBlock)
             {
                 GetComponent<Client>().ReceiveChangeBlock(Network.player, x, y, chunkx, chunky, data);

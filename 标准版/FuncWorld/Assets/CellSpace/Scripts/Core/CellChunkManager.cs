@@ -95,9 +95,9 @@ namespace CellSpace
             //设置团块缩放比例为团块实例当前的缩放比例
             CPEngine.chunkScale = ChunkPrefab.transform.localScale;
             //设置附加网格碰撞器的正确比例
-            ChunkPrefab.GetComponent<CellChunk>().MeshContainer.transform.localScale = ChunkPrefab.transform.localScale;
+            ChunkPrefab.GetComponent<CellChunk>().meshContainer.transform.localScale = ChunkPrefab.transform.localScale;
             //设置触发器碰撞体的正确比例
-            ChunkPrefab.GetComponent<CellChunk>().ChunkCollider.transform.localScale = ChunkPrefab.transform.localScale;
+            ChunkPrefab.GetComponent<CellChunk>().chunkCollider.transform.localScale = ChunkPrefab.transform.localScale;
 
             //基本设置完成
             Done = true;
@@ -140,13 +140,13 @@ namespace CellSpace
             // update the first chunk and remove it from the queue.更新第一个块并将其从队列中删除
             CellChunk currentChunk = ChunkUpdateQueue[0];
 
-            if (!currentChunk.Empty && !currentChunk.DisableMesh)
+            if (!currentChunk.empty && !currentChunk.disableMesh)
             {
                 //当前团块不为空且没有被禁用网格时重新建立网格
                 currentChunk.RebuildMesh();
             }
             //当前团块的Fresh属性置为假
-            currentChunk.Fresh = false;
+            currentChunk.fresh = false;
             //从队列中删除它
             ChunkUpdateQueue.RemoveAt(0);
         }
@@ -182,7 +182,7 @@ namespace CellSpace
         /// <param name="chunk"></param>
         public static void RegisterChunk(CellChunk chunk)
         { // adds a reference to the chunk to the global chunk list
-            Chunks.Add(chunk.ChunkIndex.ToString(), chunk);
+            Chunks.Add(chunk.chunkIndex.ToString(), chunk);
         }
         /// <summary>
         /// 注销团块(从全局团块字典中),这是在团块被销毁时自动完成的.
@@ -190,7 +190,7 @@ namespace CellSpace
         /// <param name="chunk"></param>
         public static void UnRegisterChunk(CellChunk chunk)
         {
-            Chunks.Remove(chunk.ChunkIndex.ToString());
+            Chunks.Remove(chunk.chunkIndex.ToString());
         }
 
         /// <summary>
@@ -354,8 +354,8 @@ namespace CellSpace
             {
                 chunk = CPEngine.chunkManagerInstance.DoSpawnChunk(index);
                 CellChunk chunkComponent = chunk.GetComponent<CellChunk>();
-                chunkComponent.EnableTimeout = true;
-                chunkComponent.DisableMesh = true;
+                chunkComponent.enableTimeout = true;
+                chunkComponent.disableMesh = true;
                 return chunk;
             }
             else return chunk; // don'transform disable mesh generation and don'transform enable timeout for chunks that are already spawned
@@ -393,8 +393,48 @@ namespace CellSpace
         /// <returns></returns>
         GameObject DoSpawnChunk(CPIndex index)
         {
-            //用团块预制体在团块索引位置创建团块游戏物体
-            GameObject chunkObject = Instantiate(ChunkPrefab, index.ToVector3(), transform.rotation);
+            GameObject chunkObject;
+            if (CPEngine.useCellChunkOP)
+            {
+                if (CellChunkOP.dataGO.TryGetValue(index, out GameObject op))
+                {
+                    chunkObject = op;
+                }
+                else
+                {
+                    chunkObject = Instantiate(ChunkPrefab, index.ToVector3(), transform.rotation);
+                    CellChunkOP tempOP = CellChunkOP.New(false); //仅创建结构体(代表团块空间)
+                    //↓临时的值类型结构体在存入字典前做好字段记录,以免副本丢失信息
+                    tempOP.gameObject = chunkObject;
+                    tempOP.id = index;
+                    //↓引用类型无所谓,值类型结构体会以副本形式存入字典
+                    try
+                    {
+                        CellChunkOP.dataGO.Add(index, chunkObject);
+                        CellChunkOP.dataOP.Add(index, tempOP);
+                    }
+                    catch
+                    {
+                        CellChunkOP.dataGO[index] = chunkObject;
+                        CellChunkOP.dataOP[index] = tempOP;
+
+                    }
+                }
+            }
+            else
+            {
+                //用团块预制体在团块索引位置创建团块游戏物体
+                chunkObject = Instantiate(ChunkPrefab, index.ToVector3(), transform.rotation);
+            }
+            if (CPEngine.useCellItem == true) 
+            {
+                if (!CellChunkOP.dataCIM.TryGetValue(index, out CellItemManager cim))
+                {
+                    var tempCIM = new CellItemManager();
+                    tempCIM.id = index;
+                    CellChunkOP.dataCIM[index] = tempCIM;
+                }
+            }
             chunkObject.SetActive(true);
             //获取对象上的团块组件
             CellChunk chunk = chunkObject.GetComponent<CellChunk>();
@@ -665,13 +705,13 @@ namespace CellSpace
                 foreach (CellChunk chunk in Chunks.Values)
                 {
                     //团块索引点(世界位置)与角色在世界位置如超过团块创建距离+chunkDespawnDistance(默认8+3=11)
-                    if (Vector2.Distance(new Vector2(chunk.ChunkIndex.x, chunk.ChunkIndex.z), new Vector2(originX, originZ)) > range + CPEngine.chunkDespawnDistance)
+                    if (Vector2.Distance(new Vector2(chunk.chunkIndex.x, chunk.chunkIndex.z), new Vector2(originX, originZ)) > range + CPEngine.chunkDespawnDistance)
                     {
                         //将这些XZ平面距离过远的团块添加到摧毁队列
                         ChunksToDestroy.Add(chunk);
                     }
                     //若团块索引点(世界位置)的高度超过团块创建距离+chunkDespawnDistance(默认8+3=11)
-                    else if (Mathf.Abs(chunk.ChunkIndex.y - originY) > range + CPEngine.chunkDespawnDistance)
+                    else if (Mathf.Abs(chunk.chunkIndex.y - originY) > range + CPEngine.chunkDespawnDistance)
                     {
                         //将这些垂直距离(Y轴高度)过远的团块添加到摧毁队列
                         ChunksToDestroy.Add(chunk);
@@ -711,17 +751,17 @@ namespace CellSpace
                                         if (currentChunk != null)
                                         {
                                             //服务器生成的没有网格的团块应更改为常规团块(进行属性修改)
-                                            if (currentChunk.DisableMesh || currentChunk.EnableTimeout)
+                                            if (currentChunk.disableMesh || currentChunk.enableTimeout)
                                             {
                                                 //禁用网格=假
-                                                currentChunk.DisableMesh = false;
+                                                currentChunk.disableMesh = false;
                                                 //允许超时=假
-                                                currentChunk.EnableTimeout = false;
+                                                currentChunk.enableTimeout = false;
                                                 //流程新鲜状态=真
-                                                currentChunk.Fresh = true;
+                                                currentChunk.fresh = true;
                                             }
                                             //流程新鲜状态为真时
-                                            if (currentChunk.Fresh)
+                                            if (currentChunk.fresh)
                                             {
                                                 //刷出相邻团块
                                                 if (!CPEngine.disableNeighborChunks)
@@ -729,14 +769,54 @@ namespace CellSpace
                                                     // spawn neighbor chunks if they're not spawned yet.当相邻团块没在创建时创建它们,循环6次代表6个朝向(枚举整数索引0-5)
                                                     for (int d = 0; d < 6; d++)
                                                     {
-                                                        CPIndex neighborIndex = currentChunk.ChunkIndex.GetAdjacentIndex((Direction)d);
+                                                        CPIndex neighborIndex = currentChunk.chunkIndex.GetAdjacentIndex((Direction)d);
                                                         GameObject neighborChunk = GetChunk(neighborIndex);
                                                         if (neighborChunk == null)
                                                         {
-                                                            neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                            if (CPEngine.useCellChunkOP)
+                                                            {
+                                                                if (CellChunkOP.dataGO.TryGetValue(neighborIndex, out GameObject op))
+                                                                {
+                                                                    neighborChunk = op;
+                                                                }
+                                                                else
+                                                                {
+                                                                    neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                                    CellChunkOP tempOP = CellChunkOP.New(false); //仅创建结构体(代表团块空间)
+                                                                                                                 //↓临时的值类型结构体在存入字典前做好字段记录,以免副本丢失信息
+                                                                    tempOP.gameObject = neighborChunk;
+                                                                    tempOP.id = neighborIndex;
+                                                                    //↓引用类型无所谓,值类型结构体会以副本形式存入字典
+                                                                    try
+                                                                    {
+                                                                        CellChunkOP.dataGO.Add(neighborIndex, neighborChunk);
+                                                                        CellChunkOP.dataOP.Add(neighborIndex, tempOP);
+                                                                    }
+                                                                    catch
+                                                                    {
+                                                                        CellChunkOP.dataGO[neighborIndex] = neighborChunk;
+                                                                        CellChunkOP.dataOP[neighborIndex] = tempOP;
+
+                                                                    }
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                //用团块预制体在团块索引位置创建团块游戏物体
+                                                                neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                            }
+                                                            if (CPEngine.useCellItem == true)
+                                                            {
+                                                                if (!CellChunkOP.dataCIM.TryGetValue(neighborIndex, out CellItemManager cim))
+                                                                {
+                                                                    var tempCIM = new CellItemManager();
+                                                                    tempCIM.id = neighborIndex;
+                                                                    CellChunkOP.dataCIM[neighborIndex] = tempCIM;
+                                                                }
+                                                            }
                                                         }
                                                         //总是添加邻团CellChunk组件实例到当前团块NeighborChunks字段
-                                                        currentChunk.NeighborChunks[d] = neighborChunk.GetComponent<CellChunk>();
+                                                        currentChunk.neighborChunks[d] = neighborChunk.GetComponent<CellChunk>();
                                                         //若帧计时器经过时间超过了目标帧率设定的时间,协程暂停让当前帧进行渲染直到下次继续剩余动作
                                                         if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                                         {
@@ -761,8 +841,50 @@ namespace CellSpace
                                         else
                                         {
                                             //若chunk不存在,则创建新的chunk(当它的数据准备好时会将自己添加到更新队列中)
-                                            // spawn chunk.团块创建
-                                            GameObject newChunk = Instantiate(ChunkPrefab, new Vector3(x, y, z), transform.rotation); // Spawn a new chunk.团块实例化到场景(是从几乎空的团块预制体创建的)
+                                            // Spawn a new chunk.团块实例化到场景(是从几乎空的团块预制体创建的)
+                                            GameObject newChunk; Vector3 vec = new Vector3(x, y, z);
+                                            CPIndex newChunkIndex = new CPIndex(vec);
+                                            if (CPEngine.useCellChunkOP)
+                                            {
+                                                if (CellChunkOP.dataGO.TryGetValue(newChunkIndex, out GameObject op))
+                                                {
+                                                    newChunk = op;
+                                                }
+                                                else
+                                                {
+                                                    newChunk = Instantiate(ChunkPrefab, vec, transform.rotation);
+                                                    CellChunkOP tempOP = CellChunkOP.New(false); //仅创建结构体(代表团块空间)
+                                                                                                 //↓临时的值类型结构体在存入字典前做好字段记录,以免副本丢失信息
+                                                    tempOP.gameObject = newChunk;
+                                                    tempOP.id = newChunkIndex;
+                                                    //↓引用类型无所谓,值类型结构体会以副本形式存入字典
+                                                    try
+                                                    {
+                                                        CellChunkOP.dataGO.Add(newChunkIndex, newChunk);
+                                                        CellChunkOP.dataOP.Add(newChunkIndex, tempOP);
+                                                    }
+                                                    catch
+                                                    {
+                                                        CellChunkOP.dataGO[newChunkIndex] = newChunk;
+                                                        CellChunkOP.dataOP[newChunkIndex] = tempOP;
+
+                                                    }
+                                                }
+                                            }
+                                            else
+                                            {
+                                                //用团块预制体在团块索引位置创建团块游戏物体
+                                                newChunk = Instantiate(ChunkPrefab, vec, transform.rotation);
+                                            }
+                                            if (CPEngine.useCellItem == true)
+                                            {
+                                                if (!CellChunkOP.dataCIM.TryGetValue(newChunkIndex, out CellItemManager cim))
+                                                {
+                                                    var tempCIM = new CellItemManager();
+                                                    tempCIM.id = newChunkIndex;
+                                                    CellChunkOP.dataCIM[newChunkIndex] = tempCIM;
+                                                }
+                                            }
                                             newChunk.SetActive(true);
                                             currentChunk = newChunk.GetComponent<CellChunk>();
                                             //刷出相邻团块
@@ -772,18 +894,58 @@ namespace CellSpace
                                                 for (int d = 0; d < 6; d++)
                                                 {
                                                     //返回与给定方向上index相邻的新索引
-                                                    CPIndex neighborIndex = currentChunk.ChunkIndex.GetAdjacentIndex((Direction)d);
+                                                    CPIndex neighborIndex = currentChunk.chunkIndex.GetAdjacentIndex((Direction)d);
                                                     //获取相邻团块
                                                     GameObject neighborChunk = GetChunk(neighborIndex);
                                                     if (neighborChunk == null)
                                                     {
                                                         //相邻团块不存在则采用团块预制体进行实例化
-                                                        neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                        if (CPEngine.useCellChunkOP)
+                                                        {
+                                                            if (CellChunkOP.dataGO.TryGetValue(neighborIndex, out GameObject op))
+                                                            {
+                                                                neighborChunk = op;
+                                                            }
+                                                            else
+                                                            {
+                                                                neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                                CellChunkOP tempOP = CellChunkOP.New(false); //仅创建结构体(代表团块空间)
+                                                                                                             //↓临时的值类型结构体在存入字典前做好字段记录,以免副本丢失信息
+                                                                tempOP.gameObject = neighborChunk;
+                                                                tempOP.id = neighborIndex;
+                                                                //↓引用类型无所谓,值类型结构体会以副本形式存入字典
+                                                                try
+                                                                {
+                                                                    CellChunkOP.dataGO.Add(neighborIndex, neighborChunk);
+                                                                    CellChunkOP.dataOP.Add(neighborIndex, tempOP);
+                                                                }
+                                                                catch
+                                                                {
+                                                                    CellChunkOP.dataGO[neighborIndex] = neighborChunk;
+                                                                    CellChunkOP.dataOP[neighborIndex] = tempOP;
+
+                                                                }
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            //用团块预制体在团块索引位置创建团块游戏物体
+                                                            neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                        }
+                                                        if (CPEngine.useCellItem == true)
+                                                        {
+                                                            if (!CellChunkOP.dataCIM.TryGetValue(neighborIndex, out CellItemManager cim))
+                                                            {
+                                                                var tempCIM = new CellItemManager();
+                                                                tempCIM.id = neighborIndex;
+                                                                CellChunkOP.dataCIM[neighborIndex] = tempCIM;
+                                                            }
+                                                        }
                                                         neighborChunk.SetActive(true);
                                                     }
                                                     // always add the neighbor to NeighborChunks, in case it's not there already
                                                     //总是添加邻团CellChunk组件实例到当前团块NeighborChunks字段
-                                                    currentChunk.NeighborChunks[d] = neighborChunk.GetComponent<CellChunk>();
+                                                    currentChunk.neighborChunks[d] = neighborChunk.GetComponent<CellChunk>();
                                                     // continue loop in next frame if the current frame time is exceeded.若超出当前帧时间,协程暂停让当前帧进行渲染直到下次继续剩余动作
                                                     if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
                                                     {
@@ -849,13 +1011,13 @@ namespace CellSpace
             foreach (CellChunk chunk in Chunks.Values)
             {
                 //团块索引点(世界位置)与角色在世界位置如超过团块创建距离+chunkDespawnDistance
-                if (Vector2.Distance(new Vector2(chunk.ChunkIndex.x, chunk.ChunkIndex.y), new Vector2(originX, originY)) > range + CPEngine.chunkDespawnDistance)
+                if (Vector2.Distance(new Vector2(chunk.chunkIndex.x, chunk.chunkIndex.y), new Vector2(originX, originY)) > range + CPEngine.chunkDespawnDistance)
                 {
                     //将这些XY平面距离过远的团块添加到摧毁队列
                     ChunksToDestroy.Add(chunk);
                 }
                 //若团块索引点(世界位置)的高度超过团块创建距离+chunkDespawnDistance
-                else if (Mathf.Abs(chunk.ChunkIndex.z) > range + CPEngine.chunkDespawnDistance)
+                else if (Mathf.Abs(chunk.chunkIndex.z) > range + CPEngine.chunkDespawnDistance)
                 { // destroy chunks outside of vertical range.摧毁垂直距离过远的团块
                     ChunksToDestroy.Add(chunk);
                 }
@@ -898,18 +1060,18 @@ namespace CellSpace
                                 {
 
                                     // chunks without meshes spawned by server should be changed to regular chunks.服务器生成的没有网格的团块应更改为常规团块(进行属性修改)
-                                    if (currentChunk.DisableMesh || currentChunk.EnableTimeout)
+                                    if (currentChunk.disableMesh || currentChunk.enableTimeout)
                                     {
                                         //禁用网格=假
-                                        currentChunk.DisableMesh = false;
+                                        currentChunk.disableMesh = false;
                                         //允许超时=假
-                                        currentChunk.EnableTimeout = false;
+                                        currentChunk.enableTimeout = false;
                                         //流程新鲜状态=真
-                                        currentChunk.Fresh = true;
+                                        currentChunk.fresh = true;
                                     }
 
                                     //流程新鲜状态为真时
-                                    if (currentChunk.Fresh)
+                                    if (currentChunk.fresh)
                                     {
                                         //刷出相邻团块
                                         if (!CPEngine.disableNeighborChunks)
@@ -917,16 +1079,56 @@ namespace CellSpace
                                             // spawn neighbor chunks.刷出相邻团块(横版模式只要上下右左)
                                             for (int d = 0; d < 4; d++)
                                             {
-                                                CPIndex neighborIndex = currentChunk.ChunkIndex.GetAdjacentIndex((Direction)d);
+                                                CPIndex neighborIndex = currentChunk.chunkIndex.GetAdjacentIndex((Direction)d);
                                                 GameObject neighborChunk = GetChunk(neighborIndex);
                                                 if (neighborChunk == null)
                                                 {
-                                                    neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                    if (CPEngine.useCellChunkOP)
+                                                    {
+                                                        if (CellChunkOP.dataGO.TryGetValue(neighborIndex, out GameObject op))
+                                                        {
+                                                            neighborChunk = op;
+                                                        }
+                                                        else
+                                                        {
+                                                            neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                            CellChunkOP tempOP = CellChunkOP.New(false); //仅创建结构体(代表团块空间)
+                                                                                                         //↓临时的值类型结构体在存入字典前做好字段记录,以免副本丢失信息
+                                                            tempOP.gameObject = neighborChunk;
+                                                            tempOP.id = neighborIndex;
+                                                            //↓引用类型无所谓,值类型结构体会以副本形式存入字典
+                                                            try
+                                                            {
+                                                                CellChunkOP.dataGO.Add(neighborIndex, neighborChunk);
+                                                                CellChunkOP.dataOP.Add(neighborIndex, tempOP);
+                                                            }
+                                                            catch
+                                                            {
+                                                                CellChunkOP.dataGO[neighborIndex] = neighborChunk;
+                                                                CellChunkOP.dataOP[neighborIndex] = tempOP;
+
+                                                            }
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        //用团块预制体在团块索引位置创建团块游戏物体
+                                                        neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                    }
+                                                    if (CPEngine.useCellItem == true)
+                                                    {
+                                                        if (!CellChunkOP.dataCIM.TryGetValue(neighborIndex, out CellItemManager cim))
+                                                        {
+                                                            var tempCIM = new CellItemManager();
+                                                            tempCIM.id = neighborIndex;
+                                                            CellChunkOP.dataCIM[neighborIndex] = tempCIM;
+                                                        }
+                                                    }
                                                     neighborChunk.SetActive(true);
                                                 }
 
                                                 // always add the neighbor to NeighborChunks, in case it's not there already.总是添加相邻团块到NeighborChunks,以防它还没有在那
-                                                currentChunk.NeighborChunks[d] = neighborChunk.GetComponent<CellChunk>();
+                                                currentChunk.neighborChunks[d] = neighborChunk.GetComponent<CellChunk>();
 
                                                 // continue loop in next frame if the current frame time is exceeded.若帧计时器经过时间超过了目标帧率设定的时间,协程暂停让当前帧进行渲染直到下次继续剩余动作
                                                 if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)
@@ -952,10 +1154,51 @@ namespace CellSpace
                                 else
                                 {
                                     // if chunk doesn'transform exist, create new chunk (it adds itself to the update queue when its data is ready)
-                                    //若chunk不存在,则创建新的chunk(当它的数据准备好时会将自己添加到更新队列中)
+                                    // 若chunk不存在,则创建新的chunk(当它的数据准备好时会将自己添加到更新队列中)
+                                    // Spawn a new chunk.团块实例化到场景(是从几乎空的团块预制体创建的)
+                                    GameObject newChunk; Vector3 vec = new Vector3(x, y, 0);
+                                    CPIndex newChunkIndex = new CPIndex(vec);
+                                    if (CPEngine.useCellChunkOP)
+                                    {
+                                        if (CellChunkOP.dataGO.TryGetValue(newChunkIndex, out GameObject op))
+                                        {
+                                            newChunk = op;
+                                        }
+                                        else
+                                        {
+                                            newChunk = Instantiate(ChunkPrefab, vec, transform.rotation);
+                                            CellChunkOP tempOP = CellChunkOP.New(false); //仅创建结构体(代表团块空间)
+                                                                                         //↓临时的值类型结构体在存入字典前做好字段记录,以免副本丢失信息
+                                            tempOP.gameObject = newChunk;
+                                            tempOP.id = newChunkIndex;
+                                            //↓引用类型无所谓,值类型结构体会以副本形式存入字典
+                                            try
+                                            {
+                                                CellChunkOP.dataGO.Add(newChunkIndex, newChunk);
+                                                CellChunkOP.dataOP.Add(newChunkIndex, tempOP);
+                                            }
+                                            catch
+                                            {
+                                                CellChunkOP.dataGO[newChunkIndex] = newChunk;
+                                                CellChunkOP.dataOP[newChunkIndex] = tempOP;
 
-                                    // spawn chunk.团块创建(这里尚未做对象池)
-                                    GameObject newChunk = Instantiate(ChunkPrefab, new Vector3(x, y, 0), transform.rotation); // Spawn a new chunk.团块实例化到场景(是从几乎空的团块预制体创建的)
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        //用团块预制体在团块索引位置创建团块游戏物体
+                                        newChunk = Instantiate(ChunkPrefab, vec, transform.rotation);
+                                    }
+                                    if (CPEngine.useCellItem == true)
+                                    {
+                                        if (!CellChunkOP.dataCIM.TryGetValue(newChunkIndex, out CellItemManager cim))
+                                        {
+                                            var tempCIM = new CellItemManager();
+                                            tempCIM.id = newChunkIndex;
+                                            CellChunkOP.dataCIM[newChunkIndex] = tempCIM;
+                                        }
+                                    }
                                     newChunk.SetActive(true);
                                     currentChunk = newChunk.GetComponent<CellChunk>();
                                     //刷出相邻团块
@@ -965,19 +1208,59 @@ namespace CellSpace
                                         for (int d = 0; d < 4; d++)
                                         {
                                             //返回与给定方向上index相邻的新索引
-                                            CPIndex neighborIndex = currentChunk.ChunkIndex.GetAdjacentIndex((Direction)d);
+                                            CPIndex neighborIndex = currentChunk.chunkIndex.GetAdjacentIndex((Direction)d);
                                             //获取相邻团块
                                             GameObject neighborChunk = GetChunk(neighborIndex);
                                             if (neighborChunk == null)
                                             {
                                                 //相邻团块不存在则采用团块预制体进行实例化
-                                                neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                if (CPEngine.useCellChunkOP)
+                                                {
+                                                    if (CellChunkOP.dataGO.TryGetValue(neighborIndex, out GameObject op))
+                                                    {
+                                                        neighborChunk = op;
+                                                    }
+                                                    else
+                                                    {
+                                                        neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                        CellChunkOP tempOP = CellChunkOP.New(false); //仅创建结构体(代表团块空间)
+                                                                                                     //↓临时的值类型结构体在存入字典前做好字段记录,以免副本丢失信息
+                                                        tempOP.gameObject = neighborChunk;
+                                                        tempOP.id = neighborIndex;
+                                                        //↓引用类型无所谓,值类型结构体会以副本形式存入字典
+                                                        try
+                                                        {
+                                                            CellChunkOP.dataGO.Add(neighborIndex, neighborChunk);
+                                                            CellChunkOP.dataOP.Add(neighborIndex, tempOP);
+                                                        }
+                                                        catch
+                                                        {
+                                                            CellChunkOP.dataGO[neighborIndex] = neighborChunk;
+                                                            CellChunkOP.dataOP[neighborIndex] = tempOP;
+
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    //用团块预制体在团块索引位置创建团块游戏物体
+                                                    neighborChunk = Instantiate(ChunkPrefab, neighborIndex.ToVector3(), transform.rotation);
+                                                }
+                                                if (CPEngine.useCellItem == true)
+                                                {
+                                                    if (!CellChunkOP.dataCIM.TryGetValue(neighborIndex, out CellItemManager cim))
+                                                    {
+                                                        var tempCIM = new CellItemManager();
+                                                        tempCIM.id = neighborIndex;
+                                                        CellChunkOP.dataCIM[neighborIndex] = tempCIM;
+                                                    }
+                                                }
                                                 neighborChunk.SetActive(true);
                                             }
 
                                             // always add the neighbor to NeighborChunks, in case it's not there already
                                             //总是添加邻团CellChunk组件实例到当前团块NeighborChunks字段
-                                            currentChunk.NeighborChunks[d] = neighborChunk.GetComponent<CellChunk>();
+                                            currentChunk.neighborChunks[d] = neighborChunk.GetComponent<CellChunk>();
 
                                             // continue loop in next frame if the current frame time is exceeded.若超出当前帧时间,协程暂停让当前帧进行渲染直到下次继续剩余动作
                                             if (frameStopwatch.Elapsed.TotalSeconds >= targetFrameDuration)

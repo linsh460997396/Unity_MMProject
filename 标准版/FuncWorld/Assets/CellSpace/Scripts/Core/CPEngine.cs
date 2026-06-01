@@ -1,11 +1,11 @@
-﻿using System;
+﻿using CellSpace.Examples; //额外示范功能,如点击更新块的事件响应等.
+using MetalMaxSystem.Unity;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using UnityEngine;
-using CellSpace.Examples; //额外示范功能,如点击更新块的事件响应等.
-using MetalMaxSystem.Unity; //用到MetalMaxSystem.Unity里的OP对象池.
 using Random = UnityEngine.Random;
 
 //静态地面体素单元空间框架.
@@ -360,9 +360,13 @@ namespace CellSpace
         /// </summary>
         public static Vector3 scale = Vector3.one;
         /// <summary>
-        /// 决定是否启用团块自带的双向链表管理单元体(CellItem)的功能.
+        /// 启用双向链表来管理团块空间内的单元体(CellItem).刷新单位索引的位置.
         /// </summary>
-        public static bool useCellItem = false;
+        [MetalMaxSystem.Note("启用双向链表刷新单位索引位置")] public static bool useCellItem = false;
+        /// <summary>
+        /// 使用CellChunk对象池结构体.让每个团块空间都有一个对应结构体,使得团块消失后依然能操作刷新数据.
+        /// </summary>
+        [MetalMaxSystem.Note("启用空间复用对象池")] public static bool useCellChunkOP = false;
 
         // 从GUI界面、配置文件输入的团块创建设置
 
@@ -370,23 +374,23 @@ namespace CellSpace
         /// (从GUI界面、配置文件输入)高度范围.
         /// 控制团块(空间)能够创建的最大正负Y索引范围(以团块为单位),即团块自动创建时高度范围限值(若是3,表示原始团块上下还可以产生3个团块).
         /// </summary>
-        public static int lHeightRange = 0;
+        [MetalMaxSystem.Note("重要配置参数")] public static int lHeightRange = 0;
         /// <summary>
         /// (从GUI界面、配置文件输入)创建距离.
         /// 控制团块(空间)诞生的水平距离(以团块为单位),是团块自动创建时的距离限制(若是8,则始终在玩家原始团块周围保证有额外8范围的团块).
         /// 高度方向受heightRange限制.
         /// </summary>
-        public static int lChunkSpawnDistance = 0;
+        [MetalMaxSystem.Note("重要配置参数")] public static int lChunkSpawnDistance = 0;
         /// <summary>
         /// (从GUI界面、配置文件输入)团块边长(以单元为单位).
         /// </summary>
-        public static int lChunkSideLength = 256;
+        [MetalMaxSystem.Note("重要配置参数")] public static int lChunkSideLength = 256;
         /// <summary>
         /// (从GUI界面、配置文件输入)团块自动摧毁时的判断距离.
         /// 若是3,则团块会在距离玩家ChunkSpawnDistance+3个团块距离时进行摧毁.
         /// 摧毁时如启用存档,会从内存转硬盘,当玩家再次靠近会读取硬盘存档重新加载.
         /// </summary>
-        public static int lChunkDespawnDistance = 0;
+        [MetalMaxSystem.Note("重要配置参数")] public static int lChunkDespawnDistance = 0;
 
         // 纹理设置
 
@@ -495,7 +499,7 @@ namespace CellSpace
         /// </summary>
         public static float pseudo3DAngle = 45f;
         /// <summary>
-        /// (3D)单层地形模式.支持与SpriteSpace框架配合.
+        /// (3D)单层地形模式(2D-XZ).支持与SpriteSpace框架配合.
         /// 横版模式下失效.首次创建空间时地形生成器会根据指示器位置计算索引对应场景并自动铺在当前空间的指定高度层.
         /// 仅生效于地形首次初始化且不从区域文件读取时,每个空间仅在其相对高度(SingleChunkTerrainHeight)创建一层平地面.
         /// 用于重装机兵等格子游戏2D单层平地面复刻,但依然使用框架完整3D功能,设计时控制地图铺设在X-Z平面上.
@@ -503,7 +507,7 @@ namespace CellSpace
         /// 启用后若keepSingleChunkTerrainHeight=false,则默认仅在空间团底部建立一层地形,否则按SingleChunkTerrainHeight执行.代表特殊地图的团块(空间)建议创建在负的(未用的)坐标轴象限.
         /// 本字段默认值为false,请按需启用.
         /// </summary>
-        public static bool singleLayerTerrainMode = true;
+        [MetalMaxSystem.Note("2D-XZ平面必选")] public static bool singleLayerTerrainMode = true;
         /// <summary>
         /// 保持单层地形高度(团块内相对高度).
         /// (3D)地形首次初始化且不从区域文件读取时,控制每个空间仅在其相对高度(SingleChunkTerrainHeight)创建一层平地面.
@@ -511,7 +515,7 @@ namespace CellSpace
         /// </summary>
         public static bool keepSingleChunkTerrainHeight = false;
         /// <summary>
-        /// (2D)横版模式.支持与SpriteSpace框架配合.
+        /// (2D)横版模式(2D-XY).支持与SpriteSpace框架配合.
         /// 启用时地面使用XY平面坐标系(正高度变成Z-),关闭时为3D模式设计采用XZ平面(默认正高度Y+).
         /// 横版模式默认取消了Z轴延伸,该轴只留最大1个单元体素块(以左下为原点)插入在Z=0处的(pixelX,pixelY)索引点.
         /// 可在CellChunkMeshCreator类中修改具体要显示的体素块的面,横版模式默认仅创建体素块的back面(透过屏幕直接看到的面是方块的背面).
@@ -519,7 +523,7 @@ namespace CellSpace
         /// 特殊场景代表的团块(空间)建议创建在负的(未用的)坐标X轴.启用后若OneSapceMode为false那么地形生成器会按指示器位置索引计算的地图ID进行自动刷新,否则需另行设计刷什么地图.
         /// 本字段默认值为false,请按需启用.
         /// </summary>
-        public static bool horizontalMode = false;
+        [MetalMaxSystem.Note("2D-XY平面必选")] public static bool horizontalMode = false;
         /// <summary>
         /// (2D)多维横版(立体渲染模式,仅供开发测试).
         /// 在horizontalMode = true 即(2D)横版模式下生效.
@@ -527,7 +531,7 @@ namespace CellSpace
         /// 若不启用,横版模式下仅创建体素块的back面(即朝向屏幕的面).
         /// 更多细节处理应在逻辑脚本中预设好.本字段默认值为false,请按需启用.
         /// </summary>
-        public static bool mutiHorizontal = false;
+        [MetalMaxSystem.Note("方块全面渲染(调试)")] public static bool mutiHorizontal = false;
         /// <summary>
         /// 平地面模式.用于(3D)保持地形高度(世界绝对坐标).
         /// 3D模式下地形高度会被设计保持在这个值(低于这个高度的空间会整个刷满土块).
@@ -541,7 +545,7 @@ namespace CellSpace
         /// </summary>
         public static bool LimitMaxTerrainHeight = false;
         /// <summary>
-        /// 保持至少1个团块(空间).
+        /// 保持至少1个团块(空间).默认值为true.
         /// 创建团块时即使创建范围使得任何团块索引都无效,至少在指示器或世界原点位置插入一个团块.
         /// </summary>
         public static bool keepOneChunk = true;
@@ -552,7 +556,7 @@ namespace CellSpace
         /// 注意:该设计模式下无法利用框架区域文件自动存储功能,因为同一空间不断变化即便开启该功能也只会被覆写.
         /// 本字段启用时建议关闭框架存储功能,改为重新定制存储方案.本字段默认值为false.
         /// </summary>
-        public static bool OneSapceMode = false;
+        [MetalMaxSystem.Note("单一空间必选")] public static bool OneSapceMode = true;
         /// <summary>
         /// 单元的侧面可见(前提是没有与它们接壤的团块实例).
         /// 启用后对于邻块不存在或空块的情况CheckAdjacent()函数总是返回真而不用对比该面朝向方向是否向上才为真.
@@ -601,11 +605,11 @@ namespace CellSpace
         /// 推荐平地面、单层地形模式中使用,以减少不必要的渲染.
         /// (2D)横板模式下无效,因为该模式只要关闭"多维横板"即可显示纸片.
         /// </summary>
-        public static bool paperMode = true;
+        [MetalMaxSystem.Note("配合2D-XZ平面")] public static bool paperMode = true;
         /// <summary>
         /// 禁用邻团创建.影响团块管理器在创建团块时是否自动创建其邻团块.
         /// </summary>
-        public static bool disableNeighborChunks = true;
+        [MetalMaxSystem.Note("配合单一空间")] public static bool disableNeighborChunks = true;
 
         // (从GUI界面、配置文件输入)全局设置
 
@@ -621,7 +625,7 @@ namespace CellSpace
         /// (从GUI界面、配置文件输入)产生碰撞体(为false则团块将不会生成任何碰撞体).
         /// 碰撞体使用渲染网格,当然渲染网格可能是自定义如门的形状,否则都是方形.
         /// </summary>
-        public static bool lGenerateColliders = true;
+        [MetalMaxSystem.Note("重要配置参数")] public static bool lGenerateColliders = false;
         /// <summary>
         /// (从GUI界面、配置文件输入)发送镜头注视事件(若为true, CameraEventsSender组件将把事件发送到主摄像机视场中心指着的单元)
         /// </summary>
@@ -1314,7 +1318,8 @@ namespace CellSpace
             cell.VCustomMesh = vCustomMesh; //是否使用自定义网格
             cell.VMesh = vMesh;
             CPEngine.blocks[cellID] = CPEngine.prefabOPs[cellID].gameObject;//Awake时已填充了IBlocks,第11个元素开始都是空的GameObject,要填充覆盖剩下的
-            OP.pool.Push(prefabOPs[cellID]);//退回栈,待使用时取出
+            //OP.pool.Push(prefabOPs[cellID]);//退回栈,待使用时取出
+            OP.Push(ref prefabOPs[cellID]);//退回栈,待使用时取出
         }
         /// <summary>
         /// [内部地图专用]创建只替换uv的地块预制体实例(情况参数默认不透明、碰撞体为cube、无旋转等).因GUI手填地块预制体太慢,这里用脚本批处理创建预制体实例化后的GameObject.
@@ -1363,7 +1368,8 @@ namespace CellSpace
             cell.VSubmeshIndex = subMeshIndex;
             cell.VRotation = MeshRotation.none;
             CPEngine.blocks[cellID] = CPEngine.prefabOPs[cellID].gameObject;//Awake时已填充了IBlocks,第11个元素开始都是空的GameObject,要填充覆盖剩下的
-            OP.pool.Push(prefabOPs[cellID]);//退回栈,待使用时取出
+            //OP.pool.Push(prefabOPs[cellID]);//退回栈,待使用时取出
+            OP.Push(ref prefabOPs[cellID]);//退回栈,待使用时取出
         }
         /// <summary>
         /// 批创建预制体实例.自动识别网格渲染器对应材质主纹理并按行列分割UV,批转化为预制体实例并存入CPEngine.PrefabOPs数组.
@@ -1406,7 +1412,7 @@ namespace CellSpace
                             if (prefabOPs[index].gameObject != null)
                             {
                                 prefabOPs[index].transform = prefabOPs[index].gameObject.transform;
-                                OP.pool.Push(prefabOPs[cellID]);//退回栈,待使用时取出
+                                OP.Push(ref prefabOPs[cellID]);//退回栈,待使用时取出
                             }
                             else { Debug.LogError("未获得GUI填入的Cell预制体块"); }
                         }
@@ -1446,7 +1452,7 @@ namespace CellSpace
                             if (prefabOPs[index].gameObject != null)
                             {
                                 prefabOPs[index].transform = prefabOPs[index].gameObject.transform;
-                                OP.pool.Push(prefabOPs[cellID]);//退回栈,待使用时取出
+                                OP.Push(ref prefabOPs[cellID]);//退回栈,待使用时取出
                             }
                             else { Debug.LogError("未获得GUI填入的Cell预制体块"); }
                         }

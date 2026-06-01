@@ -127,7 +127,7 @@ namespace SpriteSpace
         void Start()
         {
             // 如果SpriteSpace还没初始化，提前返回
-            if (!MMWorld.Main_MMWorld.frameworksInitialized)
+            if (!MMWorld.Main_MMWorld.initializeFrameworks)
             {
                 return;
             }
@@ -141,7 +141,7 @@ namespace SpriteSpace
             gridChunkCenterY = gridHeight_2;
             designWidth_2 = designWidth / 2;
             designHeight_2 = designHeight / 2;
-            spaceRDD = new(100, gridSize);
+            spaceRDD = new SpaceRingDiffuseData(100, gridSize);
 
             material = SpriteSpacePrefab.material;
             minimapMaterial = material;
@@ -190,7 +190,7 @@ namespace SpriteSpace
             // 按N键切换小地图显示/隐藏
             if (Input.GetKeyDown(KeyCode.N))
             {
-                ToggleMinimap();
+                ToggleMinimapCanvas();
             }
 
             // 按F1键切换游戏菜单显示/隐藏
@@ -210,12 +210,14 @@ namespace SpriteSpace
             }
 
             #region 小地图更新频率
+
             //若启用了小地图那么只在Update执行过的帧才启用minimap的camera(提升点性能)
-            //if (minimapEnabled)
-            //{
-            //    //若游戏逻辑被运行且次数是偶数那么启用小地图镜头
-            //    minimapCamera.enabled = timeBak != time && (time & 1) == 0; //位运算,功能等价(time % 2) == 0
-            //}
+            if (minimapEnabled)
+            {
+                //若游戏逻辑被运行且次数是偶数那么启用小地图镜头
+                minimapCamera.enabled = timeBak != time && (time & 1) == 0; //位运算,功能等价(time % 2) == 0
+            }
+
             #endregion
 
             //同步绘制
@@ -250,16 +252,16 @@ namespace SpriteSpace
         }
 
         /// <summary>
-        /// 切换小地图显示/隐藏
+        /// 切换小地图画布对象的显示/隐藏
         /// </summary>
-        private void ToggleMinimap()
+        private void ToggleMinimapCanvas()
         {
             GameObject minimapCanvas = SpriteSpacePrefab.MinimapCanvas;
             if (minimapCanvas != null)
             {
                 bool isActive = !minimapCanvas.activeSelf;
                 minimapCanvas.SetActive(isActive);
-                Debug.Log($"小地图已{(isActive ? "显示" : "隐藏")}");
+                Debug.Log($"小地图画布已{(isActive ? "显示" : "隐藏")}");
             }
         }
 

@@ -7,7 +7,7 @@
         public override void GenerateCellData()
         {
 
-            int chunky = chunk.ChunkIndex.y;
+            int chunky = chunk.chunkIndex.y;
             int SideLength = CPEngine.chunkSideLength;
 
             for (int x = 0; x < SideLength; x++)

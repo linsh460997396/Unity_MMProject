@@ -2,7 +2,7 @@
 using UnityEngine;
 
 /// <summary>
-/// 游戏精灵渲染器专用对象池结构体.
+/// 游戏精灵渲染器专用(GameObject)对象池结构体.
 /// 定位是用于大量角色子弹特效等活动精灵个体对象复用GameObject,防止频繁创建摧毁导致掉帧问题.
 /// </summary>
 public struct GO
@@ -130,14 +130,14 @@ public struct GO
         o.gameObject.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
         o.gameObject.transform.localScale = Vector3.one;
 
-        //推入栈顶
+        //结构体以当前状态的副本入栈顶
         pool.Push(o);
 
-        //清空主体引用以断开外部访问路径(不影响栈内副本)
+        //清空主体引用以断开外部访问路径(不影响栈内副本,Stack中的副本依然是拥有值的以下字段)
         o.gameObject = null;
         o.spriteRenderer = null;
         o.transform = null;
-        o.actived = false;
+        //o.actived = false; //函数前面调用Disable的时候已经是false了
     }
 
     /// <summary>

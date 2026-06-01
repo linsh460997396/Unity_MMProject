@@ -1030,7 +1030,7 @@ Append(1) → 直接写 '1' 到缓冲区,零分配
 Append("1") → 字符串 "1" 已经存在于内存中(或者从 intern 池取),追加时也只是拷贝字符,同样零额外分配
 两者的性能差异已经微乎其微,甚至在高频调用下,Append(int) 因省掉了字符串的元数据访问,有时还会略快一点点
 
-//在Unity中用Time.realtimeSinceStartup来测量从游戏开始到当前的时间,适合测量游戏运行时的性能
+//在Unity中用Time.realtimeSinceStartup来测量从游戏开始到当前的时间,适合测量游戏运行时的性能(中精度)
 var sb = ThreadStringBuilder.Get();
 //循环100W次sb.Append("1")并统计耗时
 var startTime = Time.realtimeSinceStartup;
@@ -1041,7 +1041,13 @@ for (int i = 0; i < 1000000; i++)
 var endTime = Time.realtimeSinceStartup;
 Debug.Log($"耗时:{endTime - startTime}秒");
 
-//使用System.Diagnostics.Stopwatch进行更精确的性能测量↓
+//使用System.Diagnostics.Stopwatch进行高精度性能测量↓
+var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+// ... 执行耗时操作 ...
+stopwatch.Stop();
+Debug.Log($"耗时: {stopwatch.ElapsedMilliseconds} ms");
+
+//使用低精度DateTime差值法↓
 DateTime startTime, endTime;
 TimeSpan elapsedTime;
 var sb = ThreadStringBuilder.Get();
@@ -1478,3 +1484,46 @@ CPU占用
 ‌Thread.Sleep‌：运行→等待→就绪
 ‌ManualResetEventSlim‌：运行→等待/自旋→就绪
 ‌SpinWait‌：运行→运行（自旋）→就绪（触发Yield后）
+
+//record struct:让字典键new CPIndex(x,y,z)始终是同一个
+public record struct CPIndex(int x, int y, int z); //struct换成class也行
+var dict = new Dictionary<CPIndex, string>();
+dict[new CPIndex(1, 2, 3)] = "Value";
+bool found = dict.TryGetValue(new CPIndex(1, 2, 3), out var val); 
+C# 编译器会自动为 record struct 生成基于‌字段内容‌的 Equals() 和 GetHashCode() 方法。
+第一个 new CPIndex(1, 2, 3) 存入字典时，字典计算其哈希码并存储。
+第二个 new CPIndex(1, 2, 3) 查找时，虽然它是内存中另一个独立的副本，但因为 x=1, y=2, z=3 的值完全相同，编译器生成的 Equals 方法会判定它们‌相等‌。
+在 Dictionary 中执行查找操作（如 TryGetValue 或 ContainsKey）时，内部逻辑如下：
+‌第一步：调用 GetHashCode()‌
+字典会根据键的哈希码计算出一个索引，确定该键应该存储在内部的哪个“桶”（Bucket）中。
+‌作用‌：快速缩小搜索范围。如果两个对象的哈希码不同，字典会直接认为它们不相等，‌根本不会调用 Equals()‌。
+‌第二步：调用 Equals()‌
+如果在同一个“桶”中已经存在其他键（即发生了哈希冲突），或者为了严谨性验证，字典会遍历该桶中的现有键。
+此时，它会调用新键的 Equals() 方法与桶中已有的键进行逐个比对。
+‌作用‌：精确判断两个对象是否真正相等。只有当 Equals() 返回 true 时，字典才认为找到了相同的键。
+两者必须同时重写才能让字典键检查是否相同
+public override bool Equals(object obj)
+{
+    if (obj is CPIndex other)
+    {
+        if (CPEngine.horizontalMode)
+            return x == other.x && y == other.y;
+        else
+            return x == other.x && y == other.y && z == other.z;
+    }
+    return false;
+}
+public override int GetHashCode()
+{
+    if (CPEngine.horizontalMode)
+        return x * 73856093 ^ y * 19349663;
+    else
+        return x * 73856093 ^ y * 19349663 ^ z * 83492791;
+}
+
+CellChunkOP op;
+CellChunkOP.data.TryGetValue(index, out op)
+//注意TryGetValue取出的是副本,声明也可写在里面
+CellChunkOP.data.TryGetValue(index, out CellChunkOP op)
+若CellChunkOP是结构体取出后被修改,字典要同步则需重新存入字典,是类则无须如此
+

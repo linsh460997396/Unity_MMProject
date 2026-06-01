@@ -34,20 +34,20 @@ namespace CellSpace
             // generate data.生成体素数据
             GenerateCellData();
             // set empty.设置团块为空状态
-            chunk.Empty = true;
+            chunk.empty = true;
             //遍历团块中的每一个体素ID(体素块种类)
-            foreach (ushort cellID in chunk.CellData)
+            foreach (ushort cellID in chunk.cellData)
             {
                 //只要有任意一个体素ID(体素块种类)不为空块
                 if (cellID != 0)
                 {
                     //团块的空属性置为否
-                    chunk.Empty = false;
+                    chunk.empty = false;
                     break;
                 }
             }
             // flag as done.团块完成生成或加载体素数据后CellsDone属性置为True
-            chunk.CellsDone = true;
+            chunk.cellsDone = true;
         }
 
         public virtual void GenerateCellData()

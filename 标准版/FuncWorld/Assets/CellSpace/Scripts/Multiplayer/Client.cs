@@ -67,7 +67,7 @@ namespace CellSpace
             CellChunk chunk = chunkObject.GetComponent<CellChunk>();
             CellChunkDataFiles.DecompressData(chunk, GetString(data)); //decompress data                                                        
             //CellChunkManager.DataReceivedCount ++; // let CellChunkManager know that we have received the data
-            chunk.CellsDone = true; // let CellChunk know that it can update it's mesh
+            chunk.cellsDone = true; // let CellChunk know that it can update it's mesh
             CellChunk.CurrentChunkDataRequests--;
         }
         [RPC]
@@ -78,7 +78,7 @@ namespace CellSpace
             CellChunk chunk = chunkObject.GetComponent<CellChunk>();
             CellChunkDataFiles.DecompressData(chunk, GetString(data)); //decompress data                                                        
             //CellChunkManager.DataReceivedCount ++; // let CellChunkManager know that we have received the data
-            chunk.CellsDone = true; // let CellChunk know that it can update it's mesh
+            chunk.cellsDone = true; // let CellChunk know that it can update it's mesh
             CellChunk.CurrentChunkDataRequests--;
         }
 
@@ -86,12 +86,12 @@ namespace CellSpace
         {   // sends a voxel change to the server, which then redistributes it to other clients
 
             // convert to ints
-            int chunkx = info.chunk.ChunkIndex.x;
-            int chunky = info.chunk.ChunkIndex.y;
+            int chunkx = info.chunk.chunkIndex.x;
+            int chunky = info.chunk.chunkIndex.y;
             int chunkz = 0;
             if (!CPEngine.horizontalMode)
             {
-                chunkz = info.chunk.ChunkIndex.z;
+                chunkz = info.chunk.chunkIndex.z;
             }
             // send to server
             if (Network.isServer)
@@ -107,12 +107,12 @@ namespace CellSpace
         public void SendChangeBlock(CellInfo info, ushort data)
         {
             // convert to ints
-            int chunkx = info.chunk.ChunkIndex.x;
-            int chunky = info.chunk.ChunkIndex.y;
+            int chunkx = info.chunk.chunkIndex.x;
+            int chunky = info.chunk.chunkIndex.y;
             int chunkz = 0; //2D模式下z值为0
             if (!CPEngine.horizontalMode)
             {
-                chunkz = info.chunk.ChunkIndex.z;
+                chunkz = info.chunk.chunkIndex.z;
             }
             // send to server
             if (Network.isServer)

@@ -15,7 +15,7 @@ namespace CellSpace.Examples
         public override void GenerateCellData()
         {
             //获取团块索引的Y值
-            int chunky = chunk.ChunkIndex.y;
+            int chunky = chunk.chunkIndex.y;
             //获取团块的长度
             int SideLength = CPEngine.chunkSideLength;
 

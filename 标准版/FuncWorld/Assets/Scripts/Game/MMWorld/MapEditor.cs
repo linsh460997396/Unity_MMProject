@@ -795,7 +795,7 @@ namespace MMWorld
                     Debug.Log("CellChunkManager.Chunks.Values.Count = " + CellChunkManager.Chunks.Values.Count);
                     foreach (CellChunk cellChunk in CellChunkManager.Chunks.Values)
                     {
-                        if (!cellChunk.Fresh)
+                        if (!cellChunk.fresh)
                         {
                             Debug.Log("Found a CellChunk with Fresh = false");
                             chunkGO = cellChunk.gameObject;

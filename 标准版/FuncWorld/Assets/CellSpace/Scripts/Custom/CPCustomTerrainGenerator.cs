@@ -17,14 +17,14 @@ namespace CellSpace
             //Debug.Log($"GenerateCellData: chunk=({chunk.ChunkIndex.x},{chunk.ChunkIndex.y},{chunk.ChunkIndex.z})");
             if (CPEngine.horizontalMode == true)
             {//2D横版模式侧面刷图
-                if (chunk.ChunkIndex.x < 0 || chunk.ChunkIndex.y < 0 || chunk.ChunkIndex.z < 0)
+                if (chunk.chunkIndex.x < 0 || chunk.chunkIndex.y < 0 || chunk.chunkIndex.z < 0)
                 {
                     Debug.Log("团块索引为负数,该空间不执行刷图");
                     return;
                 }
-                if (chunk.ChunkIndex.y == 0)
+                if (chunk.chunkIndex.y == 0)
                 {
-                    if (chunk.ChunkIndex.x >= 0)
+                    if (chunk.chunkIndex.x >= 0)
                     {
                         Debug.Log("启用2D横版模式");
                         //场景空间刷在正X轴上
@@ -32,7 +32,7 @@ namespace CellSpace
                         {
                             //未启用单一空间复用模式,每个团块(空间)都刷一个自动计算索引对应的场景.
                             Debug.Log("CPEngine.OneSapceMode == false");
-                            LoadMap(chunk.ChunkIndex.x);//这里设计地图空间布置和存储在X坐标一条直线上
+                            LoadMap(chunk.chunkIndex.x);//这里设计地图空间布置和存储在X坐标一条直线上
                         }
                         else
                         {
@@ -44,17 +44,17 @@ namespace CellSpace
             }
             else if (CPEngine.singleLayerTerrainMode == true)
             {//3D单层地形模式,KeepSingleChunkTerrainHeight为false时,默认将地图刷在空间团底部
-                if (chunk.ChunkIndex.x < 0 || chunk.ChunkIndex.y < 0 || chunk.ChunkIndex.z < 0)
+                if (chunk.chunkIndex.x < 0 || chunk.chunkIndex.y < 0 || chunk.chunkIndex.z < 0)
                 {
                     Debug.Log("团块索引为负数,该空间不执行刷图");
                     return;
                 }
                 //3D模式下刷图在顶面(X-Z)
-                if (chunk.ChunkIndex.z >= 0)
+                if (chunk.chunkIndex.z >= 0)
                 {
-                    if (chunk.ChunkIndex.y >= 0)
+                    if (chunk.chunkIndex.y >= 0)
                     {
-                        if (chunk.ChunkIndex.x >= 0)
+                        if (chunk.chunkIndex.x >= 0)
                         {
                             Debug.Log("启用3D单层地形模式");
                             //地图刷在正坐标轴上
@@ -81,7 +81,7 @@ namespace CellSpace
                 if (CPEngine.OneSapceMode == false)
                 {//未启用单一空间复用模式,每个团块(空间)都刷一个自动计算索引对应的场景
                     //获取团块索引的Y值
-                    int chunky = chunk.ChunkIndex.y;
+                    int chunky = chunk.chunkIndex.y;
                     //获取团块的长度
                     int SideLength = CPEngine.chunkSideLength;
                     //CPEngine.TerrainHeight = 8; //地面不超过世界高度8米
@@ -369,9 +369,9 @@ namespace CellSpace
         {
             int height = 1; int i = -1; bool setErr = false;
             //获取团块索引值
-            int chunkx = chunk.ChunkIndex.x;
-            int chunky = chunk.ChunkIndex.y;
-            int chunkz = chunk.ChunkIndex.z;
+            int chunkx = chunk.chunkIndex.x;
+            int chunky = chunk.chunkIndex.y;
+            int chunkz = chunk.chunkIndex.z;
             //计算要刷的地图ID
             int mapID = chunkx + chunky * 10 + chunkz * 100;
             if (CPEngine.keepSingleChunkTerrainHeight)
@@ -439,9 +439,9 @@ namespace CellSpace
         {
             int height = 1;
             //获取团块索引值
-            int chunkx = chunk.ChunkIndex.x;
-            int chunky = chunk.ChunkIndex.y;
-            int chunkz = chunk.ChunkIndex.z;
+            int chunkx = chunk.chunkIndex.x;
+            int chunky = chunk.chunkIndex.y;
+            int chunkz = chunk.chunkIndex.z;
             //计算要刷的地图ID
             int mapID = chunkx + chunky * 10 + chunkz * 100;
 

@@ -75,7 +75,7 @@ namespace CellSpace.Examples
 
         public override void OnBlockEnter(GameObject enteringObject, CellInfo cellInfo)
         {
-            Debug.Log("OnBlockEnter at " + cellInfo.chunk.ChunkIndex.ToString() + " / " + cellInfo.index.ToString());
+            Debug.Log("OnBlockEnter at " + cellInfo.chunk.chunkIndex.ToString() + " / " + cellInfo.index.ToString());
         }
     }
 }

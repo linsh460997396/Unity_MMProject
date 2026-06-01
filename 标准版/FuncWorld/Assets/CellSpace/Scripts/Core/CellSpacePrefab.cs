@@ -1,6 +1,7 @@
 ﻿using MetalMaxSystem.Unity; //用到RuntimePrefab类型
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace CellSpace
@@ -134,8 +135,8 @@ namespace CellSpace
                     };
                     tempGameObject.AddComponent<MeshCollider>();
                     tempGameObject.AddComponent<CellChunk>();
-                    tempGameObject.GetComponent<CellChunk>().MeshContainer = CellChunkAdditionalMesh;
-                    tempGameObject.GetComponent<CellChunk>().ChunkCollider = CellChunkTriggerCollider;
+                    tempGameObject.GetComponent<CellChunk>().meshContainer = CellChunkAdditionalMesh;
+                    tempGameObject.GetComponent<CellChunk>().chunkCollider = CellChunkTriggerCollider;
                     tempGameObject.AddComponent<CellChunkMeshCreator>();
                     tempGameObject.GetComponent<CellChunkMeshCreator>().Cube = GetCubeMesh();
                     tempGameObject.AddComponent<CellChunkDataFiles>();

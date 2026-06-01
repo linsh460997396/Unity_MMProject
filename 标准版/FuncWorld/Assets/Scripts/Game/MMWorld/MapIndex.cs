@@ -155,13 +155,13 @@ namespace MMWorld
             CellChunk chunk = chunkObj.GetComponent<CellChunk>();
 
             // 等待团块初始化完成（等待Awake执行完毕）
-            yield return new WaitUntil(() => chunk.ChunkIndex != null && chunk.CellData != null);
+            yield return new WaitUntil(() => chunk.chunkIndex != null && chunk.cellData != null);
 
             // 填充随机草地或土
             yield return StartCoroutine(FillTerrainData(chunk, width, height));
 
             // 等待团块生成完成
-            while (!chunk.CellsDone)
+            while (!chunk.cellsDone)
             {
                 yield return null;
             }
@@ -179,11 +179,11 @@ namespace MMWorld
         private IEnumerator FillTerrainData(CellChunk chunk, int width, int height)
         {
             // Cell ID: 0 = 草地, 1 = 土 (或其他定义)
-            int totalCells = chunk.CellData.Length;
+            int totalCells = chunk.cellData.Length;
             for (int i = 0; i < totalCells; i++)
             {
                 // 随机选择草地(0)或土(1)
-                chunk.CellData[i] = (ushort)(Random.value > 0.5f ? 0 : 1);
+                chunk.cellData[i] = (ushort)(Random.value > 0.5f ? 0 : 1);
 
                 // 每帧处理一部分，避免卡顿
                 if (i % 10000 == 0)
@@ -193,7 +193,7 @@ namespace MMWorld
             }
 
             // 标记团块需要更新
-            chunk.FlaggedToUpdate = true;
+            chunk.flaggedToUpdate = true;
         }
 
         /// <summary>
@@ -285,7 +285,7 @@ namespace MMWorld
             }
 
             MapData mapData = maps[tileId];
-            if (mapData.chunk != null && mapData.chunk.CellData != null)
+            if (mapData.chunk != null && mapData.chunk.cellData != null)
             {
                 // 保存逻辑（使用CellChunkDataFiles组件的实例方法）
                 CellChunkDataFiles dataFiles = mapData.chunk.GetComponent<CellChunkDataFiles>();

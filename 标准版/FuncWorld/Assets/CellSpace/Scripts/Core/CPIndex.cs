@@ -5,7 +5,8 @@
 namespace CellSpace
 {
     /// <summary>
-    /// 索引(存储体素块在团块中的位置信息或团块在世界中的位置信息),可理解为参数为整数的坐标节点.
+    /// CellChunk在团块空间的插入点(索引位置).可视作CellChunk的句柄.可通过CPEngine.PositionToChunkIndex(世界坐标)转化而来.
+    /// 存储了体素块在团块中的位置信息或团块在世界中的位置信息,是参数为整数的坐标节点.
     /// 它是一种仅包含x、y和z整数值的数据结构,就像Vector的等效物但不代表绝对世界坐标,只是它用整型而不是浮点数(以避免精确转换发生错误).
     /// 2D横版模式(HorizontalMode为真)时采用XY平面(禁用Z轴,Z值默认为0)
     /// </summary>
@@ -26,7 +27,7 @@ namespace CellSpace
         public static CPIndex Zero => _zero;
 
         /// <summary>
-        /// 用给定的x,pixelY,z值创建一个新的索引
+        /// 用给定的x,y,z值创建一个新的索引
         /// </summary>
         /// <param name="setX"></param>
         /// <param name="setY"></param>
@@ -75,7 +76,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 使用索引的x,pixelY,z值返回一个Vector3.
+        /// 使用索引的x,y,z值返回一个Vector3.
         /// </summary>
         /// <returns></returns>
         public Vector3 ToVector3()
@@ -92,7 +93,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 以" pixelX,pixelY,z "的形式返回索引字符串.
+        /// 以" x,y,z "的形式返回索引字符串.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
@@ -187,7 +188,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 返回从“pixelX,pixelY,z”、“pixelX,pixelY”格式的字符串转换而来的新索引.如“5,2,0”返回(5,2,0)、“5,2”返回(5,2).
+        /// 返回从“x,y,z”、“x,y”格式的字符串转换而来的新索引.如“5,2,0”返回(5,2,0)、“5,2”返回(5,2).
         /// </summary>
         /// <param name="indexString"></param>
         /// <returns></returns>
@@ -202,8 +203,8 @@ namespace CellSpace
                 }
                 catch (System.Exception)
                 {
-                    //CellSpace:从字符串转换成索引用的格式无效,字符串必须是\"pixelX,pixelY\"格式
-                    Debug.LogError("CellSpace: CPIndex.FromString: Invalid format. String must be in \"pixelX,pixelY\" format.");
+                    //CellSpace:从字符串转换成索引用的格式无效,字符串必须是\"x,y\"格式
+                    Debug.LogError("CellSpace: CPIndex.FromString: Invalid format. String must be in \"x,y\" format.");
                     return null;
                 }
             }
@@ -215,11 +216,31 @@ namespace CellSpace
                 }
                 catch (System.Exception)
                 {
-                    //CellSpace:从字符串转换成索引用的格式无效,字符串必须是\"pixelX,pixelY,z\"格式
-                    Debug.LogError("CellSpace: CPIndex.FromString: Invalid format. String must be in \"pixelX,pixelY,z\" format.");
+                    //CellSpace:从字符串转换成索引用的格式无效,字符串必须是\"x,y,z\"格式
+                    Debug.LogError("CellSpace: CPIndex.FromString: Invalid format. String must be in \"x,y,z\" format.");
                     return null;
                 }
             }
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is CPIndex other)
+            {
+                if (CPEngine.horizontalMode)
+                    return x == other.x && y == other.y;
+                else
+                    return x == other.x && y == other.y && z == other.z;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            if (CPEngine.horizontalMode)
+                return x * 73856093 ^ y * 19349663;
+            else
+                return x * 73856093 ^ y * 19349663 ^ z * 83492791;
         }
     }
 }

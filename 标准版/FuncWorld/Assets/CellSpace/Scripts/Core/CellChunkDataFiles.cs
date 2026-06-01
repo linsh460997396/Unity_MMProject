@@ -34,14 +34,14 @@ namespace CellSpace
 
             CellChunk chunk = GetComponent<CellChunk>();//获取团块组件实例对象
             //根据团块索引获取团块的单元数据
-            string chunkData = GetChunkData(chunk.ChunkIndex);
+            string chunkData = GetChunkData(chunk.chunkIndex);
             //若团块的单元数据不为空
             if (chunkData != "")
             {
                 //从先前压缩的字符串中解压缩出团块数据,并将它保存到团块的CellData数组中.
-                DecompressData(chunk, GetChunkData(chunk.ChunkIndex));
+                DecompressData(chunk, GetChunkData(chunk.chunkIndex));
                 //当此团块完成生成或加载单元数据后CellsDone置为True
-                chunk.CellsDone = true;
+                chunk.cellsDone = true;
                 return true;
             }
 
@@ -61,7 +61,7 @@ namespace CellSpace
             //压缩特定团块的单元数据并将其作为字符串返回.
             string compressedData = CompressData(chunk);
             //将压缩后的数据字符串写入TempChunkData字典
-            WriteChunkData(chunk.ChunkIndex, compressedData);
+            WriteChunkData(chunk.chunkIndex, compressedData);
         }
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace CellSpace
             if (data.Length == 2 && data[1] == (char)0)
             {
                 //设置团块是空的状态
-                chunk.Empty = true;
+                chunk.empty = true;
             }
             //创建了一个 StringReader 对象,将其初始化为字符串 data
             StringReader reader = new StringReader(data);
@@ -111,7 +111,7 @@ namespace CellSpace
             catch (System.Exception)
             {
                 //只有一种情况就是存储团块的数据损坏(可能被第三方改档或使用不同的团块大小进行了保存数据)
-                Debug.LogError("CellSpace: Corrupt chunk data for chunk: " + chunk.ChunkIndex.ToString() + ". Has the data been saved using a different chunk size?");
+                Debug.LogError("CellSpace: Corrupt chunk data for chunk: " + chunk.chunkIndex.ToString() + ". Has the data been saved using a different chunk size?");
                 reader.Close();
                 return;
             }

@@ -124,7 +124,7 @@ namespace CellSpace
         {
             // set variables.读取团块及其长度
             chunk = GetComponent<CellChunk>();
-            SideLength = chunk.SideLength;
+            SideLength = chunk.sideLength;
             //Debug.Log(GetComponent<Renderer>().materials.Length);
             // make a list for each material (each material is a submesh).为团块的网格渲染器组件上每一种材质列一个清单(每一种材质都是子网格)
             for (int i = 0; i < GetComponent<Renderer>().materials.Length; i++)
@@ -1046,7 +1046,7 @@ namespace CellSpace
 
                     nocolMesh.RecalculateNormals();
 
-                    noCollideCollider = Instantiate(chunk.ChunkCollider, transform.position, transform.rotation) as GameObject;
+                    noCollideCollider = Instantiate(chunk.chunkCollider, transform.position, transform.rotation) as GameObject;
                     noCollideCollider.SetActive(true);
                     noCollideCollider.transform.parent = this.transform;
                     noCollideCollider.GetComponent<MeshCollider>().sharedMesh = nocolMesh;
@@ -1084,7 +1084,7 @@ namespace CellSpace
         private void CreateNewMeshObject()
         { // in case the amount of vertices exceeds the maximum for one mesh, we need to create a new mesh
             //附加网格碰撞器预制体CellChunkAdditionalMesh实例化并添加到团块(多少个邻居就加入多少次)
-            GameObject meshContainer = Instantiate(chunk.MeshContainer, transform.position, transform.rotation) as GameObject;
+            GameObject meshContainer = Instantiate(chunk.meshContainer, transform.position, transform.rotation) as GameObject;
             meshContainer.SetActive(true);
             meshContainer.transform.parent = this.transform;
             //更新该组件的网格

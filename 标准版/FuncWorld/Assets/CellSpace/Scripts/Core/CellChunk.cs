@@ -1,4 +1,4 @@
-﻿#define BEPINEX //BepInEx制作UnityMOD时可手动启用
+﻿//#define BEPINEX //BepInEx制作UnityMOD时可手动启用
 
 using System;
 using System.Collections;
@@ -12,39 +12,10 @@ namespace CellSpace
     /// </summary>
     public class CellChunk : MonoBehaviour
     {
-        #region 双向链表管理CellItem_声明部分
-        //双向链表和链表池的运用主要提升数据结构灵活性(操作效率)和内存管理的性能
-        //‌双向链表‌:每个节点包含两个指针,分别指向前驱和后继节点,这使得从任意节点出发都能方便地访问前驱和后继节点,提高了操作的灵活性.适用于需要频繁进行前后遍历、插入和删除操作的场景,如各种不需要排序的数据列表管理‌
-        //‌链表池‌:通过维护一个空闲节点池来减少内存分配和释放的次数,提高内存使用效率.在链表频繁进行插入和删除操作时,能够复用已删除的节点,避免内存碎片的产生,从而提升性能.它的实现通常涉及节点池的初始化、节点的分配与回收等步骤‌.
-
         /// <summary>
-        /// 空间内逻辑计算用的单元尺寸,默认1.0(三维各向一致,修改时统一缩放).
-        /// 该字段不影响实体单元渲染,仅为双向链表中管理单元体用.
+        /// 代表团块空间的结构体对象.可在团块空间诞生时创建.
         /// </summary>
-        [NonSerialized] public float cellSize = 1f;
-        /// <summary>
-        /// 空间内单元尺寸的倒数(_1_cellSize = 1 / cellSize).默认1.0(三维各向一致,修改时统一缩放).
-        /// 该字段不影响实体单元渲染,仅为双向链表中管理单元体用.
-        /// </summary>
-        [NonSerialized] public float _1_cellSize;
-        /// <summary>
-        /// 空间最大边界尺寸(在空间构造时自动计算),结果=cellSize*边长方向单元数量即CPEngine.chunkSideLength(三维各向一致).
-        /// 该字段不影响实体单元渲染,仅为双向链表中管理单元体用.
-        /// </summary>
-        [NonSerialized] public float maxSize;
-        /// <summary>
-        /// 空间容器内单元体(CellItem)的数量.尽管容器没固定最大容量,但可用于状态检查是否为空或已满.
-        /// 该字段不影响实体单元渲染,仅为双向链表中管理单元体用.
-        /// </summary>
-        [NonSerialized] public int numCells;
-        /// <summary>
-        /// 存放网格容器(单元体)的数组(类似单位组).
-        /// 2D横板、3D单层地形及正常3D模式决定初始化元素数量按SideLength平方还是三次方.
-        /// 同时是个链表元素池(其元素通过本类方法修改时自动记录前驱后驱节点).
-        /// 若存储角色怪物的数量较少且无需频繁刷新的情况可不使用双向链表功能,另开单位组来遍历.
-        /// </summary>
-        [NonSerialized] public CellItem[] cellItems;
-        #endregion
+        [NonSerialized] public CellChunkOP entity;
 
         #region CellChunk data
 
@@ -54,87 +25,92 @@ namespace CellSpace
         /// 那么由(3,3,3)返回[63]的公式CellData[(z * squaredSideLength) + (z * SideLength) + pixelX]=3*16+3*4+3=63,边长为任意时同理.
         /// 当采用横版模式(HorizontalMode为真)时Z值默认为0
         /// </summary>
-        public ushort[] CellData; // main cell data array
+        public ushort[] cellData; // main cell data array
         /// <summary>
         /// 团块索引(pixelX,z,z),这与它在世界上的位置直接相关,当采用横版模式(HorizontalMode为真)时Z值默认为0.
         /// 团块的位置始终是ChunkIndex*CPEngine.chunkSideLength(比如对于团块来说其索引位置增1就实际经过默认16个单元长度,很容易理解).
         /// </summary>
-        public CPIndex ChunkIndex; // corresponds to the position of the chunk
+        public CPIndex chunkIndex; // corresponds to the position of the chunk
         /// <summary>
         /// 包含对团块所有直接相邻团块的引用数组.这些团块按照Direction枚举的顺序存储(上、下、右、左、前、后),例如NeighborChunks[0]返回这个上面的团块.
         /// 这个数组只有在一个团块需要检查它相邻团块的单元数据时才会被填充和更新,比如在更新团块的网格时,这意味着在某些时候这个数组不会完全更新,可手动调用GetNeighbors()来立即更新这个数组.
         /// </summary>
-        public CellChunk[] NeighborChunks; // references to GameObjects of neighbor chunks
+        public CellChunk[] neighborChunks; // references to GameObjects of neighbor chunks
         /// <summary>
         /// 团块是空的状态
         /// </summary>
-        public bool Empty;
+        public bool empty;
 
         // Settings & flags
 
         /// <summary>
         /// 流程新鲜状态
         /// </summary>
-        public bool Fresh = true;
+        public bool fresh = true;
         /// <summary>
         /// 允许超时状态
         /// </summary>
-        public bool EnableTimeout;
+        public bool enableTimeout;
         /// <summary>
         /// 禁用网格状态(对于从UniblocksServer派生的团块:若为true,则团块不会构建网格)
         /// </summary>
-        public bool DisableMesh; // for chunks spawned from Server; if true, the chunk will not build a mesh
+        public bool disableMesh; // for chunks spawned from Server; if true, the chunk will not build a mesh
         /// <summary>
         /// 已被标记为需要移除状态
         /// </summary>
-        private bool FlaggedToRemove;
+        private bool flaggedToRemove;
         /// <summary>
         /// 记录团块被生成多久了
         /// </summary>
-        public float Lifetime; // how long since the chunk has been spawned
+        public float lifetime; // how long since the chunk has been spawned
 
         // update queue
 
         /// <summary>
         /// 团块更新标记
         /// </summary>
-        public bool FlaggedToUpdate;
+        public bool flaggedToUpdate;
         /// <summary>
         /// 在团块更新队列
         /// </summary>
-        public bool InUpdateQueue;
+        public bool inUpdateQueue;
         /// <summary>
         /// 当此团块完成生成或加载单元数据后为True
         /// </summary>
-        public bool CellsDone; // true when this chunk has finished generating or loading cell data
+        public bool cellsDone; // true when this chunk has finished generating or loading cell data
 
         // Semi-constants.
 
         /// <summary>
         /// 团块边长(世界绝对坐标长度值),与团块索引相乘可得到团块左下角在世界坐标系的插入点
         /// </summary>
-        public int SideLength;
+        public int sideLength;
         /// <summary>
         /// 团块边长平方(3D模式下,区域中团块数组索引计算时与Z轴相乘的系数)
         /// </summary>
-        private int SquaredSideLength;
+        private int squaredSideLength;
         /// <summary>
         /// 网格创建者
         /// </summary>
-        private CellChunkMeshCreator MeshCreator;
+        private CellChunkMeshCreator meshCreator;
 
         // object prefabs
 
         /// <summary>
         /// 网格容器(附加网格碰撞器预制体CellChunkAdditionalMesh)
         /// </summary>
-        public GameObject MeshContainer;
+        public GameObject meshContainer;
         /// <summary>
         /// 团块碰撞体(预制体)
         /// </summary>
-        public GameObject ChunkCollider;
+        public GameObject chunkCollider;
 
         // ==== maintenance ===========================================================================================
+
+        ///// <summary>
+        ///// [构造函数]团块空间.
+        ///// </summary>
+        //public CellChunk() {}
 
         public void Awake()
         { // chunk initialization (load/generate data, set position, etc.)
@@ -144,34 +120,34 @@ namespace CellSpace
                 // Set variables
 
                 //在脚本所挂载的团块位置建立团块索引(该团块经由团块管理器脚本实例化到场景)
-                ChunkIndex = new CPIndex(transform.position);
+                chunkIndex = new CPIndex(transform.position);
                 //读取团块预设边长
-                SideLength = CPEngine.chunkSideLength;
-                Debug.Log($"ChunkIndex={ChunkIndex} SideLength={SideLength}");
+                sideLength = CPEngine.chunkSideLength;
+                Debug.Log($"ChunkIndex={chunkIndex} SideLength={sideLength}");
                 //确定团块预设边长的平方
-                SquaredSideLength = SideLength * SideLength;
+                squaredSideLength = sideLength * sideLength;
                 //建立当前团块的相邻团块组
-                NeighborChunks = new CellChunk[6]; // 0 = up, 1 = down, 2 = right, 3 = left, 4 = forward, 5 = back
-                                                   //获取团块网格创建器
-                MeshCreator = GetComponent<CellChunkMeshCreator>();
+                neighborChunks = new CellChunk[6]; // 0 = up, 1 = down, 2 = right, 3 = left, 4 = forward, 5 = back
+                //获取团块网格创建器
+                meshCreator = GetComponent<CellChunkMeshCreator>();
                 //流程新鲜状态=真
-                Fresh = true;
+                fresh = true;
 
                 // Register chunk.注册本团块
                 CellChunkManager.RegisterChunk(this);
 
                 if (CPEngine.horizontalMode)
                 {
-                    CellData = new ushort[SideLength * SideLength];
+                    cellData = new ushort[sideLength * sideLength];
                 }
                 else
                 {
                     // Clear the cell data.清空团块单元数据数组(创建一个新的ushort数组来处理新数据)
-                    CellData = new ushort[SideLength * SideLength * SideLength];
+                    cellData = new ushort[sideLength * sideLength * sideLength];
                 }
 
                 // Set actual position.设置团块在世界的实际位置(世界坐标系中的插入点=团块索引*团块边长)
-                transform.position = ChunkIndex.ToVector3() * SideLength;
+                transform.position = chunkIndex.ToVector3() * sideLength;
 
                 // multiply by scale.若团块缩放比例不是默认的1.0,则实际位置要根据缩放情况进行修改,2D横板模式下Z=0所以不会变化
                 transform.position = new Vector3(transform.position.x * transform.localScale.x, transform.position.y * transform.localScale.y, transform.position.z * transform.localScale.z);
@@ -231,7 +207,7 @@ namespace CellSpace
         private IEnumerator DoAddToQueueWhenReady()
         {
             //当团块未完成单元的生成或加载,或者所有相邻单元未准备好数据
-            while (CellsDone == false || AllNeighborsHaveData() == false)
+            while (cellsDone == false || AllNeighborsHaveData() == false)
             {
                 //若团块管理器主动停止序列
                 if (CellChunkManager.StopSpawning)
@@ -254,13 +230,13 @@ namespace CellSpace
         private bool AllNeighborsHaveData()
         { // returns false if at least one neighbor is known but doesn'transform have data ready yet
             //遍历每个相邻团块
-            foreach (CellChunk neighbor in NeighborChunks)
+            foreach (CellChunk neighbor in neighborChunks)
             {
                 //相邻团块不为空
                 if (neighbor != null)
                 {
                     //若有任意相邻团块未完成生成或加载单元数据
-                    if (neighbor.CellsDone == false)
+                    if (neighbor.cellsDone == false)
                     {
                         //返回没有准备好
                         return false;
@@ -289,12 +265,12 @@ namespace CellSpace
             if (CPEngine.horizontalMode)
             {
                 //指向了一个新的实例数组
-                CellData = new ushort[SideLength * SideLength];
+                cellData = new ushort[sideLength * sideLength];
             }
             else
             {
                 //指向了一个新的实例数组
-                CellData = new ushort[SideLength * SideLength * SideLength];
+                cellData = new ushort[sideLength * sideLength * sideLength];
             }
 
         }
@@ -305,7 +281,7 @@ namespace CellSpace
         /// <returns></returns>
         public int GetDataLength()
         {
-            return CellData.Length;
+            return cellData.Length;
         }
 
         // == set cell
@@ -318,7 +294,7 @@ namespace CellSpace
         public void SetCellSimple(int rawIndex, ushort data)
         {
             //团块边长的立方个索引的第rawIndex个元素=具体单元种类
-            CellData[rawIndex] = data;
+            cellData[rawIndex] = data;
         }
 
         /// <summary>
@@ -332,11 +308,11 @@ namespace CellSpace
         {
             if (CPEngine.horizontalMode)
             {
-                CellData[(y * SideLength) + x] = data;
+                cellData[(y * sideLength) + x] = data;
             }
             else
             {
-                CellData[(z * SquaredSideLength) + (y * SideLength) + x] = data;
+                cellData[(z * squaredSideLength) + (y * sideLength) + x] = data;
             }
         }
         /// <summary>
@@ -347,7 +323,7 @@ namespace CellSpace
         /// <param name="data">体素ID,将变更成这个单元种类</param>
         public void SetCellSimple(int x, int y, ushort data)
         {
-            CellData[(y * SideLength) + x] = data;
+            cellData[(y * sideLength) + x] = data;
         }
 
         /// <summary>
@@ -359,11 +335,11 @@ namespace CellSpace
         {
             if (CPEngine.horizontalMode)
             {
-                CellData[(index.y * SideLength) + index.x] = data;
+                cellData[(index.y * sideLength) + index.x] = data;
             }
             else
             {
-                CellData[(index.z * SquaredSideLength) + (index.y * SideLength) + index.x] = data;
+                cellData[(index.z * squaredSideLength) + (index.y * sideLength) + index.x] = data;
             }
         }
 
@@ -386,35 +362,35 @@ namespace CellSpace
                 // if outside of this chunk, change in neighbor instead (if possible)
                 if (x < 0)
                 {
-                    if (NeighborChunks[(int)Direction.left] != null)
-                        NeighborChunks[(int)Direction.left].SetCell(x + SideLength, y, z, data, updateMesh); return;
+                    if (neighborChunks[(int)Direction.left] != null)
+                        neighborChunks[(int)Direction.left].SetCell(x + sideLength, y, z, data, updateMesh); return;
                 }
-                else if (x >= SideLength)
+                else if (x >= sideLength)
                 {
-                    if (NeighborChunks[(int)Direction.right] != null)
-                        NeighborChunks[(int)Direction.right].SetCell(x - SideLength, y, z, data, updateMesh); return;
+                    if (neighborChunks[(int)Direction.right] != null)
+                        neighborChunks[(int)Direction.right].SetCell(x - sideLength, y, z, data, updateMesh); return;
                 }
                 else if (y < 0)
                 {
-                    if (NeighborChunks[(int)Direction.down] != null)
-                        NeighborChunks[(int)Direction.down].SetCell(x, y + SideLength, z, data, updateMesh); return;
+                    if (neighborChunks[(int)Direction.down] != null)
+                        neighborChunks[(int)Direction.down].SetCell(x, y + sideLength, z, data, updateMesh); return;
                 }
-                else if (y >= SideLength)
+                else if (y >= sideLength)
                 {
-                    if (NeighborChunks[(int)Direction.up] != null)
-                        NeighborChunks[(int)Direction.up].SetCell(x, y - SideLength, z, data, updateMesh); return;
+                    if (neighborChunks[(int)Direction.up] != null)
+                        neighborChunks[(int)Direction.up].SetCell(x, y - sideLength, z, data, updateMesh); return;
                 }
                 else if (z < 0)
                 {
-                    if (NeighborChunks[(int)Direction.back] != null)
-                        NeighborChunks[(int)Direction.back].SetCell(x, y, z + SideLength, data, updateMesh); return;
+                    if (neighborChunks[(int)Direction.back] != null)
+                        neighborChunks[(int)Direction.back].SetCell(x, y, z + sideLength, data, updateMesh); return;
                 }
-                else if (z >= SideLength)
+                else if (z >= sideLength)
                 {
-                    if (NeighborChunks[(int)Direction.forward] != null)
-                        NeighborChunks[(int)Direction.forward].SetCell(x, y, z - SideLength, data, updateMesh); return;
+                    if (neighborChunks[(int)Direction.forward] != null)
+                        neighborChunks[(int)Direction.forward].SetCell(x, y, z - sideLength, data, updateMesh); return;
                 }
-                CellData[(z * SquaredSideLength) + (y * SideLength) + x] = data;
+                cellData[(z * squaredSideLength) + (y * sideLength) + x] = data;
                 if (updateMesh)
                 {
                     UpdateNeighborsIfNeeded(x, y, z);
@@ -434,25 +410,25 @@ namespace CellSpace
             // if outside of this chunk, change in neighbor instead (if possible)
             if (x < 0)
             {
-                if (NeighborChunks[(int)Direction.left] != null)
-                    NeighborChunks[(int)Direction.left].SetCell(x + SideLength, y, data, updateMesh); return;
+                if (neighborChunks[(int)Direction.left] != null)
+                    neighborChunks[(int)Direction.left].SetCell(x + sideLength, y, data, updateMesh); return;
             }
-            else if (x >= SideLength)
+            else if (x >= sideLength)
             {
-                if (NeighborChunks[(int)Direction.right] != null)
-                    NeighborChunks[(int)Direction.right].SetCell(x - SideLength, y, data, updateMesh); return;
+                if (neighborChunks[(int)Direction.right] != null)
+                    neighborChunks[(int)Direction.right].SetCell(x - sideLength, y, data, updateMesh); return;
             }
             else if (y < 0)
             {
-                if (NeighborChunks[(int)Direction.down] != null)
-                    NeighborChunks[(int)Direction.down].SetCell(x, y + SideLength, data, updateMesh); return;
+                if (neighborChunks[(int)Direction.down] != null)
+                    neighborChunks[(int)Direction.down].SetCell(x, y + sideLength, data, updateMesh); return;
             }
-            else if (y >= SideLength)
+            else if (y >= sideLength)
             {
-                if (NeighborChunks[(int)Direction.up] != null)
-                    NeighborChunks[(int)Direction.up].SetCell(x, y - SideLength, data, updateMesh); return;
+                if (neighborChunks[(int)Direction.up] != null)
+                    neighborChunks[(int)Direction.up].SetCell(x, y - sideLength, data, updateMesh); return;
             }
-            CellData[(y * SideLength) + x] = data;
+            cellData[(y * sideLength) + x] = data;
             if (updateMesh)
             {
                 UpdateNeighborsIfNeeded(x, y);
@@ -487,7 +463,7 @@ namespace CellSpace
         /// <returns></returns>
         public ushort GetCellSimple(int rawIndex)
         {
-            return CellData[rawIndex];
+            return cellData[rawIndex];
         }
 
         /// <summary>
@@ -501,11 +477,11 @@ namespace CellSpace
         {
             if (CPEngine.horizontalMode)
             {
-                return CellData[(y * SideLength) + x];
+                return cellData[(y * sideLength) + x];
             }
             else
             {
-                return CellData[(z * SquaredSideLength) + (y * SideLength) + x];
+                return cellData[(z * squaredSideLength) + (y * sideLength) + x];
             }
         }
         /// <summary>
@@ -516,7 +492,7 @@ namespace CellSpace
         /// <returns></returns>
         public ushort GetCellSimple(int x, int y)
         {
-            return CellData[(y * SideLength) + x];
+            return cellData[(y * sideLength) + x];
         }
 
         /// <summary>
@@ -528,11 +504,11 @@ namespace CellSpace
         {
             if (CPEngine.horizontalMode)
             {
-                return CellData[(index.y * SideLength) + index.x];
+                return cellData[(index.y * sideLength) + index.x];
             }
             else
             {
-                return CellData[(index.z * SquaredSideLength) + (index.y * SideLength) + index.x];
+                return cellData[(index.z * squaredSideLength) + (index.y * sideLength) + index.x];
             }
         }
 
@@ -554,55 +530,55 @@ namespace CellSpace
                 //单元索引出了本团块,就去相邻团块寻找单元
                 if (x < 0)
                 {
-                    if (NeighborChunks[(int)Direction.left] != null)
+                    if (neighborChunks[(int)Direction.left] != null)
                     {
-                        return NeighborChunks[(int)Direction.left].GetCellID(x + SideLength, y, z);
+                        return neighborChunks[(int)Direction.left].GetCellID(x + sideLength, y, z);
                     }
                     else return ushort.MaxValue;
                 }
-                else if (x >= SideLength)
+                else if (x >= sideLength)
                 {
-                    if (NeighborChunks[(int)Direction.right] != null)
+                    if (neighborChunks[(int)Direction.right] != null)
                     {
-                        return NeighborChunks[(int)Direction.right].GetCellID(x - SideLength, y, z);
+                        return neighborChunks[(int)Direction.right].GetCellID(x - sideLength, y, z);
                     }
                     else return ushort.MaxValue;
                 }
                 else if (y < 0)
                 {
-                    if (NeighborChunks[(int)Direction.down] != null)
+                    if (neighborChunks[(int)Direction.down] != null)
                     {
-                        return NeighborChunks[(int)Direction.down].GetCellID(x, y + SideLength, z);
+                        return neighborChunks[(int)Direction.down].GetCellID(x, y + sideLength, z);
                     }
                     else return ushort.MaxValue;
                 }
-                else if (y >= SideLength)
+                else if (y >= sideLength)
                 {
-                    if (NeighborChunks[(int)Direction.up] != null)
+                    if (neighborChunks[(int)Direction.up] != null)
                     {
-                        return NeighborChunks[(int)Direction.up].GetCellID(x, y - SideLength, z);
+                        return neighborChunks[(int)Direction.up].GetCellID(x, y - sideLength, z);
                     }
                     else return ushort.MaxValue;
                 }
                 else if (z < 0)
                 {
-                    if (NeighborChunks[(int)Direction.back] != null)
+                    if (neighborChunks[(int)Direction.back] != null)
                     {
-                        return NeighborChunks[(int)Direction.back].GetCellID(x, y, z + SideLength);
+                        return neighborChunks[(int)Direction.back].GetCellID(x, y, z + sideLength);
                     }
                     else return ushort.MaxValue;
                 }
-                else if (z >= SideLength)
+                else if (z >= sideLength)
                 {
-                    if (NeighborChunks[(int)Direction.forward] != null)
+                    if (neighborChunks[(int)Direction.forward] != null)
                     {
-                        return NeighborChunks[(int)Direction.forward].GetCellID(x, y, z - SideLength);
+                        return neighborChunks[(int)Direction.forward].GetCellID(x, y, z - sideLength);
                     }
                     else return ushort.MaxValue;
                 }
                 else
                 {
-                    return CellData[(z * SquaredSideLength) + (y * SideLength) + x];
+                    return cellData[(z * squaredSideLength) + (y * sideLength) + x];
                 }
             }
         }
@@ -617,39 +593,39 @@ namespace CellSpace
             //单元索引出了本团块,就去相邻团块寻找单元
             if (x < 0)
             {
-                if (NeighborChunks[(int)Direction.left] != null)
+                if (neighborChunks[(int)Direction.left] != null)
                 {
-                    return NeighborChunks[(int)Direction.left].GetCellID(x + SideLength, y);
+                    return neighborChunks[(int)Direction.left].GetCellID(x + sideLength, y);
                 }
                 else return ushort.MaxValue;
             }
-            else if (x >= SideLength)
+            else if (x >= sideLength)
             {
-                if (NeighborChunks[(int)Direction.right] != null)
+                if (neighborChunks[(int)Direction.right] != null)
                 {
-                    return NeighborChunks[(int)Direction.right].GetCellID(x - SideLength, y);
+                    return neighborChunks[(int)Direction.right].GetCellID(x - sideLength, y);
                 }
                 else return ushort.MaxValue;
             }
             else if (y < 0)
             {
-                if (NeighborChunks[(int)Direction.down] != null)
+                if (neighborChunks[(int)Direction.down] != null)
                 {
-                    return NeighborChunks[(int)Direction.down].GetCellID(x, y + SideLength);
+                    return neighborChunks[(int)Direction.down].GetCellID(x, y + sideLength);
                 }
                 else return ushort.MaxValue;
             }
-            else if (y >= SideLength)
+            else if (y >= sideLength)
             {
-                if (NeighborChunks[(int)Direction.up] != null)
+                if (neighborChunks[(int)Direction.up] != null)
                 {
-                    return NeighborChunks[(int)Direction.up].GetCellID(x, y - SideLength);
+                    return neighborChunks[(int)Direction.up].GetCellID(x, y - sideLength);
                 }
                 else return ushort.MaxValue;
             }
             else
             {
-                return CellData[(y * SideLength) + x];
+                return cellData[(y * sideLength) + x];
             }
         }
         /// <summary>
@@ -676,7 +652,7 @@ namespace CellSpace
         /// </summary>
         public void FlagToRemove()
         {
-            FlaggedToRemove = true;
+            flaggedToRemove = true;
         }
 
         /// <summary>
@@ -684,7 +660,7 @@ namespace CellSpace
         /// </summary>
         public void FlagToUpdate()
         {
-            FlaggedToUpdate = true;
+            flaggedToUpdate = true;
         }
 
         // ==== Update ====
@@ -698,27 +674,27 @@ namespace CellSpace
         public void LateUpdate()
         {
             // timeout.允许团块超时时的检查
-            if (CPEngine.enableChunkTimeout && EnableTimeout)
+            if (CPEngine.enableChunkTimeout && enableTimeout)
             {
                 //允许团块超时情况下,记录团块被生成了多久
-                Lifetime += Time.deltaTime;
+                lifetime += Time.deltaTime;
                 //若团块的已生成时间超过了团块允许的超时时间
-                if (Lifetime > CPEngine.chunkTimeout)
+                if (lifetime > CPEngine.chunkTimeout)
                 {
                     //将团块打上移除标记
-                    FlaggedToRemove = true;
+                    flaggedToRemove = true;
                 }
             }
 
             //团块更新标记+可以开始新的团块单元数据生成(加载)+没有禁用网格生成+引擎设置允许生成网格
-            if (FlaggedToUpdate && CellsDone && !DisableMesh && CPEngine.generateMeshes)
+            if (flaggedToUpdate && cellsDone && !disableMesh && CPEngine.generateMeshes)
             { // check if we should update the mesh
-                FlaggedToUpdate = false; //关闭当前团块更新标记
+                flaggedToUpdate = false; //关闭当前团块更新标记
                 RebuildMesh(); //团块网格重建
             }
 
             //标记了移除
-            if (FlaggedToRemove)
+            if (flaggedToRemove)
             {
                 //允许保存单元数据
                 if (CPEngine.saveCellData)
@@ -734,13 +710,36 @@ namespace CellSpace
                             //保存团块数据
                             SaveData();
                             //摧毁团块实例
-                            Destroy(this.gameObject);
+                            if (CPEngine.useCellChunkOP)
+                            {
+                                if (CellChunkOP.dataOP.TryGetValue(chunkIndex, out CellChunkOP op))
+                                {
+                                    //结构体以当前状态的副本入栈顶,上面的GameObject失活代替摧毁
+                                    CellChunkOP.Push(ref op);
+                                }
+                            }
+                            else
+                            {
+                                Destroy(this.gameObject);
+                            }
+
                         }
                     }
                 }
                 else
                 { // if saving is disabled, destroy immediately.若设置不允许保存,这里只需立即摧毁团块实例
-                    Destroy(this.gameObject);
+                    if (CPEngine.useCellChunkOP)
+                    {
+                        if (CellChunkOP.dataOP.TryGetValue(chunkIndex, out CellChunkOP op))
+                        {
+                            //结构体以当前状态的副本入栈顶,上面的GameObject失活代替摧毁
+                            CellChunkOP.Push(ref op);
+                        }
+                    }
+                    else
+                    {
+                        Destroy(this.gameObject);
+                    }
                 }
 
             }
@@ -752,7 +751,7 @@ namespace CellSpace
         public void RebuildMesh()
         {
             //立即重建团块网格
-            MeshCreator.RebuildMesh();
+            meshCreator.RebuildMesh();
             //更新所有相邻团块的网格
             ConnectNeighbors();
         }
@@ -814,14 +813,14 @@ namespace CellSpace
                     i = loop - 1;
                 }
                 //若相邻团块不为空且相邻团块的“网格过滤器”组件的共享网格(主网格)不为空
-                if (NeighborChunks[loop] != null && NeighborChunks[loop].gameObject.GetComponent<MeshFilter>().sharedMesh != null)
+                if (neighborChunks[loop] != null && neighborChunks[loop].gameObject.GetComponent<MeshFilter>().sharedMesh != null)
                 {
                     //若相邻团块的相邻团块(这里i作用是回到本团块)为空
-                    if (NeighborChunks[loop].NeighborChunks[i] == null)
+                    if (neighborChunks[loop].neighborChunks[i] == null)
                     {
                         //当相邻团块和其所有已知相邻团块的数据准备就绪时,将这个相邻团块添加到更新队列
-                        NeighborChunks[loop].AddToQueueWhenReady();
-                        NeighborChunks[loop].NeighborChunks[i] = this;//给相邻团块的属性"相邻团块"进行赋值
+                        neighborChunks[loop].AddToQueueWhenReady();
+                        neighborChunks[loop].neighborChunks[i] = this;//给相邻团块的属性"相邻团块"进行赋值
                     }
                 }
                 //继续循环相邻的其他几个团块
@@ -834,24 +833,24 @@ namespace CellSpace
         /// </summary>
         public void GetNeighbors()
         { // assign the neighbor chunk gameobjects to the NeighborChunks array
-            int x = ChunkIndex.x;
-            int y = ChunkIndex.y;
+            int x = chunkIndex.x;
+            int y = chunkIndex.y;
             if (CPEngine.horizontalMode)
             {
-                if (NeighborChunks[0] == null) NeighborChunks[0] = CellChunkManager.GetChunkComponent(x, y + 1);
-                if (NeighborChunks[1] == null) NeighborChunks[1] = CellChunkManager.GetChunkComponent(x, y - 1);
-                if (NeighborChunks[2] == null) NeighborChunks[2] = CellChunkManager.GetChunkComponent(x + 1, y);
-                if (NeighborChunks[3] == null) NeighborChunks[3] = CellChunkManager.GetChunkComponent(x - 1, y);
+                if (neighborChunks[0] == null) neighborChunks[0] = CellChunkManager.GetChunkComponent(x, y + 1);
+                if (neighborChunks[1] == null) neighborChunks[1] = CellChunkManager.GetChunkComponent(x, y - 1);
+                if (neighborChunks[2] == null) neighborChunks[2] = CellChunkManager.GetChunkComponent(x + 1, y);
+                if (neighborChunks[3] == null) neighborChunks[3] = CellChunkManager.GetChunkComponent(x - 1, y);
             }
             else
             {
-                int z = ChunkIndex.z;
-                if (NeighborChunks[0] == null) NeighborChunks[0] = CellChunkManager.GetChunkComponent(x, y + 1, z);
-                if (NeighborChunks[1] == null) NeighborChunks[1] = CellChunkManager.GetChunkComponent(x, y - 1, z);
-                if (NeighborChunks[2] == null) NeighborChunks[2] = CellChunkManager.GetChunkComponent(x + 1, y, z);
-                if (NeighborChunks[3] == null) NeighborChunks[3] = CellChunkManager.GetChunkComponent(x - 1, y, z);
-                if (NeighborChunks[4] == null) NeighborChunks[4] = CellChunkManager.GetChunkComponent(x, y, z + 1);
-                if (NeighborChunks[5] == null) NeighborChunks[5] = CellChunkManager.GetChunkComponent(x, y, z - 1);
+                int z = chunkIndex.z;
+                if (neighborChunks[0] == null) neighborChunks[0] = CellChunkManager.GetChunkComponent(x, y + 1, z);
+                if (neighborChunks[1] == null) neighborChunks[1] = CellChunkManager.GetChunkComponent(x, y - 1, z);
+                if (neighborChunks[2] == null) neighborChunks[2] = CellChunkManager.GetChunkComponent(x + 1, y, z);
+                if (neighborChunks[3] == null) neighborChunks[3] = CellChunkManager.GetChunkComponent(x - 1, y, z);
+                if (neighborChunks[4] == null) neighborChunks[4] = CellChunkManager.GetChunkComponent(x, y, z + 1);
+                if (neighborChunks[5] == null) neighborChunks[5] = CellChunkManager.GetChunkComponent(x, y, z - 1);
             }
         }
 
@@ -936,29 +935,29 @@ namespace CellSpace
             }
             else
             {
-                if (x == 0 && NeighborChunks[(int)Direction.left] != null)
+                if (x == 0 && neighborChunks[(int)Direction.left] != null)
                 {
-                    NeighborChunks[(int)Direction.left].GetComponent<CellChunk>().FlagToUpdate();
+                    neighborChunks[(int)Direction.left].GetComponent<CellChunk>().FlagToUpdate();
                 }
-                else if (x == SideLength - 1 && NeighborChunks[(int)Direction.right] != null)
+                else if (x == sideLength - 1 && neighborChunks[(int)Direction.right] != null)
                 {
-                    NeighborChunks[(int)Direction.right].GetComponent<CellChunk>().FlagToUpdate();
+                    neighborChunks[(int)Direction.right].GetComponent<CellChunk>().FlagToUpdate();
                 }
-                if (y == 0 && NeighborChunks[(int)Direction.down] != null)
+                if (y == 0 && neighborChunks[(int)Direction.down] != null)
                 {
-                    NeighborChunks[(int)Direction.down].GetComponent<CellChunk>().FlagToUpdate();
+                    neighborChunks[(int)Direction.down].GetComponent<CellChunk>().FlagToUpdate();
                 }
-                else if (y == SideLength - 1 && NeighborChunks[(int)Direction.up] != null)
+                else if (y == sideLength - 1 && neighborChunks[(int)Direction.up] != null)
                 {
-                    NeighborChunks[(int)Direction.up].GetComponent<CellChunk>().FlagToUpdate();
+                    neighborChunks[(int)Direction.up].GetComponent<CellChunk>().FlagToUpdate();
                 }
-                if (z == 0 && NeighborChunks[(int)Direction.back] != null)
+                if (z == 0 && neighborChunks[(int)Direction.back] != null)
                 {
-                    NeighborChunks[(int)Direction.back].GetComponent<CellChunk>().FlagToUpdate();
+                    neighborChunks[(int)Direction.back].GetComponent<CellChunk>().FlagToUpdate();
                 }
-                else if (z == SideLength - 1 && NeighborChunks[(int)Direction.forward] != null)
+                else if (z == sideLength - 1 && neighborChunks[(int)Direction.forward] != null)
                 {
-                    NeighborChunks[(int)Direction.forward].GetComponent<CellChunk>().FlagToUpdate();
+                    neighborChunks[(int)Direction.forward].GetComponent<CellChunk>().FlagToUpdate();
                 }
             }
         }
@@ -969,21 +968,21 @@ namespace CellSpace
         /// <param name="y"></param>
         public void UpdateNeighborsIfNeeded(int x, int y)
         { // if the index lies at the border of a chunk, FlagToUpdate the neighbor at that border
-            if (x == 0 && NeighborChunks[(int)Direction.left] != null)
+            if (x == 0 && neighborChunks[(int)Direction.left] != null)
             {
-                NeighborChunks[(int)Direction.left].GetComponent<CellChunk>().FlagToUpdate();
+                neighborChunks[(int)Direction.left].GetComponent<CellChunk>().FlagToUpdate();
             }
-            else if (x == SideLength - 1 && NeighborChunks[(int)Direction.right] != null)
+            else if (x == sideLength - 1 && neighborChunks[(int)Direction.right] != null)
             {
-                NeighborChunks[(int)Direction.right].GetComponent<CellChunk>().FlagToUpdate();
+                neighborChunks[(int)Direction.right].GetComponent<CellChunk>().FlagToUpdate();
             }
-            if (y == 0 && NeighborChunks[(int)Direction.down] != null)
+            if (y == 0 && neighborChunks[(int)Direction.down] != null)
             {
-                NeighborChunks[(int)Direction.down].GetComponent<CellChunk>().FlagToUpdate();
+                neighborChunks[(int)Direction.down].GetComponent<CellChunk>().FlagToUpdate();
             }
-            else if (y == SideLength - 1 && NeighborChunks[(int)Direction.up] != null)
+            else if (y == sideLength - 1 && neighborChunks[(int)Direction.up] != null)
             {
-                NeighborChunks[(int)Direction.up].GetComponent<CellChunk>().FlagToUpdate();
+                neighborChunks[(int)Direction.up].GetComponent<CellChunk>().FlagToUpdate();
             }
         }
 
@@ -1114,1510 +1113,9 @@ namespace CellSpace
             }
 
             CurrentChunkDataRequests++;
-            CPEngine.network.GetComponent<NetworkView>().RPC("SendCellData", RPCMode.Server, Network.player, ChunkIndex.x, ChunkIndex.y, ChunkIndex.z);
+            CPEngine.network.GetComponent<NetworkView>().RPC("SendCellData", RPCMode.Server, Network.player, chunkIndex.x, chunkIndex.y, chunkIndex.z);
         }
         #endregion
 
-        #region 双向链表管理单元体(CellItem)_函数部分
-
-        //若想构造带有双向链表管理单元体(CellItem)的团块空间,可开启CPEngine.useCellItem,之后通过团块实例的Add函数为空间容器添加单元体(独立网格容器,其子类有角色怪物子弹特效等基类).
-
-        /// <summary>
-        /// [构造函数]团块空间.
-        /// </summary>
-        public CellChunk()
-        {
-            //双向链表暂不支持正常3D模式,仅支持2D横板模式和3D单层地形模式.
-            if (CPEngine.useCellItem)
-            {//启用双向链表管理单元体(CellItem),则在空间构造时初始化双向链表池,SpriteSpace框架的怪物在空间内增减会自动刷新链表
-             //不管何时何地调用团块的检索方法,每个怪物类的AI都能找到谁(在MC框架地面上活动的个体网格对象)离它最近,适用于管理上万精灵对象.
-#if UNITY_EDITOR
-                //条件失败时进行断言,容器空间内的相对坐标化为索引的计算要求坐标必须是正值(容器左下角始终为原点插入点)
-                Debug.Assert(CPEngine.chunkSideLength > 0, "SideLength_ must be greater than 0.");
-                Debug.Assert(cellSize > 0, "cellSize_ must be greater than 0.");
-#endif
-                SideLength = CPEngine.chunkSideLength;
-                _1_cellSize = 1f / cellSize;
-                maxSize = cellSize * SideLength; //空间容器的逻辑边长(不影响实体单元渲染,仅为双向链表中管理单元体用)
-                if (cellItems == null)
-                {
-                    if (CPEngine.horizontalMode)
-                    {
-                        //2D横板模式
-                        cellItems = new CellItem[SideLength * SideLength];
-                    }
-                    else if (CPEngine.singleLayerTerrainMode)
-                    {
-                        //3D单层地形模式
-                        cellItems = new CellItem[SideLength * SideLength];
-                    }
-                    else
-                    {
-                        //正常3D模式
-                        cellItems = new CellItem[SideLength * SideLength * SideLength];
-                    }
-                }
-                else
-                {
-                    //用null填充数组cellItems
-#if !BEPINEX
-                    Array.Fill(cellItems, null);
-#else
-                    //用如下代码替换以兼容旧版.NET/Unity(没Array.Fill情况):
-                    for (int i = 0; i < cellItems.Length; i++)
-                    {
-                        cellItems[i] = null;
-                    }
-#endif
-                    //重新调整数组cellItems的大小,新的大小为SideLength^边长个数,并将调整后的数组重新赋值给cellItems.
-                    //这一步可能会创建一个新的数组,若原数组大小与新的大小不同,原数组的内容将被复制到新数组中(或部分复制,取决于大小变化).
-                    //若新大小大于原大小,新元素将被设置为默认值(对于引用类型是null,对于值类型是0或相应的默认值).
-
-                    if (CPEngine.horizontalMode)
-                    {
-                        //2D横板模式
-                        Array.Resize(ref cellItems, SideLength * SideLength);
-                    }
-                    else if (CPEngine.singleLayerTerrainMode)
-                    {
-                        //3D单层地形模式
-                        Array.Resize(ref cellItems, SideLength * SideLength);
-                    }
-                    else
-                    {
-                        //正常3D模式
-                        Array.Resize(ref cellItems, SideLength * SideLength * SideLength);
-                    }
-                }
-            }
-        }
-        /// <summary>
-        /// 为空间容器的双向链表添加网格容器(单元体),如添加一些继承单元体(CellItem)的怪物类对象.
-        /// </summary>
-        /// <param name="c">单元体(CellItem)</param>
-        public void Add(CellItem c)
-        {
-#if UNITY_EDITOR
-            Debug.Assert(c != null);
-            Debug.Assert(c.chunk == this);
-            Debug.Assert(c.index == -1);
-            Debug.Assert(c.nodePrev == null);
-            Debug.Assert(c.nodeNext == null);
-            if (CPEngine.horizontalMode)
-            {
-                //2D横板模式
-                Debug.Assert(c.x >= 0 && c.x < maxSize); //容器内相对位置需有效,不能超过最大索引
-                Debug.Assert(c.y >= 0 && c.y < maxSize);
-            }
-            else if (CPEngine.singleLayerTerrainMode)
-            {
-                //3D单层地形模式
-                Debug.Assert(c.x >= 0 && c.x < maxSize);
-                Debug.Assert(c.z >= 0 && c.z < maxSize);
-            }
-            else
-            {
-                //正常3D模式
-                Debug.Assert(c.x >= 0 && c.x < maxSize);
-                Debug.Assert(c.y >= 0 && c.y < maxSize);
-                Debug.Assert(c.z >= 0 && c.z < maxSize);
-            }
-
-#endif
-            int index; //空间内相对坐标化为索引
-            // 从坐标返回网格容器(单元体)在空间容器内的索引
-            if (CPEngine.horizontalMode)
-            {
-                //2D横板模式
-                index = PosToIndexH2D(c.x, c.y);
-            }
-            else if (CPEngine.singleLayerTerrainMode)
-            {
-                //3D单层地形模式
-                index = PosToIndexH2D(c.x, c.z);
-            }
-            else
-            {
-                //正常3D模式
-                index = PosToIndex(c.x, c.y, c.z);
-            }
-
-#if UNITY_EDITOR
-            Debug.Assert(cellItems[index] == null || cellItems[index].nodePrev == null);
-#endif
-
-            // 进行Link
-            if (cellItems[index] != null)
-            {
-                //若空间容器索引对应单元体存在,则将新单元体作为该单元体的前驱节点
-                cellItems[index].nodePrev = c;
-            }
-            //将空间容器索引对应单元体作为新单元体的后驱节点(可为null)
-            c.nodeNext = cellItems[index];
-            c.index = index; //刷新新单元体的空间索引为idx
-            cellItems[index] = c; //新单元体作为空间容器索引对应单元体
-                                  //若只有1个节点,作为头部节点呈现:【Prev=null】【C】【Next=null】
-#if UNITY_EDITOR
-            Debug.Assert(cellItems[index].nodePrev == null);
-            Debug.Assert(c.nodeNext != c);
-            Debug.Assert(c.nodePrev != c);
-#endif
-            //空间容器中网格容器(单元体)数量自增
-            ++numCells;
-        }
-        /// <summary>
-        /// 从空间容器的双向链表移除网格容器(单元体),如移除一些继承单元体(CellItem)的怪物类对象
-        /// </summary>
-        /// <param name="c">单元体(CellItem)</param>
-        public void Remove(CellItem c)
-        {
-#if UNITY_EDITOR
-            Debug.Assert(c != null);
-            Debug.Assert(c.chunk == this);
-            Debug.Assert(c.nodePrev == null && cellItems[c.index] == c || c.nodePrev.nodeNext == c && cellItems[c.index] != c);
-            Debug.Assert(c.nodeNext == null || c.nodeNext.nodePrev == c);
-            //Debug.Assert(cellItems[c.index] include c);
-#endif
-
-            //unlink
-            if (c.nodePrev != null)
-            {//若目标单元体有前驱节点(说明它不是头部节点)
-#if UNITY_EDITOR
-                Debug.Assert(cellItems[c.index] != c);
-#endif
-                //将目标单元体前驱节点(对应单元体)的后驱节点更换为目标单元体的后驱节点(目标单元体被移除,所以前后节点相连)
-                c.nodePrev.nodeNext = c.nodeNext;
-                if (c.nodeNext != null)
-                {
-                    //若目标单元体的后驱节点不为空(不是最后一个),将后驱节点的前驱节点设置为要移除目标单元体的前驱节点(目标单元体被移除,所以前后节点相连)
-                    c.nodeNext.nodePrev = c.nodePrev;
-                    c.nodeNext = null; //清空要删除的目标单元体的后驱节点
-                }
-                c.nodePrev = null; //清空要删除的目标单元体的前驱节点
-            }
-            else
-            {
-                //若目标单元体无前驱节点(说明它是头部节点)
-#if UNITY_EDITOR
-                Debug.Assert(cellItems[c.index] == c);
-#endif
-                //目标位置的空间单元体被后驱节点替换(目标单元体作为头部节点被移除,所以后驱节点占位)
-                cellItems[c.index] = c.nodeNext;
-                if (c.nodeNext != null)
-                {
-                    //若目标单元体的后驱节点不为null,该后驱节点的前驱节点设置为null(后驱节点作为头部节点了)
-                    c.nodeNext.nodePrev = null;
-                    c.nodeNext = null; //清空要删除的目标单元体的后驱节点
-                }
-            }
-#if UNITY_EDITOR
-            Debug.Assert(cellItems[c.index] != c);
-#endif
-            c.index = -1; //初始化目标单元体的空间索引
-            c.chunk = null; //清空目标单元体的空间容器
-
-            //空间容器中网格容器(单元体)数量自减
-            --numCells;
-        }
-        /// <summary>
-        /// 更新一个Cell对象在空间容器中的索引位置(同时更新双向链表),一般用于活动物体(继承CellItem的角色怪物类对象)在容器频繁移动时的刷新
-        /// </summary>
-        /// <param name="c"></param>
-        public void Refresh(CellItem c)
-        {
-#if UNITY_EDITOR
-            Debug.Assert(c != null);
-            Debug.Assert(c.chunk == this);
-            Debug.Assert(c.index > -1);
-            Debug.Assert(c.nodeNext != c);
-            Debug.Assert(c.nodePrev != c);
-            //Debug.Assert(cellItems[c.index] include c);
-#endif
-#if UNITY_EDITOR
-            if (CPEngine.horizontalMode)
-            {
-                //2D横板模式
-                Debug.Assert(c.x >= 0 && c.x < maxSize); //容器内相对位置需有效,不能超过最大索引
-                Debug.Assert(c.y >= 0 && c.y < maxSize);
-            }
-            else if (CPEngine.singleLayerTerrainMode)
-            {
-                //3D单层地形模式
-                Debug.Assert(c.x >= 0 && c.x < maxSize);
-                Debug.Assert(c.z >= 0 && c.z < maxSize);
-            }
-            else
-            {
-                //正常3D模式
-                Debug.Assert(c.x >= 0 && c.x < maxSize);
-                Debug.Assert(c.y >= 0 && c.y < maxSize);
-                Debug.Assert(c.z >= 0 && c.z < maxSize);
-            }
-#endif
-            //将当前坐标转换为空间内的索引
-            int cIdx = (int)(c.x * _1_cellSize);
-            int rIdx = (int)(c.y * _1_cellSize);
-            int hIdx = (int)(c.z * _1_cellSize);
-            int index;
-            if (CPEngine.horizontalMode)
-            {
-                //2D横板模式
-                index = rIdx * SideLength + cIdx;
-            }
-            else if (CPEngine.singleLayerTerrainMode)
-            {
-                //3D单层地形模式
-                index = hIdx * SideLength + cIdx;
-            }
-            else
-            {
-                //正常3D模式
-                index = hIdx * SideLength * SideLength + rIdx * SideLength + cIdx;
-            }
-            //若单元格尺寸是2.0,那么_1_cellSize=0.5,得到的cIdx是修正后的值,最终单元体所在(1.5,1.5)对应单元格索引是0,因为(1.5,1.5)落在第一个单元格内,没毛病
-#if UNITY_EDITOR
-            Debug.Assert(index <= cellItems.Length); //超限报停
-#endif
-            //单元体的位置与其spaceIndex字段相同
-            if (index == c.index) return;  //空间索引无变化时直接返回
-
-            // 开始更新变化↓
-            // unlink
-            if (c.nodePrev != null)
-            {  // isn'transform header 非头部单元体
-#if UNITY_EDITOR
-                Debug.Assert(cellItems[c.index] != c);
-#endif
-                c.nodePrev.nodeNext = c.nodeNext;
-                if (c.nodeNext != null)
-                { //非尾部单元体
-                    c.nodeNext.nodePrev = c.nodePrev;
-                    //c.nodeNext = {};
-                }
-                //c.nodePrev = {};
-            }
-            else
-            {
-#if UNITY_EDITOR
-                Debug.Assert(cellItems[c.index] == c);
-#endif
-                cellItems[c.index] = c.nodeNext;
-                if (c.nodeNext != null)
-                {
-                    c.nodeNext.nodePrev = null;
-                    //c.nodeNext = {};
-                }
-            }
-            //c.index = -1;
-#if UNITY_EDITOR
-            Debug.Assert(cellItems[c.index] != c);
-            Debug.Assert(index != c.index);
-#endif
-
-            // link
-            if (cellItems[index] != null)
-            {
-                cellItems[index].nodePrev = c;
-            }
-            c.nodePrev = null;
-            c.nodeNext = cellItems[index];
-            cellItems[index] = c;
-            c.index = index;
-#if UNITY_EDITOR
-            Debug.Assert(cellItems[index].nodePrev == null);
-            Debug.Assert(c.nodeNext != c);
-            Debug.Assert(c.nodePrev != c);
-#endif
-        }
-
-        #region 双向链表下的空间检索方法
-        /// <summary>
-        /// [2D横版模式]X-Y平面返回网格容器(单元体)位置在空间容器中的索引
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns>return cellItems index</returns>
-        public int PosToIndexH2D(float x, float y)
-        {
-#if UNITY_EDITOR
-            Debug.Assert(x >= 0 && x < maxSize);
-            Debug.Assert(y >= 0 && y < maxSize);
-#endif
-            int cIdx = (int)(x * _1_cellSize); //直接取整
-            int rIdx = (int)(y * _1_cellSize);
-            int idx = rIdx * SideLength + cIdx; //化作2D空间索引
-#if UNITY_EDITOR
-            Debug.Assert(idx <= cellItems.Length); //超限报停
-#endif
-            return idx;
-        }
-        /// <summary>
-        /// [3D单层地面模式]X-Z平面返回网格容器(单元体)在空间容器中的索引
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="z"></param>
-        /// <returns>return cellItems index</returns>
-        public int PosToIndex2D(float x, float z)
-        {
-#if UNITY_EDITOR
-            Debug.Assert(x >= 0 && x < maxSize);
-            Debug.Assert(z >= 0 && z < maxSize);
-#endif
-            int cIdx = (int)(x * _1_cellSize); //直接取整
-            int rIdx = (int)(z * _1_cellSize);
-            int idx = rIdx * SideLength + cIdx; //化作2D空间索引
-#if UNITY_EDITOR
-            Debug.Assert(idx <= cellItems.Length); //超限报停
-#endif
-            return idx;
-        }
-        /// <summary>
-        /// [正常3D模式]XYZ平面返回网格容器(单元体)在空间容器中的索引
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="z"></param>
-        /// <returns>return cellItems index</returns>
-        public int PosToIndex(float x, float y, float z)
-        {
-#if UNITY_EDITOR
-            Debug.Assert(x >= 0 && x < maxSize);
-            Debug.Assert(y >= 0 && y < maxSize);
-            Debug.Assert(z >= 0 && z < maxSize);
-#endif
-            int cIdx = (int)(x * _1_cellSize); //直接取整
-            int rIdx = (int)(y * _1_cellSize);
-            int hIdx = (int)(z * _1_cellSize);
-            int idx = hIdx * SideLength * SideLength + rIdx * SideLength + cIdx; //化作3D空间索引
-#if UNITY_EDITOR
-            Debug.Assert(idx <= cellItems.Length); //超限报停
-#endif
-            return idx;
-        }
-
-        /// <summary>
-        /// [2D横版模式]X-Y平面在九宫范围内找出第1个网格容器(单元体)并返回
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="radius"></param>
-        /// <returns></returns>
-        public CellItem FindFirstCrossByNineBoxGridH2D(float x, float y, float radius)
-        {
-            // 5
-            int cIdx = (int)(x * _1_cellSize);
-            if (cIdx < 0 || cIdx >= SideLength) return null;
-            int rIdx = (int)(y * _1_cellSize);
-            if (rIdx < 0 || rIdx >= SideLength) return null;
-            int idx = rIdx * SideLength + cIdx;
-            var c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vy = c.y - y;
-                var r = c.radius + radius;
-                if (vx * vx + vy * vy < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 6
-            ++cIdx;
-            if (cIdx >= SideLength) return null;
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vy = c.y - y;
-                var r = c.radius + radius;
-                if (vx * vx + vy * vy < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 3
-            ++rIdx;
-            if (rIdx >= SideLength) return null;
-            idx += SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vy = c.y - y;
-                var r = c.radius + radius;
-                if (vx * vx + vy * vy < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 2
-            --idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vy = c.y - y;
-                var r = c.radius + radius;
-                if (vx * vx + vy * vy < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 1
-            cIdx -= 2;
-            if (cIdx < 0) return null;
-            --idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vy = c.y - y;
-                var r = c.radius + radius;
-                if (vx * vx + vy * vy < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 4
-            idx -= SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vy = c.y - y;
-                var r = c.radius + radius;
-                if (vx * vx + vy * vy < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 7
-            rIdx -= 2;
-            if (rIdx < 0) return null;
-            idx -= SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vy = c.y - y;
-                var r = c.radius + radius;
-                if (vx * vx + vy * vy < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 8
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vy = c.y - y;
-                var r = c.radius + radius;
-                if (vx * vx + vy * vy < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 9
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vy = c.y - y;
-                var r = c.radius + radius;
-                if (vx * vx + vy * vy < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            return null;
-        }
-        /// <summary>
-        /// [3D单层地面模式]X-Z平面在九宫范围内找出第1个网格容器(单元体)并返回
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="z"></param>
-        /// <param name="radius"></param>
-        /// <returns></returns>
-        public CellItem FindFirstCrossByNineBoxGrid2D(float x, float z, float radius)
-        {
-            // 5
-            int cIdx = (int)(x * _1_cellSize);
-            if (cIdx < 0 || cIdx >= SideLength) return null;
-            int rIdx = (int)(z * _1_cellSize);
-            if (rIdx < 0 || rIdx >= SideLength) return null;
-            int idx = rIdx * SideLength + cIdx;
-            var c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vz = c.z - z;
-                var r = c.radius + radius;
-                if (vx * vx + vz * vz < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 6
-            ++cIdx;
-            if (cIdx >= SideLength) return null;
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vz = c.z - z;
-                var r = c.radius + radius;
-                if (vx * vx + vz * vz < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 3
-            ++rIdx;
-            if (rIdx >= SideLength) return null;
-            idx += SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vz = c.z - z;
-                var r = c.radius + radius;
-                if (vx * vx + vz * vz < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 2
-            --idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vz = c.z - z;
-                var r = c.radius + radius;
-                if (vx * vx + vz * vz < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 1
-            cIdx -= 2;
-            if (cIdx < 0) return null;
-            --idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vz = c.z - z;
-                var r = c.radius + radius;
-                if (vx * vx + vz * vz < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 4
-            idx -= SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vz = c.z - z;
-                var r = c.radius + radius;
-                if (vx * vx + vz * vz < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 7
-            rIdx -= 2;
-            if (rIdx < 0) return null;
-            idx -= SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vz = c.z - z;
-                var r = c.radius + radius;
-                if (vx * vx + vz * vz < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 8
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vz = c.z - z;
-                var r = c.radius + radius;
-                if (vx * vx + vz * vz < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            // 9
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var vx = c.x - x;
-                var vz = c.z - z;
-                var r = c.radius + radius;
-                if (vx * vx + vz * vz < r * r)
-                {
-                    return c;
-                }
-                c = c.nodeNext;
-            }
-            return null;
-        }
-        /// <summary>
-        /// [正常3D模式]在27立方体网格范围内找出第1个网格容器(单元体)并返回.
-        /// 采用从中心向外扩展的搜索顺序,优先检测最近的网格.
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="z"></param>
-        /// <param name="radius"></param>
-        /// <returns></returns>
-        public CellItem FindFirstCrossByTwentySevenBoxGrid(float x, float y, float z, float radius)
-        {
-            // 计算初始网格索引
-            int cIdx = (int)(x * _1_cellSize);
-            if (cIdx < 0 || cIdx >= SideLength) return null;
-            int rIdx = (int)(y * _1_cellSize);
-            if (rIdx < 0 || rIdx >= SideLength) return null;
-            int dIdx = (int)(z * _1_cellSize);
-            if (dIdx < 0 || dIdx >= SideLength) return null;
-
-            // 定义3D搜索顺序(从中心开始向外扩展)
-            int[] layerOffsets = {
-        0, 0, 0,   // 中心层 - 中心 (14)
-        1, 0, 0,   // 中心层 - 右 (15)
-        0, 1, 0,   // 中心层 - 下 (17)
-        -1, 0, 0,  // 中心层 - 左 (13)
-        0, -1, 0,  // 中心层 - 上 (11)
-        1, 1, 0,   // 中心层 - 右下 (18)
-        -1, 1, 0,  // 中心层 - 左下 (16)
-        1, -1, 0,  // 中心层 - 右上 (12)
-        -1, -1, 0, // 中心层 - 左上 (10)
-        
-        0, 0, 1,   // 上层 - 中心 (23)
-        1, 0, 1,   // 上层 - 右 (24)
-        0, 1, 1,   // 上层 - 下 (26)
-        -1, 0, 1,  // 上层 - 左 (22)
-        0, -1, 1,  // 上层 - 上 (20)
-        1, 1, 1,   // 上层 - 右下 (27)
-        -1, 1, 1,  // 上层 - 左下 (25)
-        1, -1, 1,  // 上层 - 右上 (21)
-        -1, -1, 1, // 上层 - 左上 (19)
-        
-        0, 0, -1,  // 下层 - 中心 (5)
-        1, 0, -1,  // 下层 - 右 (6)
-        0, 1, -1,  // 下层 - 下 (8)
-        -1, 0, -1, // 下层 - 左 (4)
-        0, -1, -1, // 下层 - 上 (2)
-        1, 1, -1,  // 下层 - 右下 (9)
-        -1, 1, -1, // 下层 - 左下 (7)
-        1, -1, -1, // 下层 - 右上 (3)
-        -1, -1, -1 // 下层 - 左上 (1)
-    };
-
-            // 按顺序搜索27个网格
-            for (int i = 0; i < layerOffsets.Length; i += 3)
-            {
-                int searchCIdx = cIdx + layerOffsets[i];
-                int searchRIdx = rIdx + layerOffsets[i + 1];
-                int searchDIdx = dIdx + layerOffsets[i + 2];
-
-                // 检查边界
-                if (searchCIdx < 0 || searchCIdx >= SideLength ||
-                    searchRIdx < 0 || searchRIdx >= SideLength ||
-                    searchDIdx < 0 || searchDIdx >= SideLength)
-                    continue;
-
-                // 计算一维索引
-                int idx = searchDIdx * SideLength * SideLength + searchRIdx * SideLength + searchCIdx;
-                var c = cellItems[idx];
-
-                // 遍历链表检测碰撞
-                while (c != null)
-                {
-                    var vx = c.x - x;
-                    var vy = c.y - y;
-                    var vz = c.z - z;  // 新增Z轴距离计算
-                    var r = c.radius + radius;
-
-                    // 3D球体碰撞检测
-                    if (vx * vx + vy * vy + vz * vz < r * r)
-                    {
-                        return c;
-                    }
-                    c = c.nodeNext;
-                }
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// [2D横版模式]X-Y平面遍历坐标周围九宫格内的网格容器(单元体)
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="handler">返回true结束遍历(Func可能产生GC,但这种应该是无所谓的,里面只要不含Unity资源)</param>
-        public void ForeachAllByNineBoxGrid(float x, float y, Func<CellItem, bool> handler)
-        {
-            // 5
-            int cIdx = (int)(x * _1_cellSize);
-            if (cIdx < 0 || cIdx >= SideLength) return;
-            int rIdx = (int)(y * _1_cellSize);
-            if (rIdx < 0 || rIdx >= SideLength) return;
-            int idx = rIdx * SideLength + cIdx;
-            var c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 6
-            ++cIdx;
-            if (cIdx >= SideLength) return;
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 3
-            ++rIdx;
-            if (rIdx >= SideLength) return;
-            idx += SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 2
-            --idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 1
-            cIdx -= 2;
-            if (cIdx < 0) return;
-            --idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 4
-            idx -= SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 7
-            rIdx -= 2;
-            if (rIdx < 0) return;
-            idx -= SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 8
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 9
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-        }
-        /// <summary>
-        /// [3D单层地面模式]X-Z平面遍历坐标周围九宫格内的网格容器(单元体)
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="z"></param>
-        /// <param name="handler">返回true结束遍历(Func可能产生GC,但这种应该是无所谓的, 里面只要不含Unity资源)</param>
-        public void ForeachAllByNineBoxGrid2D(float x, float z, Func<CellItem, bool> handler)
-        {
-            // 5
-            int cIdx = (int)(x * _1_cellSize);
-            if (cIdx < 0 || cIdx >= SideLength) return;
-            int rIdx = (int)(z * _1_cellSize);
-            if (rIdx < 0 || rIdx >= SideLength) return;
-            int idx = rIdx * SideLength + cIdx;
-            var c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 6
-            ++cIdx;
-            if (cIdx >= SideLength) return;
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 3
-            ++rIdx;
-            if (rIdx >= SideLength) return;
-            idx += SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 2
-            --idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 1
-            cIdx -= 2;
-            if (cIdx < 0) return;
-            --idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 4
-            idx -= SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 7
-            rIdx -= 2;
-            if (rIdx < 0) return;
-            idx -= SideLength;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 8
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-            // 9
-            ++idx;
-            c = cellItems[idx];
-            while (c != null)
-            {
-                var next = c.nodeNext;
-                if (handler(c)) return;
-                c = next;
-            }
-        }
-        /// <summary>
-        /// [正常3D模式]在27立方体网格范围内遍历网格容器(单元体)
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="z"></param>
-        /// <param name="handler">返回true结束遍历(Func可能产生GC,但这种应该是无所谓的,里面只要不含Unity资源)</param>
-        public void ForeachAllByTwentySevenBoxGrid(float x, float y, float z, Func<CellItem, bool> handler)
-        {
-            // 计算初始网格索引
-            int cIdx = (int)(x * _1_cellSize);
-            if (cIdx < 0 || cIdx >= SideLength) return;
-            int rIdx = (int)(y * _1_cellSize);
-            if (rIdx < 0 || rIdx >= SideLength) return;
-            int dIdx = (int)(z * _1_cellSize);
-            if (dIdx < 0 || dIdx >= SideLength) return;
-
-            // 定义3D搜索顺序(从中心开始向外扩展)
-            int[] offsets = {
-        // 中心层 (z=0)
-        0, 0, 0,   // 中心 (14)
-        1, 0, 0,   // 右 (15)
-        0, 1, 0,   // 下 (17)
-        -1, 0, 0,  // 左 (13)
-        0, -1, 0,  // 上 (11)
-        1, 1, 0,   // 右下 (18)
-        -1, 1, 0,  // 左下 (16)
-        1, -1, 0,  // 右上 (12)
-        -1, -1, 0, // 左上 (10)
-        
-        // 上层 (z=1)
-        0, 0, 1,   // 上层中心 (23)
-        1, 0, 1,   // 上层右 (24)
-        0, 1, 1,   // 上层下 (26)
-        -1, 0, 1,  // 上层左 (22)
-        0, -1, 1,  // 上层上 (20)
-        1, 1, 1,   // 上层右下 (27)
-        -1, 1, 1,  // 上层左下 (25)
-        1, -1, 1,  // 上层右上 (21)
-        -1, -1, 1, // 上层左上 (19)
-        
-        // 下层 (z=-1)
-        0, 0, -1,  // 下层中心 (5)
-        1, 0, -1,  // 下层右 (6)
-        0, 1, -1,  // 下层下 (8)
-        -1, 0, -1, // 下层左 (4)
-        0, -1, -1, // 下层上 (2)
-        1, 1, -1,  // 下层右下 (9)
-        -1, 1, -1, // 下层左下 (7)
-        1, -1, -1, // 下层右上 (3)
-        -1, -1, -1 // 下层左上 (1)
-    };
-
-            // 按顺序搜索27个网格
-            for (int i = 0; i < offsets.Length; i += 3)
-            {
-                int searchCIdx = cIdx + offsets[i];
-                int searchRIdx = rIdx + offsets[i + 1];
-                int searchDIdx = dIdx + offsets[i + 2];
-
-                // 检查边界
-                if (searchCIdx < 0 || searchCIdx >= SideLength ||
-                    searchRIdx < 0 || searchRIdx >= SideLength ||
-                    searchDIdx < 0 || searchDIdx >= SideLength)
-                    continue;
-
-                // 计算一维索引(3D数组转1D)
-                int idx = searchDIdx * SideLength * SideLength + searchRIdx * SideLength + searchCIdx;
-                var c = cellItems[idx];
-
-                // 遍历链表
-                while (c != null)
-                {
-                    var next = c.nodeNext;
-                    if (handler(c)) return;
-                    c = next;
-                }
-            }
-        }
-
-        /// <summary>
-        /// [2D横版模式]X-Y平面圆形扩散遍历找出边距最近的1个网格容器(单元体)并返回
-        /// </summary>
-        /// <param name="d"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="maxDistance">最大距离</param>
-        /// <returns></returns>
-        public CellItem FindNearestByRangeH2D(CellRingDiffuseXY d, float x, float y, float maxDistance)
-        {
-            int cIdxBase = (int)(x * _1_cellSize);
-            if (cIdxBase < 0 || cIdxBase >= SideLength) return null;
-            int rIdxBase = (int)(y * _1_cellSize);
-            if (rIdxBase < 0 || rIdxBase >= SideLength) return null;
-            var searchRange = maxDistance + cellSize;
-
-            CellItem rtv = null;
-            float maxV = 0;
-
-            var lens = d.lens;
-            var idxs = d.idxys;
-            for (int i = 1; i < lens.Count; i++)
-            {
-                var offsets = lens[i - 1].count;
-                var size = lens[i].count - lens[i - 1].count;
-                for (int j = 0; j < size; ++j)
-                {
-                    var tmp = idxs[offsets + j];
-                    var cIdx = cIdxBase + tmp.x;
-                    if (cIdx < 0 || cIdx >= SideLength) continue;
-                    var rIdx = rIdxBase + tmp.y;
-                    if (rIdx < 0 || rIdx >= SideLength) continue;
-                    var cidx = rIdx * SideLength + cIdx;
-                    var c = cellItems[cidx];
-                    while (c != null)
-                    {
-                        var vx = c.x - x;
-                        var vy = c.y - y;
-                        var dd = vx * vx + vy * vy;
-                        var r = maxDistance + c.radius;
-                        var v = r * r - dd;
-
-                        if (v > maxV)
-                        {
-                            rtv = c;
-                            maxV = v;
-                        }
-                        c = c.nodeNext;
-                    }
-                }
-                if (lens[i].radius > searchRange) break;
-            }
-            return rtv;
-        }
-        /// <summary>
-        /// [3D单层地面模式]X-Z平面圆形扩散遍历找出边距最近的1个网格容器(单元体)并返回
-        /// </summary>
-        /// <param name="d"></param>
-        /// <param name="x"></param>
-        /// <param name="z"></param>
-        /// <param name="maxDistance">最大距离</param>
-        /// <returns></returns>
-        public CellItem FindNearestByRange2D(CellRingDiffuseXZ d, float x, float z, float maxDistance)
-        {
-            int cIdxBase = (int)(x * _1_cellSize);
-            if (cIdxBase < 0 || cIdxBase >= SideLength) return null;
-            int rIdxBase = (int)(z * _1_cellSize);
-            if (rIdxBase < 0 || rIdxBase >= SideLength) return null;
-            var searchRange = maxDistance + cellSize;
-
-            CellItem rtv = null;
-            float maxV = 0;
-
-            var lens = d.lens;
-            var idxs = d.idxzs;
-            for (int i = 1; i < lens.Count; i++)
-            {
-                var offsets = lens[i - 1].count;
-                var size = lens[i].count - lens[i - 1].count;
-                for (int j = 0; j < size; ++j)
-                {
-                    var tmp = idxs[offsets + j];
-                    var cIdx = cIdxBase + tmp.x;
-                    if (cIdx < 0 || cIdx >= SideLength) continue;
-                    var rIdx = rIdxBase + tmp.z;
-                    if (rIdx < 0 || rIdx >= SideLength) continue;
-                    var cidx = rIdx * SideLength + cIdx;
-
-                    var c = cellItems[cidx];
-                    while (c != null)
-                    {
-                        var vx = c.x - x;
-                        var vz = c.z - z;
-                        var dd = vx * vx + vz * vz;
-                        var r = maxDistance + c.radius;
-                        var v = r * r - dd;
-                        if (v > maxV)
-                        {
-                            rtv = c;
-                            maxV = v;
-                        }
-                        c = c.nodeNext;
-                    }
-                }
-                if (lens[i].radius > searchRange) break;
-            }
-            return rtv;
-        }
-        /// <summary>
-        /// [正常3D模式]在27立方体网格范围内遍历找出边距最近的1个网格容器(单元体)并返回
-        /// </summary>
-        /// <param name="d"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="z"></param>
-        /// <param name="maxDistance"></param>
-        /// <returns></returns>
-        public CellItem FindNearestByRange(CellRingDiffuseXYZ d, float x, float y, float z, float maxDistance)
-        {
-            int cIdxBase = (int)(x * _1_cellSize);
-            if (cIdxBase < 0 || cIdxBase >= SideLength) return null;
-            int rIdxBase = (int)(y * _1_cellSize);
-            if (rIdxBase < 0 || rIdxBase >= SideLength) return null;
-            int hIdxBase = (int)(z * _1_cellSize);
-            if (hIdxBase < 0 || hIdxBase >= SideLength) return null;
-
-            var searchRange = maxDistance + cellSize;
-
-            CellItem rtv = null;
-            float maxV = 0;
-
-            var lens = d.lens;
-            var idxs = d.idxyzs;
-            for (int i = 1; i < lens.Count; i++)
-            {
-                var offsets = lens[i - 1].count;
-                var size = lens[i].count - lens[i - 1].count;
-                for (int j = 0; j < size; ++j)
-                {
-                    var tmp = idxs[offsets + j];
-                    var cIdx = cIdxBase + tmp.x;
-                    if (cIdx < 0 || cIdx >= SideLength) continue;
-                    var rIdx = rIdxBase + tmp.y;
-                    if (rIdx < 0 || rIdx >= SideLength) continue;
-                    var hIdx = hIdxBase + tmp.z;
-                    if (hIdx < 0 || hIdx >= SideLength) continue;
-
-                    var cidx = hIdx * SideLength * SideLength + rIdx * SideLength + cIdx;
-
-                    var c = cellItems[cidx];
-                    while (c != null)
-                    {
-                        var vx = c.x - x;
-                        var vy = c.y - y;
-                        var vz = c.z - z;
-                        var dd = vx * vx + vy * vy + vz * vz;
-                        var r = maxDistance + c.radius;
-                        var v = r * r - dd;
-
-                        if (v > maxV)
-                        {
-                            rtv = c;
-                            maxV = v;
-                        }
-                        c = c.nodeNext;
-                    }
-                }
-                if (lens[i].radius > searchRange) break;
-            }
-            return rtv;
-        }
-
-        /// <summary>
-        /// 2D圆形或3D球形扩散遍历找范围内最多n个网格容器(单元体)的结果的存储容器
-        /// </summary>
-        public List<CellDistanceInfo> resultFindNearest = new List<CellDistanceInfo>();
-
-        /// <summary>
-        /// [2D横版模式]X-Y平面圆形扩散遍历找出范围内边缘最近的最多n个结果
-        /// </summary>
-        /// <param name="d"></param>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <param name="maxDistance">限制结果集的最大边距</param>
-        /// <param name="n"></param>
-        /// <returns>返回实际个数</returns>
-        public int FindNearestNByRangeH2D(CellRingDiffuseXY d, float x, float y, float maxDistance, int n)
-        {
-            int cIdxBase = (int)(x * _1_cellSize);
-            if (cIdxBase < 0 || cIdxBase >= SideLength) return 0;
-            int rIdxBase = (int)(y * _1_cellSize);
-            if (rIdxBase < 0 || rIdxBase >= SideLength) return 0;
-            //searchRange决定了要扫多远的格子
-            var searchRange = maxDistance + cellSize;
-
-            var os = resultFindNearest;
-            os.Clear();
-
-            var lens = d.lens;
-            var idxs = d.idxys;
-            for (int i = 1; i < lens.Count; i++)
-            {
-                var offsets = lens[i - 1].count;
-                var size = lens[i].count - lens[i - 1].count;
-                for (int j = 0; j < size; ++j)
-                {
-                    var tmp = idxs[offsets + j];
-                    var cIdx = cIdxBase + tmp.x;
-                    if (cIdx < 0 || cIdx >= SideLength) continue;
-                    var rIdx = rIdxBase + tmp.y;
-                    if (rIdx < 0 || rIdx >= SideLength) continue;
-                    var cidx = rIdx * SideLength + cIdx;
-
-                    var c = cellItems[cidx];
-                    while (c != null)
-                    {
-                        var vx = c.x - x;
-                        var vy = c.y - y;
-                        var dd = vx * vx + vy * vy;
-                        var r = maxDistance + c.radius;
-                        var v = r * r - dd;
-
-                        if (v > 0)
-                        {
-                            if (os.Count < n)
-                            {
-                                os.Add(new CellDistanceInfo { distance = v, cell = c });
-                                if (os.Count == n)
-                                {
-                                    Quick_Sort(0, os.Count - 1);
-                                }
-                            }
-                            else
-                            {
-                                if (os[0].distance < v)
-                                {
-                                    os[0] = new CellDistanceInfo { distance = v, cell = c };
-                                    Quick_Sort(0, os.Count - 1);
-                                }
-                            }
-                        }
-
-                        c = c.nodeNext;
-                    }
-                }
-                if (lens[i].radius > searchRange) break;
-            }
-            return os.Count;
-        }
-        /// <summary>
-        /// [3D单层地面模式]X-Z平面圆形扩散遍历找出范围内边缘最近的最多n个结果
-        /// </summary>
-        /// <param name="d"></param>
-        /// <param name="x"></param>
-        /// <param name="z"></param>
-        /// <param name="maxDistance">限制结果集的最大边距</param>
-        /// <param name="n"></param>
-        /// <returns>返回实际个数</returns>
-        public int FindNearestNByRange2D(CellRingDiffuseXZ d, float x, float z, float maxDistance, int n)
-        {
-            int cIdxBase = (int)(x * _1_cellSize);
-            if (cIdxBase < 0 || cIdxBase >= SideLength) return 0;
-            int rIdxBase = (int)(z * _1_cellSize);
-            if (rIdxBase < 0 || rIdxBase >= SideLength) return 0;
-            //searchRange决定了要扫多远的格子
-            var searchRange = maxDistance + cellSize;
-
-            var os = resultFindNearest;
-            os.Clear();
-
-            var lens = d.lens;
-            var idxs = d.idxzs;
-            for (int i = 1; i < lens.Count; i++)
-            {
-                var offsets = lens[i - 1].count;
-                var size = lens[i].count - lens[i - 1].count;
-                for (int j = 0; j < size; ++j)
-                {
-                    var tmp = idxs[offsets + j];
-                    var cIdx = cIdxBase + tmp.x;
-                    if (cIdx < 0 || cIdx >= SideLength) continue;
-                    var rIdx = rIdxBase + tmp.z;
-                    if (rIdx < 0 || rIdx >= SideLength) continue;
-                    var cidx = rIdx * SideLength + cIdx;
-
-                    var c = cellItems[cidx];
-                    while (c != null)
-                    {
-                        var vx = c.x - x;
-                        var vz = c.z - z;
-                        var dd = vx * vx + vz * vz;
-                        var r = maxDistance + c.radius;
-                        var v = r * r - dd;
-
-                        if (v > 0)
-                        {
-                            if (os.Count < n)
-                            {
-                                os.Add(new CellDistanceInfo { distance = v, cell = c });
-                                if (os.Count == n)
-                                {
-                                    Quick_Sort(0, os.Count - 1);
-                                }
-                            }
-                            else
-                            {
-                                if (os[0].distance < v)
-                                {
-                                    os[0] = new CellDistanceInfo { distance = v, cell = c };
-                                    Quick_Sort(0, os.Count - 1);
-                                }
-                            }
-                        }
-
-                        c = c.nodeNext;
-                    }
-                }
-                if (lens[i].radius > searchRange) break;
-            }
-            return os.Count;
-        }
-        /// <summary>
-        /// [正常3D模式]三维圆球扩散遍历找出范围内边缘最近的最多n个结果
-        /// </summary>
-        /// <param name="d">扩散模式数据</param>
-        /// <param name="x">查询点X坐标</param>
-        /// <param name="y">查询点Y坐标</param>
-        /// <param name="z">查询点Z坐标</param>
-        /// <param name="maxDistance">限制结果集的最大边距</param>
-        /// <param name="n">最大返回结果数</param>
-        /// <returns>返回实际找到的个数</returns>
-        public int FindNearestNByRange(CellRingDiffuseXYZ d, float x, float y, float z, float maxDistance, int n)
-        {
-            int cIdxBase = (int)(x * _1_cellSize);
-            if (cIdxBase < 0 || cIdxBase >= SideLength) return 0;
-            int rIdxBase = (int)(y * _1_cellSize);
-            if (rIdxBase < 0 || rIdxBase >= SideLength) return 0;
-            int hIdxBase = (int)(z * _1_cellSize);
-            if (hIdxBase < 0 || hIdxBase >= SideLength) return 0;
-
-            var searchRange = maxDistance + cellSize;
-
-            var os = resultFindNearest;
-            os.Clear();
-
-            var lens = d.lens;
-            var idxs = d.idxyzs;
-            for (int i = 1; i < lens.Count; i++)
-            {
-                var offsets = lens[i - 1].count;
-                var size = lens[i].count - lens[i - 1].count;
-                for (int j = 0; j < size; ++j)
-                {
-                    var tmp = idxs[offsets + j];
-                    var cIdx = cIdxBase + tmp.x;
-                    if (cIdx < 0 || cIdx >= SideLength) continue;
-                    var rIdx = rIdxBase + tmp.y;
-                    if (rIdx < 0 || rIdx >= SideLength) continue;
-                    var hIdx = hIdxBase + tmp.z;
-                    if (hIdx < 0 || hIdx >= SideLength) continue;
-
-                    var cidx = hIdx * SideLength * SideLength + rIdx * SideLength + cIdx;
-
-                    var c = cellItems[cidx];
-                    while (c != null)
-                    {
-                        var vx = c.x - x;
-                        var vy = c.y - y;
-                        var vz = c.z - z;
-                        var dd = vx * vx + vy * vy + vz * vz;
-                        var r = maxDistance + c.radius;
-                        var v = r * r - dd;
-
-                        if (v > 0)
-                        {
-                            if (os.Count < n)
-                            {
-                                os.Add(new CellDistanceInfo { distance = v, cell = c });
-                                if (os.Count == n)
-                                {
-                                    Quick_Sort(0, os.Count - 1);
-                                }
-                            }
-                            else
-                            {
-                                if (os[0].distance < v)
-                                {
-                                    os[0] = new CellDistanceInfo { distance = v, cell = c };
-                                    Quick_Sort(0, os.Count - 1);
-                                }
-                            }
-                        }
-
-                        c = c.nodeNext;
-                    }
-                }
-                if (lens[i].radius > searchRange) break;
-            }
-            return os.Count;
-        }
-
-        /// <summary>
-        /// 排序resultFindNearestN2D,注:若改用.Sort(); 函数会造成 128 byte GC
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        private void Quick_Sort(int left, int right)
-        {
-            if (left < right)
-            {
-                int pivot = Partition(left, right);
-                if (pivot > 1)
-                {
-                    Quick_Sort(left, pivot - 1);
-                }
-                if (pivot + 1 < right)
-                {
-                    Quick_Sort(pivot + 1, right);
-                }
-            }
-        }
-        /// <summary>
-        /// 快速排序左右2个resultFindNearestN2D数组元素,若存在相同距离则结束并返回右侧距离结果,否则进行交换将较小的距离放在左边数组
-        /// </summary>
-        /// <param name="left"></param>
-        /// <param name="right"></param>
-        /// <returns></returns>
-        private int Partition(int left, int right)
-        {
-            var arr = resultFindNearest;
-            var pivot = arr[left];
-            while (true)
-            {
-                while (arr[left].distance < pivot.distance)
-                {
-                    left++;
-                }
-                while (arr[right].distance > pivot.distance)
-                {
-                    right--;
-                }
-                if (left < right)
-                {
-                    if (arr[left].distance == arr[right].distance) return right;
-                    var temp = arr[left];
-                    arr[left] = arr[right];
-                    arr[right] = temp;
-                }
-                else return right;
-            }
-        }
-        #endregion
-        #endregion
     }
 }

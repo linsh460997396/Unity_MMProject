@@ -11,7 +11,7 @@ namespace MMWorld
     {
         public static Scene scene;
         public static bool sceneEnabled = false;
-        public static bool frameworksInitialized = false;
+        public static bool initializeFrameworks = false;
 
         ///// <summary>
         ///// 挂上组件的当前帧运行(无论是否激活,仅自动运行1次).
@@ -33,6 +33,9 @@ namespace MMWorld
         {
             // 游戏入口 - 显示开局菜单
             ShowStartMenu();
+
+            //测试体素世界
+            //InitializeFrameworks();
         }
 
         /// <summary>
@@ -89,7 +92,7 @@ namespace MMWorld
             }
             CPEngine.Active();
             sceneEnabled = false;
-            frameworksInitialized = true;
+            initializeFrameworks = true;
         }
 
         /// <summary>
@@ -97,12 +100,12 @@ namespace MMWorld
         /// </summary>
         public void Update()
         {
-            if (frameworksInitialized && sceneEnabled == false && CellChunkManager.SpawningChunks == false)
+            if (initializeFrameworks && sceneEnabled == false && CellChunkManager.SpawningChunks == false)
             {//场景组件未启用且团块空间停止生成时
                 sceneEnabled = true;
                 gameObject.GetComponent<Scene>().enabled = true;//启用场景组件
             }
-            if (frameworksInitialized)
+            if (initializeFrameworks)
             {
                 CPEngine.Tick();
             }
