@@ -53,7 +53,7 @@ namespace SpriteSpace
             stage = lv_stage;//初始化舞台
             scene = lv_stage.scene;//初始化场景
 
-            sprites = scene.sprites_explosions;//初始化爆炸精灵组
+            sprites = Scene.sprites_explosions;//初始化爆炸精灵组
             stage.effectExplosions.Add(this);//将自身添加到舞台爆炸特效列表
 
             //从对象池分配对象,游戏物体层0,设置精灵渲染器排序图层名称为FG(Foreground是前景图层,通常指那些位于画面最前、离观众最近的元素部分)

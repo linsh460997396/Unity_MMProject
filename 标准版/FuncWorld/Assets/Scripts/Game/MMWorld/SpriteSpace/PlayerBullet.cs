@@ -29,7 +29,7 @@ namespace SpriteSpace
         /// <summary>
         /// 怪物空间容器
         /// </summary>
-        public GridContainer monstersGridContainer;
+        public CellGridContainer monstersGridContainer;
         /// <summary>
         /// 对象池结构体
         /// </summary>
@@ -120,7 +120,7 @@ namespace SpriteSpace
         {
             //从对象池分配U3D底层对象
             GO.Pop(ref go);
-            go.spriteRenderer.sprite = scene.sprites_bullets[1];//默认使用第二个子弹(第一个是箭头状)
+            go.spriteRenderer.sprite = Scene.sprites_bullets[1];//默认使用第二个子弹(第一个是箭头状)
             if (CPEngine.horizontalMode)
             {//2D横板模式
                 go.transform.rotation = Quaternion.Euler(0, 0, -radians_ * (180f / Mathf.PI)); //X-Y平面下子弹绕Z轴转朝向
@@ -151,7 +151,7 @@ namespace SpriteSpace
         {
 
             //在9宫范围内查询首个相交物体
-            var m = monstersGridContainer.FindFirstCrossBy9(pixelRow, pixelColumn, radius);
+            var m = monstersGridContainer.FindFirstCrossByNineBoxGrid2D(pixelRow, pixelColumn, radius);
             if (m != null)
             {
                 ((Monster)m).Hurt(damage, 0);
@@ -163,7 +163,7 @@ namespace SpriteSpace
             pixelColumn += incColumn;
 
             //坐标超出grid地图范围:自杀(或转移到下一个团块空间)
-            if (pixelRow < 0 || pixelRow >= scene.gridWidth || pixelColumn < 0 || pixelColumn >= scene.gridHeight) return true;
+            if (pixelRow < 0 || pixelRow >= scene.gridMaxSize || pixelColumn < 0 || pixelColumn >= scene.gridMaxSize) return true;
 
             //生命周期完结:自杀
             return lifeEndTime < scene.time;

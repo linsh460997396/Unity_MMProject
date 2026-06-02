@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace CellSpace
@@ -27,7 +26,7 @@ namespace CellSpace
         /// <summary>
         /// 以团块空间的CPIndex为键、CellItemManager为值的字典.CPEngine.useCellItem = true 时会使用该字典来存储CellChunk句柄(CPIndex)对应的CellItemManager.如不使用则该字典不会被维护.
         /// </summary>
-        public static Dictionary<CPIndex, CellItemManager> dataCIM = new Dictionary<CPIndex, CellItemManager>();
+        public static Dictionary<CPIndex, CellGridContainer> dataCGC = new Dictionary<CPIndex, CellGridContainer>();
 
         #endregion
 

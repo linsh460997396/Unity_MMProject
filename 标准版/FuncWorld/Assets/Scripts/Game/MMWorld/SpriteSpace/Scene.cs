@@ -1,10 +1,10 @@
 ﻿using CellSpace;
-using System;
 using UnityEngine;
 
 namespace SpriteSpace
 {
-    //精灵空间管理框架(SpriteSpace).
+    //动态精灵空间管理框架(SpriteSpace).与静态地面体素单元空间框架(CellSpace)配合使用.
+    //本框架管理场景中的活动对象(如怪物、子弹、特效、角色、道具等).支持2D横板、3D单层地形模式.
 
     /// <summary>
     /// 场景.
@@ -12,98 +12,130 @@ namespace SpriteSpace
     public class Scene : MonoBehaviour
     {
         /// <summary>
-        /// 主摄像机对象缓存
+        /// 屏幕主摄像机组件.若通过SpriteSpacePrefab.MainCamera获取则不需要修改,否则请自定义主摄像机.
         /// </summary>
-        [NonSerialized] public Camera mainCamera;
+        public static Camera mainCamera;
 
-        //编辑器拖拽带法线的材质球到此
-        [NonSerialized] public Material material;
-        //编辑器拖Sprite-Unlit-Default到此,或不启用URP时用别的
-        [NonSerialized] public Material minimapMaterial;
+        public static Material material;
+        public static Material minimapMaterial;
 
-        //编辑器拖游戏物体到此,会自动识别到组件
-        [NonSerialized] public GameObject minimapCameraGO;
-        [NonSerialized] public GameObject minimapCanvasGO;
-        [NonSerialized] public Camera minimapCamera;
-        [NonSerialized] public Canvas minimapCanvas;
+        //若通过编辑器拖游戏物体到公开非静态实例字段会自动识别到组件
+        public static GameObject minimapCameraGO;
+        public static GameObject minimapCanvasGO;
+        public static Camera minimapCamera;
+        public static Canvas minimapCanvas;
 
-        //编辑器中分组,拖拽精灵图集到此(展开shift可多选)
-        public Sprite[] sprites_font_outline;
-        public Sprite[] sprites_explosions;
-        public Sprite[] sprites_player;
-        public Sprite[] sprites_bullets;
-        public Sprite[] sprites_monster01;
-        public Sprite[] sprites_monster02;
-        public Sprite[] sprites_monster03;
-        public Sprite[] sprites_monster04;
-        public Sprite[] sprites_monster05;
-        public Sprite[] sprites_monster06;
-        public Sprite[] sprites_monster07;
-        public Sprite[] sprites_monster08;
-        // ...
+        //若通过编辑器SpriteEditor‌将大图切割并配置好子精灵可拖到公开非静态实例字段(shift可多选)
+        public static Sprite[] sprites_font_outline;
+        public static Sprite[] sprites_explosions;
+        public static Sprite[] sprites_player;
+        public static Sprite[] sprites_bullets;
+        public static Sprite[] sprites_monster01;
+        public static Sprite[] sprites_monster02;
+        public static Sprite[] sprites_monster03;
+        public static Sprite[] sprites_monster04;
+        public static Sprite[] sprites_monster05;
+        public static Sprite[] sprites_monster06;
+        public static Sprite[] sprites_monster07;
+        public static Sprite[] sprites_monster08;
+
+        private CellSpace.CellGridContainer _gridContainer;
+        /// <summary>
+        /// 场景的网格空间容器.它是一个逻辑概念,不直接关联任何GameObject,管理场景中活动对象在网格空间中的状态和位置.
+        /// </summary>
+        public CellSpace.CellGridContainer GridContainer
+        {
+            set
+            {
+                _gridContainer = value;
+            }
+            get
+            {
+                return _gridContainer;
+            }
+        }
+
+        private static int id = 0;
+
+        /// <summary>
+        /// 创建一个新的场景实例.它会尝试在当前Unity场景中查找名为"Scene"加上一个唯一编号的GameObject,
+        /// 如果未找到则创建一个新的GameObject并添加Scene组件.
+        /// </summary>
+        /// <returns>新创建或找到的Scene实例</returns>
+        public static Scene New()
+        {
+            var obj = GameObject.Find("Scene" + id);
+            if (obj == null) { obj = new GameObject("Scene" + id++); }
+            if (obj.GetComponent<Scene>() == null) obj.AddComponent<Scene>();
+            return obj.GetComponent<Scene>();
+        }
 
         /// <summary>
         /// 当前帧(总的运行帧编号)
         /// </summary>
         public int time = 0;
         /// <summary>
-        /// 用于稳定调用逻辑Update的时间累计变量
+        /// 时间累计变量
         /// </summary>
         public float timePool = 0;
         /// <summary>
-        /// 当前玩家(可跨舞台存在故放置在此类)
-        /// </summary>
-        public Player player;
-        /// <summary>
-        /// 当前舞台
+        /// 舞台
         /// </summary>
         public Stage stage;
         /// <summary>
-        /// 精灵空间行、列数量.如不再逻辑划分怪物区域,默认同CellSpace中团块空间的边长.
+        /// 场景可操作的玩家(可跨舞台存在)
         /// </summary>
-        public int gridNumRows = 256, gridNumCols = 256;
+        public Player player;
         /// <summary>
-        /// 网格团块内的网格最大宽度尺寸(单位是逻辑像素非真实像素)
+        /// 网格尺寸(尺度单位是逻辑像素非真实像素),决定空间或地图逻辑像素及屏幕摄像头占据的大小.
         /// </summary>
-        public float gridWidth;
+        public float gridSize;
         /// <summary>
-        /// 网格团块内的网格最大高度尺寸(单位是逻辑像素非真实像素)
+        /// 网格空间边长(单元数量).默认等同CellItemManager.sideLength或CPEngine.chunkSideLength.
         /// </summary>
-        public float gridHeight;
+        public int gridLength;
         /// <summary>
-        /// 网格团块的宽度尺寸中心(单位是逻辑像素非真实像素)
+        /// 网格空间最大尺寸(逻辑大小非实际像素大小)
         /// </summary>
-        [NonSerialized] public float gridWidth_2, gridHeight_2;
+        public float gridMaxSize;
         /// <summary>
-        /// 网格团块的高度尺寸中心(单位是逻辑像素非真实像素)
+        /// 网格空间尺寸的一半(方便计算和使用)
         /// </summary>
-        public float gridChunkCenterX, gridChunkCenterY;
+        public float gridMaxSize_2;
+
+        private int _tps = 60;
         /// <summary>
-        /// 设计(目标)帧率.决定游戏逻辑更新频率.允许修改来调整游戏速度.它是逻辑值,并非引擎真实渲染帧率.
+        /// 目标帧率.决定游戏逻辑更新频率.允许修改来调整游戏速度.它是逻辑值,并非引擎真实渲染帧率.
         /// </summary>
-        public int tps = 60;
+        public int TPS
+        {
+            set
+            {
+                if (value <= 0)
+                {
+                    return;
+                }
+                _tps = value;
+                frameDelay = 1f / _tps;
+            }
+            get { return _tps; }
+        }
         /// <summary>
-        /// 帧率间隔(逻辑帧率的倒数)
+        /// 目标帧率间隔(1/tps)
         /// </summary>
         public float frameDelay;
         /// <summary>
-        /// 设计分辨率(单位是逻辑像素非真实像素),决定了屏幕(摄像机镜头)范围占空间总大小多少.
-        /// 为了达到现实中屏幕分辨率,逻辑像素范围可取1920*1080这样的默认值.修改gridSize和grid行列数可调整网格团块一角或全部被屏幕看到的比例.
+        /// 目标分辨率(非真实像素).影响渲染范围.
         /// </summary>
         public float designWidth = 3840, designHeight = 2160;
         /// <summary>
-        /// 设计分辨率的一半(方便计算和使用)
+        /// 目标分辨率的一半(方便计算和使用).影响渲染范围及出怪点等游戏逻辑.
         /// </summary>
-        [NonSerialized] public float designWidth_2, designHeight_2;
+        public float designWidth_2, designHeight_2;
         /// <summary>
-        /// 设计分辨率到摄像头坐标的转换系数(允许渲染位置与逻辑位置不同,如戴森球那游戏的庞大星系不按实际距离尺寸制作时).
-        /// 用于怪物坐标修正(渲染位置=逻辑位置*designWidthToCameraRatio),如不需要可设为1(无转换).在(0,1)区间调整.
+        /// 决定设计分辨率在正交摄像机空间占据的大小比例(默认值1f).orthographicSize = 10f * designWidthToCameraRatio.
         /// </summary>
         public float designWidthToCameraRatio = 1f;
-        /// <summary>
-        /// 网格尺寸(尺度单位是逻辑像素非真实像素),决定空间或地图总的逻辑像素大小及屏幕(摄像头)占据的大小.
-        /// </summary>
-        public float gridSize = 100f;
         /// <summary>
         /// 精灵图片离地相对高度.
         /// </summary>
@@ -117,58 +149,71 @@ namespace SpriteSpace
         /// </summary>
         public bool mGOCreate = false;
         /// <summary>
-        /// 空间容器索引时要用到的找最近所需格子的偏移量数组(所有舞台公用)
+        /// 单元环形扩散数据.它是一个预计算的数据结构,用于支持基于网格空间的范围扩散效果(如爆炸伤害范围、技能范围等).通过预计算可以提升运行时性能,避免重复计算扩散范围.
         /// </summary>
-        public SpaceRingDiffuseData spaceRDD;
+        public CellRingDiffuseData cellRingDiffuseData;
 
+        /// <summary>
+        /// 输入操作管理器.负责处理玩家输入并转换为游戏逻辑事件.它是一个公用单例对象.
+        /// </summary>
         public static InputActions inputActions;
-        public static Scene mainScene;
+        /// <summary>
+        /// 当前主要场景.
+        /// </summary>
+        public static Scene main;
 
-        void Start()
+        /// <summary>
+        /// 场景初始化方法.它负责设置场景的网格空间容器、设计分辨率、目标帧率以及相关资源和组件的引用.在场景创建后调用一次,为后续游戏逻辑更新和渲染做好准备.
+        /// </summary>
+        /// <param name="cellGridContainer"></param>
+        /// <param name="width"></param>
+        /// <param name="height"></param>
+        public void Init(CellSpace.CellGridContainer cellGridContainer, float width = 3840, float height = 2160)
         {
-            // 如果SpriteSpace还没初始化，提前返回
-            if (!MMWorld.Main_MMWorld.initializeFrameworks)
-            {
-                return;
-            }
+            if (cellGridContainer != null) _gridContainer = cellGridContainer;
 
-            frameDelay = 1f / tps;
-            gridWidth = gridNumCols * gridSize;
-            gridHeight = gridNumRows * gridSize;
-            gridWidth_2 = gridWidth / 2;
-            gridHeight_2 = gridHeight / 2;
-            gridChunkCenterX = gridWidth_2;
-            gridChunkCenterY = gridHeight_2;
+            frameDelay = 1f / _tps;
+            gridSize = _gridContainer.CellSize;
+            gridLength = _gridContainer.SideLength;
+            gridMaxSize = gridLength * gridSize;
+            gridMaxSize_2 = gridMaxSize / 2;
+            designWidth = width;
+            designHeight = height;
             designWidth_2 = designWidth / 2;
             designHeight_2 = designHeight / 2;
-            spaceRDD = new SpaceRingDiffuseData(100, gridSize);
+            cellRingDiffuseData = new CellRingDiffuseData(_gridContainer.SideLength, gridSize);
 
-            material = SpriteSpacePrefab.material;
-            minimapMaterial = material;
-            minimapCameraGO = SpriteSpacePrefab.MinimapCamera;
-            minimapCanvasGO = SpriteSpacePrefab.MinimapCanvas;
-            minimapCamera = minimapCameraGO.GetComponent<Camera>();
-            minimapCanvas = minimapCanvasGO.GetComponent<Canvas>();
+            if (material == null) material = SpriteSpacePrefab.material;
+            if (minimapMaterial == null) minimapMaterial = SpriteSpacePrefab.material;
+            if (minimapCameraGO == null) minimapCameraGO = SpriteSpacePrefab.MinimapCamera;
+            if (minimapCanvasGO == null) minimapCanvasGO = SpriteSpacePrefab.MinimapCanvas;
+            if (minimapCamera == null) minimapCamera = minimapCameraGO.GetComponent<Camera>();
+            if (minimapCanvas == null) minimapCanvas = minimapCanvasGO.GetComponent<Canvas>();
 
-            InitCamera();
+            InitMainCamera();
 
-            inputActions = new InputActions();
-            inputActions.InitInputAction();
-
-
+            if (inputActions == null)
+            {
+                inputActions = new InputActions();
+                inputActions.InitInputAction();
+            }
 
             //初始化玩家
-            player = new Player(this);
+            //player = new Player(this);
 
-            //初始化起始舞台(切场景地图时更换为新的舞台)
+            //初始化舞台
             //stage = new Stage1(this);
 
-            #region 测试舞台
+            //测试其他舞台
             //stage = new TestStage1(this); //直接测试大量数字特效
-            stage = new TestStage2(this); //正常打怪测试
-            #endregion
+            //stage = new TestStage2(this); //正常打怪测试
+
         }
-        void Update()
+
+        /// <summary>
+        /// 场景更新方法.按设计帧率驱动游戏逻辑更新,并在每帧同步调用舞台的Draw方法进行渲染.它是游戏循环的核心部分,负责处理玩家输入、更新游戏状态和渲染场景.
+        /// </summary>
+        private void Update()
         {
             if (inputActions == null || stage == null) return;
 
@@ -282,19 +327,21 @@ namespace SpriteSpace
         /// <summary>
         /// 绘制编辑器场景对象
         /// </summary>
-        void OnDrawGizmos()
+        private void OnDrawGizmos()
         {
             //验证是否有舞台,有则绘制无则返回
             if (stage == null) return;
             stage.DrawGizmos();
         }
+
         /// <summary>
         /// 摧毁舞台对象和对象池资源
         /// </summary>
-        void OnDestroy()
+        private void OnDestroy()
         {
             if (stage != null) stage.Destroy();
         }
+
         /// <summary>
         /// 设置舞台.
         /// </summary>
@@ -305,8 +352,9 @@ namespace SpriteSpace
             if (oldDestroy && stage != null) stage.Destroy();//清理旧舞台
             stage = newStage;//设置新的舞台
         }
+
         /// <summary>
-        /// 启禁用小地图(可间歇开关minimapCamera来提升性能 )
+        /// 启禁用小地图功能.
         /// </summary>
         /// <param name="torf">启动小地图(不填则默认为真)</param>
         public void EnableMinimap(bool torf = true)
@@ -320,11 +368,16 @@ namespace SpriteSpace
             Debug.Log("小地图已" + (torf ? "启用" : "禁用"));
         }
 
-        public void InitCamera()
+        /// <summary>
+        /// 初始化主摄像机.根据当前游戏模式(2D横板或3D单层地形)设置摄像机的投影方式、位置和旋转.
+        /// 如果未通过SpriteSpacePrefab.MainCamera获取到主摄像机,则会尝试从场景中查找名为"MainCamera"的摄像机对象.
+        /// 如果仍然未找到,则会输出错误日志.
+        /// </summary>
+        public void InitMainCamera()
         {
             //使用SpriteSpacePrefab创建的主摄像机
-            mainCamera = SpriteSpacePrefab.MainCamera.GetComponent<Camera>();
-            
+            if (mainCamera == null) mainCamera = SpriteSpacePrefab.MainCamera.GetComponent<Camera>();
+
             if (mainCamera != null)
             {
                 if (CPEngine.horizontalMode)

@@ -8,11 +8,11 @@ namespace CellSpace
     public struct CellDistanceInfo : IComparable<CellDistanceInfo>
     {
         public float distance;
-        public CellItem cell;
+        public CellItem item;
 
-        public int CompareTo(CellDistanceInfo distanceCell)
+        public int CompareTo(CellDistanceInfo cellDistanceInfo)
         {
-            return this.distance.CompareTo(distanceCell.distance);
+            return this.distance.CompareTo(cellDistanceInfo.distance);
         }
     }
 }

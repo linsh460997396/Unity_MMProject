@@ -1527,3 +1527,6 @@ CellChunkOP.data.TryGetValue(index, out op)
 CellChunkOP.data.TryGetValue(index, out CellChunkOP op)
 若CellChunkOP是结构体取出后被修改,字典要同步则需重新存入字典,是类则无须如此
 
+readonly修饰符标记的字段只能在字段或构造函数中赋值一次,之后无法修改
+
+使用new关键字隐藏父类字段,不用new会产生一个警告提醒,但不影响功能

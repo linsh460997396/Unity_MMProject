@@ -8,6 +8,10 @@
     public class CellItem
     {
         /// <summary>
+        /// 双向链表中用于验证单元体所属团块空间的字段.该字段让单位体所属空间唯一,避免不必要的链表操作.
+        /// </summary>
+        public CellGridContainer cellGridContainer;
+        /// <summary>
         /// 链表邻居:前驱节点对应的网格容器(单元体)
         /// </summary>
         public CellItem nodePrev;

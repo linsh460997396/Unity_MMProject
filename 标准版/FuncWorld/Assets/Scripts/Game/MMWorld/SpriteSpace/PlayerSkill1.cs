@@ -31,7 +31,7 @@ namespace SpriteSpace
         /// </summary>
         public new void Init()
         {//new关键字表示新方法并隐藏基类中的同名方法
-            castDelay = (int)(scene.tps * 0.2f);
+            castDelay = (int)(scene.TPS * 0.2f);
             castCount = 3;
         }
 
@@ -59,8 +59,8 @@ namespace SpriteSpace
                 var shootDistanceStep = maxShootDistance / castCount;
                 var count = castCount;
                 var sc = stage.monstersGridContainer;
-                var os = sc.result_FindNearestN;
-                var n = sc.FindNearestNByRange(scene.spaceRDD, row, column, moveSpeed * life, count);
+                var os = sc.resultFindNearest;
+                var n = sc.FindNearestNByRange2D(scene.cellRingDiffuseData, row, column, moveSpeed * life, count);
 
                 if (n > 0)
                 {
@@ -69,8 +69,8 @@ namespace SpriteSpace
                         for (int i = 0; i < n; ++i)
                         {
                             var o = os[i].item;
-                            var dColumn = o.pixelColumn - column;
-                            var dRow = o.pixelRow - row;
+                            var dColumn = o.y - column;
+                            var dRow = o.x - row;
                             var r = Mathf.Atan2(dColumn, dRow);
                             var cos = Mathf.Cos(r);
                             var sin = Mathf.Sin(r);

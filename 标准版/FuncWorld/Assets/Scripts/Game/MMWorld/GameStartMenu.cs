@@ -2,7 +2,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using CellSpace;
 using MMWorld.HexSphere;
 
 namespace MMWorld
@@ -726,7 +725,7 @@ namespace MMWorld
 
             // 阶段3: 初始化框架 (70%)
             UpdateLoadingProgress(70f, "正在初始化游戏框架...");
-            Main_MMWorld.InitializeFrameworks();
+            Main_MMWorld.Init();
             yield return new WaitForSeconds(0.5f);
 
             // 阶段4: 创建256x256地图 (85%)

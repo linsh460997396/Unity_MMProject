@@ -428,11 +428,11 @@ namespace CellSpace
             }
             if (CPEngine.useCellItem == true) 
             {
-                if (!CellChunkOP.dataCIM.TryGetValue(index, out CellItemManager cim))
+                if (!CellChunkOP.dataCGC.ContainsKey(index))
                 {
-                    var tempCIM = new CellItemManager();
+                    var tempCIM = new CellGridContainer();
                     tempCIM.id = index;
-                    CellChunkOP.dataCIM[index] = tempCIM;
+                    CellChunkOP.dataCGC[index] = tempCIM;
                 }
             }
             chunkObject.SetActive(true);
@@ -807,11 +807,11 @@ namespace CellSpace
                                                             }
                                                             if (CPEngine.useCellItem == true)
                                                             {
-                                                                if (!CellChunkOP.dataCIM.TryGetValue(neighborIndex, out CellItemManager cim))
+                                                                if (!CellChunkOP.dataCGC.ContainsKey(neighborIndex))
                                                                 {
-                                                                    var tempCIM = new CellItemManager();
+                                                                    var tempCIM = new CellGridContainer();
                                                                     tempCIM.id = neighborIndex;
-                                                                    CellChunkOP.dataCIM[neighborIndex] = tempCIM;
+                                                                    CellChunkOP.dataCGC[neighborIndex] = tempCIM;
                                                                 }
                                                             }
                                                         }
@@ -878,11 +878,11 @@ namespace CellSpace
                                             }
                                             if (CPEngine.useCellItem == true)
                                             {
-                                                if (!CellChunkOP.dataCIM.TryGetValue(newChunkIndex, out CellItemManager cim))
+                                                if (!CellChunkOP.dataCGC.ContainsKey(newChunkIndex))
                                                 {
-                                                    var tempCIM = new CellItemManager();
+                                                    var tempCIM = new CellGridContainer();
                                                     tempCIM.id = newChunkIndex;
-                                                    CellChunkOP.dataCIM[newChunkIndex] = tempCIM;
+                                                    CellChunkOP.dataCGC[newChunkIndex] = tempCIM;
                                                 }
                                             }
                                             newChunk.SetActive(true);
@@ -934,11 +934,11 @@ namespace CellSpace
                                                         }
                                                         if (CPEngine.useCellItem == true)
                                                         {
-                                                            if (!CellChunkOP.dataCIM.TryGetValue(neighborIndex, out CellItemManager cim))
+                                                            if (!CellChunkOP.dataCGC.ContainsKey(neighborIndex))
                                                             {
-                                                                var tempCIM = new CellItemManager();
+                                                                var tempCIM = new CellGridContainer();
                                                                 tempCIM.id = neighborIndex;
-                                                                CellChunkOP.dataCIM[neighborIndex] = tempCIM;
+                                                                CellChunkOP.dataCGC[neighborIndex] = tempCIM;
                                                             }
                                                         }
                                                         neighborChunk.SetActive(true);
@@ -1117,11 +1117,11 @@ namespace CellSpace
                                                     }
                                                     if (CPEngine.useCellItem == true)
                                                     {
-                                                        if (!CellChunkOP.dataCIM.TryGetValue(neighborIndex, out CellItemManager cim))
+                                                        if (!CellChunkOP.dataCGC.ContainsKey(neighborIndex))
                                                         {
-                                                            var tempCIM = new CellItemManager();
+                                                            var tempCIM = new CellGridContainer();
                                                             tempCIM.id = neighborIndex;
-                                                            CellChunkOP.dataCIM[neighborIndex] = tempCIM;
+                                                            CellChunkOP.dataCGC[neighborIndex] = tempCIM;
                                                         }
                                                     }
                                                     neighborChunk.SetActive(true);
@@ -1181,7 +1181,6 @@ namespace CellSpace
                                             {
                                                 CellChunkOP.dataGO[newChunkIndex] = newChunk;
                                                 CellChunkOP.dataOP[newChunkIndex] = tempOP;
-
                                             }
                                         }
                                     }
@@ -1192,11 +1191,11 @@ namespace CellSpace
                                     }
                                     if (CPEngine.useCellItem == true)
                                     {
-                                        if (!CellChunkOP.dataCIM.TryGetValue(newChunkIndex, out CellItemManager cim))
+                                        if (!CellChunkOP.dataCGC.ContainsKey(newChunkIndex))
                                         {
-                                            var tempCIM = new CellItemManager();
+                                            var tempCIM = new CellGridContainer();
                                             tempCIM.id = newChunkIndex;
-                                            CellChunkOP.dataCIM[newChunkIndex] = tempCIM;
+                                            CellChunkOP.dataCGC[newChunkIndex] = tempCIM;
                                         }
                                     }
                                     newChunk.SetActive(true);
@@ -1248,11 +1247,11 @@ namespace CellSpace
                                                 }
                                                 if (CPEngine.useCellItem == true)
                                                 {
-                                                    if (!CellChunkOP.dataCIM.TryGetValue(neighborIndex, out CellItemManager cim))
+                                                    if (!CellChunkOP.dataCGC.ContainsKey(neighborIndex))
                                                     {
-                                                        var tempCIM = new CellItemManager();
+                                                        var tempCIM = new CellGridContainer();
                                                         tempCIM.id = neighborIndex;
-                                                        CellChunkOP.dataCIM[neighborIndex] = tempCIM;
+                                                        CellChunkOP.dataCGC[neighborIndex] = tempCIM;
                                                     }
                                                 }
                                                 neighborChunk.SetActive(true);

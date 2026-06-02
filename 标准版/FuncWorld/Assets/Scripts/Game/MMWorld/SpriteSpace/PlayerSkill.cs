@@ -75,8 +75,8 @@ namespace SpriteSpace
             scene = stage_.scene;
 
             maxShootDistance = scene.gridSize / 2;
-            castDelay = (int)(scene.tps * 0.02f);
-            life = scene.tps * 1;
+            castDelay = (int)(scene.TPS * 0.02f);
+            life = scene.TPS * 1;
 
             player = scene.player;
         }
@@ -104,11 +104,11 @@ namespace SpriteSpace
 
                 var x = player.pixelRow;
                 var y = player.pixelColumn;
-                var o = stage.monstersGridContainer.FindNearestByRange(scene.spaceRDD, x, y, moveSpeed * life);
+                var o = stage.monstersGridContainer.FindNearestByRange2D(scene.cellRingDiffuseData, x, y, moveSpeed * life);
                 if (o != null)
                 {
-                    var dy = o.pixelColumn - y;
-                    var dx = o.pixelRow - x;
+                    var dy = o.y - y;
+                    var dx = o.x - x;
                     var r = Mathf.Atan2(dy, dx);
                     var cos = Mathf.Cos(r);
                     var sin = Mathf.Sin(r);

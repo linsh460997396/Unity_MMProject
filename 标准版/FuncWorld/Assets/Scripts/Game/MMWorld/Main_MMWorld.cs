@@ -11,7 +11,7 @@ namespace MMWorld
     {
         public static Scene scene;
         public static bool sceneEnabled = false;
-        public static bool initializeFrameworks = false;
+        public static bool initialized = false;
 
         ///// <summary>
         ///// 挂上组件的当前帧运行(无论是否激活,仅自动运行1次).
@@ -32,10 +32,10 @@ namespace MMWorld
         public void Start()
         {
             // 游戏入口 - 显示开局菜单
-            ShowStartMenu();
+            //ShowStartMenu();
 
             //测试体素世界
-            //InitializeFrameworks();
+            Init();
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace MMWorld
         /// <summary>
         /// 初始化框架 - 在玩家选择六边形区域后调用
         /// </summary>
-        public static void InitializeFrameworks()
+        public static void Init()
         {
             SpriteSpacePrefab.Init();
             if (scene == null)
@@ -92,7 +92,7 @@ namespace MMWorld
             }
             CPEngine.Active();
             sceneEnabled = false;
-            initializeFrameworks = true;
+            initialized = true;
         }
 
         /// <summary>
@@ -100,12 +100,12 @@ namespace MMWorld
         /// </summary>
         public void Update()
         {
-            if (initializeFrameworks && sceneEnabled == false && CellChunkManager.SpawningChunks == false)
+            if (initialized && sceneEnabled == false && CellChunkManager.SpawningChunks == false)
             {//场景组件未启用且团块空间停止生成时
                 sceneEnabled = true;
                 gameObject.GetComponent<Scene>().enabled = true;//启用场景组件
             }
-            if (initializeFrameworks)
+            if (initialized)
             {
                 CPEngine.Tick();
             }

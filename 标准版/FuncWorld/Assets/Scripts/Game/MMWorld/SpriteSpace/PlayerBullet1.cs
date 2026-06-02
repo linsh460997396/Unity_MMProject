@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using CellSpace;
 
 namespace SpriteSpace
 {
@@ -10,7 +11,7 @@ namespace SpriteSpace
         /// <summary>
         /// 超时的穿透黑名单
         /// </summary>
-        public List<KeyValuePair<GridItem, int>> hitBlackList = new();
+        public List<KeyValuePair<CellItem, int>> hitBlackList = new();
 
         //这些属性从 skill copy
 
@@ -61,7 +62,7 @@ namespace SpriteSpace
             if (pierceCount <= 1)
             {
                 //在9宫范围内查询首个相交
-                var m = monstersGridContainer.FindFirstCrossBy9(pixelRow, pixelColumn, radius);
+                var m = monstersGridContainer.FindFirstCrossByNineBoxGrid2D(pixelRow, pixelColumn, radius);
                 if (m != null)
                 {
                     ((Monster)m).Hurt(damage, knockbackForce);
@@ -71,7 +72,7 @@ namespace SpriteSpace
             else
             {
                 //遍历九宫挨个处理相交,消耗穿刺数量
-                monstersGridContainer.Foreach9All(pixelRow, pixelColumn, HitCheck);
+                monstersGridContainer.ForeachAllByNineBoxGrid2D(pixelRow, pixelColumn, HitCheck);
                 if (pierceCount <= 0) return true;
             }
 
@@ -80,7 +81,7 @@ namespace SpriteSpace
             pixelColumn += incColumn;
 
             //坐标超出grid地图范围:自杀
-            if (pixelRow < 0 || pixelRow >= scene.gridWidth || pixelColumn < 0 || pixelColumn >= scene.gridHeight) return true;
+            if (pixelRow < 0 || pixelRow >= scene.gridMaxSize || pixelColumn < 0 || pixelColumn >= scene.gridMaxSize) return true;
 
             //生命周期完结:自杀
             return lifeEndTime < scene.time;
@@ -91,11 +92,11 @@ namespace SpriteSpace
         /// </summary>
         /// <param name="m">空间物体</param>
         /// <returns></returns>
-        public bool HitCheck(GridItem m)
+        public bool HitCheck(CellItem m)
         {
-            var vRow = m.pixelRow - pixelRow;
-            var vColumn = m.pixelColumn - pixelColumn;
-            var r = m.range + radius;
+            var vRow = m.x - pixelRow;
+            var vColumn = m.y - pixelColumn;
+            var r = m.radius + radius;
             if (vRow * vRow + vColumn * vColumn < r * r)
             {
                 //判断当前怪有没有存在于超时黑名单
@@ -106,7 +107,7 @@ namespace SpriteSpace
                 }
 
                 //不存在:加入列表
-                hitBlackList.Add(new KeyValuePair<GridItem, int>(m, scene.time + pierceDelay));
+                hitBlackList.Add(new KeyValuePair<CellItem, int>(m, scene.time + pierceDelay));
 
                 //伤害怪
                 ((Monster)m).Hurt(damage, knockbackForce);

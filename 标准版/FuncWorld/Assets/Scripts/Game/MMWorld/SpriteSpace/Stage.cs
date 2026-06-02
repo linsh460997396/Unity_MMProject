@@ -36,7 +36,7 @@ namespace SpriteSpace
         /// <summary>
         /// 怪物空间容器
         /// </summary>
-        public GridContainer monstersGridContainer;
+        public CellGridContainer monstersGridContainer;
         /// <summary>
         /// 爆炸特效列表
         /// </summary>
@@ -64,8 +64,8 @@ namespace SpriteSpace
         {//将构造函数设为protected意味着这个构造函数不能在类的外部直接被调用,从而防止了类的直接实例化
             scene = scene_;
             player = scene_.player;
-            monstersGridContainer = new(scene.gridNumRows, scene.gridNumCols, scene.gridSize);
-            camTrans = scene_.mainCamera != null ? scene_.mainCamera.transform : Camera.main?.transform;
+            monstersGridContainer = new(scene.gridSize);
+            camTrans = Scene.mainCamera != null ? Scene.mainCamera.transform : Camera.main?.transform;
         }
 
 
@@ -171,7 +171,7 @@ namespace SpriteSpace
             }
             // ...
 
-            Debug.Assert(monstersGridContainer.numItems == 0);
+            Debug.Assert(monstersGridContainer.Count == 0);
             monsters.Clear();
             playerBullets.Clear();
             effectExplosions.Clear();
@@ -311,10 +311,10 @@ namespace SpriteSpace
         public Vector2 GetRndPosOutSideTheArea()
         {
             float minX = 0f; float minY = 0f;
-            float maxX = scene.gridWidth - 0.5f;
-            float maxY = scene.gridHeight - 0.5f;
+            float maxX = scene.gridMaxSize - 0.5f;
+            float maxY = scene.gridMaxSize - 0.5f;
             // 通过相机视口计算真实边界
-            Camera mainCam = scene.mainCamera != null ? scene.mainCamera : Camera.main;
+            Camera mainCam = Scene.mainCamera != null ? Scene.mainCamera : Camera.main;
             float halfHeight = mainCam != null ? mainCam.orthographicSize * Screen.height / Screen.width : 5.4f;
             //Debug.Log("halfHeight=" + halfHeight);
 

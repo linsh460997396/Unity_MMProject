@@ -1,6 +1,5 @@
 ﻿using CellSpace;
 using UnityEngine;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 namespace SpriteSpace
 {
@@ -60,8 +59,8 @@ namespace SpriteSpace
             stage = lv_stage;
             scene = lv_stage.scene;
 
-            incY = scene.gridSize / 120 * scene.tps;
-            life = (int)(scene.tps * 0.5);
+            incY = scene.gridSize / 120 * scene.TPS;
+            life = (int)(scene.TPS * 0.5);
 
             pixelRaw = lv_pixelRow;
             pixelColumn = lv_pixelColumn;
@@ -78,7 +77,7 @@ namespace SpriteSpace
                 var o = new GO();
                 //从对象池分配对象,层0,设置精灵渲染器排序图层名称为FG(ForeGround是前景图层,通常指那些位于画面最前、离观众最近的元素部分)
                 GO.Pop(ref o, 0, "ForeGround");
-                o.spriteRenderer.sprite = scene.sprites_font_outline[sb[i] - 32];//char可直接与数字加减,如sb[i]='2',结果是(int)'2' -32=50=32=18,对应精灵数组索引[18],即2的精灵图片
+                o.spriteRenderer.sprite = Scene.sprites_font_outline[sb[i] - 32];//char可直接与数字加减,如sb[i]='2',结果是(int)'2' -32=50=32=18,对应精灵数组索引[18],即2的精灵图片
                 o.transform.localScale = new Vector3(scale, scale, scale);
                 if (lv_criticalHit)
                 {

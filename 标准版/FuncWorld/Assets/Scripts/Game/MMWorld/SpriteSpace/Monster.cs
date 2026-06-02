@@ -7,7 +7,7 @@ namespace SpriteSpace
     /// <summary>
     /// 怪物.
     /// </summary>
-    public class Monster : GridItem
+    public class Monster : CellItem
     {
         /// <summary>
         /// 场景
@@ -133,7 +133,7 @@ namespace SpriteSpace
             
 
             //初始化容器为舞台参数的怪物空间容器
-            container = stage_.monstersGridContainer;
+            cellGridContainer = stage_.monstersGridContainer;
             stage = stage_;//初始化舞台
             player = stage_.player;//初始化舞台玩家
             scene = stage_.scene;//初始化舞台场景
@@ -141,7 +141,7 @@ namespace SpriteSpace
             _1_defaultMoveSpeed = 1f / defaultMoveSpeed; //使除法转为乘法
             defaultRadius = scene.gridSize / 2;
             _1_defaultRadius = 1f / defaultRadius;
-            aimDelay = scene.tps / 2;
+            aimDelay = scene.TPS / 2;
             frameAnimIncrease = 1f / 5;
 
             monsters = stage_.monsters;//初始化舞台怪物
@@ -153,7 +153,7 @@ namespace SpriteSpace
             if (scene.mGOCreate)
             {
                 GO.Pop(ref mgo, 3);
-                mgo.spriteRenderer.material = scene.minimapMaterial; //设置小地图对象的材质和缩放
+                mgo.spriteRenderer.material = Scene.minimapMaterial; //设置小地图对象的材质和缩放
                 mgo.transform.localScale = new Vector3(1, 1, 1);
                 mgo.spriteRenderer.color = Color.red; //设置小地图怪物对象是红色
                 if (CPEngine.singleLayerTerrainMode)
@@ -179,10 +179,10 @@ namespace SpriteSpace
             if (mgo.gameObject != null) mgo.spriteRenderer.sprite = sprites[0];//小地图用精灵初始化为第一个,且不刷新变化
             flipX = lv_pixelRow >= player.pixelRow;//精灵图片默认朝右,如x坐标超过了玩家则翻转
                                                //记录逻辑坐标
-            pixelRow = lv_pixelRow;
-            pixelColumn = lv_pixelColumn;
-            range = defaultRadius;     //初始化GridItem(空间物体)的半径字段为怪物默认半径
-            container.Add(this);   //放入空间容器
+            x = lv_pixelRow;
+            y = lv_pixelColumn;
+            radius = defaultRadius;     //初始化GridItem(空间物体)的半径字段为怪物默认半径
+            cellGridContainer.Add(this);   //放入空间容器
             ResetTargetOffsetRC();      //重置偏移
         }
 
@@ -195,23 +195,23 @@ namespace SpriteSpace
             if (knockbackEndTime >= scene.time)
             {//时间点处于被击退中
              //逻辑坐标位移
-                pixelRow += knockbackIncX * knockbackIncRate;
-                pixelColumn += knockbackIncY * knockbackIncRate;
+                x += knockbackIncX * knockbackIncRate;
+                y += knockbackIncY * knockbackIncRate;
                 //修正不能出边界
-                pixelRow = Mathf.Max(0, pixelRow);
-                pixelColumn = Mathf.Max(0, pixelColumn);
+                x = Mathf.Max(0, x);
+                y = Mathf.Max(0, y);
                 //衰减
                 knockbackIncRate -= knockbackDecay;
                 //更新自己在空间索引容器中的(逻辑坐标)位置
-                container.Update(this);
+                cellGridContainer.Refresh(this);
                 return false;
             }
 
             //以下使用逻辑坐标判断是否已接触到玩家,接触到就造成伤害否则就继续移动
-            var dRow = player.pixelRow - pixelRow;
-            var dColumn = player.pixelColumn - pixelColumn;
+            var dRow = player.pixelRow - x;
+            var dColumn = player.pixelColumn - y;
             var dd = dRow * dRow + dColumn * dColumn; //值等于怪物与玩家直线距离的平方
-            var r2 = player.radius + range;//怪物容器半径+玩家体积半径
+            var r2 = player.radius + radius;//怪物容器半径+玩家体积半径
             if (dd < r2 * r2)
             {//怪物与玩家发生体积碰撞(相切不算)
                 player.Hurt(damage);//令玩家受伤或死亡
@@ -220,10 +220,10 @@ namespace SpriteSpace
             {
                 //判断是否已到达偏移点,若已到达则重新选择偏移点,否则继续移动
                 var ph = player.positionHistory[aimDelay];     //获取玩家历史(逻辑)坐标来追击以显得怪笨
-                dRow = ph.x - pixelRow + tarOffsetRow;
-                dColumn = ph.y - pixelColumn + tarOffsetColumn;
+                dRow = ph.x - x + tarOffsetRow;
+                dColumn = ph.y - y + tarOffsetColumn;
                 dd = dRow * dRow + dColumn * dColumn;
-                if (dd < range * range)
+                if (dd < radius * radius)
                 {//怪物在玩家历史坐标处(加上偏移后)发生预判碰撞
                     ResetTargetOffsetRC();//重置偏移
                 }
@@ -231,8 +231,8 @@ namespace SpriteSpace
                 radians = Mathf.Atan2(dColumn, dRow);
                 var cos = Mathf.Cos(radians);
                 //以移动速度及朝向玩家的角度,刷新怪物坐标到计算点(若碰到下一帧自会执行碰撞判断)
-                pixelRow += cos * moveSpeed;
-                pixelColumn += Mathf.Sin(radians) * moveSpeed;
+                x += cos * moveSpeed;
+                y += Mathf.Sin(radians) * moveSpeed;
                 flipX = cos < 0; //根据cos值判断怪物朝向是否要左右翻转
             }
 
@@ -240,10 +240,10 @@ namespace SpriteSpace
 
             //若玩家快速移动导致怪被甩在后面很远可将怪"挪"到玩家前方去,或许直接重新随机坐标位置会比较科学
             //怪移出逻辑边境时强行修正,xy设计为以左下为原点的父级空间容器的本地(相对)坐标就不会<0,容器最大边界=该方向网格数量*网格逻辑像素尺寸.制作出边界事件,可让符合条件的怪物去另一团块(若存在)
-            if (pixelRow < 0) pixelRow = 0;
-            else if (pixelRow >= scene.gridWidth) pixelRow = scene.gridWidth - float.Epsilon;
-            if (pixelColumn < 0) pixelColumn = 0;
-            else if (pixelColumn >= scene.gridHeight) pixelColumn = scene.gridHeight - float.Epsilon;
+            if (x < 0) x = 0;
+            else if (x >= scene.gridMaxSize) x = scene.gridMaxSize - float.Epsilon;
+            if (y < 0) y = 0;
+            else if (y >= scene.gridMaxSize) y = scene.gridMaxSize - float.Epsilon;
 
             //根据移动速度步进动画帧下标
             frameIndex += frameAnimIncrease * moveSpeed * _1_defaultMoveSpeed;
@@ -253,7 +253,7 @@ namespace SpriteSpace
                 frameIndex -= len;
             }
             //更新在空间容器中的位置
-            container.Update(this);
+            cellGridContainer.Refresh(this);
             return false;
         }
 
@@ -264,7 +264,7 @@ namespace SpriteSpace
         /// <param name="column">玩家逻辑位置</param>
         public virtual void Draw(float row, float column)
         {
-            if (pixelRow < row - scene.designWidth_2 || pixelRow > row + scene.designWidth_2 || pixelColumn < column - scene.designHeight_2 || pixelColumn > column + scene.designHeight_2)
+            if (x < row - scene.designWidth_2 || x > row + scene.designWidth_2 || y < column - scene.designHeight_2 || y > column + scene.designHeight_2)
             {//因人始终是在屏幕中间,只要不在屏幕内就不显示
                 go.Disable();//禁用游戏物体
             }
@@ -276,11 +276,11 @@ namespace SpriteSpace
                 if (CPEngine.horizontalMode)
                 {
                     //同步&坐标系转换
-                    go.transform.position = new Vector3(pixelRow / scene.gridSize, pixelColumn / scene.gridSize, 0);
+                    go.transform.position = new Vector3(x / scene.gridSize, y / scene.gridSize, 0);
                 }
                 else if (CPEngine.singleLayerTerrainMode)
                 {//3D单层地形模式
-                    go.transform.position = new Vector3(pixelRow / scene.gridSize, 1 + scene.aboveHeight, pixelColumn / scene.gridSize);
+                    go.transform.position = new Vector3(x / scene.gridSize, 1 + scene.aboveHeight, y / scene.gridSize);
                     go.transform.rotation = Quaternion.Euler(90, 0, 0); //3D模式下把图片转90度
                     if (mgo.gameObject != null) mgo.transform.rotation = Quaternion.Euler(90, 0, 0); //小地图游戏物体也转90度
                 }
@@ -289,7 +289,7 @@ namespace SpriteSpace
                     Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
                 }
                 //同步尺寸缩放(根据半径推送算)
-                var s = displayBaseScale * range * _1_defaultRadius;
+                var s = displayBaseScale * radius * _1_defaultRadius;
                 go.transform.localScale = new Vector3(s, s, s);
                 //看情况变色
                 if (scene.time >= whiteEndTime)
@@ -304,7 +304,7 @@ namespace SpriteSpace
 
             if (mgo.gameObject != null)
             {
-                if (pixelRow < row - scene.designWidth * 2 || pixelRow > row + scene.designWidth * 2 || pixelColumn < column - scene.designHeight * 2 || pixelColumn > column + scene.designHeight * 2)
+                if (x < row - scene.designWidth * 2 || x > row + scene.designWidth * 2 || y < column - scene.designHeight * 2 || y > column + scene.designHeight * 2)
                 {//怪物出了4倍摄像头范围时,[渲染层]禁用小地图中的游戏物体(但[逻辑层]结构体对象仍可移动)
                     mgo.Disable();//[渲染层]禁用游戏物体
                 }
@@ -313,11 +313,11 @@ namespace SpriteSpace
                     mgo.Enable();//[渲染层]激活游戏物体
                     if (CPEngine.horizontalMode)
                     {
-                        mgo.transform.position = new Vector3(pixelRow / scene.gridSize, pixelColumn / scene.gridSize, 0);//[渲染层]设置小地图对象位置
+                        mgo.transform.position = new Vector3(x / scene.gridSize, y / scene.gridSize, 0);//[渲染层]设置小地图对象位置
                     }
                     else if (CPEngine.singleLayerTerrainMode)
                     {//3D单层地形模式
-                        mgo.transform.position = new Vector3(pixelRow / scene.gridSize, 1 + scene.aboveHeight, pixelColumn / scene.gridSize);//3D模式调整
+                        mgo.transform.position = new Vector3(x / scene.gridSize, 1 + scene.aboveHeight, y / scene.gridSize);//3D模式调整
                     }
                     else
                     {//正常3D模式
@@ -335,12 +335,12 @@ namespace SpriteSpace
             if (CPEngine.horizontalMode)
             {
                 //绘制编辑器模式下出现在场景的对象
-                Gizmos.DrawWireSphere(new Vector3(pixelRow / scene.gridSize, pixelColumn / scene.gridSize, 0), range / scene.gridSize);
+                Gizmos.DrawWireSphere(new Vector3(x / scene.gridSize, y / scene.gridSize, 0), radius / scene.gridSize);
             }
             else
             {
                 //3D模式调整
-                Gizmos.DrawWireSphere(new Vector3(pixelRow / scene.gridSize, 1 + scene.aboveHeight, pixelColumn / scene.gridSize), range / scene.gridSize);
+                Gizmos.DrawWireSphere(new Vector3(x / scene.gridSize, 1 + scene.aboveHeight, y / scene.gridSize), radius / scene.gridSize);
             }
         }
 
@@ -360,7 +360,7 @@ namespace SpriteSpace
             }
 
             //从空间容器移除
-            container.Remove(this);
+            cellGridContainer.Remove(this);
 
             //需要从舞台容器删除时
             if (needRemoveFromContainer)
@@ -403,15 +403,15 @@ namespace SpriteSpace
             }
             if (hp <= d)
             {//怪被打死
-                new EffectExplosion(stage, pixelRow, pixelColumn, range * _1_defaultRadius);//播特效
-                new EffectNumber(stage, pixelRow, pixelColumn, 0.5f, hp, b);//播特效
+                new EffectExplosion(stage, x, y, radius * _1_defaultRadius);//播特效
+                new EffectNumber(stage, x, y, 0.5f, hp, b);//播特效
                 Destroy();//摧毁怪物
                 return true;
             }
             else
             {//怪没死
                 hp -= d;//扣血
-                new EffectNumber(stage, pixelRow, pixelColumn, 0.5f, d, b); //播飙血特效(todo)
+                new EffectNumber(stage, x, y, 0.5f, d, b); //播飙血特效(todo)
                 //判断击退
                 if (knockbackForce > 0)
                 {

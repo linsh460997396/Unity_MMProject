@@ -1,6 +1,4 @@
-﻿using MetalMaxSystem;
-
-namespace SpriteSpace
+﻿namespace SpriteSpace
 {
     public class Monster1 : Monster
     {
@@ -17,10 +15,10 @@ namespace SpriteSpace
         /// <param name="column">逻辑坐标</param>
         public void Init(float row, float column)
         {
-            //MMCore.Tell($"row:{row} column:{column} Torf:{scene.sprites_monster02 != null}");
-            if (scene.sprites_monster02 != null)
+            //MMCore.Tell($"row:{row} column:{column} Torf:{Scene.sprites_monster02 != null}");
+            if (Scene.sprites_monster02 != null)
             {
-                Init(scene.sprites_monster02, row, column);
+                Init(Scene.sprites_monster02, row, column);
             }
         }
 

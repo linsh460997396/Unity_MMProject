@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using CellSpace;
-using SpriteSpace;
-using MMWorld.HexSphere;
 using MMWorld.RimWorld;
 
 namespace MMWorld

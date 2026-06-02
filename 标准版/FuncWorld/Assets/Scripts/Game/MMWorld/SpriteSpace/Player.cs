@@ -1,7 +1,6 @@
 ﻿using CellSpace;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace SpriteSpace
 {
@@ -158,7 +157,7 @@ namespace SpriteSpace
         {
             scene = scene_;
 
-            defaultMoveSpeed = (int)(4.5f * scene.gridSize / scene.tps);
+            defaultMoveSpeed = (int)(4.5f * scene.gridSize / scene.TPS);
             _1_defaultMoveSpeed = 1f / defaultMoveSpeed;
             frameAnimIncrease = _1_defaultMoveSpeed;
             defaultRadius = scene.gridSize / 2;
@@ -172,8 +171,8 @@ namespace SpriteSpace
             {
                 GO.Pop(ref mgo, 3);//取出小地图专用结构体覆盖到mgo,游戏物体所在层设为3
                 mgo.Enable();//激活游戏物体
-                mgo.spriteRenderer.sprite = scene.sprites_player[0];//初始化玩家精灵
-                mgo.spriteRenderer.material = scene.minimapMaterial;//初始化材质,拖入编辑器GUI字段的预制体会在这里赋值时自动实例化,频繁调用多次应使用Instance()后的实例来赋值以节省内存
+                mgo.spriteRenderer.sprite = Scene.sprites_player[0];//初始化玩家精灵
+                mgo.spriteRenderer.material = Scene.minimapMaterial;//初始化材质,拖入编辑器GUI字段的预制体会在这里赋值时自动实例化,频繁调用多次应使用Instance()后的实例来赋值以节省内存
                 mgo.transform.localScale = new Vector3(1, 1, 1);//初始化本地缩放
                 if (CPEngine.singleLayerTerrainMode)
                 {//3D单层地形模式
@@ -201,7 +200,7 @@ namespace SpriteSpace
             //预填充一些玩家历史(逻辑)坐标数据防越界
             positionHistory.Clear();
             var p = new Vector2(pixelRow, pixelColumn);
-            for (int i = 0; i < scene.tps; i++)
+            for (int i = 0; i < scene.TPS; i++)
             {
                 positionHistory.Add(p);
             }
@@ -220,7 +219,7 @@ namespace SpriteSpace
             //预填充一些玩家历史(逻辑)坐标数据防越界
             positionHistory.Clear();
             var p = new Vector2(pixelRow, pixelColumn);
-            for (int i = 0; i < scene.tps; i++)
+            for (int i = 0; i < scene.TPS; i++)
             {
                 positionHistory.Add(p);
             }
@@ -255,7 +254,7 @@ namespace SpriteSpace
                 }
                 //根据移动速度步进动画帧下标
                 frameIndex += frameAnimIncrease * moveSpeed * _1_defaultMoveSpeed;
-                var len = scene.sprites_player.Length;
+                var len = Scene.sprites_player.Length;
                 if (frameIndex >= len)
                 {
                     frameIndex -= len;
@@ -267,9 +266,9 @@ namespace SpriteSpace
                     pixelRow = 0;
                     //Debug.Log("pixelRow < 0 " + "(" + pixelRow + "," + pixelColumn + ")");
                 }
-                else if (pixelRow >= scene.gridWidth)
+                else if (pixelRow >= scene.gridMaxSize)
                 {
-                    pixelRow = scene.gridWidth - float.Epsilon;
+                    pixelRow = scene.gridMaxSize - float.Epsilon;
                     //Debug.Log("pixelRow >=" + scene.gridChunkWidth.ToString() + " (" + pixelRow + "," + pixelColumn + ")");
                 }
                 if (pixelColumn < 0)
@@ -277,15 +276,15 @@ namespace SpriteSpace
                     pixelColumn = 0;
                     //Debug.Log("pixelColumn < 0 " + "(" + pixelRow + "," + pixelColumn + ")");
                 }
-                else if (pixelColumn >= scene.gridHeight)
+                else if (pixelColumn >= scene.gridMaxSize)
                 {
-                    pixelColumn = scene.gridHeight - float.Epsilon;
+                    pixelColumn = scene.gridMaxSize - float.Epsilon;
                     //Debug.Log("pixelColumn >=" + scene.gridChunkWidth.ToString() + " (" + pixelRow + "," + pixelColumn + ")");
                 }
             }
             //将(逻辑)坐标写入历史记录( 限定长度 )
             positionHistory.Insert(0, new Vector2(pixelRow, pixelColumn));
-            if (positionHistory.Count > scene.tps)
+            if (positionHistory.Count > scene.TPS)
             {
                 positionHistory.RemoveAt(positionHistory.Count - 1);
             }
@@ -313,7 +312,7 @@ namespace SpriteSpace
                 // 计算与怪物的距离
                 float distance = Vector2.Distance(
                     new Vector2(pixelRow, pixelColumn),
-                    new Vector2(nearestMonster.pixelRow, nearestMonster.pixelColumn)
+                    new Vector2(nearestMonster.x, nearestMonster.y)
                 );
 
                 if (distance < aiAttackRange)
@@ -347,7 +346,7 @@ namespace SpriteSpace
 
                 float distance = Vector2.Distance(
                     new Vector2(pixelRow, pixelColumn),
-                    new Vector2(monster.pixelRow, monster.pixelColumn)
+                    new Vector2(monster.x, monster.y)
                 );
 
                 if (distance < minDistance)
@@ -367,8 +366,8 @@ namespace SpriteSpace
         private void ChaseMonster(Monster monster)
         {
             // 计算朝向怪物的方向
-            var dRow = monster.pixelRow - pixelRow;
-            var dColumn = monster.pixelColumn - pixelColumn;
+            var dRow = monster.x - pixelRow;
+            var dColumn = monster.y - pixelColumn;
             aiRadians = Mathf.Atan2(dColumn, dRow);
 
             // 向怪物移动
@@ -382,15 +381,15 @@ namespace SpriteSpace
 
             // 根据移动速度步进动画帧下标
             frameIndex += frameAnimIncrease * moveSpeed * _1_defaultMoveSpeed;
-            var len = scene.sprites_player.Length;
+            var len = Scene.sprites_player.Length;
             if (frameIndex >= len)
             {
                 frameIndex -= len;
             }
 
             // 边界修正
-            pixelRow = Mathf.Clamp(pixelRow, 0, scene.gridWidth - float.Epsilon);
-            pixelColumn = Mathf.Clamp(pixelColumn, 0, scene.gridHeight - float.Epsilon);
+            pixelRow = Mathf.Clamp(pixelRow, 0, scene.gridMaxSize - float.Epsilon);
+            pixelColumn = Mathf.Clamp(pixelColumn, 0, scene.gridMaxSize - float.Epsilon);
         }
 
         /// <summary>
@@ -407,8 +406,8 @@ namespace SpriteSpace
             {
                 // 随机生成新的目标位置
                 aiTargetPos = new Vector2(
-                    Random.Range(scene.gridSize, scene.gridWidth - scene.gridSize),
-                    Random.Range(scene.gridSize, scene.gridHeight - scene.gridSize)
+                    Random.Range(scene.gridSize, scene.gridMaxSize - scene.gridSize),
+                    Random.Range(scene.gridSize, scene.gridMaxSize - scene.gridSize)
                 );
                 // 计算朝向目标的方向
                 var dRow = aiTargetPos.x - pixelRow;
@@ -428,15 +427,15 @@ namespace SpriteSpace
 
             // 根据移动速度步进动画帧下标
             frameIndex += frameAnimIncrease * moveSpeed * _1_defaultMoveSpeed;
-            var len = scene.sprites_player.Length;
+            var len = Scene.sprites_player.Length;
             if (frameIndex >= len)
             {
                 frameIndex -= len;
             }
 
             // 边界修正
-            pixelRow = Mathf.Clamp(pixelRow, 0, scene.gridWidth - float.Epsilon);
-            pixelColumn = Mathf.Clamp(pixelColumn, 0, scene.gridHeight - float.Epsilon);
+            pixelRow = Mathf.Clamp(pixelRow, 0, scene.gridMaxSize - float.Epsilon);
+            pixelColumn = Mathf.Clamp(pixelColumn, 0, scene.gridMaxSize - float.Epsilon);
         }
 
         /// <summary>
@@ -445,7 +444,7 @@ namespace SpriteSpace
         public void Draw()
         {
             // 同步帧下标
-            go.spriteRenderer.sprite = scene.sprites_player[(int)frameIndex];
+            go.spriteRenderer.sprite = Scene.sprites_player[(int)frameIndex];
             // 同步翻转状态
             go.spriteRenderer.flipX = flipX;
             // 同步 & 坐标系转换
