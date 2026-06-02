@@ -15,7 +15,7 @@
         /// <param name="y">逻辑坐标</param>
         public void Init(float x, float y)
         {
-            Init(scene.sprites_monster02, x, y);
+            Init(Scene.sprites_monster02, x, y);
         }
 
         // todo: 独特逻辑

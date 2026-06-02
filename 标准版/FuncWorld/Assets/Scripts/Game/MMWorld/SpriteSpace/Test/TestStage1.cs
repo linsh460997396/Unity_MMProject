@@ -46,8 +46,8 @@ namespace SpriteSpace
         /// </summary>
         public void P0()
         {
-            var cx = scene.gridChunkCenterCol;
-            var cy = scene.gridChunkCenterRow;
+            var cx = scene.gridMaxSize_2;
+            var cy = scene.gridMaxSize_2;
 
             // 重置 Player 坐标
             player.Init(this, cx, cy);

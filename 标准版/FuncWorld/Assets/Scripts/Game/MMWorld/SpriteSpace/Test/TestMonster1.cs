@@ -16,7 +16,7 @@
         /// <returns></returns>
         public TestMonster1 Init(float x, float y)
         {
-            Init(scene.sprites_monster01, x, y);
+            Init(Scene.sprites_monster01, x, y);
             return this;
         }
 
