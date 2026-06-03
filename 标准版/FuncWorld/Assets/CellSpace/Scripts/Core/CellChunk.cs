@@ -1,4 +1,4 @@
-﻿//#define BEPINEX //BepInEx制作UnityMOD时可手动启用
+﻿﻿//#define BEPINEX //BepInEx制作UnityMOD时可手动启用
 
 using System;
 using System.Collections;
@@ -157,7 +157,12 @@ namespace CellSpace
                 if (CPEngine.enableMultiplayer && CPEngine.netMode == NetMode.unet && !Network.isServer)
                 {
                     //从服务器获取数据
-                    StartCoroutine(RequestCellData());
+                    StartCoroutine(RequestCellDataUNet());
+                }
+                //多人模式下使用BestHTTP WebSocket模式
+                else if (CPEngine.enableMultiplayer && CPEngine.netMode == NetMode.bestHttp)
+                {
+                    StartCoroutine(RequestCellDataWebSocket());
                 }
                 //允许存储单元数据时尝试从磁盘加载单元数据
                 else if (CPEngine.saveCellData && TryLoadCellData() == true)
@@ -1095,10 +1100,10 @@ namespace CellSpace
         public static int CurrentChunkDataRequests; // how many chunk requests are currently queued in the server for this client. Increased by 1 every time a chunk requests data, and reduced by 1 when a chunk receives data.
 
         /// <summary>
-        /// [NetWork][协程]请求单元数据:等待直到连接到服务器,然后发送这个团块单元数据的请求到服务器,若没有连接就重置计数器
+        /// [NetWork][协程]请求单元数据(UNet):等待直到连接到服务器,然后发送这个团块单元数据的请求到服务器,若没有连接就重置计数器
         /// </summary>
         /// <returns></returns>
-        private IEnumerator RequestCellData()
+        private IEnumerator RequestCellDataUNet()
         { // waits until we're connected to a server and then sends a request for cell data for this chunk to the server.
           // 等待直到连接到服务器,然后发送这个团块单元数据的请求到服务器
             while (!Network.isClient)
@@ -1113,6 +1118,34 @@ namespace CellSpace
 
             CurrentChunkDataRequests++;
             CPEngine.network.GetComponent<NetworkView>().RPC("SendCellData", RPCMode.Server, Network.player, chunkIndex.x, chunkIndex.y, chunkIndex.z);
+        }
+
+        /// <summary>
+        /// [NetWork][协程]请求单元数据(WebSocket):等待直到连接到服务器,然后发送这个团块单元数据的请求到服务器
+        /// </summary>
+        /// <returns></returns>
+        private IEnumerator RequestCellDataWebSocket()
+        {
+            while (!WebSocket.WebSocketNetworkManager.Instance.IsConnected())
+            {
+                CurrentChunkDataRequests = 0;
+                yield return CPEngine.waitForEndOfFrame;
+            }
+            while (CPEngine.maxChunkDataRequests != 0 && CurrentChunkDataRequests >= CPEngine.maxChunkDataRequests)
+            {
+                yield return CPEngine.waitForEndOfFrame;
+            }
+
+            CurrentChunkDataRequests++;
+            
+            if (CPEngine.horizontalMode)
+            {
+                WebSocket.WebSocketNetworkManager.Instance.SendRequestCellData(chunkIndex.x, chunkIndex.y, 0);
+            }
+            else
+            {
+                WebSocket.WebSocketNetworkManager.Instance.SendRequestCellData(chunkIndex.x, chunkIndex.y, chunkIndex.z);
+            }
         }
         #endregion
 

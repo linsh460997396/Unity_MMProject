@@ -289,17 +289,16 @@ namespace CellSpace
 
         void Update()
         {
-            Debug.Log("Server: Update() called. AutosaveTime: " + AutosaveTime.ToString() + ", autosaveTimer: " + autosaveTimer.ToString());
             if (AutosaveTime > 0.0001f)
             {
+                autosaveTimer += Time.deltaTime;
                 if (autosaveTimer >= AutosaveTime)
                 {
                     autosaveTimer = 0;
                     CPEngine.SaveWorld();
-                }
-                else
-                {
-                    autosaveTimer += Time.deltaTime;
+                    
+                    if (EnableDebugLog)
+                        Debug.Log("Server: Autosave completed.");
                 }
             }
         }

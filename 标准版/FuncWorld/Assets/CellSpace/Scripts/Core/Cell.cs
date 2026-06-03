@@ -1,4 +1,4 @@
-﻿using MetalMaxSystem.Unity; //用到MetalMaxSystem.Unity里的UnityUtilities.waitForEndOfFrame及OP对象池.
+﻿﻿﻿using MetalMaxSystem.Unity; //用到MetalMaxSystem.Unity里的UnityUtilities.waitForEndOfFrame及OP对象池.
 using UnityEngine;
 
 namespace CellSpace
@@ -56,8 +56,16 @@ namespace CellSpace
             // multiplayer - send change to server
             if (CPEngine.enableMultiplayer)
             {
-                //从网络处理对象(CPEngine)挂着的Client组件中调用SendPlaceBlock方法
-                CPEngine.network.GetComponent<Client>().SendPlaceBlock(cellInfo, 0);
+                if (CPEngine.netMode == NetMode.unet)
+                {
+                    //从网络处理对象(CPEngine)挂着的Client组件中调用SendPlaceBlock方法(UNet模式)
+                    CPEngine.network.GetComponent<Client>().SendPlaceBlock(cellInfo, 0);
+                }
+                else if (CPEngine.netMode == NetMode.bestHttp)
+                {
+                    //使用WebSocket发送摧毁方块消息
+                    WebSocket.WebSocketNetworkManager.Instance.SendDestroyBlock(cellInfo);
+                }
             }
             // single player - apply change locally
             else
@@ -90,8 +98,16 @@ namespace CellSpace
             // multiplayer - send change to server
             if (CPEngine.enableMultiplayer)
             {
-                //从网络处理对象(CPEngine)挂着的Client组件中调用SendPlaceBlock方法
-                CPEngine.network.GetComponent<Client>().SendPlaceBlock(cellInfo, data);
+                if (CPEngine.netMode == NetMode.unet)
+                {
+                    //从网络处理对象(CPEngine)挂着的Client组件中调用SendPlaceBlock方法(UNet模式)
+                    CPEngine.network.GetComponent<Client>().SendPlaceBlock(cellInfo, data);
+                }
+                else if (CPEngine.netMode == NetMode.bestHttp)
+                {
+                    //使用WebSocket发送放置方块消息
+                    WebSocket.WebSocketNetworkManager.Instance.SendPlaceBlock(cellInfo, data);
+                }
             }
             // single player - apply change locally
             else
@@ -120,8 +136,16 @@ namespace CellSpace
             // multiplayer - send change to server
             if (CPEngine.enableMultiplayer)
             {
-                //从网络处理对象(CPEngine)挂着的Client组件中调用SendChangeBlock方法
-                CPEngine.network.GetComponent<Client>().SendChangeBlock(cellInfo, data);
+                if (CPEngine.netMode == NetMode.unet)
+                {
+                    //从网络处理对象(CPEngine)挂着的Client组件中调用SendChangeBlock方法(UNet模式)
+                    CPEngine.network.GetComponent<Client>().SendChangeBlock(cellInfo, data);
+                }
+                else if (CPEngine.netMode == NetMode.bestHttp)
+                {
+                    //使用WebSocket发送修改方块消息
+                    WebSocket.WebSocketNetworkManager.Instance.SendChangeBlock(cellInfo, data);
+                }
             }
             // single player - apply change locally
             else
@@ -210,6 +234,67 @@ namespace CellSpace
             }
             //Destroy(cellObject);
             OP.Push(ref CPEngine.prefabOPs[cellInfo.GetCellID()]); //用完退回对象池
+        }
+
+        // WebSocket multiplayer - received from server, don't use directly
+
+        /// <summary>
+        /// WebSocket多人模式下摧毁体素块
+        /// </summary>
+        /// <param name="cellInfo"></param>
+        /// <param name="senderId"></param>
+        public static void DestroyBlockMultiplayerWebSocket(CellInfo cellInfo, string senderId)
+        {
+            OP.Pop(ref CPEngine.prefabOPs[cellInfo.GetCellID()]);
+            GameObject cellObject = CPEngine.prefabOPs[cellInfo.GetCellID()].gameObject;
+            CellEvents events = cellObject.GetComponent<CellEvents>();
+            if (events != null)
+            {
+                events.OnBlockDestroy(cellInfo);
+                events.OnBlockDestroyMultiplayerWebSocket(cellInfo, senderId);
+            }
+            cellInfo.chunk.SetCell(cellInfo.index, 0, true);
+            OP.Push(ref CPEngine.prefabOPs[cellInfo.GetCellID()]);
+        }
+
+        /// <summary>
+        /// WebSocket多人模式下放置体素块
+        /// </summary>
+        /// <param name="cellInfo"></param>
+        /// <param name="data"></param>
+        /// <param name="senderId"></param>
+        public static void PlaceBlockMultiplayerWebSocket(CellInfo cellInfo, ushort data, string senderId)
+        {
+            cellInfo.chunk.SetCell(cellInfo.index, data, true);
+            OP.Pop(ref CPEngine.prefabOPs[data]);
+            GameObject cellObject = CPEngine.prefabOPs[data].gameObject;
+            CellEvents events = cellObject.GetComponent<CellEvents>();
+            if (events != null)
+            {
+                events.OnBlockPlace(cellInfo);
+                events.OnBlockPlaceMultiplayerWebSocket(cellInfo, senderId);
+            }
+            OP.Push(ref CPEngine.prefabOPs[data]);
+        }
+
+        /// <summary>
+        /// WebSocket多人模式下更换体素块
+        /// </summary>
+        /// <param name="cellInfo"></param>
+        /// <param name="data"></param>
+        /// <param name="senderId"></param>
+        public static void ChangeBlockMultiplayerWebSocket(CellInfo cellInfo, ushort data, string senderId)
+        {
+            cellInfo.chunk.SetCell(cellInfo.index, data, true);
+            OP.Pop(ref CPEngine.prefabOPs[data]);
+            GameObject cellObject = CPEngine.prefabOPs[data].gameObject;
+            CellEvents events = cellObject.GetComponent<CellEvents>();
+            if (events != null)
+            {
+                events.OnBlockChange(cellInfo);
+                events.OnBlockChangeMultiplayerWebSocket(cellInfo, senderId);
+            }
+            OP.Push(ref CPEngine.prefabOPs[data]);
         }
 
         // block editor functions

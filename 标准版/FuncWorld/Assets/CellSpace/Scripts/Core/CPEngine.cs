@@ -13,27 +13,31 @@ namespace CellSpace
 {
     #region 枚举
     /// <summary>
-    /// 网络模式
-    /// </summary>
-    public enum NetMode : ushort
-    {
-        /// <summary>
-        /// 无网络
+        /// 网络模式
         /// </summary>
-        none,
-        /// <summary>
-        /// UNet网络(旧版)
-        /// </summary>
-        unet,
-        /// <summary>
-        /// NetCode网络(新版)
-        /// </summary>
-        netCode,
-        /// <summary>
-        /// 其他网络
-        /// </summary>
-        other
-    }
+        public enum NetMode : ushort
+        {
+            /// <summary>
+            /// 无网络
+            /// </summary>
+            none,
+            /// <summary>
+            /// UNet网络(旧版,Unity2018之前)
+            /// </summary>
+            unet,
+            /// <summary>
+            /// NetCode网络(新版)
+            /// </summary>
+            netCode,
+            /// <summary>
+            /// BestHTTP WebSocket网络
+            /// </summary>
+            bestHttp,
+            /// <summary>
+            /// 其他网络
+            /// </summary>
+            other
+        }
     /// <summary>
     /// 单元的6个面
     /// </summary>
@@ -165,10 +169,10 @@ namespace CellSpace
         /// </summary>
         private static IEnumerator currentCoroutine;
         /// <summary>
-        /// 预制地图文本路径.留空则使用Unity编辑器内部路径.
+        /// 预制地图文本路径.默认留空则使用Unity内部Resources路径.其他路径示范:
+        /// mapIndexPath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework";
         /// </summary>
         public static string mapIndexPath;
-        //public static string mapIndexPath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework";
 
         // 团块创建位置指示器、对象池、内置地图信息相关字段
 
@@ -1510,8 +1514,8 @@ namespace CellSpace
             }
             else
             {
-                Debug.Log("地图文本目录: " + path + "/MapIndex");
                 tempContent = LoadTextFile(path + "/MapIndex/World" + ".txt");
+                Debug.Log("地图文本目录: " + path + "/MapIndex");
             }
             string tempContent2 = tempContent;
             string[] fields = tempContent.Split(',');

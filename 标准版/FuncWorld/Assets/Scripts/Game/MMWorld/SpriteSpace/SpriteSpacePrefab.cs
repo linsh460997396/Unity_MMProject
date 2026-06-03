@@ -15,6 +15,78 @@ namespace SpriteSpace
     /// </summary>
     public class SpriteSpacePrefab : MonoBehaviour
     {
+        
+        private static TMP_FontAsset _fontFZYaSong;
+        /// <summary>
+        /// 方正雅宋中文字体.请将对应的字体文件放在Resources/Fonts目录下,并命名为"FZYaSongS-M-GB - Regular SDF"以供加载.
+        /// </summary>
+        public static TMP_FontAsset FontFZYaSong 
+        {
+            set
+            {
+                _fontFZYaSong = value;
+            }
+            get
+            {
+                if (_fontFZYaSong == null)
+                {
+                    _fontFZYaSong = Resources.Load<TMP_FontAsset>("Fonts/FZYaSongS-M-GB - Regular SDF");
+                    if (_fontFZYaSong == null)  _fontFZYaSong = TMP_Settings.defaultFontAsset;
+                    if (_fontFZYaSong == null)
+                    {
+                        Debug.LogWarning("未能找到FZYaSongS-M-GB - Regular SDF字体及内置默认字体");
+                    }
+                }
+                return _fontFZYaSong;
+            }
+        }
+
+        private static TMP_FontAsset _fontMetalMax;
+        /// <summary>
+        /// MetalMax中文字体.请将对应的字体文件放在Resources/Fonts目录下,并命名为"FMM1_VonwaonBitmap-Regular SDF"以供加载.
+        /// </summary>
+        public static TMP_FontAsset FontMetalMax
+        {
+            set 
+            {
+                _fontMetalMax = value;
+            }
+            get
+            {
+                if (_fontMetalMax == null)
+                {
+                    _fontMetalMax = Resources.Load<TMP_FontAsset>("Fonts/FMM1_VonwaonBitmap-Regular SDF");
+                    if (_fontMetalMax == null) _fontMetalMax = TMP_Settings.defaultFontAsset;
+                    if (_fontMetalMax == null)
+                    {
+                        Debug.LogWarning("未能找到FMM1_VonwaonBitmap-Regular SDF字体");
+                    }
+                }
+                return _fontMetalMax;
+            }
+        }
+
+        private static string _externalPath;
+        /// <summary>
+        /// 外部资源路径.默认留空使用路径:Application.dataPath + @"/CellSpace/Res".其他路径示范:
+        /// ExternalPath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework";
+        /// </summary>
+        public static string ExternalPath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalPath))
+                {
+                    _externalPath = Application.dataPath + @"/CellSpace/Res";
+                }
+                return _externalPath;
+            }
+            set
+            {
+                _externalPath = value;
+            }
+        }
+
         /// <summary>
         /// 预制体字典.
         /// 当RuntimePrefab.Add(string key, Object obj,bool clone = false)中的clone参数为true时,资源为副本存储,
@@ -323,14 +395,13 @@ namespace SpriteSpace
         private static void CreateMapEditorUI(GameObject parent)
         {
             //加载中文字体
-            TMP_FontAsset font = Resources.Load<TMP_FontAsset>("Fonts/FZYaSongS-M-GB-Regular-SDF");
-            if (font == null)
+            if (_fontFZYaSong == null)
             {
                 //尝试获取TextMeshPro的默认字体设置
-                font = TMP_Settings.defaultFontAsset;
-                if (font == null)
+                _fontFZYaSong = TMP_Settings.defaultFontAsset;
+                if (_fontFZYaSong == null)
                 {
-                    Debug.LogWarning("未能找到FZYaSongS-M-GB -Regular-SDF字体和TextMeshPro默认字体，将使用内置默认字体");
+                    Debug.LogWarning("未能找到FZYaSongS-M-GB - Regular SDF字体，将使用内置默认字体");
                 }
             }
 
@@ -354,9 +425,9 @@ namespace SpriteSpace
             labelRect.offsetMin = Vector2.zero;
             labelRect.offsetMax = Vector2.zero;
             TextMeshProUGUI labelText = labelHeadTip.AddComponent<TextMeshProUGUI>();
-            if (labelText != null && font != null)
+            if (labelText != null && _fontFZYaSong != null)
             {
-                labelText.font = font;
+                labelText.font = _fontFZYaSong;
             }
             if (labelText != null)
             {
@@ -383,13 +454,13 @@ namespace SpriteSpace
             dropdown.value = 0;
 
             // 设置下拉框的字体（在添加选项后，itemText才会被初始化）
-            if (dropdown.itemText != null && font != null)
+            if (dropdown.itemText != null && _fontFZYaSong != null)
             {
-                dropdown.itemText.font = font;
+                dropdown.itemText.font = _fontFZYaSong;
             }
-            if (dropdown.captionText != null && font != null)
+            if (dropdown.captionText != null && _fontFZYaSong != null)
             {
-                dropdown.captionText.font = font;
+                dropdown.captionText.font = _fontFZYaSong;
             }
 
             //创建工作ID输入框
@@ -413,9 +484,9 @@ namespace SpriteSpace
             textCompRect.offsetMin = new Vector2(10, 5);
             textCompRect.offsetMax = new Vector2(-10, -5);
             TextMeshProUGUI textComponent = textComponentGO.AddComponent<TextMeshProUGUI>();
-            if (textComponent != null && font != null)
+            if (textComponent != null && _fontFZYaSong != null)
             {
-                textComponent.font = font;
+                textComponent.font = _fontFZYaSong;
             }
             if (textComponent != null)
             {
@@ -433,9 +504,9 @@ namespace SpriteSpace
             placeholderRect.offsetMin = new Vector2(10, 5);
             placeholderRect.offsetMax = new Vector2(-10, -5);
             TextMeshProUGUI placeholderText = placeholderGO.AddComponent<TextMeshProUGUI>();
-            if (placeholderText != null && font != null)
+            if (placeholderText != null && _fontFZYaSong != null)
             {
-                placeholderText.font = font;
+                placeholderText.font = _fontFZYaSong;
             }
             if (placeholderText != null)
             {
@@ -467,9 +538,9 @@ namespace SpriteSpace
             btnTextRect.anchorMin = Vector2.zero;
             btnTextRect.anchorMax = Vector2.one;
             TextMeshProUGUI btnText = btnTextGO.AddComponent<TextMeshProUGUI>();
-            if (btnText != null && font != null)
+            if (btnText != null && _fontFZYaSong != null)
             {
-                btnText.font = font;
+                btnText.font = _fontFZYaSong;
             }
             if (btnText != null)
             {
@@ -499,9 +570,9 @@ namespace SpriteSpace
             pathTextRect.offsetMin = new Vector2(10, 5);
             pathTextRect.offsetMax = new Vector2(-10, -5);
             TextMeshProUGUI pathText = pathTextGO.AddComponent<TextMeshProUGUI>();
-            if (pathText != null && font != null)
+            if (pathText != null && _fontFZYaSong != null)
             {
-                pathText.font = font;
+                pathText.font = _fontFZYaSong;
             }
             if (pathText != null)
             {
@@ -557,9 +628,9 @@ namespace SpriteSpace
             mapLabelRect.offsetMin = new Vector2(40, 0);
             mapLabelRect.offsetMax = Vector2.zero;
             TextMeshProUGUI mapLabel = mapLabelGO.AddComponent<TextMeshProUGUI>();
-            if (mapLabel != null && font != null)
+            if (mapLabel != null && _fontFZYaSong != null)
             {
-                mapLabel.font = font;
+                mapLabel.font = _fontFZYaSong;
             }
             if (mapLabel != null)
             {
@@ -612,9 +683,9 @@ namespace SpriteSpace
             colliderLabelRect.offsetMin = new Vector2(40, 0);
             colliderLabelRect.offsetMax = Vector2.zero;
             TextMeshProUGUI colliderLabel = colliderLabelGO.AddComponent<TextMeshProUGUI>();
-            if (colliderLabel != null && font != null)
+            if (colliderLabel != null && _fontFZYaSong != null)
             {
-                colliderLabel.font = font;
+                colliderLabel.font = _fontFZYaSong;
             }
             if (colliderLabel != null)
             {
@@ -643,9 +714,9 @@ namespace SpriteSpace
             saveTextRect.anchorMin = Vector2.zero;
             saveTextRect.anchorMax = Vector2.one;
             TextMeshProUGUI saveText = saveTextGO.AddComponent<TextMeshProUGUI>();
-            if (saveText != null && font != null)
+            if (saveText != null && _fontFZYaSong != null)
             {
-                saveText.font = font;
+                saveText.font = _fontFZYaSong;
             }
             if (saveText != null)
             {
@@ -663,9 +734,9 @@ namespace SpriteSpace
             helpRect.offsetMin = Vector2.zero;
             helpRect.offsetMax = Vector2.zero;
             TextMeshProUGUI helpText = labelHelp.AddComponent<TextMeshProUGUI>();
-            if (helpText != null && font != null)
+            if (helpText != null && _fontFZYaSong != null)
             {
-                helpText.font = font;
+                helpText.font = _fontFZYaSong;
             }
             if (helpText != null)
             {
@@ -737,28 +808,19 @@ namespace SpriteSpace
         }
 
         /// <summary>
-        /// 读取素材的总动作
+        /// 读取所有资源(怪物、角色、载具的纹理和精灵切片)
         /// </summary>
         public static void LoadAssets()
         {
-            //读取余下资源
-            LoadAllResources();
-        }
-
-        /// <summary>
-        /// 读取所有资源(怪物、角色、载具的纹理和精灵切片)
-        /// </summary>
-        public static void LoadAllResources()
-        {
-            LoadAllVehicle();
-            LoadAllCharacters();
-            LoadAllMonsters();
+            LoadVehicles();
+            LoadCharacters();
+            LoadMonsters();
         }
 
         /// <summary>
         /// 读取怪物纹理和精灵切片
         /// </summary>
-        public static void LoadAllMonsters()
+        public static void LoadMonsters()
         {
             monsters = new List<Sprite>[132];
             // 初始化数组中的每个List元素
@@ -904,7 +966,7 @@ namespace SpriteSpace
         /// <summary>
         /// 读取角色纹理和精灵切片
         /// </summary>
-        public static void LoadAllCharacters()
+        public static void LoadCharacters()
         {
             characters = new List<Sprite>[54];
             // 初始化数组中的每个List元素
@@ -971,7 +1033,7 @@ namespace SpriteSpace
         /// <summary>
         /// 读取载具纹理和精灵切片
         /// </summary>
-        public static void LoadAllVehicle()
+        public static void LoadVehicles()
         {
             Vehicle = new List<Sprite>[9];
             // 初始化数组中的每个List元素
@@ -1038,7 +1100,7 @@ namespace SpriteSpace
         private static void CreateGameMenuUI(GameObject parent)
         {
             //加载中文字体
-            TMP_FontAsset font = Resources.Load<TMP_FontAsset>("Fonts/FZYaSongS-M-GB-Regular-SDF");
+            TMP_FontAsset font = Resources.Load<TMP_FontAsset>("Fonts/FZYaSongS-M-GB - Regular SDF");
             if (font == null)
             {
                 font = TMP_Settings.defaultFontAsset;

@@ -106,7 +106,7 @@ namespace MMWorld
         /// </summary>
         private void InitializeFont()
         {
-            font = Resources.Load<TMP_FontAsset>("Fonts/FZYaSongS-M-GB-Regular-SDF");
+            font = Resources.Load<TMP_FontAsset>("Fonts/FZYaSongS-M-GB - Regular SDF");
             if (font == null)
             {
                 font = TMP_Settings.defaultFontAsset;
