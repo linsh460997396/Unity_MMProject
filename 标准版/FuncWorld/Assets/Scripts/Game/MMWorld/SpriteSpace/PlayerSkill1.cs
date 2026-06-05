@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using CellSpace;
+using UnityEngine;
 
 namespace SpriteSpace
 {
@@ -54,13 +55,13 @@ namespace SpriteSpace
                 // 0 只 就面对朝向发射
                 // 发射时和 player 保持一个距离,同时随着 count 的减少,距离也变短,以解决同一帧内同一角度发射多粒 完全重叠在一起看不出来的问题
 
-                var row = player.pixelRow;
-                var column = player.pixelColumn;
+                var lv_column = player.column;
+                var lv_row = player.row;
                 var shootDistanceStep = maxShootDistance / castCount;
                 var count = castCount;
                 var sc = stage.monstersGridContainer;
                 var os = sc.resultFindNearest;
-                var n = sc.FindNearestNByRange2D(scene.cellRingDiffuseData, row, column, moveSpeed * life, count);
+                var n = sc.FindNearestNByRange2D(scene.cellRingDiffuseData, lv_column, lv_row, moveSpeed * life, count);
 
                 if (n > 0)
                 {
@@ -69,13 +70,13 @@ namespace SpriteSpace
                         for (int i = 0; i < n; ++i)
                         {
                             var o = os[i].item;
-                            var dColumn = o.y - column;
-                            var dRow = o.x - row;
+                            var dColumn = (CPEngine.horizontalMode ? o.y : o.z) - lv_row;
+                            var dRow = o.x - lv_column;
                             var r = Mathf.Atan2(dColumn, dRow);
                             var cos = Mathf.Cos(r);
                             var sin = Mathf.Sin(r);
-                            var tarRow = row + cos * shootDistanceStep * count;
-                            var tarColumn = column + sin * shootDistanceStep * count;
+                            var tarRow = lv_column + cos * shootDistanceStep * count;
+                            var tarColumn = lv_row + sin * shootDistanceStep * count;
                             new PlayerBullet1(this).Init(tarRow, tarColumn, r, cos, sin);
                             //Debug.Log($"PlayerSkill1 Shoot To Monster {o.id} At ({tarRow}, {tarColumn}) With Angle {r} Rad");
                             --count;
@@ -91,8 +92,8 @@ namespace SpriteSpace
                     var sin = Mathf.Sin(r);
                     for (; count > 0; --count)
                     {
-                        var tarRow = row + cos * shootDistanceStep * count;
-                        var tarColumn = column + sin * shootDistanceStep * count;
+                        var tarRow = lv_column + cos * shootDistanceStep * count;
+                        var tarColumn = lv_row + sin * shootDistanceStep * count;
                         new PlayerBullet1(this).Init(tarRow, tarColumn, r, cos, sin);
                     }
                 }

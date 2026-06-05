@@ -60,11 +60,11 @@ namespace SpriteSpace
         /// <summary>
         /// 逻辑坐标
         /// </summary>
-        public float pixelRow;
+        public float column;
         /// <summary>
         /// 逻辑坐标
         /// </summary>
-        public float pixelColumn;
+        public float row;
         /// <summary>
         /// [逻辑坐标]玩家历史位置数组(用来追击以显得怪笨)
         /// </summary>
@@ -175,12 +175,12 @@ namespace SpriteSpace
                 mgo.spriteRenderer.material = Scene.minimapMaterial;//初始化材质,拖入编辑器GUI字段的预制体会在这里赋值时自动实例化,频繁调用多次应使用Instance()后的实例来赋值以节省内存
                 mgo.transform.localScale = new Vector3(1, 1, 1);//初始化本地缩放
                 if (CPEngine.singleLayerTerrainMode)
-                {//3D单层地形模式
+                {
                     mgo.transform.rotation = Quaternion.Euler(90, 0, 0);
                 }
-                else
-                {//正常3D模式
-                    mgo.transform.rotation = Quaternion.Euler(90, 0, 0);
+                else if (!CPEngine.horizontalMode)
+                {
+                    Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
                 }
             }
         }
@@ -189,17 +189,17 @@ namespace SpriteSpace
         /// 玩家初始化
         /// </summary>
         /// <param name="lv_stage">舞台</param>
-        /// <param name="lv_pixelRow">逻辑坐标</param>
-        /// <param name="lv_pixelColumn">逻辑坐标</param>
-        public void Init(Stage lv_stage, float lv_pixelRow, float lv_pixelColumn)
+        /// <param name="lv_column">逻辑坐标</param>
+        /// <param name="lv_row">逻辑坐标</param>
+        public void Init(Stage lv_stage, float lv_column, float lv_row)
         {
             stage = lv_stage;
-            pixelRow = lv_pixelRow;
-            pixelColumn = lv_pixelColumn;
+            column = lv_column;
+            row = lv_row;
 
             //预填充一些玩家历史(逻辑)坐标数据防越界
             positionHistory.Clear();
-            var p = new Vector2(pixelRow, pixelColumn);
+            var p = new Vector2(column, row);
             for (int i = 0; i < scene.TPS; i++)
             {
                 positionHistory.Add(p);
@@ -209,16 +209,16 @@ namespace SpriteSpace
         /// <summary>
         /// 玩家逻辑坐标初始化
         /// </summary>
-        /// <param name="lv_pixelRow">逻辑坐标</param>
-        /// <param name="lv_pixelColumn">逻辑坐标</param>
-        public void InitPosition(float lv_pixelRow, float lv_pixelColumn)
+        /// <param name="lv_column">逻辑坐标</param>
+        /// <param name="lv_row">逻辑坐标</param>
+        public void InitPosition(float lv_column, float lv_row)
         {
-            pixelRow = lv_pixelRow;
-            pixelColumn = lv_pixelColumn;
+            column = lv_column;
+            row = lv_row;
 
             //预填充一些玩家历史(逻辑)坐标数据防越界
             positionHistory.Clear();
-            var p = new Vector2(pixelRow, pixelColumn);
+            var p = new Vector2(column, row);
             for (int i = 0; i < scene.TPS; i++)
             {
                 positionHistory.Add(p);
@@ -240,8 +240,8 @@ namespace SpriteSpace
             else if (hp > 0 && Scene.inputActions.playerMoving)
             {
                 var mv = Scene.inputActions.playerMoveValue;//得到方向向量
-                pixelRow += mv.x * moveSpeed;
-                pixelColumn += mv.y * moveSpeed;
+                column += mv.x * moveSpeed;
+                row += mv.y * moveSpeed;
                 //Debug.Log("(" + pixelRow + "," + pixelColumn + ")");
                 //判断绘制X坐标要不要翻转
                 if (flipX && mv.x > 0)
@@ -261,29 +261,25 @@ namespace SpriteSpace
                 }
 
                 //强行修正移动范围(理论上讲也可设计一些临时限制,比如boss禁锢)
-                if (pixelRow < 0)
+                if (column < 0)
                 {
-                    pixelRow = 0;
-                    //Debug.Log("pixelRow < 0 " + "(" + pixelRow + "," + pixelColumn + ")");
+                    column = 0;
                 }
-                else if (pixelRow >= scene.gridMaxSize)
+                else if (column >= scene.gridMaxSize)
                 {
-                    pixelRow = scene.gridMaxSize - float.Epsilon;
-                    //Debug.Log("pixelRow >=" + scene.gridChunkWidth.ToString() + " (" + pixelRow + "," + pixelColumn + ")");
+                    column = scene.gridMaxSize - float.Epsilon;
                 }
-                if (pixelColumn < 0)
+                if (row < 0)
                 {
-                    pixelColumn = 0;
-                    //Debug.Log("pixelColumn < 0 " + "(" + pixelRow + "," + pixelColumn + ")");
+                    row = 0;
                 }
-                else if (pixelColumn >= scene.gridMaxSize)
+                else if (row >= scene.gridMaxSize)
                 {
-                    pixelColumn = scene.gridMaxSize - float.Epsilon;
-                    //Debug.Log("pixelColumn >=" + scene.gridChunkWidth.ToString() + " (" + pixelRow + "," + pixelColumn + ")");
+                    row = scene.gridMaxSize - float.Epsilon;
                 }
             }
             //将(逻辑)坐标写入历史记录( 限定长度 )
-            positionHistory.Insert(0, new Vector2(pixelRow, pixelColumn));
+            positionHistory.Insert(0, new Vector2(column, row));
             if (positionHistory.Count > scene.TPS)
             {
                 positionHistory.RemoveAt(positionHistory.Count - 1);
@@ -311,7 +307,7 @@ namespace SpriteSpace
             {
                 // 计算与怪物的距离
                 float distance = Vector2.Distance(
-                    new Vector2(pixelRow, pixelColumn),
+                    new Vector2(column, row),
                     new Vector2(nearestMonster.x, nearestMonster.y)
                 );
 
@@ -345,7 +341,7 @@ namespace SpriteSpace
                     continue;
 
                 float distance = Vector2.Distance(
-                    new Vector2(pixelRow, pixelColumn),
+                    new Vector2(column, row),
                     new Vector2(monster.x, monster.y)
                 );
 
@@ -366,15 +362,15 @@ namespace SpriteSpace
         private void ChaseMonster(Monster monster)
         {
             // 计算朝向怪物的方向
-            var dRow = monster.x - pixelRow;
-            var dColumn = monster.y - pixelColumn;
+            var dRow = monster.x - column;
+            var dColumn = monster.y - row;
             aiRadians = Mathf.Atan2(dColumn, dRow);
 
             // 向怪物移动
             var cos = Mathf.Cos(aiRadians);
             var sin = Mathf.Sin(aiRadians);
-            pixelRow += cos * moveSpeed;
-            pixelColumn += sin * moveSpeed;
+            column += cos * moveSpeed;
+            row += sin * moveSpeed;
 
             // 判断朝向翻转
             flipX = cos < 0;
@@ -388,8 +384,8 @@ namespace SpriteSpace
             }
 
             // 边界修正
-            pixelRow = Mathf.Clamp(pixelRow, 0, scene.gridMaxSize - float.Epsilon);
-            pixelColumn = Mathf.Clamp(pixelColumn, 0, scene.gridMaxSize - float.Epsilon);
+            column = Mathf.Clamp(column, 0, scene.gridMaxSize - float.Epsilon);
+            row = Mathf.Clamp(row, 0, scene.gridMaxSize - float.Epsilon);
         }
 
         /// <summary>
@@ -402,7 +398,7 @@ namespace SpriteSpace
 
             // 判断是否需要改变方向
             if (aiChangeDirectionTimer >= aiChangeDirectionInterval ||
-                Vector2.Distance(new Vector2(pixelRow, pixelColumn), aiTargetPos) < scene.gridSize)
+                Vector2.Distance(new Vector2(column, row), aiTargetPos) < scene.gridSize)
             {
                 // 随机生成新的目标位置
                 aiTargetPos = new Vector2(
@@ -410,8 +406,8 @@ namespace SpriteSpace
                     Random.Range(scene.gridSize, scene.gridMaxSize - scene.gridSize)
                 );
                 // 计算朝向目标的方向
-                var dRow = aiTargetPos.x - pixelRow;
-                var dColumn = aiTargetPos.y - pixelColumn;
+                var dRow = aiTargetPos.x - column;
+                var dColumn = aiTargetPos.y - row;
                 aiRadians = Mathf.Atan2(dColumn, dRow);
                 aiChangeDirectionTimer = 0;
             }
@@ -419,8 +415,8 @@ namespace SpriteSpace
             // 向目标移动
             var cos = Mathf.Cos(aiRadians);
             var sin = Mathf.Sin(aiRadians);
-            pixelRow += cos * moveSpeed;
-            pixelColumn += sin * moveSpeed;
+            column += cos * moveSpeed;
+            row += sin * moveSpeed;
 
             // 判断朝向翻转
             flipX = cos < 0;
@@ -434,8 +430,8 @@ namespace SpriteSpace
             }
 
             // 边界修正
-            pixelRow = Mathf.Clamp(pixelRow, 0, scene.gridMaxSize - float.Epsilon);
-            pixelColumn = Mathf.Clamp(pixelColumn, 0, scene.gridMaxSize - float.Epsilon);
+            column = Mathf.Clamp(column, 0, scene.gridMaxSize - float.Epsilon);
+            row = Mathf.Clamp(row, 0, scene.gridMaxSize - float.Epsilon);
         }
 
         /// <summary>
@@ -450,11 +446,11 @@ namespace SpriteSpace
             // 同步 & 坐标系转换
             if (CPEngine.horizontalMode)
             {
-                posCache.Set(pixelRow / scene.gridSize, pixelColumn / scene.gridSize, 0);
+                posCache.Set(column / scene.gridSize, row / scene.gridSize, 0);
             }
             else if (CPEngine.singleLayerTerrainMode)
             {//3D单层地形模式
-                posCache.Set(pixelRow / scene.gridSize, 1 + scene.aboveHeight, pixelColumn / scene.gridSize); //3D模式地图刷在方块顶面,该高度是1.0(绝对世界坐标)
+                posCache.Set(column / scene.gridSize, 1 + scene.aboveHeight, row / scene.gridSize); //3D模式地图刷在方块顶面,该高度是1.0(绝对世界坐标)
                 go.transform.rotation = Quaternion.Euler(90, 0, 0); //3D模式下把图片转90度
                 if (mgo.gameObject != null) mgo.transform.rotation = Quaternion.Euler(90, 0, 0); //小地图游戏物体也转90度
             }
@@ -484,12 +480,12 @@ namespace SpriteSpace
             //绘制实际位置和大小的球形物时,需把逻辑坐标值转为空间的本地相对坐标值(除以scene.gridSize)
             if (CPEngine.horizontalMode)
             {//2D横板模式
-                Gizmos.DrawWireSphere(new Vector3(pixelRow / scene.gridSize, pixelColumn / scene.gridSize, 0), radius / scene.gridSize);
+                Gizmos.DrawWireSphere(new Vector3(column / scene.gridSize, row / scene.gridSize, 0), radius / scene.gridSize);
             }
             else if (CPEngine.singleLayerTerrainMode)
             {//3D单层地形模式
                 //SpriteSpace框架最早时按横板设计的,从X-Y转X-Z需要参数填的时候原Y与原Z交换,角色高度=地图所在高度+aboveHeight
-                Gizmos.DrawWireSphere(new Vector3(pixelRow / scene.gridSize, 1 + scene.aboveHeight, pixelColumn / scene.gridSize), radius / scene.gridSize);
+                Gizmos.DrawWireSphere(new Vector3(column / scene.gridSize, 1 + scene.aboveHeight, row / scene.gridSize), radius / scene.gridSize);
             }
             else
             {//正常3D模式

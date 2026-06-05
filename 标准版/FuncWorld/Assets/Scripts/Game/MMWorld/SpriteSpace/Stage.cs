@@ -28,11 +28,11 @@ namespace SpriteSpace
         /// <summary>
         /// 玩家子弹列表
         /// </summary>
-        public List<PlayerBullet> playerBullets = new();
+        public List<PlayerBullet> playerBullets = new List<PlayerBullet>();
         /// <summary>
         /// 怪物列表
         /// </summary>
-        public List<Monster> monsters = new();
+        public List<Monster> monsters = new List<Monster>();
         /// <summary>
         /// 怪物空间容器
         /// </summary>
@@ -40,16 +40,15 @@ namespace SpriteSpace
         /// <summary>
         /// 爆炸特效列表
         /// </summary>
-        public List<EffectExplosion> effectExplosions = new();
+        public List<EffectExplosion> effectExplosions = new List<EffectExplosion>();
         /// <summary>
         /// 爆炸数字列表
         /// </summary>
-        public List<EffectNumber> effectNumbers = new();
+        public List<EffectNumber> effectNumbers = new List<EffectNumber>();
         /// <summary>
         /// 怪物生成器列表
         /// </summary>
-        public List<MonsterGenerator> monsterGenerators = new();
-
+        public List<MonsterGenerator> monsterGenerators = new List<MonsterGenerator>();
 
         /*************************************************************************************************************************/
         /*************************************************************************************************************************/
@@ -86,15 +85,15 @@ namespace SpriteSpace
             //同步镜头的位置为玩家位置
             if (CPEngine.horizontalMode)
             {
-                camTrans.position = new Vector3(player.pixelRow / scene.gridSize, player.pixelColumn / scene.gridSize, camTrans.position.z);
+                camTrans.position = new Vector3(player.column / scene.gridSize, player.row / scene.gridSize, camTrans.position.z);
             }
             else if (CPEngine.singleLayerTerrainMode)
-            {//3D单层地形模式
+            {
                 //保持摄像头Y不变,2D的Y填入3D的Z
-                camTrans.position = new Vector3(player.pixelRow / scene.gridSize, camTrans.position.y, player.pixelColumn / scene.gridSize);
+                camTrans.position = new Vector3(player.column / scene.gridSize, camTrans.position.y, player.row / scene.gridSize);
             }
             else
-            {//正常3D模式
+            {
                 Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
             }
 
@@ -104,22 +103,22 @@ namespace SpriteSpace
             var len = monsters.Count;
             for (int i = 0; i < len; ++i)
             {
-                monsters[i].Draw(player.pixelRow, player.pixelColumn);
+                monsters[i].Draw(player.column, player.row);
             }
             len = playerBullets.Count;
             for (int i = 0; i < len; ++i)
             {
-                playerBullets[i].Draw(player.pixelRow, player.pixelColumn);
+                playerBullets[i].Draw(player.column, player.row);
             }
             len = effectExplosions.Count;
             for (int i = 0; i < len; ++i)
             {
-                effectExplosions[i].Draw(player.pixelRow, player.pixelColumn);
+                effectExplosions[i].Draw(player.column, player.row);
             }
             len = effectNumbers.Count;
             for (int i = 0; i < len; ++i)
             {
-                effectNumbers[i].Draw(player.pixelRow, player.pixelColumn);
+                effectNumbers[i].Draw(player.column, player.row);
             }
 
             //绘制角色自己的图像
@@ -321,19 +320,19 @@ namespace SpriteSpace
             switch (Random.Range(0, 4))
             {
                 case 0: // 上方边缘
-                    float x1 = Mathf.Clamp(player.pixelRow + Random.Range(-scene.designWidth_2, scene.designWidth_2), minX, maxX);
+                    float x1 = Mathf.Clamp(player.column + Random.Range(-scene.designWidth_2, scene.designWidth_2), minX, maxX);
                     return new Vector2(x1, minY);
 
                 case 1: // 下方边缘
-                    float x2 = Mathf.Clamp(player.pixelRow + Random.Range(-scene.designWidth_2, scene.designWidth_2), minX, maxX);
+                    float x2 = Mathf.Clamp(player.column + Random.Range(-scene.designWidth_2, scene.designWidth_2), minX, maxX);
                     return new Vector2(x2, maxY);
 
                 case 2: // 左侧边缘
-                    float y1 = Mathf.Clamp(player.pixelColumn + Random.Range(-scene.designHeight_2, scene.designHeight_2), minY, maxY);
+                    float y1 = Mathf.Clamp(player.row + Random.Range(-scene.designHeight_2, scene.designHeight_2), minY, maxY);
                     return new Vector2(minX, y1);
 
                 case 3: // 右侧边缘
-                    float y2 = Mathf.Clamp(player.pixelColumn + Random.Range(-scene.designHeight_2, scene.designHeight_2), minY, maxY);
+                    float y2 = Mathf.Clamp(player.row + Random.Range(-scene.designHeight_2, scene.designHeight_2), minY, maxY);
                     return new Vector2(maxX, y2);
             }
             return Vector2.zero;

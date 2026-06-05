@@ -13,31 +13,31 @@ namespace CellSpace
 {
     #region 枚举
     /// <summary>
-        /// 网络模式
+    /// 网络模式
+    /// </summary>
+    public enum NetMode : ushort
+    {
+        /// <summary>
+        /// 无网络
         /// </summary>
-        public enum NetMode : ushort
-        {
-            /// <summary>
-            /// 无网络
-            /// </summary>
-            none,
-            /// <summary>
-            /// UNet网络(旧版,Unity2018之前)
-            /// </summary>
-            unet,
-            /// <summary>
-            /// NetCode网络(新版)
-            /// </summary>
-            netCode,
-            /// <summary>
-            /// BestHTTP WebSocket网络
-            /// </summary>
-            bestHttp,
-            /// <summary>
-            /// 其他网络
-            /// </summary>
-            other
-        }
+        none,
+        /// <summary>
+        /// UNet网络(旧版,Unity2018之前)
+        /// </summary>
+        unet,
+        /// <summary>
+        /// NetCode网络(新版)
+        /// </summary>
+        netCode,
+        /// <summary>
+        /// BestHTTP WebSocket网络
+        /// </summary>
+        bestHttp,
+        /// <summary>
+        /// 其他网络
+        /// </summary>
+        other
+    }
     /// <summary>
     /// 单元的6个面
     /// </summary>
@@ -1323,7 +1323,7 @@ namespace CellSpace
             cell.VMesh = vMesh;
             CPEngine.blocks[cellID] = CPEngine.prefabOPs[cellID].gameObject;//Awake时已填充了IBlocks,第11个元素开始都是空的GameObject,要填充覆盖剩下的
             //OP.pool.Push(prefabOPs[cellID]);//退回栈,待使用时取出
-            OP.Push(ref prefabOPs[cellID]);//退回栈,待使用时取出
+            OP.Push(ref prefabOPs[cellID],true);
         }
         /// <summary>
         /// [内部地图专用]创建只替换uv的地块预制体实例(情况参数默认不透明、碰撞体为cube、无旋转等).因GUI手填地块预制体太慢,这里用脚本批处理创建预制体实例化后的GameObject.
@@ -1373,7 +1373,7 @@ namespace CellSpace
             cell.VRotation = MeshRotation.none;
             CPEngine.blocks[cellID] = CPEngine.prefabOPs[cellID].gameObject;//Awake时已填充了IBlocks,第11个元素开始都是空的GameObject,要填充覆盖剩下的
             //OP.pool.Push(prefabOPs[cellID]);//退回栈,待使用时取出
-            OP.Push(ref prefabOPs[cellID]);//退回栈,待使用时取出
+            OP.Push(ref prefabOPs[cellID], true);
         }
         /// <summary>
         /// 批创建预制体实例.自动识别网格渲染器对应材质主纹理并按行列分割UV,批转化为预制体实例并存入CPEngine.PrefabOPs数组.
@@ -1416,7 +1416,7 @@ namespace CellSpace
                             if (prefabOPs[index].gameObject != null)
                             {
                                 prefabOPs[index].transform = prefabOPs[index].gameObject.transform;
-                                OP.Push(ref prefabOPs[cellID]);//退回栈,待使用时取出
+                                OP.Push(ref prefabOPs[cellID], true);//退回栈,待使用时取出
                             }
                             else { Debug.LogError("未获得GUI填入的Cell预制体块"); }
                         }
@@ -1456,7 +1456,7 @@ namespace CellSpace
                             if (prefabOPs[index].gameObject != null)
                             {
                                 prefabOPs[index].transform = prefabOPs[index].gameObject.transform;
-                                OP.Push(ref prefabOPs[cellID]);//退回栈,待使用时取出
+                                OP.Push(ref prefabOPs[cellID], true);//退回栈,待使用时取出
                             }
                             else { Debug.LogError("未获得GUI填入的Cell预制体块"); }
                         }

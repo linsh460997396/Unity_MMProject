@@ -41,7 +41,12 @@ namespace CellSpace.WebSocket
         
         private void StartServer()
         {
-            server = gameObject.AddComponent<WebSocketServer>();
+            // 避免重复添加组件
+            server = gameObject.GetComponent<WebSocketServer>();
+            if (server == null)
+            {
+                server = gameObject.AddComponent<WebSocketServer>();
+            }
             server.port = serverPort;
             server.enableDebugLog = enableDebugLog;
             server.StartServer();
@@ -52,7 +57,12 @@ namespace CellSpace.WebSocket
         
         private void StartClient()
         {
-            client = gameObject.AddComponent<WebSocketClient>();
+            // 避免重复添加组件
+            client = gameObject.GetComponent<WebSocketClient>();
+            if (client == null)
+            {
+                client = gameObject.AddComponent<WebSocketClient>();
+            }
             client.serverAddress = serverAddress;
             client.enableDebugLog = enableDebugLog;
             client.Connect();
@@ -66,11 +76,15 @@ namespace CellSpace.WebSocket
             if (server != null)
             {
                 server.StopServer();
+                Destroy(server);
+                server = null;
             }
             
             if (client != null)
             {
                 client.Disconnect();
+                Destroy(client);
+                client = null;
             }
             
             if (enableDebugLog)

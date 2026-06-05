@@ -17,6 +17,9 @@ namespace CellSpace.WebSocket
         public bool enableDebugLog = false;
         public float autosaveTime = 0f;
         
+        // 连接配置
+        public int maxConnections = 100;
+        
         // 流量控制配置
         public int maxMessagesPerSecond = 100;
         
@@ -140,6 +143,19 @@ namespace CellSpace.WebSocket
                 try
                 {
                     TcpClient client = tcpListener.AcceptTcpClient();
+                    
+                    // 检查连接数限制
+                    lock (connections)
+                    {
+                        if (connections.Count >= maxConnections)
+                        {
+                            if (enableDebugLog)
+                                Debug.LogWarning($"Max connections reached ({maxConnections}), rejecting new client");
+                            client.Close();
+                            continue;
+                        }
+                    }
+                    
                     WebSocketConnection connection = new WebSocketConnection(client, this);
 
                     lock (connections)

@@ -18,6 +18,7 @@ namespace CellSpace.WebSocket
         
         // Ping配置
         public float pingInterval = 5f;
+        public float pingTimeout = 10f;
         
         // 消息队列配置
         public int maxQueueSize = 1000;
@@ -41,6 +42,12 @@ namespace CellSpace.WebSocket
         // 消息队列
         private Queue<NetworkMessage> messageQueue = new Queue<NetworkMessage>();
         private float sendTimer;
+        
+        // 内存优化：复用的 MemoryStream
+        private MemoryStream reusableStream = new MemoryStream(256);
+        
+        // 区块请求去重
+        private HashSet<Vector3Int> pendingChunkRequests = new HashSet<Vector3Int>();
 
         public static WebSocketClient Instance { get; private set; }
 
@@ -68,6 +75,9 @@ namespace CellSpace.WebSocket
             // 处理Ping
             HandlePing();
             
+            // 处理Ping超时
+            HandlePingTimeout();
+            
             // 处理消息队列
             HandleMessageQueue();
         }
@@ -77,18 +87,26 @@ namespace CellSpace.WebSocket
             if (!IsConnected && !isReconnecting && reconnectAttempts < maxReconnectAttempts)
             {
                 reconnectTimer += Time.deltaTime;
-                if (reconnectTimer >= reconnectDelay)
+                float currentDelay = GetCurrentReconnectDelay();
+                
+                if (reconnectTimer >= currentDelay)
                 {
                     reconnectTimer = 0;
                     reconnectAttempts++;
                     isReconnecting = true;
                     
                     if (enableDebugLog)
-                        Debug.Log($"Attempting reconnect ({reconnectAttempts}/{maxReconnectAttempts})");
+                        Debug.Log($"Attempting reconnect ({reconnectAttempts}/{maxReconnectAttempts}), delay: {currentDelay:F1}s");
                     
                     Connect();
                 }
             }
+        }
+
+        private float GetCurrentReconnectDelay()
+        {
+            // 指数退避：5s, 10s, 20s, 40s, 80s...
+            return reconnectDelay * Mathf.Pow(2, reconnectAttempts);
         }
 
         private void HandlePing()
@@ -101,6 +119,26 @@ namespace CellSpace.WebSocket
                     pingTimer = 0;
                     SendPing();
                 }
+            }
+        }
+
+        private void HandlePingTimeout()
+        {
+            if (pingTimestamps.Count == 0) return;
+            
+            var toRemove = new List<int>();
+            
+            foreach (var kvp in pingTimestamps)
+            {
+                if (Time.time - kvp.Value > pingTimeout)
+                    toRemove.Add(kvp.Key);
+            }
+            
+            foreach (var seq in toRemove)
+            {
+                pingTimestamps.Remove(seq);
+                if (enableDebugLog)
+                    Debug.Log($"Ping {seq} timed out");
             }
         }
 
@@ -129,6 +167,9 @@ namespace CellSpace.WebSocket
 
         public void Connect()
         {
+            // 先清理旧连接
+            CleanupWebSocket();
+
             if (webSocket != null && webSocket.IsOpen)
             {
                 if (enableDebugLog)
@@ -147,17 +188,30 @@ namespace CellSpace.WebSocket
                 Debug.Log("Connecting to server: " + serverAddress);
         }
 
-        public void Disconnect()
+        private void CleanupWebSocket()
         {
             if (webSocket != null)
             {
-                webSocket.Close();
+                webSocket.OnOpen -= OnConnected;
+                webSocket.OnMessage -= OnMessageReceived;
+                webSocket.OnError -= OnError;
+                webSocket.OnClosed -= OnDisconnected;
+                
+                if (webSocket.IsOpen)
+                    webSocket.Close();
+                    
                 webSocket = null;
-                isReconnecting = false;
-
-                if (enableDebugLog)
-                    Debug.Log("Disconnected from server");
             }
+        }
+
+        public void Disconnect()
+        {
+            CleanupWebSocket();
+            isReconnecting = false;
+            pendingChunkRequests.Clear();
+
+            if (enableDebugLog)
+                Debug.Log("Disconnected from server");
         }
 
         private void OnConnected(BestHTTP.WebSocket.WebSocket ws)
@@ -291,6 +345,10 @@ namespace CellSpace.WebSocket
         private void HandleCellData(byte[] data)
         {
             ChunkDataResponse response = ChunkDataResponse.Deserialize(data);
+            
+            // 移除待处理请求
+            var key = new Vector3Int(response.chunkX, response.chunkY, response.chunkZ);
+            pendingChunkRequests.Remove(key);
 
             GameObject chunkObject = null;
             if (CPEngine.horizontalMode)
@@ -422,23 +480,36 @@ namespace CellSpace.WebSocket
             int sequence = pingSequence++;
             pingTimestamps[sequence] = Time.time;
 
-            using (MemoryStream ms = new MemoryStream())
-            using (BinaryWriter writer = new BinaryWriter(ms))
+            // 使用复用的 MemoryStream
+            reusableStream.SetLength(0);
+            using (BinaryWriter writer = new BinaryWriter(reusableStream, Encoding.UTF8, leaveOpen: true))
             {
                 writer.Write(sequence);
-
-                NetworkMessage msg = new NetworkMessage
-                {
-                    type = MessageType.Ping,
-                    data = ms.ToArray()
-                };
-
-                SendMessage(msg);
             }
+
+            NetworkMessage msg = new NetworkMessage
+            {
+                type = MessageType.Ping,
+                data = reusableStream.ToArray()
+            };
+
+            SendMessage(msg);
         }
 
         public void SendRequestCellData(int chunkX, int chunkY, int chunkZ)
         {
+            var key = new Vector3Int(chunkX, chunkY, chunkZ);
+            
+            // 去重检查
+            if (pendingChunkRequests.Contains(key))
+            {
+                if (enableDebugLog)
+                    Debug.Log($"Chunk request already pending: {chunkX},{chunkY},{chunkZ}");
+                return;
+            }
+            
+            pendingChunkRequests.Add(key);
+            
             ChunkDataRequest request = new ChunkDataRequest
             {
                 playerId = playerId ?? "",
@@ -497,21 +568,22 @@ namespace CellSpace.WebSocket
 
         public void SendUpdatePlayerPosition(int chunkX, int chunkY, int chunkZ)
         {
-            using (MemoryStream ms = new MemoryStream())
-            using (BinaryWriter writer = new BinaryWriter(ms))
+            // 使用复用的 MemoryStream
+            reusableStream.SetLength(0);
+            using (BinaryWriter writer = new BinaryWriter(reusableStream, Encoding.UTF8, leaveOpen: true))
             {
                 writer.Write(chunkX);
                 writer.Write(chunkY);
                 writer.Write(chunkZ);
-
-                NetworkMessage msg = new NetworkMessage
-                {
-                    type = MessageType.UpdatePlayerPosition,
-                    data = ms.ToArray()
-                };
-
-                SendMessage(msg);
             }
+
+            NetworkMessage msg = new NetworkMessage
+            {
+                type = MessageType.UpdatePlayerPosition,
+                data = reusableStream.ToArray()
+            };
+
+            SendMessage(msg);
         }
 
         public void SendUpdatePlayerRange(int range)
@@ -577,6 +649,10 @@ namespace CellSpace.WebSocket
         void OnDestroy()
         {
             Disconnect();
+            if (reusableStream != null)
+            {
+                reusableStream.Dispose();
+            }
         }
     }
 }

@@ -80,7 +80,7 @@ namespace SpriteSpace
         /// <summary>
         /// [逻辑坐标]追赶玩家时的目标偏移量(防止放风筝时重叠到一起)
         /// </summary>
-        public float tarOffsetRow, tarOffsetColumn;
+        public float tarOffsetColumn, tarOffsetRow;
         /// <summary>
         /// 瞄准玩家的延迟(aimDelay必须在设计帧率fps范围内)(获取玩家逻辑坐标用history,这里是下标)
         /// </summary>
@@ -110,9 +110,9 @@ namespace SpriteSpace
         /// </summary>
         public float knockbackIncRate = 1f;
         /// <summary>
-        /// [逻辑坐标]被击退移动增量,实际pixelRow+=inc*rate
+        /// [逻辑坐标]被击退移动增量,实际+=inc*rate
         /// </summary>
-        public float knockbackIncX, knockbackIncY;
+        public float knockbackIncColumn, knockbackIncRow;
         /// <summary>
         /// 受伤变白结束时间
         /// </summary>
@@ -130,7 +130,7 @@ namespace SpriteSpace
         /// <param name="stage_"></param>
         protected Monster(Stage stage_)
         {
-            
+
 
             //初始化容器为舞台参数的怪物空间容器
             cellGridContainer = stage_.monstersGridContainer;
@@ -160,9 +160,9 @@ namespace SpriteSpace
                 {//3D单层地形模式
                     mgo.transform.rotation = Quaternion.Euler(90, 0, 0);
                 }
-                else
-                {//正常3D模式
-                    mgo.transform.rotation = Quaternion.Euler(90, 0, 0);
+                else if (!CPEngine.horizontalMode)
+                {
+                    Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
                 }
             }
         }
@@ -171,16 +171,27 @@ namespace SpriteSpace
         /// 怪物初始化
         /// </summary>
         /// <param name="sprites_"></param>
-        /// <param name="lv_pixelRow">逻辑坐标</param>
-        /// <param name="lv_pixelColumn">逻辑坐标</param>
-        public void Init(Sprite[] sprites_, float lv_pixelRow, float lv_pixelColumn)
+        /// <param name="lv_column">逻辑坐标</param>
+        /// <param name="lv_row">逻辑坐标</param>
+        public void Init(Sprite[] sprites_, float lv_column, float lv_row)
         {
             sprites = sprites_;//精灵数组赋值
             if (mgo.gameObject != null) mgo.spriteRenderer.sprite = sprites[0];//小地图用精灵初始化为第一个,且不刷新变化
-            flipX = lv_pixelRow >= player.pixelRow;//精灵图片默认朝右,如x坐标超过了玩家则翻转
+            flipX = lv_column >= player.column;//精灵图片默认朝右,如x坐标超过了玩家则翻转
                                                //记录逻辑坐标
-            x = lv_pixelRow;
-            y = lv_pixelColumn;
+            x = lv_column;
+            if (CPEngine.horizontalMode)
+            {//2D横板模式(使用XY平面)
+                y = lv_row;
+            }
+            else if (CPEngine.singleLayerTerrainMode)
+            {//3D单层地形模式(使用XZ平面)
+                z = lv_row;
+            }
+            else
+            {
+                Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
+            }
             radius = defaultRadius;     //初始化GridItem(空间物体)的半径字段为怪物默认半径
             cellGridContainer.Add(this);   //放入空间容器
             ResetTargetOffsetRC();      //重置偏移
@@ -195,11 +206,22 @@ namespace SpriteSpace
             if (knockbackEndTime >= scene.time)
             {//时间点处于被击退中
              //逻辑坐标位移
-                x += knockbackIncX * knockbackIncRate;
-                y += knockbackIncY * knockbackIncRate;
-                //修正不能出边界
-                x = Mathf.Max(0, x);
-                y = Mathf.Max(0, y);
+                x += knockbackIncColumn * knockbackIncRate;
+                x = Mathf.Max(0, x); //修正不能出边界
+                if (CPEngine.horizontalMode)
+                {//2D横板模式(使用XY平面)
+                    y += knockbackIncRow * knockbackIncRate;
+                    y = Mathf.Max(0, y);
+                }
+                else if (CPEngine.singleLayerTerrainMode)
+                {//3D单层地形模式(使用XZ平面)
+                    z += knockbackIncRow * knockbackIncRate;
+                    z = Mathf.Max(0, z);
+                }
+                else
+                {
+                    Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
+                }
                 //衰减
                 knockbackIncRate -= knockbackDecay;
                 //更新自己在空间索引容器中的(逻辑坐标)位置
@@ -208,11 +230,11 @@ namespace SpriteSpace
             }
 
             //以下使用逻辑坐标判断是否已接触到玩家,接触到就造成伤害否则就继续移动
-            var dRow = player.pixelRow - x;
-            var dColumn = player.pixelColumn - y;
-            var dd = dRow * dRow + dColumn * dColumn; //值等于怪物与玩家直线距离的平方
-            var r2 = player.radius + radius;//怪物容器半径+玩家体积半径
-            if (dd < r2 * r2)
+            var lv_column = player.column - x;
+            var lv_row = player.row - (CPEngine.horizontalMode ? y : z);
+            var dd = lv_column * lv_column + lv_row * lv_row; //值等于怪物与玩家直线距离的平方
+            var rr = player.radius + radius;//怪物容器半径+玩家体积半径
+            if (dd < rr * rr)
             {//怪物与玩家发生体积碰撞(相切不算)
                 player.Hurt(damage);//令玩家受伤或死亡
             }
@@ -220,19 +242,30 @@ namespace SpriteSpace
             {
                 //判断是否已到达偏移点,若已到达则重新选择偏移点,否则继续移动
                 var ph = player.positionHistory[aimDelay];     //获取玩家历史(逻辑)坐标来追击以显得怪笨
-                dRow = ph.x - x + tarOffsetRow;
-                dColumn = ph.y - y + tarOffsetColumn;
-                dd = dRow * dRow + dColumn * dColumn;
+                lv_column = ph.x - x + tarOffsetColumn;
+                lv_row = ph.y - (CPEngine.horizontalMode ? y : z) + tarOffsetRow;
+                dd = lv_column * lv_column + lv_row * lv_row;
                 if (dd < radius * radius)
                 {//怪物在玩家历史坐标处(加上偏移后)发生预判碰撞
                     ResetTargetOffsetRC();//重置偏移
                 }
                 //计算移动方向并增量
-                radians = Mathf.Atan2(dColumn, dRow);
+                radians = Mathf.Atan2(lv_row, lv_column);
                 var cos = Mathf.Cos(radians);
                 //以移动速度及朝向玩家的角度,刷新怪物坐标到计算点(若碰到下一帧自会执行碰撞判断)
                 x += cos * moveSpeed;
-                y += Mathf.Sin(radians) * moveSpeed;
+                if (CPEngine.horizontalMode)
+                {//2D横板模式(使用XY平面)
+                    y += Mathf.Sin(radians) * moveSpeed;
+                }
+                else if (CPEngine.singleLayerTerrainMode)
+                {//3D单层地形模式(使用XZ平面)
+                    z += Mathf.Sin(radians) * moveSpeed;
+                }
+                else
+                {
+                    Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
+                }
                 flipX = cos < 0; //根据cos值判断怪物朝向是否要左右翻转
             }
 
@@ -242,9 +275,20 @@ namespace SpriteSpace
             //怪移出逻辑边境时强行修正,xy设计为以左下为原点的父级空间容器的本地(相对)坐标就不会<0,容器最大边界=该方向网格数量*网格逻辑像素尺寸.制作出边界事件,可让符合条件的怪物去另一团块(若存在)
             if (x < 0) x = 0;
             else if (x >= scene.gridMaxSize) x = scene.gridMaxSize - float.Epsilon;
-            if (y < 0) y = 0;
-            else if (y >= scene.gridMaxSize) y = scene.gridMaxSize - float.Epsilon;
-
+            if (CPEngine.horizontalMode)
+            {//2D横板模式(使用XY平面)
+                if (y < 0) y = 0;
+                else if (y >= scene.gridMaxSize) y = scene.gridMaxSize - float.Epsilon;
+            }
+            else if (CPEngine.singleLayerTerrainMode)
+            {//3D单层地形模式(使用XZ平面)
+                if (z < 0) z = 0;
+                else if (z >= scene.gridMaxSize) z = scene.gridMaxSize - float.Epsilon;
+            }
+            else
+            {
+                Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
+            }
             //根据移动速度步进动画帧下标
             frameIndex += frameAnimIncrease * moveSpeed * _1_defaultMoveSpeed;
             var len = sprites.Length;//精灵数组长度
@@ -260,12 +304,14 @@ namespace SpriteSpace
         /// <summary>
         /// [虚函数]怪物根据玩家位置绘制图形(播放精灵)
         /// </summary>
-        /// <param name="row">玩家逻辑位置</param>
-        /// <param name="column">玩家逻辑位置</param>
-        public virtual void Draw(float row, float column)
+        /// <param name="lv_column">玩家逻辑位置</param>
+        /// <param name="lv_row">玩家逻辑位置</param>
+        public virtual void Draw(float lv_column, float lv_row)
         {
-            if (x < row - scene.designWidth_2 || x > row + scene.designWidth_2 || y < column - scene.designHeight_2 || y > column + scene.designHeight_2)
-            {//因人始终是在屏幕中间,只要不在屏幕内就不显示
+            float verticalPos = CPEngine.horizontalMode ? y : z;
+            //因人始终是在屏幕中间,只要不在屏幕内就不显示
+            if (x < lv_column - scene.designWidth_2 || x > lv_column + scene.designWidth_2 || verticalPos < lv_row - scene.designHeight_2 || verticalPos > lv_row + scene.designHeight_2)
+            {
                 go.Disable();//禁用游戏物体
             }
             else
@@ -279,8 +325,8 @@ namespace SpriteSpace
                     go.transform.position = new Vector3(x / scene.gridSize, y / scene.gridSize, 0);
                 }
                 else if (CPEngine.singleLayerTerrainMode)
-                {//3D单层地形模式
-                    go.transform.position = new Vector3(x / scene.gridSize, 1 + scene.aboveHeight, y / scene.gridSize);
+                {
+                    go.transform.position = new Vector3(x / scene.gridSize, 1 + scene.aboveHeight, z / scene.gridSize);
                     go.transform.rotation = Quaternion.Euler(90, 0, 0); //3D模式下把图片转90度
                     if (mgo.gameObject != null) mgo.transform.rotation = Quaternion.Euler(90, 0, 0); //小地图游戏物体也转90度
                 }
@@ -304,7 +350,7 @@ namespace SpriteSpace
 
             if (mgo.gameObject != null)
             {
-                if (x < row - scene.designWidth * 2 || x > row + scene.designWidth * 2 || y < column - scene.designHeight * 2 || y > column + scene.designHeight * 2)
+                if (x < lv_column - scene.designWidth * 2 || x > lv_column + scene.designWidth * 2 || verticalPos < lv_row - scene.designHeight * 2 || verticalPos > lv_row + scene.designHeight * 2)
                 {//怪物出了4倍摄像头范围时,[渲染层]禁用小地图中的游戏物体(但[逻辑层]结构体对象仍可移动)
                     mgo.Disable();//[渲染层]禁用游戏物体
                 }
@@ -316,12 +362,8 @@ namespace SpriteSpace
                         mgo.transform.position = new Vector3(x / scene.gridSize, y / scene.gridSize, 0);//[渲染层]设置小地图对象位置
                     }
                     else if (CPEngine.singleLayerTerrainMode)
-                    {//3D单层地形模式
-                        mgo.transform.position = new Vector3(x / scene.gridSize, 1 + scene.aboveHeight, y / scene.gridSize);//3D模式调整
-                    }
-                    else
-                    {//正常3D模式
-                        Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
+                    {
+                        mgo.transform.position = new Vector3(x / scene.gridSize, 1 + scene.aboveHeight, z / scene.gridSize);//3D模式调整
                     }
                 }
             }
@@ -340,7 +382,7 @@ namespace SpriteSpace
             else
             {
                 //3D模式调整
-                Gizmos.DrawWireSphere(new Vector3(x / scene.gridSize, 1 + scene.aboveHeight, y / scene.gridSize), radius / scene.gridSize);
+                Gizmos.DrawWireSphere(new Vector3(x / scene.gridSize, 1 + scene.aboveHeight, z / scene.gridSize), radius / scene.gridSize);
             }
         }
 
@@ -381,8 +423,8 @@ namespace SpriteSpace
         {
             //获取玩家体积10被范围甜甜圈里的随机逻辑坐标点(安全距离0.1f)
             var p = stage.GetRndPosDoughnut(player.radius * 10, 0.1f);
-            tarOffsetRow = p.x;//作为新的逻辑偏移量
-            tarOffsetColumn = p.y;//作为新的逻辑偏移量
+            tarOffsetColumn = p.x;//作为新的逻辑偏移量
+            tarOffsetRow = p.y;//作为新的逻辑偏移量
         }
 
         /// <summary>
@@ -393,6 +435,7 @@ namespace SpriteSpace
         /// <returns>返回怪是否已死亡</returns>
         public bool Hurt(int playerBulletDamage, int knockbackForce)
         {
+            float verticalPos = CPEngine.horizontalMode ? y : z;
             //结合玩家基础倍率算最终伤害值
             var d = playerBulletDamage * player.damage;
             var b = Random.value <= player.criticalRate;//是否打出暴击
@@ -403,23 +446,23 @@ namespace SpriteSpace
             }
             if (hp <= d)
             {//怪被打死
-                new EffectExplosion(stage, x, y, radius * _1_defaultRadius);//播特效
-                new EffectNumber(stage, x, y, 0.5f, hp, b);//播特效
+                new EffectExplosion(stage, x, verticalPos, radius * _1_defaultRadius);//播特效
+                new EffectNumber(stage, x, verticalPos, 0.5f, hp, b);//播特效
                 Destroy();//摧毁怪物
                 return true;
             }
             else
             {//怪没死
                 hp -= d;//扣血
-                new EffectNumber(stage, x, y, 0.5f, d, b); //播飙血特效(todo)
+                new EffectNumber(stage, x, verticalPos, 0.5f, d, b); //播飙血特效(todo)
                 //判断击退
                 if (knockbackForce > 0)
                 {
                     knockbackEndTime = scene.time + knockbackForce;
                     knockbackIncRate = 1;
                     knockbackDecay = 1 / knockbackForce;
-                    knockbackIncX = -Mathf.Cos(radians) * moveSpeed;
-                    knockbackIncY = -Mathf.Sin(radians) * moveSpeed;
+                    knockbackIncColumn = -Mathf.Cos(radians) * moveSpeed;
+                    knockbackIncRow = -Mathf.Sin(radians) * moveSpeed;
                 }
                 // 变白一会儿
                 whiteEndTime = scene.time + whiteDelay;

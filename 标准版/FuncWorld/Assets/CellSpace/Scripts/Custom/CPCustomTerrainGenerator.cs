@@ -32,7 +32,7 @@ namespace CellSpace
                         {
                             //未启用单一空间复用模式,每个团块(空间)都刷一个自动计算索引对应的场景.
                             Debug.Log("CPEngine.OneSapceMode == false");
-                            LoadMap(chunk.chunkIndex.x);//这里设计地图空间布置和存储在X坐标一条直线上
+                            LoadMapXY(chunk.chunkIndex.x);//这里设计地图空间布置和存储在X坐标一条直线上
                         }
                         else
                         {
@@ -49,7 +49,7 @@ namespace CellSpace
                     Debug.Log("团块索引为负数,该空间不执行刷图");
                     return;
                 }
-                //3D模式下刷图在顶面(X-Z)
+                //3D模式下刷图在顶面(X-Z),地图刷在正坐标轴上
                 if (chunk.chunkIndex.z >= 0)
                 {
                     if (chunk.chunkIndex.y >= 0)
@@ -57,18 +57,18 @@ namespace CellSpace
                         if (chunk.chunkIndex.x >= 0)
                         {
                             Debug.Log("启用3D单层地形模式");
-                            //地图刷在正坐标轴上
                             if (CPEngine.OneSapceMode == false)
                             {
                                 //未启用单一空间复用模式,每个团块(空间)都刷一个自动计算索引对应的场景.
-                                Load3DMap();
+                                LoadMapXZ();
                                 //LoadUniverse();
                             }
                             else
                             {
                                 //启用单一空间复用模式,始终在当前团块内刷场景的模式(需手动指定刷什么,本类是首次初始化地形专用刷块,所以不再根据指示器自动刷)
                                 //虽然可在地图初始化时就刷一个初始大地图,但开局可能要进菜单的,得按剧情推进需要去刷,不要马上出来.
-                                Debug.LogWarning("启用单一空间复用模式,但尚未布置地图");
+                                //Debug.LogWarning("启用单一空间复用模式,但尚未布置地图");
+                                LoadMapXZ();
                             }
                         }
                     }
@@ -258,7 +258,7 @@ namespace CellSpace
         /// [2D横版模式专用]mapID=0为大地图,小地图从1~239开始(1是拉多镇),240是龙珠大地图
         /// </summary>
         /// <param name="mapID"></param>
-        public void LoadMap(int mapID)
+        public void LoadMapXY(int mapID)
         {
             int i = -1;
             if (mapID == 0)
@@ -365,7 +365,7 @@ namespace CellSpace
         /// 地图是根据团块索引计算出来的,每个团块(空间)都刷一个自动计算索引对应的场景.
         /// mapID = chunkx + chunky * 10 + chunkz * 100.
         /// </summary>
-        public void Load3DMap()
+        public void LoadMapXZ()
         {
             int height = 1; int i = -1; bool setErr = false;
             //获取团块索引值

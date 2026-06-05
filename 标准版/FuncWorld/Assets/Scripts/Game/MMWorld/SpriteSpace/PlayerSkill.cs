@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using CellSpace;
+using UnityEngine;
 
 namespace SpriteSpace
 {
@@ -84,9 +85,7 @@ namespace SpriteSpace
         /// <summary>
         /// 初始化玩家技能
         /// </summary>
-        public void Init()
-        {
-        }
+        public void Init() { }
 
         /// <summary>
         /// [虚方法]更新
@@ -102,19 +101,19 @@ namespace SpriteSpace
                 // 子弹发射逻辑
                 // 找射程内 距离最近的 1 只 朝向其发射 1 子弹
 
-                var x = player.pixelRow;
-                var y = player.pixelColumn;
-                var o = stage.monstersGridContainer.FindNearestByRange2D(scene.cellRingDiffuseData, x, y, moveSpeed * life);
+                var lv_column = player.column;
+                var lv_row = player.row;
+                var o = stage.monstersGridContainer.FindNearestByRange2D(scene.cellRingDiffuseData, lv_column, lv_row, moveSpeed * life);
                 if (o != null)
                 {
-                    var dy = o.y - y;
-                    var dx = o.x - x;
-                    var r = Mathf.Atan2(dy, dx);
+                    var dRow = (CPEngine.horizontalMode ? o.y : o.z) - lv_row;
+                    var dColumn = o.x - lv_column;
+                    var r = Mathf.Atan2(dRow, dColumn);
                     var cos = Mathf.Cos(r);
                     var sin = Mathf.Sin(r);
-                    var tarX = x + cos * maxShootDistance;
-                    var tarY = y + sin * maxShootDistance;
-                    new PlayerBullet(this).Init(tarX, tarY, r, cos, sin);
+                    var tarColumn = lv_column + cos * maxShootDistance;
+                    var tarRow = lv_row + sin * maxShootDistance;
+                    new PlayerBullet(this).Init(tarColumn, tarRow, r, cos, sin);
                 }
 
             }
@@ -129,6 +128,7 @@ namespace SpriteSpace
         /// </summary>
         public virtual void Destroy()
         {
+
         }
     }
 }

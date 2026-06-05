@@ -8,6 +8,7 @@ using Object = UnityEngine.Object;
 
 /// <summary>
 /// The NetworkPlayer is a data structure with which you can locate another player over the network.
+/// 供Unet旧版网络系统使用.
 /// </summary>
 [RequiredByNativeCode(Optional = true)]
 public struct NetworkPlayer

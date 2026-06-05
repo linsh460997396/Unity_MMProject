@@ -51,7 +51,7 @@ namespace CellSpace
             get { return _invCellSize; }
         }
 
-        private int _sideLength = CPEngine.chunkSideLength;
+        private int _sideLength = CPEngine.lChunkSideLength;
         /// <summary>
         /// 团块空间边长(世界绝对坐标长度值).修改会导致重新初始化空间,请谨慎调整.
         /// </summary>
@@ -60,7 +60,7 @@ namespace CellSpace
             set
             {
                 _sideLength = value;
-                if (_sideLength <= 0) { _sideLength = CPEngine.chunkSideLength; }
+                if (_sideLength <= 0) { _sideLength = CPEngine.lChunkSideLength; }
                 Init(_cellSize);
             }
             get { return _sideLength; }

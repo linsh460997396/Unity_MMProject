@@ -39,16 +39,16 @@ namespace SpriteSpace
         /// <summary>
         /// 空间内精灵锚点的逻辑坐标(以空间左下为原点),与设计分辨率对比时用于隐藏超出屏幕范围的怪物游戏物体
         /// </summary>
-        public float pixelRaw, pixelColumn;
+        public float column, row;
 
         /// <summary>
         /// [构造函数]爆炸特效
         /// </summary>
         /// <param name="lv_stage">舞台</param>
-        /// <param name="lv_pixelRow"></param>
-        /// <param name="lv_pixelColumn"></param>
+        /// <param name="lv_column"></param>
+        /// <param name="lv_row"></param>
         /// <param name="lv_scale">缩放值,用来跟基础显示缩放比例(1f)相乘</param>
-        public EffectExplosion(Stage lv_stage, float lv_pixelRow, float lv_pixelColumn, float lv_scale)
+        public EffectExplosion(Stage lv_stage, float lv_column, float lv_row, float lv_scale)
         {
             stage = lv_stage;//初始化舞台
             scene = lv_stage.scene;//初始化场景
@@ -63,24 +63,24 @@ namespace SpriteSpace
             if (CPEngine.horizontalMode)
             {
                 //横版模式Z=0
-                go.transform.SetPositionAndRotation(new Vector3(lv_pixelRow / scene.gridSize, lv_pixelColumn / scene.gridSize, 0), Quaternion.identity);
+                go.transform.SetPositionAndRotation(new Vector3(lv_column / scene.gridSize, lv_row / scene.gridSize, 0), Quaternion.identity);
             }
             else if (CPEngine.singleLayerTerrainMode)
             {
                 //单层地形模式Y=1+aboveHeight
-                go.transform.SetPositionAndRotation(new Vector3(lv_pixelRow / scene.gridSize, 1 + scene.aboveHeight, lv_pixelColumn / scene.gridSize), Quaternion.Euler(90, 0, 0));
+                go.transform.SetPositionAndRotation(new Vector3(lv_column / scene.gridSize, 1 + scene.aboveHeight, lv_row / scene.gridSize), Quaternion.Euler(90, 0, 0));
             }
             else
             {
-                Debug.LogError("Can not support normal 3D mode");
+                Debug.LogError("SpriteSpace框架仅支持2D横板模式(X-Y平面)、3D单层地形模式(X-Z平面)");
             }
 
             var s = displayBaseScale * lv_scale; //计算最终缩放量
             go.transform.localScale = new Vector3(s, s, s);  //进行缩放
 
             //记录逻辑坐标
-            pixelRaw = lv_pixelRow;
-            pixelColumn = lv_pixelColumn;
+            column = lv_column;
+            row = lv_row;
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace SpriteSpace
         /// <param name="column">玩家逻辑坐标</param>
         public virtual void Draw(float row, float column)
         {
-            if (pixelRaw < row - scene.designWidth_2 || pixelRaw > row + scene.designWidth_2 || pixelColumn < column - scene.designHeight_2 || pixelColumn > column + scene.designHeight_2)
+            if (this.column < row - scene.designWidth_2 || this.column > row + scene.designWidth_2 || this.row < column - scene.designHeight_2 || this.row > column + scene.designHeight_2)
             {//因人始终在屏幕中间,特效对象不超过玩家逻辑位置+半个屏幕的逻辑像素距离时显示,不在屏幕内的对象就不显示(屏幕范围是角色摄像头范围,用designWidthToCameraRatio调整摄像头)
                 go.Disable();//屏幕外禁用结构体上的游戏物体
             }

@@ -11,14 +11,14 @@
         /// <summary>
         /// MM测试怪物的初始化方法,供MonsterGenerator调用
         /// </summary>
-        /// <param name="row">逻辑坐标</param>
-        /// <param name="column">逻辑坐标</param>
-        public void Init(float row, float column)
+        /// <param name="lv_column">逻辑坐标</param>
+        /// <param name="lv_row">逻辑坐标</param>
+        public void Init(float lv_column, float lv_row)
         {
             //MMCore.Tell($"row:{row} column:{column} Torf:{Scene.sprites_monster02 != null}");
             if (Scene.sprites_monster02 != null)
             {
-                Init(Scene.sprites_monster02, row, column);
+                Init(Scene.sprites_monster02, lv_column, lv_row);
             }
         }
 

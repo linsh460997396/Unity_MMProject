@@ -10,21 +10,6 @@ namespace MMWorld
     public class Main_MMWorld : MonoBehaviour
     {
         public static Scene scene;
-        public static bool sceneEnabled = false;
-        public static bool initialized = false;
-
-        ///// <summary>
-        ///// 挂上组件的当前帧运行(无论是否激活,仅自动运行1次).
-        ///// </summary>
-        public void Awake()
-        {
-            // Awake中尽量少写东西，主要逻辑在Start
-        }
-
-        ///// <summary>
-        ///// 组件激活时的当前帧运行一次(反复激活反复运行).
-        ///// </summary>
-        //public void OnEnable(){}
 
         /// <summary>
         /// OnEnable后在下一帧的Update前运行一次(仅自动运行1次,反复激活无效)
@@ -34,7 +19,7 @@ namespace MMWorld
             // 游戏入口 - 显示开局菜单
             //ShowStartMenu();
 
-            //测试体素世界
+            // 直接测试体素世界
             Init();
         }
 
@@ -44,7 +29,7 @@ namespace MMWorld
         private void ShowStartMenu()
         {
             // 创建临时相机用于渲染开局菜单UI
-            CreateTempCamera();
+            CreateSubCamera();
 
             // 获取或创建GameStartMenu
             GameStartMenu menu = FindObjectOfType<GameStartMenu>();
@@ -61,14 +46,11 @@ namespace MMWorld
         /// <summary>
         /// 创建临时相机用于渲染开局菜单
         /// </summary>
-        private void CreateTempCamera()
+        private void CreateSubCamera()
         {
             if (Camera.main == null)
             {
-                GameObject cameraObj = new GameObject("StartMenuCamera");
-                Camera camera = cameraObj.AddComponent<Camera>();
-                camera.tag = "MainCamera";
-                camera.backgroundColor = Color.black;
+                SpriteSpace.SpriteSpacePrefab.SubCamera.SetActive(true);
             }
         }
 
@@ -78,21 +60,9 @@ namespace MMWorld
         public static void Init()
         {
             SpriteSpacePrefab.Init();
-            if (scene == null)
-            {
-                Main_MMWorld main = FindObjectOfType<Main_MMWorld>();
-                if (main != null)
-                {
-                    scene = main.gameObject.GetComponent<Scene>();
-                    if (scene != null)
-                    {
-                        scene.enabled = false;
-                    }
-                }
-            }
+            scene = FindObjectOfType<Main_MMWorld>().gameObject.AddComponent<Scene>();
+            scene.Init(new CellGridContainer(100));
             CPEngine.Active();
-            sceneEnabled = false;
-            initialized = true;
         }
 
         /// <summary>
@@ -100,12 +70,7 @@ namespace MMWorld
         /// </summary>
         public void Update()
         {
-            if (initialized && sceneEnabled == false && CellChunkManager.SpawningChunks == false)
-            {//场景组件未启用且团块空间停止生成时
-                sceneEnabled = true;
-                gameObject.GetComponent<Scene>().enabled = true;//启用场景组件
-            }
-            if (initialized)
+            if (CPEngine.initialized)
             {
                 CPEngine.Tick();
             }

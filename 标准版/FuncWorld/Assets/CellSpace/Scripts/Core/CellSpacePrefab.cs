@@ -36,27 +36,6 @@ namespace CellSpace
         /// </summary>
         public static string externalTexturePath;
 
-        private static string _externalPath;
-        /// <summary>
-        /// 外部资源路径.默认留空使用路径:Application.dataPath + @"/CellSpace/Res".其他路径示范:
-        /// ExternalPath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework";
-        /// </summary>
-        public static string ExternalPath
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_externalPath))
-                {
-                    _externalPath = Application.dataPath + @"/CellSpace/Res";
-                }
-                return _externalPath;
-            }
-            set
-            {
-                _externalPath = value;
-            }
-        }
-
         /// <summary>
         /// 预制体初始化方法.在使用CellSpacePrefab前必须调用此方法来确保预制体已被创建.
         /// </summary>
@@ -237,14 +216,27 @@ namespace CellSpace
         /// <returns></returns>
         public static Material CPMat(string materialName, string texturePath)
         {
+            return CPMat(materialName, texturePath, "Standard");
+        }
+        /// <summary>
+        /// 获取材质"CPMat"的预制体.此预制体包含"CPTextureSheet"主纹理图,采用名为"Standard"的Shader.
+        /// 其余CPMat1~3挂载在CellChunk和CellChunkAdditionalMesh的MeshRenderer组件上,是第2~4个材质,分别有不同主纹理图.
+        /// 框架所用到的所有地块uv都是从主纹理图上划取.
+        /// </summary>
+        /// <param name="materialName">材质名</param>
+        /// <param name="texturePath">纹理图片地址</param>
+        /// <param name="shaderName">Shader名</param>
+        /// <returns></returns>
+        public static Material CPMat(string materialName, string texturePath, string shaderName)
+        {
             Material cachedMaterial;
-            Shader shader = Shader.Find("Standard");
+            Shader shader = Shader.Find(shaderName);
             if (!runtimePrefab.ContainsKey(materialName))
             {
                 // 创建新材质并配置基础属性
                 if (shader == null)
                 {
-                    Debug.LogError("Standard Shader未包含在构建中!");
+                    Debug.LogError(shaderName + "未包含在构建中!");
                 }
                 else
                 {
@@ -338,9 +330,9 @@ namespace CellSpace
             dynamicMesh.vertices = vertices;
             dynamicMesh.triangles = triangles;
             // 根据三角形顺序自动生成法线,而非自己定义每个面的朝向.三角形按序顺时针形成的面的法线朝向用户屏幕,为正方向)
-            dynamicMesh.RecalculateNormals(); 
+            dynamicMesh.RecalculateNormals();
             // 重新计算网格包围盒(完全包含网格所有顶点的最小长方体,Unity用它进行视锥体裁剪、碰撞检测等操作,在改变顶点数组后调用此方法能刷新渲染或使物理系统正常工作)
-            dynamicMesh.RecalculateBounds();  
+            dynamicMesh.RecalculateBounds();
 
             return dynamicMesh;
         }

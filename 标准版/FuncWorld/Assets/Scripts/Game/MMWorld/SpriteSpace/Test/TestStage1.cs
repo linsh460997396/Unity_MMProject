@@ -78,7 +78,7 @@ namespace SpriteSpace
                 var y = Random.Range(-scene.designHeight_2, scene.designHeight_2);
                 //var v = Random.Range(0, 1000000000) * System.Math.Pow(10, Random.Range(1, 20 - 10));   // 307 - 10
                 var v = random.NextDouble() * System.Math.Pow(10, Random.Range(2, 30 - 10));
-                new EffectNumber(this, player.pixelRow + x, player.pixelColumn + y, 0.5f, v, Random.value > 0.5f);
+                new EffectNumber(this, player.column + x, player.row + y, 0.5f, v, Random.value > 0.5f);
             }
         }
 

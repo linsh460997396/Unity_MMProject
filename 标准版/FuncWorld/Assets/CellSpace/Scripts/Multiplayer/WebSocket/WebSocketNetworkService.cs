@@ -28,6 +28,9 @@ namespace CellSpace.WebSocket
 
         public void Connect()
         {
+            // 先清理旧连接
+            CleanupWebSocket();
+
             if (webSocket != null && webSocket.IsOpen)
             {
                 if (enableDebugLog)
@@ -46,16 +49,28 @@ namespace CellSpace.WebSocket
                 Debug.Log("Connecting to server: " + serverAddress);
         }
 
-        public void Disconnect()
+        private void CleanupWebSocket()
         {
             if (webSocket != null)
             {
-                webSocket.Close();
-                webSocket = null;
+                webSocket.OnOpen -= HandleConnected;
+                webSocket.OnMessage -= HandleMessageReceived;
+                webSocket.OnError -= HandleError;
+                webSocket.OnClosed -= HandleDisconnected;
 
-                if (enableDebugLog)
-                    Debug.Log("Disconnected from server");
+                if (webSocket.IsOpen)
+                    webSocket.Close();
+
+                webSocket = null;
             }
+        }
+
+        public void Disconnect()
+        {
+            CleanupWebSocket();
+
+            if (enableDebugLog)
+                Debug.Log("Disconnected from server");
         }
 
         public void SendMessage(NetworkMessage message)

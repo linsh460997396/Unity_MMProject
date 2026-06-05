@@ -15,12 +15,12 @@ namespace SpriteSpace
     /// </summary>
     public class SpriteSpacePrefab : MonoBehaviour
     {
-        
+
         private static TMP_FontAsset _fontFZYaSong;
         /// <summary>
         /// 方正雅宋中文字体.请将对应的字体文件放在Resources/Fonts目录下,并命名为"FZYaSongS-M-GB - Regular SDF"以供加载.
         /// </summary>
-        public static TMP_FontAsset FontFZYaSong 
+        public static TMP_FontAsset FontFZYaSong
         {
             set
             {
@@ -31,7 +31,7 @@ namespace SpriteSpace
                 if (_fontFZYaSong == null)
                 {
                     _fontFZYaSong = Resources.Load<TMP_FontAsset>("Fonts/FZYaSongS-M-GB - Regular SDF");
-                    if (_fontFZYaSong == null)  _fontFZYaSong = TMP_Settings.defaultFontAsset;
+                    if (_fontFZYaSong == null) _fontFZYaSong = TMP_Settings.defaultFontAsset;
                     if (_fontFZYaSong == null)
                     {
                         Debug.LogWarning("未能找到FZYaSongS-M-GB - Regular SDF字体及内置默认字体");
@@ -47,7 +47,7 @@ namespace SpriteSpace
         /// </summary>
         public static TMP_FontAsset FontMetalMax
         {
-            set 
+            set
             {
                 _fontMetalMax = value;
             }
@@ -68,7 +68,7 @@ namespace SpriteSpace
 
         private static string _externalPath;
         /// <summary>
-        /// 外部资源路径.默认留空使用路径:Application.dataPath + @"/CellSpace/Res".其他路径示范:
+        /// 外部资源路径.默认留空使用路径:Application.dataPath + @"/Res".其他路径示范:
         /// ExternalPath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework";
         /// </summary>
         public static string ExternalPath
@@ -77,7 +77,7 @@ namespace SpriteSpace
             {
                 if (string.IsNullOrEmpty(_externalPath))
                 {
-                    _externalPath = Application.dataPath + @"/CellSpace/Res";
+                    _externalPath = Application.dataPath + @"/Res";
                 }
                 return _externalPath;
             }
@@ -116,14 +116,15 @@ namespace SpriteSpace
         public static List<Sprite>[] Vehicle;
         public static List<Sprite>[] characters;
         public static List<Sprite>[] monsters;
+        public static List<Sprite>[] others;
 
         /// <summary>
         /// 预制体初始化方法.在使用SpriteSpacePrefab前必须调用此方法来确保预制体已被创建.
         /// </summary>
-        public static void Init()
+        public static void Init(string spriteShader = "Sprites/Default", int countGO = 20000)
         {
             if (initialized) return;
-            material = new Material(Shader.Find("Sprites/Default"));
+            material = new Material(Shader.Find(spriteShader));
             group = GameObject.Find("SpriteSpacePrefab") ?? new GameObject("SpriteSpacePrefab"); //创建存放SpriteSpace预制体实例的父级容器
             DontDestroyOnLoad(group);
             runtimePrefab.hideFlags = HideFlags.DontUnloadUnusedAsset; //资源持久化标记
@@ -137,7 +138,7 @@ namespace SpriteSpace
             //初始化底层绘制对象池(用于大量NPC、怪物等活动精灵个体对象复用GameObject,防止频繁创建摧毁导致掉帧问题)
             GameObject tempGroup = new GameObject("GOGroup");
             DontDestroyOnLoad(tempGroup);
-            GO.Init(material, 20000, tempGroup);
+            GO.Init(material, countGO, tempGroup);
 
             //主动检查并创建场景必需的对象(Sun、MainCamera、MinimapCamera、MinimapCanvas)
             //通过访问属性触发延迟创建逻辑
@@ -335,7 +336,6 @@ namespace SpriteSpace
         /// <summary>
         /// 获取MainCamera预制体.作为单例直接使用.
         /// 如不存在,会创建名为"MainCamera"的游戏物体并添加Camera组件.
-        /// 首次创建的预制体不激活.
         /// </summary>
         public static GameObject MainCamera
         {
@@ -359,6 +359,36 @@ namespace SpriteSpace
                     camera.allowMSAA = true; // 开启多重采样抗锯齿
                     go.SetActive(true); // 主摄像机需要立即激活
                     Debug.Log($"预制体已创建: MainCamera");
+                });
+            }
+        }
+
+        /// <summary>
+        /// 获取SubCamera预制体.作为单例直接使用.
+        /// 如不存在,会创建名为"SubCamera"的游戏物体并添加Camera组件.
+        /// 首次创建不激活.
+        /// </summary>
+        public static GameObject SubCamera
+        {
+            get
+            {
+                return GetOrCreatePrefab("SubCamera", go =>
+                {
+                    // 主摄像机位置在正后方（Z=-20）
+                    go.transform.SetPositionAndRotation(new Vector3(0f, 0f, -20f), Quaternion.identity);
+                    go.transform.parent = group.transform;
+                    Camera camera = go.AddComponent<Camera>();
+                    camera.tag = "SubCamera"; // 设置标签
+                    camera.clearFlags = CameraClearFlags.SolidColor; // 纯色背景，确保光源生效
+                    camera.backgroundColor = new Color(0.2f, 0.4f, 0.6f, 1f); // 蓝色背景（天空色）
+                    // cullingMask使用位运算指定渲染层：(1 << 层序号) 表示包含该层
+                    // Default(0) | TransparentFX(1) | IgnoreRaycast(2) | Water(4) | UI(5)
+                    camera.cullingMask = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 4) | (1 << 5);
+                    camera.depth = 0f; // 相机渲染顺序，数值越大越后渲染（-1为小地图相机）
+                    camera.nearClipPlane = 0.3f; // 近裁剪面
+                    camera.farClipPlane = 1000f; // 远裁剪面
+                    camera.allowMSAA = true; // 开启多重采样抗锯齿
+                    go.SetActive(false);
                 });
             }
         }
@@ -815,6 +845,7 @@ namespace SpriteSpace
             LoadVehicles();
             LoadCharacters();
             LoadMonsters();
+            LoadOthers();
         }
 
         /// <summary>
@@ -829,138 +860,138 @@ namespace SpriteSpace
                 monsters[i] = new List<Sprite>();
             }
             //以下不是手敲的..扫描文件夹进行的打印,散图读取效率还行就懒得合并了,因为Unity已经切片,读完不用分割精灵直接可以使用数组monsters[TypeIndex][SpriteIndex]
-            monsters[0].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E01_火焰枪"));
-            monsters[1].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E01_火焰炮"));
-            monsters[2].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E02_加农炮"));
-            monsters[3].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E02_野战炮"));
-            monsters[4].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E03_扫描仪"));
-            monsters[5].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E03_监视器"));
-            monsters[6].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E04_催眠器"));
-            monsters[7].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E04_声纳车"));
-            monsters[8].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E05_歼灭者"));
-            monsters[9].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E05_防御器"));
-            monsters[10].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E06_暗堡"));
-            monsters[11].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E06_碉堡"));
-            monsters[12].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E07_神秘人"));
-            monsters[13].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E07_神风弹"));
-            monsters[14].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E08_合金鸟"));
-            monsters[15].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E08_机器鸟"));
-            monsters[16].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E09_光防御器"));
-            monsters[17].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E10_磁铁"));
-            monsters[18].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E11_追踪弹"));
-            monsters[19].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E12_僵尸"));
-            monsters[20].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E12_弗朗"));
-            monsters[21].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E13_激光系统"));
-            monsters[22].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E14_智能人"));
-            monsters[23].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/E15_机器人"));
-            monsters[24].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L01_巨蚁"));
-            monsters[25].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L01_酸蚁"));
-            monsters[26].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L02_变形虫"));
-            monsters[27].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L02_杀人虫"));
-            monsters[28].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L02_超导虫"));
-            monsters[29].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L03_彷生蜗牛"));
-            monsters[30].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L03_毒蜗牛"));
-            monsters[31].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L04_地雷龟"));
-            monsters[32].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L04_炸弹龟"));
-            monsters[33].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L05_毒蜘蛛"));
-            monsters[34].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L06_喷火鳄"));
-            monsters[35].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L06_异形鱼"));
-            monsters[36].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L07_流氓"));
-            monsters[37].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L07_瓦鲁部下"));
-            monsters[38].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L08_马歇尔"));
-            monsters[39].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L09_反坦克兵G"));
-            monsters[40].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L09_反坦克兵O"));
-            monsters[41].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L10_侦查者"));
-            monsters[42].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L10_异形"));
-            monsters[43].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L11_激光虫"));
-            monsters[44].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L11_离子虫"));
-            monsters[45].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L12_声波蛇"));
-            monsters[46].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L12_声纳蛇"));
-            monsters[47].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L13_喷火怪"));
-            monsters[48].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L13_水怪"));
-            monsters[49].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L13_波特"));
-            monsters[50].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L14_雷达花"));
-            monsters[51].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L15_帕鲁"));
-            monsters[52].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L16_戈麦斯"));
-            monsters[53].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L17_军蚁"));
-            monsters[54].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L17_金蚁毯"));
-            monsters[55].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L18_金蚁"));
-            monsters[56].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L18_食人蚁"));
-            monsters[57].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L19_水鬼"));
-            monsters[58].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L19_水鬼H"));
-            monsters[59].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L19_蛙人"));
-            monsters[60].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L20_电磁花"));
-            monsters[61].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L20_食人花"));
-            monsters[62].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L20_魔鬼花"));
-            monsters[63].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L21_反坦克炮H"));
-            monsters[64].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L21_反坦克炮R"));
-            monsters[65].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/L21_战狗"));
-            monsters[66].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S01_章鱼坦克"));
-            monsters[67].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S01_章鱼炮"));
-            monsters[68].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S02_步枪鸟"));
-            monsters[69].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S02_飞狗"));
-            monsters[70].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S03_机械虫"));
-            monsters[71].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S03_激光蚓"));
-            monsters[72].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S04_化学炮"));
-            monsters[73].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S04_生物炮"));
-            monsters[74].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S05_后备车"));
-            monsters[75].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S05_狙击鸟"));
-            monsters[76].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S06_侦查蜂"));
-            monsters[77].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S06_毒蜂"));
-            monsters[78].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S07_毒蝙蝠"));
-            monsters[79].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S08_地狱"));
-            monsters[80].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S08_大象"));
-            monsters[81].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S08_蜈蚣"));
-            monsters[82].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S09_导弹蛙"));
-            monsters[83].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S10_巨蟹"));
-            monsters[84].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S10_机械蟹"));
-            monsters[85].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S11_巨型河马"));
-            monsters[86].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S11_机械河马"));
-            monsters[87].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/S12_铁甲炮"));
-            monsters[88].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T01_85自行炮"));
-            monsters[89].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T01_坦克"));
-            monsters[90].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T01_导弹车"));
-            monsters[91].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T01_音速车"));
-            monsters[92].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T02_ATM战车"));
-            monsters[93].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T02_指挥车"));
-            monsters[94].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T02_瓦鲁"));
-            monsters[95].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T02_高速车"));
-            monsters[96].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T03_抓吊"));
-            monsters[97].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T03_粉碎机"));
-            monsters[98].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T03_起重机"));
-            monsters[99].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T04_急救车"));
-            monsters[100].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T05_噪音车"));
-            monsters[101].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T05_声波炮"));
-            monsters[102].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T05_铲车"));
-            monsters[103].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T06_导弹卡车"));
-            monsters[104].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T07_无坐力炮"));
-            monsters[105].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T07_狙击车"));
-            monsters[106].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T08_沙漠虎"));
-            monsters[107].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T08_沙漠车"));
-            monsters[108].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T09_AT坦克B"));
-            monsters[109].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T09_AT坦克R"));
-            monsters[110].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T10_沙漠之舟"));
-            monsters[111].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T10_猎杀者"));
-            monsters[112].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T11_戈斯战车"));
-            monsters[113].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T11_离子坦克"));
-            monsters[114].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T12_两栖车"));
-            monsters[115].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T12_龟式战车"));
-            monsters[116].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T13_攻击机"));
-            monsters[117].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T13_防御机器"));
-            monsters[118].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T14_古炮"));
-            monsters[119].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T14_神武炮"));
-            monsters[120].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T15_装甲车"));
-            monsters[121].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T15_车载炮"));
-            monsters[122].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T16_侦查碟"));
-            monsters[123].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/T16_拦截碟"));
-            monsters[124].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/X01_电脑墙"));
-            monsters[125].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/X01_诺亚v1"));
-            monsters[126].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/X01_诺亚v2"));
-            monsters[127].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/X01_诺亚v3"));
-            monsters[128].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/X02_毒液枪"));
-            monsters[129].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/X02_生物枪"));
-            monsters[130].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/X03_鬼手"));
-            monsters[131].AddRange(Resources.LoadAll<Sprite>("Textures/Monsters/X04_巨型炮"));
+            monsters[0].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E01_火焰枪"));
+            monsters[1].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E01_火焰炮"));
+            monsters[2].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E02_加农炮"));
+            monsters[3].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E02_野战炮"));
+            monsters[4].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E03_扫描仪"));
+            monsters[5].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E03_监视器"));
+            monsters[6].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E04_催眠器"));
+            monsters[7].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E04_声纳车"));
+            monsters[8].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E05_歼灭者"));
+            monsters[9].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E05_防御器"));
+            monsters[10].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E06_暗堡"));
+            monsters[11].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E06_碉堡"));
+            monsters[12].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E07_神秘人"));
+            monsters[13].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E07_神风弹"));
+            monsters[14].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E08_合金鸟"));
+            monsters[15].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E08_机器鸟"));
+            monsters[16].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E09_光防御器"));
+            monsters[17].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E10_磁铁"));
+            monsters[18].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E11_追踪弹"));
+            monsters[19].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E12_僵尸"));
+            monsters[20].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E12_弗朗"));
+            monsters[21].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E13_激光系统"));
+            monsters[22].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E14_智能人"));
+            monsters[23].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/E15_机器人"));
+            monsters[24].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L01_巨蚁"));
+            monsters[25].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L01_酸蚁"));
+            monsters[26].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L02_变形虫"));
+            monsters[27].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L02_杀人虫"));
+            monsters[28].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L02_超导虫"));
+            monsters[29].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L03_彷生蜗牛"));
+            monsters[30].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L03_毒蜗牛"));
+            monsters[31].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L04_地雷龟"));
+            monsters[32].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L04_炸弹龟"));
+            monsters[33].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L05_毒蜘蛛"));
+            monsters[34].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L06_喷火鳄"));
+            monsters[35].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L06_异形鱼"));
+            monsters[36].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L07_流氓"));
+            monsters[37].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L07_瓦鲁部下"));
+            monsters[38].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L08_马歇尔"));
+            monsters[39].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L09_反坦克兵G"));
+            monsters[40].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L09_反坦克兵O"));
+            monsters[41].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L10_侦查者"));
+            monsters[42].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L10_异形"));
+            monsters[43].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L11_激光虫"));
+            monsters[44].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L11_离子虫"));
+            monsters[45].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L12_声波蛇"));
+            monsters[46].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L12_声纳蛇"));
+            monsters[47].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L13_喷火怪"));
+            monsters[48].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L13_水怪"));
+            monsters[49].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L13_波特"));
+            monsters[50].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L14_雷达花"));
+            monsters[51].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L15_帕鲁"));
+            monsters[52].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L16_戈麦斯"));
+            monsters[53].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L17_军蚁"));
+            monsters[54].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L17_金蚁毯"));
+            monsters[55].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L18_金蚁"));
+            monsters[56].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L18_食人蚁"));
+            monsters[57].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L19_水鬼"));
+            monsters[58].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L19_水鬼H"));
+            monsters[59].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L19_蛙人"));
+            monsters[60].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L20_电磁花"));
+            monsters[61].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L20_食人花"));
+            monsters[62].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L20_魔鬼花"));
+            monsters[63].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L21_反坦克炮H"));
+            monsters[64].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L21_反坦克炮R"));
+            monsters[65].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/L21_战狗"));
+            monsters[66].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S01_章鱼坦克"));
+            monsters[67].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S01_章鱼炮"));
+            monsters[68].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S02_步枪鸟"));
+            monsters[69].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S02_飞狗"));
+            monsters[70].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S03_机械虫"));
+            monsters[71].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S03_激光蚓"));
+            monsters[72].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S04_化学炮"));
+            monsters[73].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S04_生物炮"));
+            monsters[74].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S05_后备车"));
+            monsters[75].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S05_狙击鸟"));
+            monsters[76].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S06_侦查蜂"));
+            monsters[77].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S06_毒蜂"));
+            monsters[78].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S07_毒蝙蝠"));
+            monsters[79].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S08_地狱"));
+            monsters[80].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S08_大象"));
+            monsters[81].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S08_蜈蚣"));
+            monsters[82].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S09_导弹蛙"));
+            monsters[83].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S10_巨蟹"));
+            monsters[84].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S10_机械蟹"));
+            monsters[85].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S11_巨型河马"));
+            monsters[86].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S11_机械河马"));
+            monsters[87].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/S12_铁甲炮"));
+            monsters[88].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T01_85自行炮"));
+            monsters[89].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T01_坦克"));
+            monsters[90].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T01_导弹车"));
+            monsters[91].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T01_音速车"));
+            monsters[92].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T02_ATM战车"));
+            monsters[93].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T02_指挥车"));
+            monsters[94].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T02_瓦鲁"));
+            monsters[95].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T02_高速车"));
+            monsters[96].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T03_抓吊"));
+            monsters[97].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T03_粉碎机"));
+            monsters[98].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T03_起重机"));
+            monsters[99].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T04_急救车"));
+            monsters[100].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T05_噪音车"));
+            monsters[101].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T05_声波炮"));
+            monsters[102].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T05_铲车"));
+            monsters[103].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T06_导弹卡车"));
+            monsters[104].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T07_无坐力炮"));
+            monsters[105].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T07_狙击车"));
+            monsters[106].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T08_沙漠虎"));
+            monsters[107].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T08_沙漠车"));
+            monsters[108].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T09_AT坦克B"));
+            monsters[109].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T09_AT坦克R"));
+            monsters[110].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T10_沙漠之舟"));
+            monsters[111].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T10_猎杀者"));
+            monsters[112].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T11_戈斯战车"));
+            monsters[113].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T11_离子坦克"));
+            monsters[114].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T12_两栖车"));
+            monsters[115].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T12_龟式战车"));
+            monsters[116].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T13_攻击机"));
+            monsters[117].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T13_防御机器"));
+            monsters[118].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T14_古炮"));
+            monsters[119].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T14_神武炮"));
+            monsters[120].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T15_装甲车"));
+            monsters[121].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T15_车载炮"));
+            monsters[122].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T16_侦查碟"));
+            monsters[123].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/T16_拦截碟"));
+            monsters[124].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/X01_电脑墙"));
+            monsters[125].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/X01_诺亚v1"));
+            monsters[126].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/X01_诺亚v2"));
+            monsters[127].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/X01_诺亚v3"));
+            monsters[128].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/X02_毒液枪"));
+            monsters[129].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/X02_生物枪"));
+            monsters[130].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/X03_鬼手"));
+            monsters[131].AddRange(Resources.LoadAll<Sprite>("Textures/Monster/X04_巨型炮"));
         }
 
         /// <summary>
@@ -974,60 +1005,60 @@ namespace SpriteSpace
             {
                 characters[i] = new List<Sprite>();
             }
-            characters[0].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/主角"));
-            characters[1].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/主角2"));
-            characters[2].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/主角3"));
-            characters[3].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/佛像"));
-            characters[4].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/修理师傅"));
-            characters[5].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/勇士"));
-            characters[6].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/勇士2"));
-            characters[7].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/勇士3"));
-            characters[8].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/商人"));
-            characters[9].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/商店员"));
-            characters[10].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/商店员2"));
-            characters[11].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/商店员3"));
-            characters[12].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/大象"));
-            characters[13].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/头"));
-            characters[14].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/女孩"));
-            characters[15].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/女孩2"));
-            characters[16].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/妇女"));
-            characters[17].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/小孩"));
-            characters[18].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/平民女"));
-            characters[19].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/平民女2"));
-            characters[20].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/平民女3"));
-            characters[21].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/平民女4"));
-            characters[22].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/平民男"));
-            characters[23].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/平民男2"));
-            characters[24].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/平民男3"));
-            characters[25].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/平民男4"));
-            characters[26].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/异型鱼"));
-            characters[27].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/战狗"));
-            characters[28].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/按摩师"));
-            characters[29].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/旅行者"));
-            characters[30].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/旅馆服务员"));
-            characters[31].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/明奇博士"));
-            characters[32].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/普通勇士"));
-            characters[33].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/普通的尸体"));
-            characters[34].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/机器人"));
-            characters[35].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/机器人2"));
-            characters[36].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/机器人3"));
-            characters[37].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/机器人4"));
-            characters[38].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/死人"));
-            characters[39].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/气功师"));
-            characters[40].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/气功师2"));
-            characters[41].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/流氓"));
-            characters[42].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/烧焦的尸体"));
-            characters[43].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/狼"));
-            characters[44].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/红狼"));
-            characters[45].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/老年人"));
-            characters[46].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/老者"));
-            characters[47].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/船夫"));
-            characters[48].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/行人"));
-            characters[49].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/行人2"));
-            characters[50].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/行人3"));
-            characters[51].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/行人4"));
-            characters[52].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/记录员"));
-            characters[53].AddRange(Resources.LoadAll<Sprite>("Textures/Characters/马歇尔"));
+            characters[0].AddRange(Resources.LoadAll<Sprite>("Textures/Character/主角"));
+            characters[1].AddRange(Resources.LoadAll<Sprite>("Textures/Character/主角2"));
+            characters[2].AddRange(Resources.LoadAll<Sprite>("Textures/Character/主角3"));
+            characters[3].AddRange(Resources.LoadAll<Sprite>("Textures/Character/佛像"));
+            characters[4].AddRange(Resources.LoadAll<Sprite>("Textures/Character/修理师傅"));
+            characters[5].AddRange(Resources.LoadAll<Sprite>("Textures/Character/勇士"));
+            characters[6].AddRange(Resources.LoadAll<Sprite>("Textures/Character/勇士2"));
+            characters[7].AddRange(Resources.LoadAll<Sprite>("Textures/Character/勇士3"));
+            characters[8].AddRange(Resources.LoadAll<Sprite>("Textures/Character/商人"));
+            characters[9].AddRange(Resources.LoadAll<Sprite>("Textures/Character/商店员"));
+            characters[10].AddRange(Resources.LoadAll<Sprite>("Textures/Character/商店员2"));
+            characters[11].AddRange(Resources.LoadAll<Sprite>("Textures/Character/商店员3"));
+            characters[12].AddRange(Resources.LoadAll<Sprite>("Textures/Character/大象"));
+            characters[13].AddRange(Resources.LoadAll<Sprite>("Textures/Character/头"));
+            characters[14].AddRange(Resources.LoadAll<Sprite>("Textures/Character/女孩"));
+            characters[15].AddRange(Resources.LoadAll<Sprite>("Textures/Character/女孩2"));
+            characters[16].AddRange(Resources.LoadAll<Sprite>("Textures/Character/妇女"));
+            characters[17].AddRange(Resources.LoadAll<Sprite>("Textures/Character/小孩"));
+            characters[18].AddRange(Resources.LoadAll<Sprite>("Textures/Character/平民女"));
+            characters[19].AddRange(Resources.LoadAll<Sprite>("Textures/Character/平民女2"));
+            characters[20].AddRange(Resources.LoadAll<Sprite>("Textures/Character/平民女3"));
+            characters[21].AddRange(Resources.LoadAll<Sprite>("Textures/Character/平民女4"));
+            characters[22].AddRange(Resources.LoadAll<Sprite>("Textures/Character/平民男"));
+            characters[23].AddRange(Resources.LoadAll<Sprite>("Textures/Character/平民男2"));
+            characters[24].AddRange(Resources.LoadAll<Sprite>("Textures/Character/平民男3"));
+            characters[25].AddRange(Resources.LoadAll<Sprite>("Textures/Character/平民男4"));
+            characters[26].AddRange(Resources.LoadAll<Sprite>("Textures/Character/异型鱼"));
+            characters[27].AddRange(Resources.LoadAll<Sprite>("Textures/Character/战狗"));
+            characters[28].AddRange(Resources.LoadAll<Sprite>("Textures/Character/按摩师"));
+            characters[29].AddRange(Resources.LoadAll<Sprite>("Textures/Character/旅行者"));
+            characters[30].AddRange(Resources.LoadAll<Sprite>("Textures/Character/旅馆服务员"));
+            characters[31].AddRange(Resources.LoadAll<Sprite>("Textures/Character/明奇博士"));
+            characters[32].AddRange(Resources.LoadAll<Sprite>("Textures/Character/普通勇士"));
+            characters[33].AddRange(Resources.LoadAll<Sprite>("Textures/Character/普通的尸体"));
+            characters[34].AddRange(Resources.LoadAll<Sprite>("Textures/Character/机器人"));
+            characters[35].AddRange(Resources.LoadAll<Sprite>("Textures/Character/机器人2"));
+            characters[36].AddRange(Resources.LoadAll<Sprite>("Textures/Character/机器人3"));
+            characters[37].AddRange(Resources.LoadAll<Sprite>("Textures/Character/机器人4"));
+            characters[38].AddRange(Resources.LoadAll<Sprite>("Textures/Character/死人"));
+            characters[39].AddRange(Resources.LoadAll<Sprite>("Textures/Character/气功师"));
+            characters[40].AddRange(Resources.LoadAll<Sprite>("Textures/Character/气功师2"));
+            characters[41].AddRange(Resources.LoadAll<Sprite>("Textures/Character/流氓"));
+            characters[42].AddRange(Resources.LoadAll<Sprite>("Textures/Character/烧焦的尸体"));
+            characters[43].AddRange(Resources.LoadAll<Sprite>("Textures/Character/狼"));
+            characters[44].AddRange(Resources.LoadAll<Sprite>("Textures/Character/红狼"));
+            characters[45].AddRange(Resources.LoadAll<Sprite>("Textures/Character/老年人"));
+            characters[46].AddRange(Resources.LoadAll<Sprite>("Textures/Character/老者"));
+            characters[47].AddRange(Resources.LoadAll<Sprite>("Textures/Character/船夫"));
+            characters[48].AddRange(Resources.LoadAll<Sprite>("Textures/Character/行人"));
+            characters[49].AddRange(Resources.LoadAll<Sprite>("Textures/Character/行人2"));
+            characters[50].AddRange(Resources.LoadAll<Sprite>("Textures/Character/行人3"));
+            characters[51].AddRange(Resources.LoadAll<Sprite>("Textures/Character/行人4"));
+            characters[52].AddRange(Resources.LoadAll<Sprite>("Textures/Character/记录员"));
+            characters[53].AddRange(Resources.LoadAll<Sprite>("Textures/Character/马歇尔"));
         }
 
         /// <summary>
@@ -1050,6 +1081,121 @@ namespace SpriteSpace
             Vehicle[6].AddRange(Resources.LoadAll<Sprite>("Textures/Vehicle/7号战车"));
             Vehicle[7].AddRange(Resources.LoadAll<Sprite>("Textures/Vehicle/8号战车"));
             Vehicle[8].AddRange(Resources.LoadAll<Sprite>("Textures/Vehicle/船"));
+        }
+
+        /// <summary>
+        /// 读取其他纹理和精灵切片
+        /// </summary>
+        public static void LoadOthers()
+        {
+            others = new List<Sprite>[12];
+            // 初始化数组中的每个List元素
+            for (int i = 0; i < others.Length; i++)
+            {
+                others[i] = new List<Sprite>();
+            }
+            Sprite[] allSprites = Resources.LoadAll<Sprite>("Textures/Other/MiscRes");
+            if (allSprites != null)
+            {
+                Debug.Log($"成功加载 {allSprites.Length} 个精灵");
+
+                // 按类别筛选（根据你的需求）
+                List<Sprite> font_outline = new List<Sprite>();
+                List<Sprite> explosion = new List<Sprite>();
+                List<Sprite> player = new List<Sprite>();
+                List<Sprite> bullets = new List<Sprite>();
+                List<Sprite> monster1 = new List<Sprite>();
+                List<Sprite> monster2 = new List<Sprite>();
+                List<Sprite> monster3 = new List<Sprite>();
+                List<Sprite> monster4 = new List<Sprite>();
+                List<Sprite> monster5 = new List<Sprite>();
+                List<Sprite> monster6 = new List<Sprite>();
+                List<Sprite> monster7 = new List<Sprite>();
+                List<Sprite> monster8 = new List<Sprite>();
+
+                foreach (var sprite in allSprites)
+                {
+                    if (sprite.name.StartsWith("font_outline_"))
+                    {
+                        font_outline.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("explosion_"))
+                    {
+                        explosion.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("monster_3_"))
+                    {
+                        player.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("bullet_"))
+                    {
+                        bullets.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("monster_3_"))
+                    {
+                        player.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("carnivorous_worm_"))
+                    {
+                        monster1.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("dragon_greatgold_"))
+                    {
+                        monster2.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("glaring_overlord_"))
+                    {
+                        monster3.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("gorilla_"))
+                    {
+                        monster4.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("moose_"))
+                    {
+                        monster5.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("rearing_nightmare_"))
+                    {
+                        monster6.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("skull_spider_"))
+                    {
+                        monster7.Add(sprite);
+                    }
+                    else if (sprite.name.StartsWith("venomous_chimera_"))
+                    {
+                        monster8.Add(sprite);
+                    }
+                }
+
+                Scene.sprites_font_outline = font_outline.ToArray();
+                Scene.sprites_explosions = explosion.ToArray();
+                Scene.sprites_player = player.ToArray();
+                Scene.sprites_bullets = bullets.ToArray();
+                Scene.sprites_monster01 = monster1.ToArray();
+                Scene.sprites_monster02 = monster2.ToArray();
+                Scene.sprites_monster03 = monster3.ToArray();
+                Scene.sprites_monster04 = monster4.ToArray();
+                Scene.sprites_monster05 = monster5.ToArray();
+                Scene.sprites_monster06 = monster6.ToArray();
+                Scene.sprites_monster07 = monster7.ToArray();
+                Scene.sprites_monster08 = monster8.ToArray();
+
+                Debug.Log($"字体轮廓精灵数量: {Scene.sprites_font_outline.Length}");
+                Debug.Log($"爆炸效果精灵数量: {Scene.sprites_explosions.Length}");
+                Debug.Log($"玩家精灵数量: {Scene.sprites_player.Length}");
+                Debug.Log($"子弹精灵数量: {Scene.sprites_bullets.Length}");
+                Debug.Log($"食人虫精灵数量: {Scene.sprites_monster01.Length}");
+                Debug.Log($"巨型金属龙精灵数量: {Scene.sprites_monster02.Length}");
+                Debug.Log($"炫目霸主精灵数量: {Scene.sprites_monster03.Length}");
+                Debug.Log($"大猩猩精灵数量: {Scene.sprites_monster04.Length}");
+                Debug.Log($"驼鹿精灵数量: {Scene.sprites_monster05.Length}");
+                Debug.Log($"噩梦精灵数量: {Scene.sprites_monster06.Length}");
+                Debug.Log($"骷髅蜘蛛精灵数量: {Scene.sprites_monster07.Length}");
+                Debug.Log($"毒蛇精灵数量: {Scene.sprites_monster08.Length}");
+            }
+
         }
 
         #endregion
@@ -1618,7 +1764,7 @@ namespace SpriteSpace
             //创建EventSystem对象
             GameObject eventSystemGO = new GameObject("EventSystem");
             DontDestroyOnLoad(eventSystemGO);
-            
+
             // 添加到group下（如果group存在）
             if (group != null)
             {
@@ -1627,7 +1773,7 @@ namespace SpriteSpace
 
             //添加EventSystem组件
             eventSystemGO.AddComponent<EventSystem>();
-            
+
             //添加StandaloneInputModule组件（处理鼠标/键盘输入）
             eventSystemGO.AddComponent<InputSystemUIInputModule>();
 

@@ -1,4 +1,5 @@
 ﻿using CellSpace;
+using System;
 using UnityEngine;
 
 namespace SpriteSpace
@@ -11,6 +12,8 @@ namespace SpriteSpace
     /// </summary>
     public class Scene : MonoBehaviour
     {
+        public static bool initialized = false;
+
         /// <summary>
         /// 屏幕主摄像机组件.若通过SpriteSpacePrefab.MainCamera获取则不需要修改,否则请自定义主摄像机.
         /// </summary>
@@ -62,7 +65,7 @@ namespace SpriteSpace
         /// 如果未找到则创建一个新的GameObject并添加Scene组件.
         /// </summary>
         /// <returns>新创建或找到的Scene实例</returns>
-        public static Scene New()
+        public static Scene Create()
         {
             var obj = GameObject.Find("Scene" + id);
             if (obj == null) { obj = new GameObject("Scene" + id++); }
@@ -87,7 +90,7 @@ namespace SpriteSpace
         /// </summary>
         public Player player;
         /// <summary>
-        /// 网格尺寸(尺度单位是逻辑像素非真实像素),决定空间或地图逻辑像素及屏幕摄像头占据的大小.
+        /// 网格单元的大小(尺度单位是逻辑像素非真实像素),决定空间或地图逻辑像素及屏幕摄像头占据的大小.
         /// </summary>
         public float gridSize;
         /// <summary>
@@ -101,7 +104,7 @@ namespace SpriteSpace
         /// <summary>
         /// 网格空间尺寸的一半(方便计算和使用)
         /// </summary>
-        public float gridMaxSize_2;
+        [NonSerialized] public float gridMaxSize_2;
 
         private int _tps = 60;
         /// <summary>
@@ -120,6 +123,7 @@ namespace SpriteSpace
             }
             get { return _tps; }
         }
+
         /// <summary>
         /// 目标帧率间隔(1/tps)
         /// </summary>
@@ -199,15 +203,16 @@ namespace SpriteSpace
             }
 
             //初始化玩家
-            //player = new Player(this);
+            player = new Player(this);
 
             //初始化舞台
-            //stage = new Stage1(this);
+            stage = new Stage1(this);
 
             //测试其他舞台
             //stage = new TestStage1(this); //直接测试大量数字特效
             //stage = new TestStage2(this); //正常打怪测试
 
+            initialized = true;
         }
 
         /// <summary>
@@ -215,7 +220,7 @@ namespace SpriteSpace
         /// </summary>
         private void Update()
         {
-            if (inputActions == null || stage == null) return;
+            if (!initialized || inputActions == null || stage == null) return;
 
             //处理玩家输入
             inputActions.HandlePlayerInput();

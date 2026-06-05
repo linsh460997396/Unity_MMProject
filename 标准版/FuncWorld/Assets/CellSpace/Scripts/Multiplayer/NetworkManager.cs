@@ -30,13 +30,25 @@ namespace CellSpace.WebSocket
 
         private void InitializeNetworkService()
         {
+            // 先清理旧的服务
+            CleanupNetworkService();
+
             switch (netMode)
             {
                 case NetMode.unet:
                     // 可以在这里添加UNet实现
                     break;
                 case NetMode.bestHttp:
-                    currentService = gameObject.AddComponent<WebSocketNetworkService>();
+                    // 避免重复添加组件
+                    var existingService = gameObject.GetComponent<WebSocketNetworkService>();
+                    if (existingService != null)
+                    {
+                        currentService = existingService;
+                    }
+                    else
+                    {
+                        currentService = gameObject.AddComponent<WebSocketNetworkService>();
+                    }
                     break;
             }
 
@@ -45,6 +57,24 @@ namespace CellSpace.WebSocket
                 currentService.OnMessageReceived += HandleMessage;
                 currentService.OnConnected += HandleConnected;
                 currentService.OnDisconnected += HandleDisconnected;
+            }
+        }
+
+        private void CleanupNetworkService()
+        {
+            if (currentService != null)
+            {
+                currentService.OnMessageReceived -= HandleMessage;
+                currentService.OnConnected -= HandleConnected;
+                currentService.OnDisconnected -= HandleDisconnected;
+
+                // 销毁组件
+                if (currentService is Component component)
+                {
+                    Destroy(component);
+                }
+
+                currentService = null;
             }
         }
 
@@ -77,6 +107,11 @@ namespace CellSpace.WebSocket
         public void SendMessage(NetworkMessage msg)
         {
             currentService?.SendMessage(msg);
+        }
+
+        void OnDestroy()
+        {
+            CleanupNetworkService();
         }
     }
 

@@ -11,7 +11,7 @@ namespace SpriteSpace
         /// <summary>
         /// 超时的穿透黑名单
         /// </summary>
-        public List<KeyValuePair<CellItem, int>> hitBlackList = new();
+        public List<KeyValuePair<CellItem, int>> hitBlackList = new List<KeyValuePair<CellItem, int>>();
 
         //这些属性从 skill copy
 
@@ -45,7 +45,6 @@ namespace SpriteSpace
         /// <returns></returns>
         public override bool Update()
         {
-
             // 维护超时黑名单,先把超时的删光
             var now = scene.time;
             var newTIme = now + pierceDelay;
@@ -62,7 +61,7 @@ namespace SpriteSpace
             if (pierceCount <= 1)
             {
                 //在9宫范围内查询首个相交
-                var m = monstersGridContainer.FindFirstCrossByNineBoxGrid2D(pixelRow, pixelColumn, radius);
+                var m = monstersGridContainer.FindFirstCrossByNineBoxGrid2D(column, row, radius);
                 if (m != null)
                 {
                     ((Monster)m).Hurt(damage, knockbackForce);
@@ -72,16 +71,16 @@ namespace SpriteSpace
             else
             {
                 //遍历九宫挨个处理相交,消耗穿刺数量
-                monstersGridContainer.ForeachAllByNineBoxGrid2D(pixelRow, pixelColumn, HitCheck);
+                monstersGridContainer.ForeachAllByNineBoxGrid2D(column, row, HitCheck);
                 if (pierceCount <= 0) return true;
             }
 
             //让子弹直线移动
-            pixelRow += incRow;
-            pixelColumn += incColumn;
+            column += incColumn;
+            row += incRow;
 
             //坐标超出grid地图范围:自杀
-            if (pixelRow < 0 || pixelRow >= scene.gridMaxSize || pixelColumn < 0 || pixelColumn >= scene.gridMaxSize) return true;
+            if (column < 0 || column >= scene.gridMaxSize || row < 0 || row >= scene.gridMaxSize) return true;
 
             //生命周期完结:自杀
             return lifeEndTime < scene.time;
@@ -94,8 +93,8 @@ namespace SpriteSpace
         /// <returns></returns>
         public bool HitCheck(CellItem m)
         {
-            var vRow = m.x - pixelRow;
-            var vColumn = m.y - pixelColumn;
+            var vRow = m.x - column;
+            var vColumn = m.y - row;
             var r = m.radius + radius;
             if (vRow * vRow + vColumn * vColumn < r * r)
             {

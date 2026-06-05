@@ -123,20 +123,25 @@ namespace MetalMaxSystem.Unity
         /// 将OP退回对象池(ref的好处是可以从外面接收到函数修改后的结果).其上的游戏物体则失活处理(不摧毁,等待复用).
         /// </summary>
         /// <param name="objectPool"></param>
-        public static void Push(ref OP objectPool)
+        /// <param name="onlyPushOP">是否只将OP结构体入栈而不处理其绑定的GameObject,默认false</param>
+        public static void Push(ref OP objectPool, bool onlyPushOP = false)
         {
             if (pool == null) pool = new Stack<OP>(autoStackCount);
+            if (onlyPushOP) { pool.Push(objectPool); }
+            else
+            {
 #if UNITY_EDITOR
-            Debug.Assert(objectPool.gameObject != null);
+                Debug.Assert(objectPool.gameObject != null);
 #endif
-            //退回对象池之前的准备工作
-            objectPool.Disable();
+                //退回对象池之前的准备工作
+                objectPool.Disable();
 
-            //结构体以当前状态的副本入栈顶
-            pool.Push(objectPool);
-            //清空主体引用以断开外部访问路径(不影响栈内副本,Stack中的副本依然是拥有值的以下字段)
-            objectPool.gameObject = null;
-            objectPool.transform = null;
+                //结构体以当前状态的副本入栈顶
+                pool.Push(objectPool);
+                //清空主体引用以断开外部访问路径(不影响栈内副本,Stack中的副本依然是拥有值的以下字段)
+                objectPool.gameObject = null;
+                objectPool.transform = null;
+            }
         }
 
         /// <summary>

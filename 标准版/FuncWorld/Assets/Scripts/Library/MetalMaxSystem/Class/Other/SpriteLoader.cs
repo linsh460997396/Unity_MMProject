@@ -99,6 +99,79 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
+        /// 从PNG图片和对应的meta文件加载Sprite数组.
+        /// 会自动使用与PNG文件同名的.meta文件.
+        /// </summary>
+        /// <param name="pngPath">PNG 图片文件路径</param>
+        /// <returns>Sprite 数组，按名称排序</returns>
+        public static Sprite[] LoadSprites(string pngPath)
+        {
+            string metaPath = pngPath + ".meta"; // 或者 .meta，根据你的文件命名习惯
+            // 1. 加载 PNG 图片
+            if (!File.Exists(pngPath))
+            {
+                Debug.LogError($"PNG 文件不存在: {pngPath}");
+                return null;
+            }
+
+            byte[] pngData = File.ReadAllBytes(pngPath);
+            Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+
+            if (!texture.LoadImage(pngData))
+            {
+                Debug.LogError("无法加载 PNG 图片数据");
+                return null;
+            }
+
+            texture.filterMode = FilterMode.Point; // 像素风格游戏常用
+            texture.Apply();
+
+            // 2. 解析 meta 文件
+            if (!File.Exists(metaPath))
+            {
+                Debug.LogError($"Meta 文件不存在: {metaPath}");
+                UnityEngine.Object.Destroy(texture);
+                return null;
+            }
+
+            string metaContent = File.ReadAllText(metaPath);
+            SheetConfig config = ParseMetaFile(metaContent);
+
+            if (config == null || config.sprites == null || config.sprites.Count == 0)
+            {
+                Debug.LogError("无法解析 meta 文件或未找到精灵数据");
+                UnityEngine.Object.Destroy(texture);
+                return null;
+            }
+
+            // 3. 创建 Sprite 数组
+            Sprite[] sprites = new Sprite[config.sprites.Count];
+
+            for (int i = 0; i < config.sprites.Count; i++)
+            {
+                var spriteData = config.sprites[i];
+
+                // 注意：Unity 纹理坐标原点在左下角，Y 轴向上
+                // meta 文件中的坐标已经是正确的 Unity 坐标系统
+                sprites[i] = Sprite.Create(
+                    texture,
+                    spriteData.rect,
+                    spriteData.pivot,
+                    config.pixelsPerUnit,
+                    0,
+                    SpriteMeshType.FullRect,
+                    spriteData.border
+                );
+                sprites[i].name = spriteData.name;
+            }
+
+            // 4. 按名称排序（可选，保持一致性）
+            Array.Sort(sprites, (a, b) => string.Compare(a.name, b.name, StringComparison.Ordinal));
+
+            return sprites;
+        }
+
+        /// <summary>
         /// 解析 Unity meta 文件，提取精灵数据
         /// </summary>
         private static SheetConfig ParseMetaFile(string metaContent)
