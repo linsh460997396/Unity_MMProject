@@ -37,6 +37,8 @@ namespace NoitaCA
         public readonly float LateralProbability;
         public readonly bool CanBeDisplaced;
         public readonly bool BlocksPlayer;
+        public readonly float PlayerDamagePerSecond;
+        public readonly float PlayerSpeedMultiplier;
         // 寿命、热量和燃烧转换规则。
         // Lifetime, heat, and combustion conversion rules.
         public readonly bool ConsumesLifetime;
@@ -68,6 +70,8 @@ namespace NoitaCA
             float lateralProbability,
             bool canBeDisplaced,
             bool blocksPlayer,
+            float playerDamagePerSecond,
+            float playerSpeedMultiplier,
             bool consumesLifetime,
             int lifetimeDecay,
             float heatEmission,
@@ -98,6 +102,8 @@ namespace NoitaCA
             LateralProbability = Mathf.Clamp01(lateralProbability);
             CanBeDisplaced = canBeDisplaced;
             BlocksPlayer = blocksPlayer;
+            PlayerDamagePerSecond = Mathf.Max(0f, playerDamagePerSecond);
+            PlayerSpeedMultiplier = Mathf.Max(0.05f, playerSpeedMultiplier);
             ConsumesLifetime = consumesLifetime;
             LifetimeDecay = Mathf.Max(1, lifetimeDecay);
             HeatEmission = heatEmission;
@@ -176,14 +182,14 @@ namespace NoitaCA
         {
             // 表长度必须覆盖 MaterialType 中所有有效枚举值。
             // The table length must cover every valid MaterialType enum value.
-            MaterialDefinition[] definitions = new MaterialDefinition[8];
+            MaterialDefinition[] definitions = new MaterialDefinition[12];
 
             // 空气：可被替换、不阻挡玩家，是所有空格子的默认材料。
             // Air: replaceable, non-blocking, and the default material for empty cells.
             definitions[(int)MaterialType.Air] = new MaterialDefinition(
                 MaterialType.Air, "Air", new Color32(8, 10, 14, 255), 0, AmbientTemperature, 0,
                 PixelMovementMode.Static, 0, false, false, false, 1, 0f, 0f,
-                true, false, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
+                true, false, 0f, 1f, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
                 MaterialType.Air, 0f, 1, 1);
 
             // 沙子：高密度粉末，主要向下和斜下移动。
@@ -191,7 +197,7 @@ namespace NoitaCA
             definitions[(int)MaterialType.Sand] = new MaterialDefinition(
                 MaterialType.Sand, "Sand", new Color32(213, 183, 104, 255), 70, AmbientTemperature, 0,
                 PixelMovementMode.Powder, -1, true, true, false, 1, 1f, 1f,
-                false, true, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
+                false, true, 0f, 1f, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
                 MaterialType.Air, 0f, 1, 1);
 
             // 水：中等密度液体，可横向搜索以形成流动效果。
@@ -199,7 +205,7 @@ namespace NoitaCA
             definitions[(int)MaterialType.Water] = new MaterialDefinition(
                 MaterialType.Water, "Water", new Color32(44, 134, 214, 255), 30, AmbientTemperature, 0,
                 PixelMovementMode.Liquid, -1, true, true, true, 6, 1f, 0.78f,
-                true, false, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
+                true, false, 0f, 0.55f, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
                 MaterialType.Air, 0f, 1, 1);
 
             // 烟：低密度气体，向上扩散并随寿命消散。
@@ -207,7 +213,7 @@ namespace NoitaCA
             definitions[(int)MaterialType.Smoke] = new MaterialDefinition(
                 MaterialType.Smoke, "Smoke", new Color32(104, 112, 116, 180), -10, 55f, 150,
                 PixelMovementMode.Gas, 1, true, true, true, 3, 0.92f, 0.86f,
-                true, false, true, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
+                true, false, 0f, 1f, true, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
                 MaterialType.Air, 0f, 1, 1);
 
             // 火：释放热量并在寿命结束后变成烟或其他衰变材料。
@@ -215,7 +221,7 @@ namespace NoitaCA
             definitions[(int)MaterialType.Fire] = new MaterialDefinition(
                 MaterialType.Fire, "Fire", new Color32(255, 104, 28, 255), -20, 420f, 30,
                 PixelMovementMode.Static, 0, false, false, false, 1, 0f, 0f,
-                true, false, true, 1, 34f, 145f, 0f, MaterialType.Fire, MaterialType.Smoke,
+                true, false, 18f, 1f, true, 1, 34f, 145f, 0f, MaterialType.Fire, MaterialType.Smoke,
                 MaterialType.Air, 0f, 18, 42);
 
             // 石头：静态且阻挡玩家，用作地形和容器。
@@ -223,7 +229,7 @@ namespace NoitaCA
             definitions[(int)MaterialType.Stone] = new MaterialDefinition(
                 MaterialType.Stone, "Stone", new Color32(92, 84, 74, 255), 100, AmbientTemperature, 0,
                 PixelMovementMode.Static, 0, false, false, false, 1, 0f, 0f,
-                false, true, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
+                false, true, 0f, 1f, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
                 MaterialType.Air, 0f, 1, 1);
 
             // 木头：静态可燃材料，点燃后进入火焰/灰烬链路。
@@ -231,7 +237,7 @@ namespace NoitaCA
             definitions[(int)MaterialType.Wood] = new MaterialDefinition(
                 MaterialType.Wood, "Wood", new Color32(126, 78, 38, 255), 82, AmbientTemperature, 0,
                 PixelMovementMode.Static, 0, false, false, false, 1, 0f, 0f,
-                false, true, false, 1, 0f, 125f, 0.64f, MaterialType.Fire, MaterialType.Ash,
+                false, true, 0f, 1f, false, 1, 0f, 125f, 0.64f, MaterialType.Fire, MaterialType.Ash,
                 MaterialType.Smoke, 0.35f, 34, 70);
 
             // 灰烬：轻质粉末，是燃烧后的残留物。
@@ -239,7 +245,31 @@ namespace NoitaCA
             definitions[(int)MaterialType.Ash] = new MaterialDefinition(
                 MaterialType.Ash, "Ash", new Color32(78, 74, 68, 255), 18, AmbientTemperature, 0,
                 PixelMovementMode.Powder, -1, true, true, false, 1, 0.75f, 0.55f,
-                true, false, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
+                true, false, 0f, 1f, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
+                MaterialType.Air, 0f, 1, 1);
+
+            definitions[(int)MaterialType.Poison] = new MaterialDefinition(
+                MaterialType.Poison, "Poison", new Color32(72, 214, 62, 255), 32, AmbientTemperature, 0,
+                PixelMovementMode.Liquid, -1, true, true, true, 5, 1f, 0.82f,
+                true, false, 8f, 0.8f, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
+                MaterialType.Air, 0f, 1, 1);
+
+            definitions[(int)MaterialType.Ice] = new MaterialDefinition(
+                MaterialType.Ice, "Ice", new Color32(132, 218, 255, 255), 76, -8f, 0,
+                PixelMovementMode.Static, 0, false, false, false, 1, 0f, 0f,
+                false, true, 0f, 1f, false, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Water,
+                MaterialType.Air, 0f, 1, 1);
+
+            definitions[(int)MaterialType.Lava] = new MaterialDefinition(
+                MaterialType.Lava, "Lava", new Color32(255, 78, 20, 255), 88, 760f, 0,
+                PixelMovementMode.Liquid, -1, true, true, true, 3, 0.72f, 0.45f,
+                false, false, 75f, 0.45f, false, 1, 48f, 160f, 0f, MaterialType.Fire, MaterialType.Stone,
+                MaterialType.Air, 0f, 1, 1);
+
+            definitions[(int)MaterialType.Debris] = new MaterialDefinition(
+                MaterialType.Debris, "Debris", new Color32(126, 106, 82, 255), 62, AmbientTemperature, 120,
+                PixelMovementMode.Powder, -1, true, true, false, 1, 0.9f, 0.65f,
+                true, false, 0f, 1f, true, 1, 0f, 0f, 0f, MaterialType.Fire, MaterialType.Air,
                 MaterialType.Air, 0f, 1, 1);
 
             return definitions;

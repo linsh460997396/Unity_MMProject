@@ -116,6 +116,11 @@ namespace NoitaCA
             }
 
             Pixel pixel = grid.GetCell(x, y);
+            if (pixel.IsCreatureBody)
+            {
+                return true;
+            }
+
             MaterialDefinition definition = MaterialDatabase.Get(pixel.MaterialType);
             bool changed = false;
 
@@ -141,7 +146,7 @@ namespace NoitaCA
             {
                 // 热源材料每步向邻居释放热量。
                 // Heat-source materials release heat to neighbors each step.
-                ReleaseHeat(grid, x, y, definition);
+                ReleaseHeat(grid, x, y, definition, pixel.IsPlayerSpell);
                 changed = true;
             }
 
@@ -167,7 +172,7 @@ namespace NoitaCA
             return true;
         }
 
-        private void ReleaseHeat(PixelGrid grid, int x, int y, MaterialDefinition heatSource)
+        private void ReleaseHeat(PixelGrid grid, int x, int y, MaterialDefinition heatSource, bool sourceIsPlayerSpell)
         {
             // 对八邻域逐个加热，非空气邻居才会吸收热量。
             // Heat each of the eight neighbors; only non-air neighbors absorb heat.
@@ -181,6 +186,11 @@ namespace NoitaCA
                 }
 
                 Pixel neighbor = grid.GetCell(nx, ny);
+                if (neighbor.IsCreatureBody)
+                {
+                    continue;
+                }
+
                 MaterialDefinition neighborDefinition = MaterialDatabase.Get(neighbor.MaterialType);
                 if (neighborDefinition.IsAir)
                 {
@@ -195,7 +205,7 @@ namespace NoitaCA
                 {
                     // 达到点燃温度后再按可燃概率决定是否转成火。
                     // After reaching ignition temperature, flammability probability decides conversion to fire.
-                    Ignite(grid, nx, ny, neighborDefinition);
+                    Ignite(grid, nx, ny, neighborDefinition, sourceIsPlayerSpell);
                 }
                 else
                 {
@@ -207,7 +217,7 @@ namespace NoitaCA
             }
         }
 
-        private void Ignite(PixelGrid grid, int x, int y, MaterialDefinition source)
+        private void Ignite(PixelGrid grid, int x, int y, MaterialDefinition source, bool isPlayerSpell)
         {
             // 点燃时根据源材料决定火焰寿命和最终衰变材料。
             // Ignition chooses flame lifetime and final decay material from the source material.
@@ -216,7 +226,9 @@ namespace NoitaCA
                 ? source.AlternateBurnoutMaterial
                 : source.BurnoutMaterial;
             int lifetime = random.Next(source.BurnLifetimeMin, source.BurnLifetimeMax + 1);
-            grid.SetCell(x, y, MaterialDatabase.CreateBurningPixel(source, fire, decayMaterial, lifetime));
+            Pixel burningPixel = MaterialDatabase.CreateBurningPixel(source, fire, decayMaterial, lifetime);
+            burningPixel.IsPlayerSpell = isPlayerSpell;
+            grid.SetCell(x, y, burningPixel);
             grid.MarkChanged(x, y);
         }
 

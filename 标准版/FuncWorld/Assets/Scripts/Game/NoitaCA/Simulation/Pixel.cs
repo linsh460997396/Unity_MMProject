@@ -20,6 +20,8 @@ namespace NoitaCA
         public sbyte VelocityX;
         public sbyte VelocityY;
         public MaterialType DecayMaterial;
+        public bool IsCreatureBody;
+        public bool IsPlayerSpell;
 
         public Pixel(
             MaterialType materialType,
@@ -31,7 +33,9 @@ namespace NoitaCA
             int fallingFrames = 0,
             sbyte velocityX = 0,
             sbyte velocityY = 0,
-            MaterialType decayMaterial = MaterialType.Air)
+            MaterialType decayMaterial = MaterialType.Air,
+            bool isCreatureBody = false,
+            bool isPlayerSpell = false)
         {
             // 构造时把材料数据库给出的定义拍平成运行时像素状态。
             // The constructor flattens a material definition into runtime pixel state.
@@ -45,6 +49,8 @@ namespace NoitaCA
             VelocityX = velocityX;
             VelocityY = velocityY;
             DecayMaterial = decayMaterial;
+            IsCreatureBody = isCreatureBody;
+            IsPlayerSpell = isPlayerSpell;
         }
 
         public static Pixel FromMaterial(MaterialType materialType)

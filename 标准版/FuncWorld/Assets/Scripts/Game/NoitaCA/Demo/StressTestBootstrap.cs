@@ -16,6 +16,10 @@ namespace NoitaCA
         // 所有压力测试参数集中在配置对象，方便 Inspector 调整。
         // All stress-test parameters live in one config object for Inspector tuning.
         [SerializeField] private StressTestConfig config = new StressTestConfig();
+        [SerializeField] private Sprite playerSprite;
+        [SerializeField] private int playerWidthInCells = 7;
+        [SerializeField] private int playerHeightInCells = 14;
+        [SerializeField] private float playerVisualHeightInCells = 18f;
 
         // gateCells 记录可被开闸清空的石块位置。
         // gateCells stores stone cells that are cleared when the gate opens.
@@ -24,7 +28,7 @@ namespace NoitaCA
         private PixelGrid grid;
         private PixelSimulation simulation;
         private PixelWorldRenderer worldRenderer;
-        private SimplePixelPlayer player;
+        private PlayerController player;
         private StressTestPerformancePanel performancePanel;
         private StressTestDebugOverlay debugOverlay;
         private Camera targetCamera;
@@ -100,7 +104,8 @@ namespace NoitaCA
             worldRenderer.Initialize(grid, config.pixelsPerUnit);
             ConfigureCamera();
             player = GetOrCreatePlayer();
-            player.Initialize(grid, worldRenderer, playerSpawnCell);
+            player.ConfigureSize(playerWidthInCells, playerHeightInCells, playerVisualHeightInCells);
+            player.Initialize(grid, worldRenderer, targetCamera, playerSpawnCell, playerSprite);
             performancePanel = GetOrCreatePerformancePanel();
             performancePanel.Initialize(this);
             debugOverlay = GetOrCreateDebugOverlay();
@@ -456,7 +461,7 @@ namespace NoitaCA
             return renderer;
         }
 
-        private SimplePixelPlayer GetOrCreatePlayer()
+        private PlayerController GetOrCreatePlayer()
         {
             // 压力测试玩家单独命名，避免与普通演示玩家混淆。
             // The stress-test player is named separately to avoid confusing it with the default demo player.
@@ -471,9 +476,14 @@ namespace NoitaCA
                 playerObject.AddComponent<SpriteRenderer>();
             }
 
-            if (!playerObject.TryGetComponent(out SimplePixelPlayer playerController))
+            if (playerObject.TryGetComponent(out SimplePixelPlayer legacyPlayer))
             {
-                playerController = playerObject.AddComponent<SimplePixelPlayer>();
+                legacyPlayer.enabled = false;
+            }
+
+            if (!playerObject.TryGetComponent(out PlayerController playerController))
+            {
+                playerController = playerObject.AddComponent<PlayerController>();
             }
 
             return playerController;

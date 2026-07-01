@@ -169,6 +169,10 @@ MonoBehaviour:
     showActivePixelCount: 1
     showActiveRegions: 0
     cameraPadding: 0.65
+  playerSprite: {fileID: -3794225937177000630, guid: 1173e6f1fc567c7499129cf20f02d932, type: 3}
+  playerWidthInCells: 7
+  playerHeightInCells: 14
+  playerVisualHeightInCells: 18
 --- !u!4 &1197678400
 Transform:
   m_ObjectHideFlags: 0

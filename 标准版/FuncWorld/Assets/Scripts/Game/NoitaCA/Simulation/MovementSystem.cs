@@ -138,6 +138,11 @@ namespace NoitaCA
             }
 
             Pixel pixel = grid.GetCell(x, y);
+            if (pixel.IsCreatureBody)
+            {
+                return true;
+            }
+
             if (pixel.UpdatedThisFrame)
             {
                 // 本帧已移动过的像素不再处理，避免一帧内连续下落多格。
@@ -255,6 +260,11 @@ namespace NoitaCA
 
             Pixel source = grid.GetCell(fromX, fromY);
             Pixel target = grid.GetCell(toX, toY);
+            if (source.IsCreatureBody || target.IsCreatureBody)
+            {
+                return false;
+            }
+
             MaterialDefinition targetDefinition = MaterialDatabase.Get(target.MaterialType);
 
             if (targetDefinition.IsAir)

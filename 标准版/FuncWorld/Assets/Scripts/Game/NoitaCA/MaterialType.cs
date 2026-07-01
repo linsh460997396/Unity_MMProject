@@ -18,6 +18,10 @@ namespace NoitaCA
         // Solid materials and post-burn residue.
         Stone = 5,
         Wood = 6,
-        Ash = 7
+        Ash = 7,
+        Poison = 8,
+        Ice = 9,
+        Lava = 10,
+        Debris = 11
     }
 }

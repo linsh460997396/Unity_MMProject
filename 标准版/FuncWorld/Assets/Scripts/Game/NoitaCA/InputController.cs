@@ -116,6 +116,18 @@ namespace NoitaCA
             {
                 selectedMaterial = MaterialType.Wood;
             }
+            else if (WasKeyPressed(KeyCode.Alpha7))
+            {
+                selectedMaterial = MaterialType.Poison;
+            }
+            else if (WasKeyPressed(KeyCode.Alpha8))
+            {
+                selectedMaterial = MaterialType.Ice;
+            }
+            else if (WasKeyPressed(KeyCode.Alpha9))
+            {
+                selectedMaterial = MaterialType.Lava;
+            }
             else if (WasKeyPressed(KeyCode.Alpha0))
             {
                 selectedMaterial = MaterialType.Air;
@@ -252,6 +264,12 @@ namespace NoitaCA
                         return Keyboard.current.digit5Key.wasPressedThisFrame;
                     case KeyCode.Alpha6:
                         return Keyboard.current.digit6Key.wasPressedThisFrame;
+                    case KeyCode.Alpha7:
+                        return Keyboard.current.digit7Key.wasPressedThisFrame;
+                    case KeyCode.Alpha8:
+                        return Keyboard.current.digit8Key.wasPressedThisFrame;
+                    case KeyCode.Alpha9:
+                        return Keyboard.current.digit9Key.wasPressedThisFrame;
                 }
             }
 #endif

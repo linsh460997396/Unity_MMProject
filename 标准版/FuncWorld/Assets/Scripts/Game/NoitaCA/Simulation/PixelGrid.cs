@@ -23,6 +23,7 @@ namespace NoitaCA
         private int[,] chunkSleepFrames;
         private readonly List<Vector2Int> activeChunkList = new List<Vector2Int>(64);
         private readonly List<Vector2Int> nextActiveChunkList = new List<Vector2Int>(64);
+        private int playerSpellWriteDepth;
 
         public int Width { get; }
         public int Height { get; }
@@ -83,6 +84,7 @@ namespace NoitaCA
 
             // SetCell 只写入数据；是否唤醒周围区域由调用者决定。
             // SetCell only writes data; callers decide whether nearby regions should wake up.
+            ApplyPlayerSpellFlag(ref pixel);
             cells[x, y] = pixel;
         }
 
@@ -96,6 +98,16 @@ namespace NoitaCA
             return IsAir(x, y);
         }
 
+        public MaterialType GetMaterial(int x, int y)
+        {
+            return InBounds(x, y) ? cells[x, y].MaterialType : MaterialType.Air;
+        }
+
+        public bool IsSolid(int x, int y)
+        {
+            return InBounds(x, y) && MaterialDatabase.Get(cells[x, y].MaterialType).BlocksPlayer;
+        }
+
         public void SetMaterial(int x, int y, MaterialType materialType)
         {
             if (!InBounds(x, y))
@@ -105,8 +117,46 @@ namespace NoitaCA
 
             // 材料替换是用户绘制和场景生成的主要入口，必须标记变化区域。
             // Material replacement is the main entry for painting and world generation, so it marks changed regions.
-            cells[x, y] = Pixel.FromMaterial(materialType);
+            Pixel pixel = Pixel.FromMaterial(materialType);
+            ApplyPlayerSpellFlag(ref pixel);
+            cells[x, y] = pixel;
             MarkChanged(x, y);
+        }
+
+        public void SetMaterialSilent(int x, int y, MaterialType materialType)
+        {
+            if (!InBounds(x, y))
+            {
+                return;
+            }
+
+            Pixel pixel = Pixel.FromMaterial(materialType);
+            ApplyPlayerSpellFlag(ref pixel);
+            cells[x, y] = pixel;
+            MarkChangedForRender(x, y);
+        }
+
+        public void SetCreatureBodyMaterialSilent(int x, int y, MaterialType materialType)
+        {
+            if (!InBounds(x, y))
+            {
+                return;
+            }
+
+            Pixel pixel = Pixel.FromMaterial(materialType);
+            pixel.IsCreatureBody = true;
+            cells[x, y] = pixel;
+            MarkChangedForRender(x, y);
+        }
+
+        public void BeginPlayerSpellWrites()
+        {
+            playerSpellWriteDepth++;
+        }
+
+        public void EndPlayerSpellWrites()
+        {
+            playerSpellWriteDepth = Mathf.Max(0, playerSpellWriteDepth - 1);
         }
 
         public void SwapCells(int firstX, int firstY, int secondX, int secondY)
@@ -225,6 +275,21 @@ namespace NoitaCA
             MarkChunkAndNeighborsActive(x, y);
         }
 
+        private void MarkChangedForRender(int x, int y)
+        {
+            if (!InBounds(x, y))
+            {
+                return;
+            }
+
+            int chunkX = x / ChunkSize;
+            int chunkY = y / ChunkSize;
+            if (chunkX >= 0 && chunkX < ChunkColumns && chunkY >= 0 && chunkY < ChunkRows)
+            {
+                changedChunks[chunkX, chunkY] = true;
+            }
+        }
+
         public void MarkActiveArea(int centerX, int centerY, int radius)
         {
             // 同时写入当前和下一帧缓冲，保证刚画出的材料会立刻参与模拟并延续到下一步。
@@ -336,6 +401,152 @@ namespace NoitaCA
             }
         }
 
+        public int DestroyCircle(Vector2Int center, int radius)
+        {
+            return DestroyCircle(center.x, center.y, radius);
+        }
+
+        public int DestroyCircle(int centerX, int centerY, int radius)
+        {
+            int safeRadius = Mathf.Max(1, radius);
+            int radiusSquared = safeRadius * safeRadius;
+            int changed = 0;
+
+            for (int y = centerY - safeRadius; y <= centerY + safeRadius; y++)
+            {
+                for (int x = centerX - safeRadius; x <= centerX + safeRadius; x++)
+                {
+                    if (!InBounds(x, y))
+                    {
+                        continue;
+                    }
+
+                    int dx = x - centerX;
+                    int dy = y - centerY;
+                    if (dx * dx + dy * dy > radiusSquared || MaterialDatabase.Get(cells[x, y].MaterialType).IsAir)
+                    {
+                        continue;
+                    }
+
+                    SetMaterial(x, y, MaterialType.Air);
+                    changed++;
+                }
+            }
+
+            if (changed > 0)
+            {
+                MarkActiveArea(centerX, centerY, safeRadius + 2);
+            }
+
+            return changed;
+        }
+
+        public int SpawnMaterial(Vector2Int center, MaterialType materialType, int amount, int radius)
+        {
+            return SpawnMaterial(center.x, center.y, materialType, amount, radius);
+        }
+
+        public int SpawnMaterial(int centerX, int centerY, MaterialType materialType, int amount, int radius)
+        {
+            int safeAmount = Mathf.Max(0, amount);
+            int safeRadius = Mathf.Max(1, radius);
+            int placed = 0;
+            const float GoldenAngle = 2.39996323f;
+
+            int attempts = Mathf.Max(safeAmount * 8, safeRadius * safeRadius * 4);
+            for (int i = 0; i < attempts && placed < safeAmount; i++)
+            {
+                float t = attempts <= 1 ? 0f : i / (float)(attempts - 1);
+                float distance = Mathf.Sqrt(t) * safeRadius;
+                float angle = i * GoldenAngle;
+                int x = centerX + Mathf.RoundToInt(Mathf.Cos(angle) * distance);
+                int y = centerY + Mathf.RoundToInt(Mathf.Sin(angle) * distance);
+
+                if (!InBounds(x, y) || !CanSpawnInto(x, y, materialType))
+                {
+                    continue;
+                }
+
+                SetMaterial(x, y, materialType);
+                placed++;
+            }
+
+            if (placed > 0)
+            {
+                MarkActiveArea(centerX, centerY, safeRadius + 2);
+            }
+
+            return placed;
+        }
+
+        public int IgniteCircle(Vector2Int center, int radius)
+        {
+            return IgniteCircle(center.x, center.y, radius);
+        }
+
+        public int IgniteCircle(int centerX, int centerY, int radius)
+        {
+            int safeRadius = Mathf.Max(1, radius);
+            int radiusSquared = safeRadius * safeRadius;
+            int changed = 0;
+
+            for (int y = centerY - safeRadius; y <= centerY + safeRadius; y++)
+            {
+                for (int x = centerX - safeRadius; x <= centerX + safeRadius; x++)
+                {
+                    if (!InBounds(x, y))
+                    {
+                        continue;
+                    }
+
+                    int dx = x - centerX;
+                    int dy = y - centerY;
+                    if (dx * dx + dy * dy > radiusSquared)
+                    {
+                        continue;
+                    }
+
+                    MaterialType material = cells[x, y].MaterialType;
+                    if (material == MaterialType.Wood)
+                    {
+                        MaterialDefinition source = MaterialDatabase.Get(material);
+                        MaterialDefinition fire = MaterialDatabase.Get(source.BurnMaterial);
+                        int lifetime = Mathf.RoundToInt((source.BurnLifetimeMin + source.BurnLifetimeMax) * 0.5f);
+                        SetCell(x, y, MaterialDatabase.CreateBurningPixel(source, fire, source.BurnoutMaterial, lifetime));
+                        MarkChanged(x, y);
+                        changed++;
+                    }
+                    else if (MaterialDatabase.Get(material).IsAir && ((x + y) & 1) == 0)
+                    {
+                        SetMaterial(x, y, MaterialType.Fire);
+                        changed++;
+                    }
+                }
+            }
+
+            if (changed > 0)
+            {
+                MarkActiveArea(centerX, centerY, safeRadius + 3);
+            }
+
+            return changed;
+        }
+
+        public void ExplodeCircle(Vector2Int center, int radius)
+        {
+            ExplodeCircle(center.x, center.y, radius);
+        }
+
+        public void ExplodeCircle(int centerX, int centerY, int radius)
+        {
+            int safeRadius = Mathf.Max(1, radius);
+            DestroyCircle(centerX, centerY, safeRadius);
+            SpawnMaterial(centerX, centerY, MaterialType.Debris, Mathf.Max(4, safeRadius * 2), safeRadius + 1);
+            SpawnMaterial(centerX, centerY, MaterialType.Smoke, safeRadius * safeRadius / 2, safeRadius + 2);
+            SpawnMaterial(centerX, centerY, MaterialType.Fire, Mathf.Max(2, safeRadius), Mathf.Max(2, safeRadius / 2));
+            MarkActiveArea(centerX, centerY, safeRadius + 4);
+        }
+
         public void PaintCircle(int centerX, int centerY, int radius, MaterialType materialType)
         {
             // 圆形笔刷用平方距离判断，避免每个格子开方。
@@ -355,6 +566,32 @@ namespace NoitaCA
                     }
                 }
             }
+        }
+
+        private bool CanSpawnInto(int x, int y, MaterialType materialType)
+        {
+            if (cells[x, y].IsCreatureBody)
+            {
+                return false;
+            }
+
+            MaterialDefinition target = MaterialDatabase.Get(cells[x, y].MaterialType);
+            if (target.IsAir || target.CanBeDisplaced)
+            {
+                return true;
+            }
+
+            return materialType == MaterialType.Fire && cells[x, y].MaterialType == MaterialType.Wood;
+        }
+
+        private void ApplyPlayerSpellFlag(ref Pixel pixel)
+        {
+            if (playerSpellWriteDepth <= 0 || MaterialDatabase.Get(pixel.MaterialType).IsAir)
+            {
+                return;
+            }
+
+            pixel.IsPlayerSpell = true;
         }
 
         private void Clear()
