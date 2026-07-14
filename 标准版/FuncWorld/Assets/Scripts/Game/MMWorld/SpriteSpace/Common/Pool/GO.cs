@@ -67,7 +67,7 @@ public struct GO
     /// </summary>
     public void SetColorWhite()
     {
-        //const float minVal = 0.0314f; //URP使用
+        // const float minVal = 0.0314f; //URP使用
         const float minVal = 31.875f;
         spriteRenderer.color = new Color(minVal, minVal, minVal, 1f); //Unity内部使用0~1范围浮点数表示红蓝绿分量,以线性颜色空间进行处理
     }
@@ -199,9 +199,3 @@ public struct GO
         pool.Clear();
     }
 }
-
-//使用范例↓
-//GameObject tempGroup = new GameObject("GOGroup");
-//DontDestroyOnLoad(tempGroup);
-//初始化底层绘制对象池
-//GO.Init(material, 1, tempGroup); //Unity会反复隐式实例化再赋值给组件实例的材质字段.

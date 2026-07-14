@@ -18,7 +18,7 @@ namespace SpriteSpace
 
         private static TMP_FontAsset _fontFZYaSong;
         /// <summary>
-        /// 方正雅宋中文字体.请将对应的字体文件放在Resources/Fonts目录下,并命名为"FZYaSongS-M-GB - Regular SDF"以供加载.
+        /// 方正雅宋中文字体.请将对应的字体文件放在Resources/Fonts目录下,并命名为"FZ_YaSong SDF"以供加载.
         /// </summary>
         public static TMP_FontAsset FontFZYaSong
         {
@@ -30,11 +30,11 @@ namespace SpriteSpace
             {
                 if (_fontFZYaSong == null)
                 {
-                    _fontFZYaSong = Resources.Load<TMP_FontAsset>("Fonts/FZYaSongS-M-GB - Regular SDF");
+                    _fontFZYaSong = Resources.Load<TMP_FontAsset>("Fonts/FZ_YaSong SDF");
                     if (_fontFZYaSong == null) _fontFZYaSong = TMP_Settings.defaultFontAsset;
                     if (_fontFZYaSong == null)
                     {
-                        Debug.LogWarning("未能找到FZYaSongS-M-GB - Regular SDF字体及内置默认字体");
+                        Debug.LogWarning("未能找到FZ_YaSong SDF字体及内置默认字体");
                     }
                 }
                 return _fontFZYaSong;
@@ -43,7 +43,7 @@ namespace SpriteSpace
 
         private static TMP_FontAsset _fontMetalMax;
         /// <summary>
-        /// MetalMax中文字体.请将对应的字体文件放在Resources/Fonts目录下,并命名为"FMM1_VonwaonBitmap-Regular SDF"以供加载.
+        /// MetalMax中文字体.请将对应的字体文件放在Resources/Fonts目录下,并命名为"MM_VonwaonBitmap SDF"以供加载.
         /// </summary>
         public static TMP_FontAsset FontMetalMax
         {
@@ -55,11 +55,11 @@ namespace SpriteSpace
             {
                 if (_fontMetalMax == null)
                 {
-                    _fontMetalMax = Resources.Load<TMP_FontAsset>("Fonts/FMM1_VonwaonBitmap-Regular SDF");
+                    _fontMetalMax = Resources.Load<TMP_FontAsset>("Fonts/MM_VonwaonBitmap SDF");
                     if (_fontMetalMax == null) _fontMetalMax = TMP_Settings.defaultFontAsset;
                     if (_fontMetalMax == null)
                     {
-                        Debug.LogWarning("未能找到FMM1_VonwaonBitmap-Regular SDF字体");
+                        Debug.LogWarning("未能找到MM_VonwaonBitmap SDF字体");
                     }
                 }
                 return _fontMetalMax;
@@ -118,13 +118,30 @@ namespace SpriteSpace
         public static List<Sprite>[] monsters;
         public static List<Sprite>[] others;
 
+        public static SpecialAssets specialAssets;
+
         /// <summary>
         /// 预制体初始化方法.在使用SpriteSpacePrefab前必须调用此方法来确保预制体已被创建.
         /// </summary>
-        public static void Init(string spriteShader = "Sprites/Default", int countGO = 20000)
+        public static void Init(bool useDftMat = true, string spriteShader = "Custom/ReciprocalColorFixed", int countGO = 20000)
         {
             if (initialized) return;
-            material = new Material(Shader.Find(spriteShader));
+            if (useDftMat)
+            {
+                specialAssets = Resources.Load<SpecialAssets>("ScriptableObject/SpecialAssets");
+                material = specialAssets.materials[0]; //将启用GPU实例化的材质做成了ScriptableObject素材
+            }
+            else
+            {
+                //代码组装方式无法开启GPU实例化
+                Shader targetShader = Shader.Find(spriteShader);
+                if (targetShader == null)
+                {
+                    Debug.LogWarning($"Shader '{spriteShader}' not found. Falling back to 'Sprites/Default'.");
+                    targetShader = Shader.Find("Sprites/Default");
+                }
+                material = new Material(targetShader);
+            }
             group = GameObject.Find("SpriteSpacePrefab") ?? new GameObject("SpriteSpacePrefab"); //创建存放SpriteSpace预制体实例的父级容器
             DontDestroyOnLoad(group);
             runtimePrefab.hideFlags = HideFlags.DontUnloadUnusedAsset; //资源持久化标记
@@ -292,8 +309,8 @@ namespace SpriteSpace
                         minimapCamera.useOcclusionCulling = false; // 关闭遮挡剔除，省性能
                         if (minimapCamera != null)
                         {
-                            Debug.Log($"MinimapCamera 存在: {minimapCamera.name}");
-                            Debug.Log($"targetTexture: {minimapCamera.targetTexture}");
+                            Debug.Log($"小地图相机名称: {minimapCamera.name}");
+                            Debug.Log($"TargetTexture: {minimapCamera.targetTexture}");
                             rawImage.texture = minimapCamera.targetTexture ?? GetMiniMap();
                         }
                         else
@@ -431,7 +448,7 @@ namespace SpriteSpace
                 _fontFZYaSong = TMP_Settings.defaultFontAsset;
                 if (_fontFZYaSong == null)
                 {
-                    Debug.LogWarning("未能找到FZYaSongS-M-GB - Regular SDF字体，将使用内置默认字体");
+                    Debug.LogWarning("未能找到FZ_YaSong SDF字体，将使用内置默认字体");
                 }
             }
 
@@ -1246,7 +1263,7 @@ namespace SpriteSpace
         private static void CreateGameMenuUI(GameObject parent)
         {
             //加载中文字体
-            TMP_FontAsset font = Resources.Load<TMP_FontAsset>("Fonts/FZYaSongS-M-GB - Regular SDF");
+            TMP_FontAsset font = Resources.Load<TMP_FontAsset>("Fonts/FZ_YaSong SDF");
             if (font == null)
             {
                 font = TMP_Settings.defaultFontAsset;

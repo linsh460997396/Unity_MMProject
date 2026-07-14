@@ -1608,6 +1608,7 @@ namespace CellSpace
 
             //对象池预填充容量为上述length(即便Push数量超过初始容量,栈也会自动扩容,只要不频繁扩容,游戏中途要增加地块种类是不会有问题的)
             CPEngine.prefabOPs = OP.Init(length, false); //OP对象池预填充但暂时不用创建游戏对象(由CreateTexPrefabBatch及CreatePrefab控制是否创建并绑定)
+            Debug.Log("地块预制体对象池容量: " + CPEngine.prefabOPs.Length);
 
             //手动拖入的Cell预制体数量是num0:cell_0~10(其中0是空块,1~10的uv取自材质[0]主纹理)
             CreatePrefabBatch(0, (ushort)(num0 - 1), 0, (int)textureUnitX[0], (int)textureUnitY[0]); //若已有填充,该函数会直接使用代码创建的Cell预制体块并加入对象池

@@ -110,6 +110,7 @@ namespace SimWorld
 
             // 初始化 底层绘制对象池
             GO.Init(material, 20000);
+            Debug.Log("精灵对象池容量: " + GO.pool.Count);
 
             // 初始化 玩家
             player = new SWPlayer(this);
