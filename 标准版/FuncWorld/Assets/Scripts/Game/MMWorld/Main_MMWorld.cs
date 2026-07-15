@@ -17,10 +17,10 @@ namespace MMWorld
         public void Start()
         {
             // 游戏入口 - 显示开局菜单
-            //ShowStartMenu();
+            ShowStartMenu();
 
             // 直接测试体素世界
-            Init();
+            //Init();
         }
 
         /// <summary>
@@ -59,9 +59,11 @@ namespace MMWorld
         /// </summary>
         public static void Init()
         {
+            //精灵框架初始化
             SpriteSpacePrefab.Init();
             scene = FindObjectOfType<Main_MMWorld>().gameObject.AddComponent<Scene>();
             scene.Init(new CellGridContainer(100));
+            //MC框架激活
             CPEngine.Active();
         }
 
