@@ -241,7 +241,7 @@ namespace MetalMaxSystem
         /// 常规触发器主体事件发布动作(重复执行则什么也不做),在当前线程创建常规触发器并执行事件委托(提前定义事件委托变量Trigger.Awake/Start/Update/End/Destroy += 要委托执行的函数,即完成事件注册到函数),可预先自定义计时器Updata阶段的执行间隔(否则默认以Duetime=0、Period=50运行计时器).注:若直接调用本函数则在计时器Updata阶段会暂停当前线程,不想暂停请额外开线程手动加载Action运行或使用Trigger.Run自带线程启动(推荐)
         /// </summary>
         /// <param name="duetime">Updata阶段执行开始前等待(毫秒),仅生效一次</param>
-        /// <param name="period">Updata阶段执行间隔(毫秒，支持小数如62.5ms)</param>
+        /// <param name="period">Updata阶段执行间隔(毫秒,支持小数如62.5ms)</param>
         private void Action(int duetime, double period)
         {
             if (AutoResetEvent_Trigger == null)
@@ -369,19 +369,19 @@ namespace MetalMaxSystem
 //trigger.End += OnTriggerEnd;
 //trigger.Destroy += OnTriggerDestroy;
 
-//// 2. 配置参数（可选）
-//trigger.Duetime = 0;       // 前摇时间（毫秒）
-//trigger.Period = 50;       // 更新间隔（毫秒）
-//trigger.InvokeCountMax = 0; // 最大执行次数（0为无限循环）
+//// 2. 配置参数(可选)
+//trigger.Duetime = 0;       // 前摇时间(毫秒)
+//trigger.Period = 50;       // 更新间隔(毫秒)
+//trigger.InvokeCountMax = 0; // 最大执行次数(0为无限循环)
 
-//// 3. 启动（创建独立线程运行）
+//// 3. 启动(创建独立线程运行)
 //trigger.Run(isBackground: true);
 
 //// 4. 运行中可以读取状态
 //ulong count = trigger.InvokeCount;  // 获取Update执行次数
 
-//// 5. 停止（方式一：设置状态标志）
+//// 5. 停止(方式一:设置状态标志)
 //trigger.TimerStop = true;
-//// 5. 停止（方式二：设置执行次数上限）
+//// 5. 停止(方式二:设置执行次数上限)
 //trigger.InvokeCountMax = 100;  // 执行100次后自动停止
 //Trigger trigger = new Trigger(100); // 或选择在创建时确定次数

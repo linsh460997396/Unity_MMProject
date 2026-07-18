@@ -156,7 +156,7 @@ namespace MMWorld.RimWorld
             }
             else
             {
-                // 简单实现：按优先级顺序排列
+                // 简单实现:按优先级顺序排列
                 workPriorities.Add(workType);
             }
         }

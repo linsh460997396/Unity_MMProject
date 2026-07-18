@@ -124,7 +124,9 @@ namespace CellSpace
                     }
                     tempGameObject.GetComponent<MeshRenderer>().materials = new Material[4]
                     {
+                        
                         //材质和主纹理集可以大量添加,也能随便分割,但框架预制地块限制最终可用的uv数量为65536个(代表65536种地块),超过后无效.
+                        //CPMat挂载在CellChunk和CellChunkAdditionalMesh的MeshRenderer组件上,这里是第1~4个材质,分别有不同主纹理图.框架所用到的所有地块uv都是从主纹理图上划取.
                         CPMat("CPMat", externalTexturePath+@"/CPTextureSheet.png"), //第1个材质
                         CPMat("CPMat1", externalTexturePath+@"/CPTextureSheet1.png"), //第2个材质
                         CPMat("CPMat2", externalTexturePath+@"/CPTextureSheet2.png"), //第3个材质
@@ -207,9 +209,7 @@ namespace CellSpace
         }
 
         /// <summary>
-        /// 获取材质"CPMat"的预制体.此预制体包含"CPTextureSheet"主纹理图,采用名为"Standard"的Shader.
-        /// 其余CPMat1~3挂载在CellChunk和CellChunkAdditionalMesh的MeshRenderer组件上,是第2~4个材质,分别有不同主纹理图.
-        /// 框架所用到的所有地块uv都是从主纹理图上划取.
+        /// 返回材质名为materialName的预制体.此预制体包含路径texturePath的主纹理图,采用名为"Standard"的Shader.
         /// </summary>
         /// <param name="materialName">材质名</param>
         /// <param name="texturePath">纹理图片地址</param>
@@ -219,9 +219,7 @@ namespace CellSpace
             return CPMat(materialName, texturePath, "Standard");
         }
         /// <summary>
-        /// 获取材质"CPMat"的预制体.此预制体包含"CPTextureSheet"主纹理图,采用名为"Standard"的Shader.
-        /// 其余CPMat1~3挂载在CellChunk和CellChunkAdditionalMesh的MeshRenderer组件上,是第2~4个材质,分别有不同主纹理图.
-        /// 框架所用到的所有地块uv都是从主纹理图上划取.
+        /// 返回材质名为materialName的预制体.此预制体包含路径texturePath的主纹理图,采用名为shaderName的Shader.
         /// </summary>
         /// <param name="materialName">材质名</param>
         /// <param name="texturePath">纹理图片地址</param>

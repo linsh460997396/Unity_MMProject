@@ -1,4 +1,4 @@
-// 职责：绘制压力测试性能面板，显示 FPS、像素统计、模拟/渲染耗时和当前优化模式。
+﻿// 职责:绘制压力测试性能面板,显示 FPS、像素统计、模拟/渲染耗时和当前优化模式.
 // Responsibility: Draws the stress-test performance panel showing FPS, pixel counts, simulation/render costs, and optimization mode.
 using UnityEngine;
 
@@ -6,7 +6,7 @@ namespace NoitaCA
 {
     public sealed class StressTestPerformancePanel : MonoBehaviour
     {
-        // 面板只读取 StressTestBootstrap 提供的公开状态。
+        // 面板只读取 StressTestBootstrap 提供的公开状态.
         // The panel only reads public state exposed by StressTestBootstrap.
         private StressTestBootstrap bootstrap;
         private GUIStyle titleStyle;
@@ -20,14 +20,14 @@ namespace NoitaCA
 
         public void Initialize(StressTestBootstrap stressTestBootstrap)
         {
-            // 初始化时建立数据源引用。
+            // 初始化时建立数据源引用.
             // Store the data-source reference during initialization.
             bootstrap = stressTestBootstrap;
         }
 
         private void Update()
         {
-            // FPS 做短时间平均，避免每帧数值剧烈跳动。
+            // FPS 做短时间平均,避免每帧数值剧烈跳动.
             // FPS is averaged over a short window to avoid noisy frame-to-frame values.
             fpsAccumulator += Time.unscaledDeltaTime > 0f ? 1f / Time.unscaledDeltaTime : 0f;
             fpsFrames++;
@@ -49,11 +49,11 @@ namespace NoitaCA
                 return;
             }
 
-            // IMGUI 每帧重绘，样式用 EnsureStyles 延迟初始化。
+            // IMGUI 每帧重绘,样式用 EnsureStyles 延迟初始化.
             // IMGUI redraws every frame; styles are lazily initialized by EnsureStyles.
             EnsureStyles();
             PixelSimulationStats stats = bootstrap.Stats;
-            // 面板高度根据是否显示活跃像素统计动态调整。
+            // 面板高度根据是否显示活跃像素统计动态调整.
             // Panel height adjusts based on whether active-pixel stats are visible.
             Rect panelRect = new Rect(18f, 18f, 680f, bootstrap.Config.showActivePixelCount ? 392f : 344f);
 
@@ -67,7 +67,7 @@ namespace NoitaCA
 
             if (bootstrap.Config.showActivePixelCount)
             {
-                // 活跃统计用于直接比较优化模式减少了多少工作量。
+                // 活跃统计用于直接比较优化模式减少了多少工作量.
                 // Active stats directly show how much workload the optimization modes reduce.
                 DrawLine("Active Pixels", "活跃像素", stats.ActivePixels.ToString(), new Color(0.48f, 1f, 0.55f, 1f));
                 DrawLine("Active Chunks", "活跃区块", stats.ActiveChunks.ToString(), new Color(0.65f, 1f, 0.75f, 1f));
@@ -86,7 +86,7 @@ namespace NoitaCA
 
         private void DrawLine(string englishLabel, string chineseLabel, string value, Color valueColor)
         {
-            // 每行保持英文、中文和值三列，方便双语阅读和快速扫视。
+            // 每行保持英文、中文和值三列,方便双语阅读和快速扫视.
             // Each row keeps English, Chinese, and value columns for bilingual scanning.
             GUILayout.BeginHorizontal();
             GUILayout.Label(englishLabel, labelStyle, GUILayout.Width(180f));
@@ -98,7 +98,7 @@ namespace NoitaCA
 
         private static string GetModeLabel(PixelSimulationMode mode)
         {
-            // 将内部枚举转成面板可读的双语文本。
+            // 将内部枚举转成面板可读的双语文本.
             // Converts internal enum values into bilingual panel labels.
             switch (mode)
             {
@@ -114,7 +114,7 @@ namespace NoitaCA
 
         private static Color GetFpsColor(float currentFps)
         {
-            // FPS 颜色按大致流畅度分级。
+            // FPS 颜色按大致流畅度分级.
             // FPS color is graded by rough smoothness.
             if (currentFps >= 50f)
             {
@@ -131,7 +131,7 @@ namespace NoitaCA
 
         private static Color GetCostColor(float milliseconds)
         {
-            // 耗时颜色按单项成本分级，快速暴露瓶颈。
+            // 耗时颜色按单项成本分级,快速暴露瓶颈.
             // Cost color is graded per item to reveal bottlenecks quickly.
             if (milliseconds <= 4f)
             {
@@ -153,7 +153,7 @@ namespace NoitaCA
                 return;
             }
 
-            // 样式只创建一次，避免 OnGUI 期间反复分配。
+            // 样式只创建一次,避免 OnGUI 期间反复分配.
             // Styles are created once to avoid repeated allocations during OnGUI.
             titleStyle = new GUIStyle(GUI.skin.label)
             {

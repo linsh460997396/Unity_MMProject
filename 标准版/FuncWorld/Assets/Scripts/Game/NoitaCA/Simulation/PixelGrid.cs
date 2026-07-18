@@ -1,4 +1,4 @@
-// 职责：存储像素网格状态，并维护活跃像素/活跃区块缓冲以支持多种模拟优化。
+﻿// 职责:存储像素网格状态,并维护活跃像素/活跃区块缓冲以支持多种模拟优化.
 // Responsibility: Stores pixel-grid state and maintains active pixel/chunk buffers for multiple simulation optimizations.
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,7 +7,7 @@ namespace NoitaCA
 {
     public class PixelGrid
     {
-        // cells 保存真实像素；active/next 缓冲决定本帧和下一帧要检查哪些像素。
+        // cells 保存真实像素；active/next 缓冲决定本帧和下一帧要检查哪些像素.
         // cells stores real pixels; active/next buffers decide which pixels are checked this frame and next frame.
         private readonly Pixel[,] cells;
         private readonly bool[,] activeCells;
@@ -15,7 +15,7 @@ namespace NoitaCA
         private readonly List<Vector2Int> activeCellList = new List<Vector2Int>(1024);
         private readonly List<Vector2Int> nextActiveCellList = new List<Vector2Int>(1024);
 
-        // 区块缓冲用于脏区域优化，比逐像素活跃列表更粗但更便宜。
+        // 区块缓冲用于脏区域优化,比逐像素活跃列表更粗但更便宜.
         // Chunk buffers support dirty-region optimization, coarser but cheaper than per-pixel active lists.
         private bool[,] activeChunks;
         private bool[,] nextActiveChunks;
@@ -38,7 +38,7 @@ namespace NoitaCA
 
         public PixelGrid(int width, int height)
         {
-            // 尺寸最小为 1，避免后续数组和坐标计算出现零尺寸网格。
+            // 尺寸最小为 1,避免后续数组和坐标计算出现零尺寸网格.
             // Dimensions are clamped to at least 1 to avoid zero-sized arrays and coordinate math.
             Width = Mathf.Max(1, width);
             Height = Mathf.Max(1, height);
@@ -51,7 +51,7 @@ namespace NoitaCA
 
         public void ConfigureOptimization(int chunkSize, int chunkSleepDelay)
         {
-            // 重新配置区块大小时需要重建所有区块级缓存。
+            // 重新配置区块大小时需要重建所有区块级缓存.
             // Reconfiguring chunk size requires rebuilding all chunk-level caches.
             ChunkSize = Mathf.Max(4, chunkSize);
             ChunkSleepDelay = Mathf.Max(0, chunkSleepDelay);
@@ -82,7 +82,7 @@ namespace NoitaCA
                 return;
             }
 
-            // SetCell 只写入数据；是否唤醒周围区域由调用者决定。
+            // SetCell 只写入数据；是否唤醒周围区域由调用者决定.
             // SetCell only writes data; callers decide whether nearby regions should wake up.
             ApplyPlayerSpellFlag(ref pixel);
             cells[x, y] = pixel;
@@ -115,7 +115,7 @@ namespace NoitaCA
                 return;
             }
 
-            // 材料替换是用户绘制和场景生成的主要入口，必须标记变化区域。
+            // 材料替换是用户绘制和场景生成的主要入口,必须标记变化区域.
             // Material replacement is the main entry for painting and world generation, so it marks changed regions.
             Pixel pixel = Pixel.FromMaterial(materialType);
             ApplyPlayerSpellFlag(ref pixel);
@@ -168,7 +168,7 @@ namespace NoitaCA
 
             Pixel first = cells[firstX, firstY];
             Pixel second = cells[secondX, secondY];
-            // 交换用于位移逻辑，例如重材料下沉、轻材料上浮。
+            // 交换用于位移逻辑,例如重材料下沉、轻材料上浮.
             // Swapping supports displacement, such as dense materials sinking and light materials rising.
             cells[firstX, firstY] = second;
             cells[secondX, secondY] = first;
@@ -178,7 +178,7 @@ namespace NoitaCA
 
         public void BeginSimulationStep()
         {
-            // 每步重置工作量统计，并清空下一帧缓冲。
+            // 每步重置工作量统计,并清空下一帧缓冲.
             // Reset per-step workload stats and clear next-frame buffers.
             ProcessedPixelsThisStep = 0;
             ChangedPixelsThisStep = 0;
@@ -191,13 +191,13 @@ namespace NoitaCA
         {
             if (mode == PixelSimulationMode.ActivePixels)
             {
-                // 活跃像素模式把 next 列表提交为下一步 active 列表。
+                // 活跃像素模式把 next 列表提交为下一步 active 列表.
                 // Active-pixel mode commits the next list as the next step's active list.
                 SwapActiveCellBuffers();
             }
             else if (mode == PixelSimulationMode.ChunkBased)
             {
-                // 区块模式先根据脏区块/睡眠计数生成下一帧区块，再提交。
+                // 区块模式先根据脏区块/睡眠计数生成下一帧区块,再提交.
                 // Chunk mode builds next-frame chunks from dirty chunks and sleep counters, then commits.
                 BuildNextChunkFrame();
                 SwapActiveChunkBuffers();
@@ -208,12 +208,12 @@ namespace NoitaCA
         {
             if (maxPixelsPerStep > 0 && ProcessedPixelsThisStep >= maxPixelsPerStep)
             {
-                // 预算耗尽时让调用者提前结束本次扫描。
+                // 预算耗尽时让调用者提前结束本次扫描.
                 // When the budget is exhausted, callers stop scanning early.
                 return false;
             }
 
-            // 预算为 0 表示不限制；否则每访问一个像素都计数。
+            // 预算为 0 表示不限制；否则每访问一个像素都计数.
             // A zero budget means unlimited; otherwise each visited pixel is counted.
             ProcessedPixelsThisStep++;
             return true;
@@ -223,7 +223,7 @@ namespace NoitaCA
         {
             if (mode == PixelSimulationMode.ActivePixels)
             {
-                // 优化模式只清理会被访问的像素，避免全图循环。
+                // 优化模式只清理会被访问的像素,避免全图循环.
                 // Optimized mode clears only pixels that will be visited, avoiding a full-grid pass.
                 for (int i = 0; i < activeCellList.Count; i++)
                 {
@@ -236,7 +236,7 @@ namespace NoitaCA
 
             if (mode == PixelSimulationMode.ChunkBased)
             {
-                // 区块模式清理活跃区块内的像素标记。
+                // 区块模式清理活跃区块内的像素标记.
                 // Chunk mode clears flags inside active chunks.
                 for (int i = 0; i < activeChunkList.Count; i++)
                 {
@@ -269,7 +269,7 @@ namespace NoitaCA
             }
 
             ChangedPixelsThisStep++;
-            // 任一像素变化都会唤醒周围像素和相邻区块，保持局部传播不断链。
+            // 任一像素变化都会唤醒周围像素和相邻区块,保持局部传播不断链.
             // Any pixel change wakes nearby pixels and neighboring chunks so local propagation continues.
             MarkActiveArea(x, y, 1);
             MarkChunkAndNeighborsActive(x, y);
@@ -292,7 +292,7 @@ namespace NoitaCA
 
         public void MarkActiveArea(int centerX, int centerY, int radius)
         {
-            // 同时写入当前和下一帧缓冲，保证刚画出的材料会立刻参与模拟并延续到下一步。
+            // 同时写入当前和下一帧缓冲,保证刚画出的材料会立刻参与模拟并延续到下一步.
             // Writes both current and next buffers so newly changed material simulates immediately and continues next step.
             int safeRadius = Mathf.Max(0, radius);
             for (int y = centerY - safeRadius; y <= centerY + safeRadius; y++)
@@ -307,7 +307,7 @@ namespace NoitaCA
 
         public void ActivateAll()
         {
-            // 全量激活用于初始化、切换优化模式或重建世界。
+            // 全量激活用于初始化、切换优化模式或重建世界.
             // Full activation is used for initialization, mode switching, or rebuilding the world.
             ClearActiveCells();
             ClearActiveChunks();
@@ -360,7 +360,7 @@ namespace NoitaCA
 
         public void ForEachCellInChunk(int chunkX, int chunkY, System.Action<int, int> action)
         {
-            // 将区块坐标转换成实际像素范围，边缘区块会被裁剪到网格内。
+            // 将区块坐标转换成实际像素范围,边缘区块会被裁剪到网格内.
             // Converts chunk coordinates to pixel bounds, clipping edge chunks to the grid.
             int minX = chunkX * ChunkSize;
             int minY = chunkY * ChunkSize;
@@ -378,7 +378,7 @@ namespace NoitaCA
 
         public void CountMaterials(out int nonAirPixels, out int waterPixels)
         {
-            // 统计给性能面板使用，不参与物理决策。
+            // 统计给性能面板使用,不参与物理决策.
             // Counts are for the performance panel and do not affect physics decisions.
             nonAirPixels = 0;
             waterPixels = 0;
@@ -549,7 +549,7 @@ namespace NoitaCA
 
         public void PaintCircle(int centerX, int centerY, int radius, MaterialType materialType)
         {
-            // 圆形笔刷用平方距离判断，避免每个格子开方。
+            // 圆形笔刷用平方距离判断,避免每个格子开方.
             // The circular brush uses squared distance to avoid square roots per cell.
             int safeRadius = Mathf.Max(1, radius);
             int radiusSquared = safeRadius * safeRadius;
@@ -596,7 +596,7 @@ namespace NoitaCA
 
         private void Clear()
         {
-            // 初始网格全部填充空气，然后激活一次让首帧可以完整渲染/模拟。
+            // 初始网格全部填充空气,然后激活一次让首帧可以完整渲染/模拟.
             // Initial grid is filled with air, then activated once for first-frame render/simulation.
             Pixel air = Pixel.FromMaterial(MaterialType.Air);
             for (int y = 0; y < Height; y++)
@@ -618,7 +618,7 @@ namespace NoitaCA
             }
 
             Pixel pixel = cells[x, y];
-            // Pixel 是结构体，修改字段后必须写回数组。
+            // Pixel 是结构体,修改字段后必须写回数组.
             // Pixel is a struct, so field changes must be written back to the array.
             pixel.UpdatedThisFrame = false;
             cells[x, y] = pixel;
@@ -631,7 +631,7 @@ namespace NoitaCA
                 return;
             }
 
-            // bool 表负责去重，list 负责保持可迭代的紧凑集合。
+            // bool 表负责去重,list 负责保持可迭代的紧凑集合.
             // The bool grid deduplicates while the list keeps a compact iterable set.
             nextActiveCells[x, y] = true;
             nextActiveCellList.Add(new Vector2Int(x, y));
@@ -639,7 +639,7 @@ namespace NoitaCA
 
         private void MarkChunkAndNeighborsActive(int x, int y)
         {
-            // 一个像素变化可能影响相邻区块边界，因此唤醒 3x3 区块邻域。
+            // 一个像素变化可能影响相邻区块边界,因此唤醒 3x3 区块邻域.
             // A changed pixel can affect chunk borders, so a 3x3 chunk neighborhood is awakened.
             int chunkX = Mathf.Clamp(x / ChunkSize, 0, ChunkColumns - 1);
             int chunkY = Mathf.Clamp(y / ChunkSize, 0, ChunkRows - 1);
@@ -694,14 +694,14 @@ namespace NoitaCA
 
         private void BuildNextChunkFrame()
         {
-            // 区块/脏区域教学简化：变化区块继续唤醒，未变化区块短暂停留后休眠。
+            // 区块/脏区域教学简化:变化区块继续唤醒,未变化区块短暂停留后休眠.
             // Chunk/dirty-region teaching simplification: changed chunks wake; unchanged chunks linger briefly, then sleep.
             for (int i = 0; i < activeChunkList.Count; i++)
             {
                 Vector2Int chunk = activeChunkList[i];
                 if (changedChunks[chunk.x, chunk.y])
                 {
-                    // 有变化的区块重置睡眠计数，下一帧继续扫描。
+                    // 有变化的区块重置睡眠计数,下一帧继续扫描.
                     // Changed chunks reset their sleep counter and stay active next frame.
                     chunkSleepFrames[chunk.x, chunk.y] = 0;
                     MarkNextActiveChunk(chunk.x, chunk.y);
@@ -711,7 +711,7 @@ namespace NoitaCA
                 chunkSleepFrames[chunk.x, chunk.y]++;
                 if (chunkSleepFrames[chunk.x, chunk.y] <= ChunkSleepDelay)
                 {
-                    // 未变化区块保留几帧，避免刚停下的流体马上被错误休眠。
+                    // 未变化区块保留几帧,避免刚停下的流体马上被错误休眠.
                     // Unchanged chunks stay alive for a few frames so settling fluids do not sleep too early.
                     MarkNextActiveChunk(chunk.x, chunk.y);
                 }
@@ -720,7 +720,7 @@ namespace NoitaCA
 
         private void ClearActiveCells()
         {
-            // 按列表反向清理 bool 表，比扫描整张网格便宜。
+            // 按列表反向清理 bool 表,比扫描整张网格便宜.
             // Clears the bool grid through the list, cheaper than scanning the whole grid.
             for (int i = 0; i < activeCellList.Count; i++)
             {
@@ -744,7 +744,7 @@ namespace NoitaCA
 
         private void SwapActiveCellBuffers()
         {
-            // 提交 next 缓冲时复用现有集合，减少每帧分配。
+            // 提交 next 缓冲时复用现有集合,减少每帧分配.
             // Commits the next buffer while reusing collections to reduce per-frame allocations.
             ClearActiveCells();
             for (int i = 0; i < nextActiveCellList.Count; i++)
@@ -757,7 +757,7 @@ namespace NoitaCA
 
         private void ClearActiveChunks()
         {
-            // 区块缓冲同样用 list 清理 bool 表，保持清理成本随活跃量变化。
+            // 区块缓冲同样用 list 清理 bool 表,保持清理成本随活跃量变化.
             // Chunk buffers also clear bool grids through lists, keeping cleanup proportional to activity.
             for (int i = 0; i < activeChunkList.Count; i++)
             {
@@ -781,7 +781,7 @@ namespace NoitaCA
 
         private void SwapActiveChunkBuffers()
         {
-            // 将下一帧区块列表切换成当前活跃区块列表。
+            // 将下一帧区块列表切换成当前活跃区块列表.
             // Promotes the next-frame chunk list to the current active chunk list.
             ClearActiveChunks();
             for (int i = 0; i < nextActiveChunkList.Count; i++)
@@ -794,7 +794,7 @@ namespace NoitaCA
 
         private void ClearChangedChunks()
         {
-            // 脏区块矩阵很小，直接全清简单且成本可控。
+            // 脏区块矩阵很小,直接全清简单且成本可控.
             // The dirty-chunk matrix is small, so a full clear is simple and cheap enough.
             for (int y = 0; y < ChunkRows; y++)
             {

@@ -43,7 +43,7 @@ namespace CellSpace.WebSocket
         private Queue<NetworkMessage> messageQueue = new Queue<NetworkMessage>();
         private float sendTimer;
         
-        // 内存优化：复用的 MemoryStream
+        // 内存优化:复用的 MemoryStream
         private MemoryStream reusableStream = new MemoryStream(256);
         
         // 区块请求去重
@@ -105,7 +105,7 @@ namespace CellSpace.WebSocket
 
         private float GetCurrentReconnectDelay()
         {
-            // 指数退避：5s, 10s, 20s, 40s, 80s...
+            // 指数退避:5s, 10s, 20s, 40s, 80s...
             return reconnectDelay * Mathf.Pow(2, reconnectAttempts);
         }
 
@@ -332,7 +332,7 @@ namespace CellSpace.WebSocket
             if (enableDebugLog)
                 Debug.Log("Disconnected from server: " + message);
 
-            // 不要销毁对象，保留用于重连
+            // 不要销毁对象,保留用于重连
         }
 
         private void HandleConnectResponse(byte[] data)
@@ -628,7 +628,7 @@ namespace CellSpace.WebSocket
             }
             else
             {
-                // 未连接时也加入队列，等待重连后发送
+                // 未连接时也加入队列,等待重连后发送
                 if (messageQueue.Count < maxQueueSize)
                 {
                     messageQueue.Enqueue(message);

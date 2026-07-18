@@ -79,7 +79,7 @@ namespace MMWorld.RimWorld
             // 检查材料是否足够
             if (!HasEnoughMaterials(buildingDef))
             {
-                Debug.LogWarning($"材料不足，无法建造 {buildingDef.label}");
+                Debug.LogWarning($"材料不足,无法建造 {buildingDef.label}");
                 return false;
             }
 
@@ -123,7 +123,7 @@ namespace MMWorld.RimWorld
         /// </summary>
         private void ProcessConstructionQueue()
         {
-            // 如果当前没有正在建造的任务，从队列中获取一个
+            // 如果当前没有正在建造的任务,从队列中获取一个
             if (currentJob == null && constructionQueue.Count > 0)
             {
                 // 找到第一个有建造者或可以分配建造者的任务
@@ -153,7 +153,7 @@ namespace MMWorld.RimWorld
         {
             if (currentJob.builder == null) return;
 
-            // 计算建造速度（基于建造者技能）
+            // 计算建造速度(基于建造者技能)
             float skillBonus = 1 + (currentJob.builder.skills.construction.level * 0.05f);
             float speed = (1f / currentJob.buildingDef.constructionTime) * skillBonus * constructionSpeedMultiplier;
 
@@ -197,7 +197,7 @@ namespace MMWorld.RimWorld
             building.buildingDef = def;
             building.hitPoints = def.maxHitPoints;
 
-            // 如果有预制体，实例化它
+            // 如果有预制体,实例化它
             if (def.prefab != null)
             {
                 GameObject prefabInstance = Instantiate(def.prefab, position, Quaternion.identity);

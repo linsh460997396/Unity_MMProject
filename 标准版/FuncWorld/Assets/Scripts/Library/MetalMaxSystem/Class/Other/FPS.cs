@@ -5,7 +5,7 @@ using UnityEngine;
 namespace MetalMaxSystem.Unity
 {
     /// <summary>
-    /// 在UI界面显示帧数和延迟
+    /// 在UI界面显示帧数和延迟.
     /// </summary>
     public class FPS : MonoBehaviour
     {
@@ -52,3 +52,5 @@ namespace MetalMaxSystem.Unity
     }
 }
 #endif
+
+// 使用说明:作为Unity组件挂载在任意游戏物体上即可显示帧率和延迟.

@@ -3,7 +3,7 @@
 // 角色移动相关的结构体,包含各种移动属性 
 public struct CharacterMotorMovement
 {
-    // 最大水平速度（向前、向侧、向后) 
+    // 最大水平速度(向前、向侧、向后) 
     public float maxForwardSpeed;
     public float maxSidewaysSpeed;
     public float maxBackwardsSpeed;
@@ -276,7 +276,7 @@ public class CharacterMotor : MonoBehaviour
         }
     }
 
-    // 根据输入改变速度的方法（这里需要根据具体游戏输入逻辑完善) 
+    // 根据输入改变速度的方法(这里需要根据具体游戏输入逻辑完善) 
     private Vector3 ApplyInputVelocityChange(Vector3 velocity)
     {
         // 这里只是示例,实际需要根据输入系统获取正确的输入方向 
@@ -288,7 +288,7 @@ public class CharacterMotor : MonoBehaviour
         return velocity;
     }
 
-    // 应用重力和跳跃力的方法（这里需要根据具体物理逻辑完善跳跃部分) 
+    // 应用重力和跳跃力的方法(这里需要根据具体物理逻辑完善跳跃部分) 
     private Vector3 ApplyGravityAndJumping(Vector3 velocity)
     {
         if (!grounded)
@@ -316,7 +316,7 @@ public class CharacterMotor : MonoBehaviour
         return movingPlatform.enabled && movingPlatform.activePlatform != null;
     }
 
-    // 检测是否接地的测试方法（这里需要根据具体碰撞检测逻辑完善) 
+    // 检测是否接地的测试方法(这里需要根据具体碰撞检测逻辑完善) 
     private bool IsGroundedTest()
     {
         return false;
@@ -328,8 +328,8 @@ public class CharacterMotor : MonoBehaviour
 //   - 首先定义了`CharacterMotorMovement`、`CharacterMotorJumping`、`CharacterMotorMovingPlatform`和`CharacterMotorSliding`结构体,它们分别包含了与角色移动、跳跃、与移动平台交互以及滑动相关的属性. 
 //   - 定义了`MovementTransferOnJump`枚举类型,用于表示跳跃时速度传递的方式. 
 //2. 类的定义和初始化 
-//   - 定义了`CharacterMotor`类,它继承自`MonoBehaviour`.在类中定义了各种公共和私有变量,包括表示角色状态的变量（如`canControl`、`grounded`等)以及各个功能模块的实例. 
-//   - 在`Awake`方法中获取`CharacterController`组件并初始化`tr`（角色的`Transform`). 
+//   - 定义了`CharacterMotor`类,它继承自`MonoBehaviour`.在类中定义了各种公共和私有变量,包括表示角色状态的变量(如`canControl`、`grounded`等)以及各个功能模块的实例. 
+//   - 在`Awake`方法中获取`CharacterController`组件并初始化`tr`(角色的`Transform`). 
 //3. 更新逻辑 
 //   - 在`Update`和`FixedUpdate`方法中根据`useFixedUpdate`变量决定调用`UpdateFunction`方法. 
 //   - `UpdateFunction`方法包含了角色移动、跳跃、与移动平台交互等一系列逻辑的实现. 

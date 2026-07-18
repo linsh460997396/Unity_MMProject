@@ -13,7 +13,7 @@ namespace MMWorld.RimWorld
         #region 基本信息
 
         /// <summary>
-        /// 定义名称（唯一标识符）
+        /// 定义名称(唯一标识符)
         /// </summary>
         public string defName;
 
@@ -43,13 +43,13 @@ namespace MMWorld.RimWorld
         public BuildingCategory buildingCategory;
 
         /// <summary>
-        /// 建筑大小（格子数）
+        /// 建筑大小(格子数)
         /// </summary>
         public int sizeX = 1;
         public int sizeY = 1;
 
         /// <summary>
-        /// 建造时间（秒）
+        /// 建造时间(秒)
         /// </summary>
         public float constructionTime = 60f;
 
@@ -79,7 +79,7 @@ namespace MMWorld.RimWorld
         public bool requiresPower = false;
 
         /// <summary>
-        /// 电力消耗（W）
+        /// 电力消耗(W)
         /// </summary>
         public float powerConsumption = 0;
 

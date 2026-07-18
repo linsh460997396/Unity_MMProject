@@ -13,7 +13,7 @@ namespace MMWorld.RimWorld
         #region 基本信息
 
         /// <summary>
-        /// 定义名称（唯一标识符）
+        /// 定义名称(唯一标识符)
         /// </summary>
         public string defName;
 
@@ -52,7 +52,7 @@ namespace MMWorld.RimWorld
         #region 属性
 
         /// <summary>
-        /// 体积（格子数）
+        /// 体积(格子数)
         /// </summary>
         public float volume = 1f;
 

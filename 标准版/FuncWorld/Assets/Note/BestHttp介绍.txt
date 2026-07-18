@@ -4,10 +4,10 @@
 
 🚀 核心优势
 
-功能全面：支持 HTTP/1.1, HTTP/2, WebSocket, Socket.IO, SignalR 等多种协议.
-高性能：采用异步模型,避免阻塞主线程；利用内存池技术,减少垃圾回收（GC）压力.
-跨平台：完美支持 iOS、Android、WebGL 等所有 Unity 支持的平台.
-易于使用：提供简洁直观的 API,无论是简单的 GET 请求还是复杂的文件上传、实时通信,都能轻松实现.
+功能全面:支持 HTTP/1.1, HTTP/2, WebSocket, Socket.IO, SignalR 等多种协议.
+高性能:采用异步模型,避免阻塞主线程；利用内存池技术,减少垃圾回收(GC)压力.
+跨平台:完美支持 iOS、Android、WebGL 等所有 Unity 支持的平台.
+易于使用:提供简洁直观的 API,无论是简单的 GET 请求还是复杂的文件上传、实时通信,都能轻松实现.
 
 📥 安装
 
@@ -17,7 +17,7 @@
 
 Best HTTP 的核心是 HTTPRequest 类,通过它来创建和发送请求.
 
-GET 请求（适用于从服务器获取服务器数据如配置文件、用户信息）
+GET 请求(适用于从服务器获取服务器数据如配置文件、用户信息)
 
 这是最常见的请求类型
 
@@ -74,7 +74,7 @@ public class GetExample : MonoBehaviour
     }
 }
 
-POST 请求（上传表单数据）‌
+POST 请求(上传表单数据)‌
 
 用于向服务器提交数据如用户登录、表单提交等
 
@@ -105,7 +105,7 @@ public class PostExample : MonoBehaviour
     }
 }
 
-常用于登录、注册等场景：
+常用于登录、注册等场景:
 void Login(string username, string password)
 {
     var request = HTTPRequest.CreatePost("https://api.example.com/login", OnRequestFinished);
@@ -154,7 +154,7 @@ request.OnResponse = (req, resp) =>
 };
 request.Send();
 
-提升用户体验,适用于资源包下载：
+提升用户体验,适用于资源包下载:
 var request = new HTTPRequest(new Uri("https://example.com/bigfile.zip"), OnFinished);
 request.OnProgress += (r, downloaded, total) =>
 {
@@ -165,9 +165,9 @@ request.Send();
 
 文件上传
 
-支持上传原始字节、文件流、JSON 数据以及 Multipart 表单（用于同时上传文件和文本）.
+支持上传原始字节、文件流、JSON 数据以及 Multipart 表单(用于同时上传文件和文本).
 
-// 示例：使用 Multipart 表单上传文件和文本字段
+// 示例:使用 Multipart 表单上传文件和文本字段
 var request = new HTTPRequest(new System.Uri("http://example.com/upload"), HTTPMethods.Post);
 
 var form = new BestHTTP.Request.Upload.Forms.MultipartFormDataStream()
@@ -177,8 +177,8 @@ var form = new BestHTTP.Request.Upload.Forms.MultipartFormDataStream()
 request.UploadSettings.UploadStream = form;
 request.Send();
 
-‌文件上传（支持大文件流式上传）‌
-避免内存溢出,适合上传图片、视频等：
+‌文件上传(支持大文件流式上传)‌
+避免内存溢出,适合上传图片、视频等:
 void UploadFile(string filePath)
 {
     var request = HTTPRequest.CreatePost("https://api.example.com/upload", OnRequestFinished);
@@ -273,7 +273,7 @@ webSocket.Open(); // 打开连接
 webSocket.SendText("Hello Server!"); // 发送文本消息
 // webSocket.Close(); // 关闭连接
 
-实现聊天、实时对战等功能：
+实现聊天、实时对战等功能:
 var ws = new WebSocket(new Uri("wss://echo.websocket.org"));
 ws.OnOpen += (socket) => Debug.Log("连接已建立");
 ws.OnMessage += (socket, msg) => Debug.Log("收到消息: " + msg);

@@ -26,7 +26,7 @@
         /// <summary>
         /// 在所属团块空间中的相对坐标(以左下为原点).
         /// 世界坐标与本地相对坐标的转换由transform.InverseTransformPoint(世界坐标)解决,Unity默认坐标系以左下为原点,所以该方法正好可以直接用于获取相对位置.
-        /// 精灵实际世界位置(256.5,256.5,256.5),团块空间边长256（左下插入点0,0,0）,那么经transform.InverseTransformPoint转成相对坐标(0.5,0.5,0.5),即双向链表第一个单元索引0
+        /// 精灵实际世界位置(256.5,256.5,256.5),团块空间边长256(左下插入点0,0,0),那么经transform.InverseTransformPoint转成相对坐标(0.5,0.5,0.5),即双向链表第一个单元索引0
         /// </summary>
         public float x, y, z;
         /// <summary>

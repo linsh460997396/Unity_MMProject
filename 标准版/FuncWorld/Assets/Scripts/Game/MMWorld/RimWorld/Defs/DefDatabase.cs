@@ -26,7 +26,7 @@ namespace MMWorld.RimWorld
                 }
             }
 
-            // 如果没有资源，创建默认定义
+            // 如果没有资源,创建默认定义
             if (thingDefs.Count == 0)
             {
                 CreateDefaultDefs();
@@ -145,7 +145,7 @@ namespace MMWorld.RimWorld
                 }
             }
 
-            // 如果没有资源，创建默认定义
+            // 如果没有资源,创建默认定义
             if (buildingDefs.Count == 0)
             {
                 CreateDefaultDefs();

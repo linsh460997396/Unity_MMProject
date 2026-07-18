@@ -1,10 +1,10 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System;
 
 namespace MMWorld.RimWorld
 {
     /// <summary>
-    /// 殖民者（Pawn）- 游戏中的核心角色
+    /// 殖民者(Pawn)- 游戏中的核心角色
     /// 类似环世界的殖民者系统
     /// </summary>
     public class Pawn : MonoBehaviour
@@ -110,7 +110,7 @@ namespace MMWorld.RimWorld
             work = GetComponent<PawnWork>();
             inventory = GetComponent<PawnInventory>();
 
-            // 如果组件不存在，自动添加
+            // 如果组件不存在,自动添加
             if (stats == null) stats = gameObject.AddComponent<PawnStats>();
             if (skills == null) skills = gameObject.AddComponent<PawnSkills>();
             if (needs == null) needs = gameObject.AddComponent<PawnNeeds>();

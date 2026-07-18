@@ -19,12 +19,12 @@ namespace MMWorld.RimWorld
         #region 设置
 
         /// <summary>
-        /// 基础事件触发概率（每天）
+        /// 基础事件触发概率(每天)
         /// </summary>
         public float baseEventChance = 0.2f;
 
         /// <summary>
-        /// 最小事件间隔（天数）
+        /// 最小事件间隔(天数)
         /// </summary>
         public int minEventInterval = 3;
 
@@ -63,7 +63,7 @@ namespace MMWorld.RimWorld
         private int daysSinceLastEvent;
 
         /// <summary>
-        /// 事件强度（随天数增加）
+        /// 事件强度(随天数增加)
         /// </summary>
         private float eventIntensity;
 
@@ -245,12 +245,12 @@ namespace MMWorld.RimWorld
 
                 case EventType.CaravanArrival:
                     gameEvent.title = "商队到达";
-                    gameEvent.description = "一支商队到达了你的殖民地。";
+                    gameEvent.description = "一支商队到达了你的殖民地.";
                     break;
 
                 case EventType.WandererJoin:
                     gameEvent.title = "流浪者请求加入";
-                    gameEvent.description = "一名流浪者希望加入你的殖民地。";
+                    gameEvent.description = "一名流浪者希望加入你的殖民地.";
                     break;
 
                 case EventType.PredatorAttack:
@@ -270,7 +270,7 @@ namespace MMWorld.RimWorld
 
                 case EventType.GoodWeather:
                     gameEvent.title = "好天气";
-                    gameEvent.description = "天气变得晴朗宜人。";
+                    gameEvent.description = "天气变得晴朗宜人.";
                     break;
 
                 case EventType.Bounty:
@@ -281,7 +281,7 @@ namespace MMWorld.RimWorld
 
                 case EventType.TradeCaravan:
                     gameEvent.title = "贸易商队";
-                    gameEvent.description = "一支贸易商队到达，可以进行交易。";
+                    gameEvent.description = "一支贸易商队到达,可以进行交易.";
                     break;
 
                 case EventType.ShipCrash:
@@ -297,7 +297,7 @@ namespace MMWorld.RimWorld
 
                 case EventType.AnimalHerd:
                     gameEvent.title = "动物迁徙";
-                    gameEvent.description = "一群动物正在附近迁徙。";
+                    gameEvent.description = "一群动物正在附近迁徙.";
                     break;
 
                 case EventType.GiftShip:
@@ -350,7 +350,7 @@ namespace MMWorld.RimWorld
         /// </summary>
         public void TriggerEvent(GameEvent gameEvent)
         {
-            // 如果当前有事件正在处理，加入队列
+            // 如果当前有事件正在处理,加入队列
             if (currentEvent != null)
             {
                 eventQueue.Enqueue(gameEvent);

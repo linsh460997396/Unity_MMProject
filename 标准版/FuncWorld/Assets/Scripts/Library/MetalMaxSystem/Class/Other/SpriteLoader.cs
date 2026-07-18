@@ -8,6 +8,9 @@ using UnityEngine;
 
 namespace MetalMaxSystem.Unity
 {
+    /// <summary>
+    /// 读取外部PNG图片和对应的meta文件,生成Sprite数组的工具类.
+    /// </summary>
     public class SpriteLoader
     {
         [Serializable]
@@ -27,11 +30,12 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 从 PNG 图片和对应的 meta 文件加载 Sprite 数组
+        /// 从PNG图片和对应的meta文件加载Sprite 数组.
+        /// JPG也可以切片但‌不支持Alpha透明度(若子精灵间有空隙且背景非纯色或与游戏背景融合可能会看到背景色,无法制作带有半透明阴影或柔和边缘的精灵)
         /// </summary>
         /// <param name="pngPath">PNG 图片文件路径</param>
-        /// <param name="metaPath">meta 文件路径（可以是 .meta 或 .txt）</param>
-        /// <returns>Sprite 数组，按名称排序</returns>
+        /// <param name="metaPath">meta 文件路径(可以是 .meta 或 .txt)</param>
+        /// <returns>Sprite 数组,按名称排序</returns>
         public static Sprite[] LoadSprites(string pngPath, string metaPath)
         {
             // 1. 加载 PNG 图片
@@ -78,7 +82,7 @@ namespace MetalMaxSystem.Unity
             {
                 var spriteData = config.sprites[i];
 
-                // 注意：Unity 纹理坐标原点在左下角，Y 轴向上
+                // 注意:Unity 纹理坐标原点在左下角,Y 轴向上
                 // meta 文件中的坐标已经是正确的 Unity 坐标系统
                 sprites[i] = Sprite.Create(
                     texture,
@@ -92,7 +96,7 @@ namespace MetalMaxSystem.Unity
                 sprites[i].name = spriteData.name;
             }
 
-            // 4. 按名称排序（可选，保持一致性）
+            // 4. 按名称排序(可选,保持一致性)
             Array.Sort(sprites, (a, b) => string.Compare(a.name, b.name, StringComparison.Ordinal));
 
             return sprites;
@@ -103,10 +107,10 @@ namespace MetalMaxSystem.Unity
         /// 会自动使用与PNG文件同名的.meta文件.
         /// </summary>
         /// <param name="pngPath">PNG 图片文件路径</param>
-        /// <returns>Sprite 数组，按名称排序</returns>
+        /// <returns>Sprite 数组,按名称排序</returns>
         public static Sprite[] LoadSprites(string pngPath)
         {
-            string metaPath = pngPath + ".meta"; // 或者 .meta，根据你的文件命名习惯
+            string metaPath = pngPath + ".meta"; // 或者 .meta,根据你的文件命名习惯
             // 1. 加载 PNG 图片
             if (!File.Exists(pngPath))
             {
@@ -151,7 +155,7 @@ namespace MetalMaxSystem.Unity
             {
                 var spriteData = config.sprites[i];
 
-                // 注意：Unity 纹理坐标原点在左下角，Y 轴向上
+                // 注意:Unity 纹理坐标原点在左下角,Y 轴向上
                 // meta 文件中的坐标已经是正确的 Unity 坐标系统
                 sprites[i] = Sprite.Create(
                     texture,
@@ -165,14 +169,14 @@ namespace MetalMaxSystem.Unity
                 sprites[i].name = spriteData.name;
             }
 
-            // 4. 按名称排序（可选，保持一致性）
+            // 4. 按名称排序(可选,保持一致性)
             Array.Sort(sprites, (a, b) => string.Compare(a.name, b.name, StringComparison.Ordinal));
 
             return sprites;
         }
 
         /// <summary>
-        /// 解析 Unity meta 文件，提取精灵数据
+        /// 解析 Unity meta 文件,提取精灵数据
         /// </summary>
         private static SheetConfig ParseMetaFile(string metaContent)
         {
@@ -333,7 +337,7 @@ namespace MetalMaxSystem.Unity
                 }
             }
 
-            // 提取 border（默认为 0）
+            // 提取 border(默认为 0)
             data.border = Vector4.zero;
             int borderIndex = spriteBlock.IndexOf("border:");
             if (borderIndex != -1)
@@ -383,7 +387,7 @@ namespace MetalMaxSystem.Unity
 //    {
 //        Debug.Log($"成功加载 {allSprites.Length} 个精灵");
 
-//        // 按类别筛选（根据你的需求）
+//        // 按类别筛选(根据你的需求)
 //        List<Sprite> fontSprites = new List<Sprite>();
 //        List<Sprite> explosionSprites = new List<Sprite>();
 

@@ -313,13 +313,13 @@ namespace SpriteSpace
 
                 if (distance < aiAttackRange)
                 {
-                    // 怪物在攻击范围内，追击怪物
+                    // 怪物在攻击范围内,追击怪物
                     ChaseMonster(nearestMonster);
                     return;
                 }
             }
 
-            // 没有找到怪物或怪物太远，继续随机漫步
+            // 没有找到怪物或怪物太远,继续随机漫步
             WanderAround();
         }
 

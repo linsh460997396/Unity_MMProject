@@ -2,20 +2,20 @@
 System.AppDomain.CurrentDomain.BaseDirectory 返回调试目录(如bin\Debug或bin\Release),在Unity编辑器运行时返回编辑器安装目录\Editor,Unity进行打包并选择直接运行时返回项目目录\,仅单独打包后返回exe目录
 string exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;// 返回当前代码所在的 ‌.dll‌路径.期望结果‌是D:\Game\MyGame.exe ‌实际结果‌可能是D:\Game\MyGame_Data\Managed\Assembly-CSharp.dll.
 
-正确获取Unity游戏.exe 的路径：
+正确获取Unity游戏.exe 的路径:
 string gameRoot = Directory.GetParent(Application.dataPath).FullName;
 string exePath = Path.Combine(gameRoot, Process.GetCurrentProcess().ProcessName + ".exe");
-// 注意：Process.GetCurrentProcess().ProcessName 可能不包含 .exe 后缀,需手动拼接
-// 简单获取根目录方式：string rootDir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+// 注意:Process.GetCurrentProcess().ProcessName 可能不包含 .exe 后缀,需手动拼接
+// 简单获取根目录方式:string rootDir = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
 
-当前进程的 ‌.exe‌ 路径：
+当前进程的 ‌.exe‌ 路径:
 using System.Diagnostics;
 string exePath = Process.GetCurrentProcess().MainModule.FileName;
 // 输出示例: D:\Game\MyGame.exe
 
-游戏数据文件夹 (‌_Data‌) 路径：Application.dataPath
+游戏数据文件夹 (‌_Data‌) 路径:Application.dataPath
 
-应用程序基目录 (通常是根目录)：
+应用程序基目录 (通常是根目录):
 string rootDir = AppDomain.CurrentDomain.BaseDirectory;
 // 输出示例: D:\Game\
 
@@ -740,24 +740,24 @@ Material.renderQueue=3000; //设置材质渲染队列,该值会传入Shader的Re
 专用于2D渲染(SpriteRenderer/Canvas等),通过Sorting Layer分组,Order in Layer控制组内层级
 值越大越靠前,适合2D游戏中的角色遮挡、UI层级管理.
 
-当多个对象在同一摄像机下时,Unity 按以下严格顺序决定谁先画、谁后画（后画的覆盖先画的）：
-Render Queue (渲染队列)‌：
+当多个对象在同一摄像机下时,Unity 按以下严格顺序决定谁先画、谁后画(后画的覆盖先画的):
+Render Queue (渲染队列)‌:
 这是‌最高优先级‌的材质级排序.
-Queue 值小的先渲染（如 2000 先于 3000）.
-注意：如果你的 Shader C 和 Shader D 的 Queue 不同,它们会严格按 Queue 值分组渲染,完全忽略 Sorting Layer 和距离.
+Queue 值小的先渲染(如 2000 先于 3000).
+注意:如果你的 Shader C 和 Shader D 的 Queue 不同,它们会严格按 Queue 值分组渲染,完全忽略 Sorting Layer 和距离.
 
-Sorting Layer (排序层)‌：
+Sorting Layer (排序层)‌:
 仅在 ‌Render Queue 相同‌ 的情况下比较
-在 Tags & Layers 中排在下方的 Layer 后渲染（覆盖上方）
+在 Tags & Layers 中排在下方的 Layer 后渲染(覆盖上方)
 
-Order in Layer (层内顺序)‌：
+Order in Layer (层内顺序)‌:
 仅在 ‌Render Queue 相同‌ 且 ‌Sorting Layer 相同‌ 的情况下比较.
-数值大的后渲染（覆盖数值小的）.
+数值大的后渲染(覆盖数值小的).
 
-Distance to Camera (距离摄像机的远近)‌：
+Distance to Camera (距离摄像机的远近)‌:
 仅在上述所有条件都相同的情况下,才根据距离排序.
-对于不透明物体（Queue < 2500）,通常近的覆盖远的（通过 Z-Buffer 深度测试实现,而非单纯绘制顺序）.
-对于透明物体（Queue >= 2500）,通常远的先画,近的后画（为了正确的混合效果）.
+对于不透明物体(Queue < 2500),通常近的覆盖远的(通过 Z-Buffer 深度测试实现,而非单纯绘制顺序).
+对于透明物体(Queue >= 2500),通常远的先画,近的后画(为了正确的混合效果).
 
 Unity中V Sync Count的设置有三种:不设置、每个V空白、每秒V空白
 ‌Don't Sync‌:关闭垂直同步,帧率不受显示器刷新率限制,可通过Application.targetFrameRate手动设置目标帧率(如1000FPS)‌,此模式下性能最高,但可能产生画面撕裂.
@@ -1272,7 +1272,7 @@ Unity原生备注方式(直接显示在Inspector面板上)
 
 public static string BuildString(string key, char separator, int id)
 {
-    // 预计算id字符长度（支持负数）
+    // 预计算id字符长度(支持负数)
     int idLen = id < 0 ? (int)Math.Floor(Math.Log10(-id)) + 2 : (id == 0 ? 1 : (int)Math.Floor(Math.Log10(id)) + 1);
     int length = key.Length + 1 + idLen; // key + '_' + id
 
@@ -1288,7 +1288,7 @@ public static string BuildString(string key, char separator, int id)
         // 直接写入separator
         span[pos++] = sep;
 
-        // 将int直接写入span尾部（从后向前填充）
+        // 将int直接写入span尾部(从后向前填充)
         int endPos = pos + len;
         int temp = num;
         bool negative = false;
@@ -1311,47 +1311,47 @@ public static string BuildString(string key, char separator, int id)
 }
 string.Create 的设计初衷就是‌消灭中间临时字符串‌,直接在最终字符串的目标内存上构造内容
 当把char传入时,值类型零分配,在SpanAction回调中直接span[pos++] = sep;一次简单索引写入没有任何间接访问
-而改用string传入时：需要先有一个string实例在堆上分配,回调时不得不通过s.AsSpan().CopyTo(span.Slice(pos))把它的内容复制过去,涉及从堆上读字符串数据的间接访问
+而改用string传入时:需要先有一个string实例在堆上分配,回调时不得不通过s.AsSpan().CopyTo(span.Slice(pos))把它的内容复制过去,涉及从堆上读字符串数据的间接访问
 即使这个string是固定单字符字符串如"_",它依然是一个独立的堆对象,每次调用都会增加GC追踪负担,所以'_'参与Span组合更效率
 
-// 方式一：使用 KeyCode 枚举（推荐,性能更好,不易出错）
+// 方式一:使用 KeyCode 枚举(推荐,性能更好,不易出错)
 if (Input.GetKey(KeyCode.W))
 {
     // 当 W 键被按住时,每帧执行这里
     transform.Translate(Vector3.forward * speed * Time.deltaTime);
 }
 
-// 方式二：使用字符串名称
+// 方式二:使用字符串名称
 if (Input.GetKey("space"))
 {
     // 当空格键被按住时执行
     Debug.Log("Space is being held down");
 }
-第 1 帧（按下瞬间）:GetKeyDown 为 true,GetKey 为 true,GetKeyUp 为 false.
-第 2 ~ N 帧（按住期间）:GetKeyDown 为 false,‌GetKey 为 true‌,GetKeyUp 为 false.
-第 N+1 帧（松开瞬间）:GetKeyDown 为 false,GetKey 为 false,‌GetKeyUp 为 true‌.
-Input.GetKeyDown‌:跳跃、开枪（单发）、打开菜单、确认操作
+第 1 帧(按下瞬间):GetKeyDown 为 true,GetKey 为 true,GetKeyUp 为 false.
+第 2 ~ N 帧(按住期间):GetKeyDown 为 false,‌GetKey 为 true‌,GetKeyUp 为 false.
+第 N+1 帧(松开瞬间):GetKeyDown 为 false,GetKey 为 false,‌GetKeyUp 为 true‌.
+Input.GetKeyDown‌:跳跃、开枪(单发)、打开菜单、确认操作
 ‌Input.GetKey‌:角色左右移动、奔跑、持续激光射击、镜头转动
 ‌Input.GetKeyUp‌:停止射击、结束蓄力、关闭菜单
-Unity官方文档和建议通常推荐可能情况下用‌Input.GetAxis‌或Input.GetButton‌原因如下：
-‌可配置性:玩家可在游戏设置中重新映射按键（如将“前进”从 W 键改为上箭头）而硬编码的 KeyCode.W 无法被玩家修改
-‌平滑处理:Input.GetAxis 会自动处理按键的平滑过渡（如手柄摇杆的渐变）,使角色移动更自然,而 GetKey 只有 0 或 1 两种状态.
+Unity官方文档和建议通常推荐可能情况下用‌Input.GetAxis‌或Input.GetButton‌原因如下:
+‌可配置性:玩家可在游戏设置中重新映射按键(如将“前进”从 W 键改为上箭头)而硬编码的 KeyCode.W 无法被玩家修改
+‌平滑处理:Input.GetAxis 会自动处理按键的平滑过渡(如手柄摇杆的渐变),使角色移动更自然,而 GetKey 只有 0 或 1 两种状态.
 
 FindObjectOfType<T>():
-依据类型（Component/Script）:它查找的是场景中是否存在挂载了特定脚本（如 MonoForMutiAutoLogin）或特定组件（如 Camera、Rigidbody）的游戏物体.
+依据类型(Component/Script):它查找的是场景中是否存在挂载了特定脚本(如 MonoForMutiAutoLogin)或特定组件(如 Camera、Rigidbody)的游戏物体.
 返回结果:返回该类型的‌组件实例引用‌.如果找到,你可以直接调用该脚本中的公共方法和变量,无需再通过 GetComponent 转换.
 GameObject.Find() / FindWithTag():
-依据名称或标签:它查找的是游戏物体（GameObject）本身的名称或标签.
-返回结果:返回 ‌GameObject‌ 引用.如果你需要访问上面的脚本,拿到 GameObject 后还必须额外调用 GetComponent<MonoForMutiAutoLogin>(),多了一步操作且容易出错（例如物体存在但脚本被移除）.
-2. 对“禁用物体”的处理不同（关键点）
-FindObjectOfType<T>():只查找激活（Active）的物体‌.如果挂载该脚本的 GameObject 被设置为 SetActive(false),该方法将返回 null.
+依据名称或标签:它查找的是游戏物体(GameObject)本身的名称或标签.
+返回结果:返回 ‌GameObject‌ 引用.如果你需要访问上面的脚本,拿到 GameObject 后还必须额外调用 GetComponent<MonoForMutiAutoLogin>(),多了一步操作且容易出错(例如物体存在但脚本被移除).
+2. 对“禁用物体”的处理不同(关键点)
+FindObjectOfType<T>():只查找激活(Active)的物体‌.如果挂载该脚本的 GameObject 被设置为 SetActive(false),该方法将返回 null.
 
 游戏物体的GetComponentsInChildren<T>()方法会递归搜索‌返回GameObject下所有层级组件,包括子的子的子...
-该方法‌只返回处于活跃状态（Active in Hierarchy）‌的 GameObject 上的组件
-foreach (Transform child in canvas.transform)只能获取到 canvas 的直接子物体（第一层子节点）
+该方法‌只返回处于活跃状态(Active in Hierarchy)‌的 GameObject 上的组件
+foreach (Transform child in canvas.transform)只能获取到 canvas 的直接子物体(第一层子节点)
 ‌使用GetComponentsInChildren<Transform>()‌才会递归查找当前物体及其所有子层级中的 Transform 组件
 
-标记了标记DontDestroyOnLoad(gameObject);的对象,切换场景时,不会激活Awake和Start,Update则继续每帧调用（只要对象处于激活状态）
+标记了标记DontDestroyOnLoad(gameObject);的对象,切换场景时,不会激活Awake和Start,Update则继续每帧调用(只要对象处于激活状态)
 Toggle[] allToggles = GetComponentsInChildren<Toggle>(true); // true表示包含非激活对象
 
 BepInEx插件实例是否是单例的,无需销毁.
@@ -1387,15 +1387,15 @@ public void LaunchExternalExe(string exePath, string arguments = "")
 ‌UseShellExecute = false:使用 Windows API CreateProcess 直接启动进程.这种方式允许精确控制子进程的启动参数,包括‌自定义环境变量‌、重定向输入输出等.
 // 即使启动的是同一个 exe,也强烈建议设置 WorkingDirectory.‌
 // 如果不设置 WorkingDirectory,新启动的进程会‌继承‌当前进程的工作目录.
-// ‌情况 A（幸运）:如果当前游戏进程的工作目录恰好就是 exe 所在的根目录,那么新进程也能正常找到配置文件和资源,多开成功.
-// ‌情况 B（常见失败）:如果当前游戏是通过快捷方式、Steam 启动器或其他路径启动的,或者你的插件代码改变了当前工作目录,新进程可能会在错误的目录下寻找资源,导致启动失败、报错或读取错误存档.
+// ‌情况 A(幸运):如果当前游戏进程的工作目录恰好就是 exe 所在的根目录,那么新进程也能正常找到配置文件和资源,多开成功.
+// ‌情况 B(常见失败):如果当前游戏是通过快捷方式、Steam 启动器或其他路径启动的,或者你的插件代码改变了当前工作目录,新进程可能会在错误的目录下寻找资源,导致启动失败、报错或读取错误存档.
 // 2. 为什么多开需要显式设置工作目录？
 // 每个游戏实例通常需要独立的配置或存档读写权限.虽然 exe 相同,但确保每个实例都在其自己的安装目录下运行是最安全的做法.
 // 3. 实现多开的正确代码示例
 // 你需要获取当前 exe 的路径,然后启动它,并显式指定工作目录.
 
 浮点数字面量的默认规则:
-C#中任何带有小数点的实数literals（字面量）,没添加特定后缀编译器默认double‌
+C#中任何带有小数点的实数literals(字面量),没添加特定后缀编译器默认double‌
 1.0、-1.0、3.14、0.42e2 等均为 double
 对应的.NET 类型为System.Double
 希望字面量是float或decimal类型须显式添加后缀f或m(不区分大小写)
@@ -1423,7 +1423,7 @@ public static void RemoveEntryEventFuncref(Entry entry, EntryEventFuncref funcre
 }
 上述代码利用List<T>.RemoveAll 自动处理了数组元素的前移和索引维护,避免了手动管理数组的复杂性
 核心风险在于 d == funcref 的引用相等性判断‌,如果 funcref 是通过 Lambda 表达式动态创建的,移除操作将‌静默失败‌.
-注:同一个委托实例可以被添加到委托列表（或数组）的多个不同索引位置上
+注:同一个委托实例可以被添加到委托列表(或数组)的多个不同索引位置上
 
 C#中的string是不可变的,如果在循环内执行 string s = "prefix" + i; 或 s = someMethod(),无论把 string s; 声明在循环内还是循环外,‌每次迭代都会创建一个新的字符串对象并在堆上分配内存‌.
 循环内声明:for(...) { string s = GetStr(); } -> 每次新建对象,旧对象等待 GC.
@@ -1437,7 +1437,7 @@ Thread前后台建议↓注意:前台不会因窗口关闭而中断任务,后台
 | ‌控制台主工作流‌ | ‌前台线程‌ | 防止主线程结束后进程立即退出. |
 | ‌UI 后台加载‌ | ‌后台线程‌ | 用户关闭窗口时,加载任务应自动取消. |
 
-声明后不赋值即有默认值的规则仅适用于‌字段（Fields）‌、‌数组元素‌和‌结构体成员‌,不适用于方法内的‌局部变量‌
+声明后不赋值即有默认值的规则仅适用于‌字段(Fields)‌、‌数组元素‌和‌结构体成员‌,不适用于方法内的‌局部变量‌
 | 类型类别 | 具体类型 | 默认值 |
 | ‌数值类型‌ | int, long, float, double, decimal | ‌0‌ (或 0.0) |
 | ‌布尔类型‌ | bool | ‌false‌ |
@@ -1447,7 +1447,7 @@ Thread前后台建议↓注意:前台不会因窗口关闭而中断任务,后台
 | ‌结构体 (Struct)‌ | Vector3, DateTime, 自定义 struct | ‌所有字段均为默认值‌ (如 Vector3 为 0,0,0) |
 | ‌枚举 (Enum)‌ | enum MyEnum { A, B } | ‌0‌ (即第一个枚举值,除非指定了其他值) |
 
-拆箱和装箱机制‌仅发生在值类型（Value Type）与引用类型（Reference Type）之间
+拆箱和装箱机制‌仅发生在值类型(Value Type)与引用类型(Reference Type)之间
 注意结构体是值类型,与Object转换会发生拆装箱
 
 //字符串插值 (C# 6+)
@@ -1462,7 +1462,7 @@ public static void ThreadWait(string key)
         Thread.Sleep(dataTableThreadWaitPeriod); //将调用该函数的当前线程挂起
     }
 }
-// 优化方案1：使用 ManualResetEventSlim（推荐）
+// 优化方案1:使用 ManualResetEventSlim(推荐)
 private static readonly ConcurrentDictionary<string, ManualResetEventSlim> _waitEvents = new ConcurrentDictionary<string, ManualResetEventSlim>();
 public static void ThreadWait(string key)
 {
@@ -1477,7 +1477,7 @@ public static void ThreadWaitSet(string key, bool val)
         else evt.Set();
     }
 }
-// 优化方案2：短等待使用 SpinWait
+// 优化方案2:短等待使用 SpinWait
 public static void ThreadWait(string key)
 {
     var spinWait = new SpinWait();
@@ -1488,21 +1488,21 @@ public static void ThreadWait(string key)
 }
 Thread.Sleep、ManualResetEventSlim、SpinWait核心机制对比
 底层行为&内核态切换
-‌Thread.Sleep‌：线程放弃时间片,进入操作系统等待态；哪怕Sleep(0)也触发上下文切换.
-‌ManualResetEventSlim‌：混合模式,短等待用户态自旋,长等待内核态阻塞,信号通知唤醒.
-‌SpinWait‌：纯用户态自旋,不主动让出CPU,条件满足或内部策略触发Yield/Sleep.
+‌Thread.Sleep‌:线程放弃时间片,进入操作系统等待态；哪怕Sleep(0)也触发上下文切换.
+‌ManualResetEventSlim‌:混合模式,短等待用户态自旋,长等待内核态阻塞,信号通知唤醒.
+‌SpinWait‌:纯用户态自旋,不主动让出CPU,条件满足或内部策略触发Yield/Sleep.
 CPU占用
-‌Thread.Sleep‌：极低,睡眠不占CPU周期
-‌ManualResetEventSlim‌：低,阻塞不占CPU,仅唤醒有轻微开销
-‌SpinWait‌：高,等待期间持续占用CPU核心空转
+‌Thread.Sleep‌:极低,睡眠不占CPU周期
+‌ManualResetEventSlim‌:低,阻塞不占CPU,仅唤醒有轻微开销
+‌SpinWait‌:高,等待期间持续占用CPU核心空转
 响应延迟
-‌Thread.Sleep‌：高,受系统时钟精度限制,Windows通常约15ms,无法微秒唤醒
-‌ManualResetEventSlim‌：中低,快于Sleep,因内核操作慢于纯自旋
-‌SpinWait‌：极低,无上下文切换,适合微秒级短等待
+‌Thread.Sleep‌:高,受系统时钟精度限制,Windows通常约15ms,无法微秒唤醒
+‌ManualResetEventSlim‌:中低,快于Sleep,因内核操作慢于纯自旋
+‌SpinWait‌:极低,无上下文切换,适合微秒级短等待
 线程状态转换
-‌Thread.Sleep‌：运行→等待→就绪
-‌ManualResetEventSlim‌：运行→等待/自旋→就绪
-‌SpinWait‌：运行→运行（自旋）→就绪（触发Yield后）
+‌Thread.Sleep‌:运行→等待→就绪
+‌ManualResetEventSlim‌:运行→等待/自旋→就绪
+‌SpinWait‌:运行→运行(自旋)→就绪(触发Yield后)
 
 //record struct:让字典键new CPIndex(x,y,z)始终是同一个
 public record struct CPIndex(int x, int y, int z); //struct换成class也行
@@ -1512,14 +1512,14 @@ bool found = dict.TryGetValue(new CPIndex(1, 2, 3), out var val);
 C# 编译器会自动为 record struct 生成基于‌字段内容‌的 Equals() 和 GetHashCode() 方法.
 第一个 new CPIndex(1, 2, 3) 存入字典时,字典计算其哈希码并存储.
 第二个 new CPIndex(1, 2, 3) 查找时,虽然它是内存中另一个独立的副本,但因为 x=1, y=2, z=3 的值完全相同,编译器生成的 Equals 方法会判定它们‌相等‌.
-在 Dictionary 中执行查找操作（如 TryGetValue 或 ContainsKey）时,内部逻辑如下：
-‌第一步：调用 GetHashCode()‌
-字典会根据键的哈希码计算出一个索引,确定该键应该存储在内部的哪个“桶”（Bucket）中.
-‌作用‌：快速缩小搜索范围.如果两个对象的哈希码不同,字典会直接认为它们不相等,‌根本不会调用 Equals()‌.
-‌第二步：调用 Equals()‌
-如果在同一个“桶”中已经存在其他键（即发生了哈希冲突）,或者为了严谨性验证,字典会遍历该桶中的现有键.
+在 Dictionary 中执行查找操作(如 TryGetValue 或 ContainsKey)时,内部逻辑如下:
+‌第一步:调用 GetHashCode()‌
+字典会根据键的哈希码计算出一个索引,确定该键应该存储在内部的哪个“桶”(Bucket)中.
+‌作用‌:快速缩小搜索范围.如果两个对象的哈希码不同,字典会直接认为它们不相等,‌根本不会调用 Equals()‌.
+‌第二步:调用 Equals()‌
+如果在同一个“桶”中已经存在其他键(即发生了哈希冲突),或者为了严谨性验证,字典会遍历该桶中的现有键.
 此时,它会调用新键的 Equals() 方法与桶中已有的键进行逐个比对.
-‌作用‌：精确判断两个对象是否真正相等.只有当 Equals() 返回 true 时,字典才认为找到了相同的键.
+‌作用‌:精确判断两个对象是否真正相等.只有当 Equals() 返回 true 时,字典才认为找到了相同的键.
 两者必须同时重写才能让字典键检查是否相同
 public override bool Equals(object obj)
 {

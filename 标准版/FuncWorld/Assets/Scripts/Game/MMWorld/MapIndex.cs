@@ -11,7 +11,7 @@ namespace MMWorld
     public class MapData
     {
         /// <summary>
-        /// 地图ID（对应HexTile的ID）
+        /// 地图ID(对应HexTile的ID)
         /// </summary>
         public int tileId;
 
@@ -36,7 +36,7 @@ namespace MMWorld
         public float createTime;
 
         /// <summary>
-        /// 地图是否已修改（用于判断是否需要保存）
+        /// 地图是否已修改(用于判断是否需要保存)
         /// </summary>
         public bool isDirty;
 
@@ -142,19 +142,19 @@ namespace MMWorld
             MapData mapData = new MapData(tileId, width, height);
 
             // 使用CellSpacePrefab创建CellChunk预制体实例
-            // 注意：CellChunk的位置决定了它的ChunkIndex，ChunkIndex = transform.position
-            // 对于256x256地图，我们需要计算位置：每个chunk是16x16x16单元
+            // 注意:CellChunk的位置决定了它的ChunkIndex,ChunkIndex = transform.position
+            // 对于256x256地图,我们需要计算位置:每个chunk是16x16x16单元
             GameObject chunkObj = Instantiate(CellSpace.CellSpacePrefab.CellChunk);
             chunkObj.name = $"Map_{tileId}";
 
-            // 设置团块位置（CellChunk的Awake会根据位置自动设置ChunkIndex）
+            // 设置团块位置(CellChunk的Awake会根据位置自动设置ChunkIndex)
             // tileId 作为团块的x坐标索引
             chunkObj.transform.position = new Vector3(tileId * CPEngine.chunkSideLength, 0, 0);
             chunkObj.SetActive(true);
 
             CellChunk chunk = chunkObj.GetComponent<CellChunk>();
 
-            // 等待团块初始化完成（等待Awake执行完毕）
+            // 等待团块初始化完成(等待Awake执行完毕)
             yield return new WaitUntil(() => chunk.chunkIndex != null && chunk.cellData != null);
 
             // 填充随机草地或土
@@ -185,7 +185,7 @@ namespace MMWorld
                 // 随机选择草地(0)或土(1)
                 chunk.cellData[i] = (ushort)(Random.value > 0.5f ? 0 : 1);
 
-                // 每帧处理一部分，避免卡顿
+                // 每帧处理一部分,避免卡顿
                 if (i % 10000 == 0)
                 {
                     yield return null;
@@ -203,7 +203,7 @@ namespace MMWorld
         {
             if (!maps.ContainsKey(tileId))
             {
-                Debug.LogError($"[MapIndex] 地图 {tileId} 不存在，无法切换!");
+                Debug.LogError($"[MapIndex] 地图 {tileId} 不存在,无法切换!");
                 return;
             }
 
@@ -280,14 +280,14 @@ namespace MMWorld
         {
             if (!maps.ContainsKey(tileId))
             {
-                Debug.LogError($"[MapIndex] 地图 {tileId} 不存在，无法保存!");
+                Debug.LogError($"[MapIndex] 地图 {tileId} 不存在,无法保存!");
                 return;
             }
 
             MapData mapData = maps[tileId];
             if (mapData.chunk != null && mapData.chunk.cellData != null)
             {
-                // 保存逻辑（使用CellChunkDataFiles组件的实例方法）
+                // 保存逻辑(使用CellChunkDataFiles组件的实例方法)
                 CellChunkDataFiles dataFiles = mapData.chunk.GetComponent<CellChunkDataFiles>();
                 if (dataFiles != null)
                 {

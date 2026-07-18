@@ -18,7 +18,7 @@ namespace MMWorld.RimWorld
         #region 时间设置
 
         /// <summary>
-        /// 一天的游戏时间（秒）
+        /// 一天的游戏时间(秒)
         /// </summary>
         public float dayLength = 600f; // 10分钟
 
@@ -28,7 +28,7 @@ namespace MMWorld.RimWorld
         public float timeSpeed = 1f;
 
         /// <summary>
-        /// 季节长度（天数）
+        /// 季节长度(天数)
         /// </summary>
         public int seasonLength = 15;
 
@@ -37,7 +37,7 @@ namespace MMWorld.RimWorld
         #region 当前时间
 
         /// <summary>
-        /// 当前游戏时间（秒）
+        /// 当前游戏时间(秒)
         /// </summary>
         public float currentTime;
 
@@ -66,12 +66,12 @@ namespace MMWorld.RimWorld
         #region 昼夜设置
 
         /// <summary>
-        /// 日出时间（一天中的秒数）
+        /// 日出时间(一天中的秒数)
         /// </summary>
         public float sunriseTime = 180f; // 6:00 AM
 
         /// <summary>
-        /// 日落时间（一天中的秒数）
+        /// 日落时间(一天中的秒数)
         /// </summary>
         public float sunsetTime = 480f; // 8:00 PM
 

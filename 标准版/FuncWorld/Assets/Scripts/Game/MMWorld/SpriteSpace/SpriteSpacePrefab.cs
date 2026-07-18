@@ -182,18 +182,18 @@ namespace SpriteSpace
             {
                 return GetOrCreatePrefab("Sun", go =>
                 {
-                    // 太阳位置在场景上方（Y=50），朝向地面倾斜照射
+                    // 太阳位置在场景上方(Y=50),朝向地面倾斜照射
                     go.transform.SetPositionAndRotation(new Vector3(0f, 50f, 0f), Quaternion.Euler(60f, 28.5f, 90f));
                     go.transform.parent = group.transform;
                     Light light = go.AddComponent<Light>();
-                    light.type = LightType.Directional; // 平行光（模拟太阳光）
-                    light.intensity = 1.0f; // 光源强度（1.0为满强度）
-                    light.range = 100f; // 光源范围（平行光此参数实际不影响光照）
+                    light.type = LightType.Directional; // 平行光(模拟太阳光)
+                    light.intensity = 1.0f; // 光源强度(1.0为满强度)
+                    light.range = 100f; // 光源范围(平行光此参数实际不影响光照)
                     light.color = Color.white; // 白色光源
-                    // light.shadowStrength = 0.5f; // 阴影强度（0-1），当前关闭阴影
-                    // light.shadowBias = 0.001f; // 阴影偏移，防止阴影贴图瑕疵
+                    // light.shadowStrength = 0.5f; // 阴影强度(0-1),当前关闭阴影
+                    // light.shadowBias = 0.001f; // 阴影偏移,防止阴影贴图瑕疵
                     // light.shadowNormalBias = 0.001f; // 阴影法线偏移
-                    light.cullingMask = ~0; // 照亮所有层（~0即-1，二进制取反）
+                    light.cullingMask = ~0; // 照亮所有层(~0即-1,二进制取反)
                     go.SetActive(true); // 光源需要立即激活才能照亮场景
                     Debug.Log($"预制体已创建: Sun");
                 });
@@ -217,18 +217,18 @@ namespace SpriteSpace
                     {
                         tempGameObject = new GameObject(name);
                         tempGameObject.SetActive(false);
-                        // 将小地图相机作为MainCamera的子对象，这样会自动跟随主摄像机移动
+                        // 将小地图相机作为MainCamera的子对象,这样会自动跟随主摄像机移动
                         tempGameObject.transform.SetParent(MainCamera.transform);
-                        // 设置相对于主摄像机的位置（在主摄像机位置）
+                        // 设置相对于主摄像机的位置(在主摄像机位置)
                         tempGameObject.transform.localPosition = new Vector3(0f, 0f, 0f);
                         tempGameObject.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
                         Camera camera = tempGameObject.AddComponent<Camera>();
-                        camera.orthographic = true; // 正交投影（2D小地图常用）
+                        camera.orthographic = true; // 正交投影(2D小地图常用)
                         camera.orthographicSize = 20f; // 正交视野大小
                         camera.clearFlags = CameraClearFlags.SolidColor; // 纯色清除
-                        camera.backgroundColor = new Color(0, 0, 0, 0.24f); // 半透明黑色背景（#0000003C）
+                        camera.backgroundColor = new Color(0, 0, 0, 0.24f); // 半透明黑色背景(#0000003C)
                         camera.cullingMask = ~0; // 渲染所有层
-                        camera.depth = -1f; // 渲染顺序，小于MainCamera(0)，先渲染
+                        camera.depth = -1f; // 渲染顺序,小于MainCamera(0),先渲染
                         camera.targetTexture = GetMiniMap(); // 输出到RenderTexture
                         tempGameObject.SetActive(true); // 小地图摄像机需要激活才能渲染画面
                         Debug.Log($"预制体已创建: {name}");
@@ -279,7 +279,7 @@ namespace SpriteSpace
                         tempGameObject.SetActive(false);
                         tempGameObject.transform.SetParent(MainCamera.transform);
                         Canvas canvas = tempGameObject.AddComponent<Canvas>();
-                        canvas.renderMode = RenderMode.ScreenSpaceOverlay; // 渲染在屏幕空间，叠加于场景之上
+                        canvas.renderMode = RenderMode.ScreenSpaceOverlay; // 渲染在屏幕空间,叠加于场景之上
                         canvas.sortingOrder = 0; // 0~100,决定UI渲染顺序,数值越大越靠上(遮挡其他UI)
                         CanvasScaler scaler = tempGameObject.AddComponent<CanvasScaler>();
                         scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; // 跟随屏幕分辨率缩放
@@ -294,19 +294,19 @@ namespace SpriteSpace
                         rawImageGO.layer = 5; // UI层
 
                         RawImage rawImage = rawImageGO.AddComponent<RawImage>();
-                        // 小地图放在右上角,轴心点为右上角 (1, 1)，方便计算偏移
+                        // 小地图放在右上角,轴心点为右上角 (1, 1),方便计算偏移
                         rawImage.rectTransform.pivot = new Vector2(1f, 1f);
                         rawImage.rectTransform.anchorMin = new Vector2(1f, 1f);
                         rawImage.rectTransform.anchorMax = new Vector2(1f, 1f);
-                        // 固定尺寸：宽 480, 高 270
+                        // 固定尺寸:宽 480, 高 270
                         rawImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 480f);
                         rawImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, 270f);
 
                         // 设置RawImage显示MinimapCamera的渲染纹理
                         Camera minimapCamera = MinimapCamera.GetComponent<Camera>();
-                        // depth: 主摄像机(MainCamera)=0，小地图相机=-1先渲染，UI覆盖在最上层=1
+                        // depth: 主摄像机(MainCamera)=0,小地图相机=-1先渲染,UI覆盖在最上层=1
                         minimapCamera.depth = 1f;
-                        minimapCamera.useOcclusionCulling = false; // 关闭遮挡剔除，省性能
+                        minimapCamera.useOcclusionCulling = false; // 关闭遮挡剔除,省性能
                         if (minimapCamera != null)
                         {
                             Debug.Log($"小地图相机名称: {minimapCamera.name}");
@@ -360,17 +360,17 @@ namespace SpriteSpace
             {
                 return GetOrCreatePrefab("MainCamera", go =>
                 {
-                    // 主摄像机位置在正后方（Z=-20）
+                    // 主摄像机位置在正后方(Z=-20)
                     go.transform.SetPositionAndRotation(new Vector3(0f, 0f, -20f), Quaternion.identity);
                     go.transform.parent = group.transform;
                     Camera camera = go.AddComponent<Camera>();
                     camera.tag = "MainCamera"; // 设置标签以便Camera.main能识别
-                    camera.clearFlags = CameraClearFlags.SolidColor; // 纯色背景，确保光源生效
-                    camera.backgroundColor = new Color(0.2f, 0.4f, 0.6f, 1f); // 蓝色背景（天空色）
-                    // cullingMask使用位运算指定渲染层：(1 << 层序号) 表示包含该层
+                    camera.clearFlags = CameraClearFlags.SolidColor; // 纯色背景,确保光源生效
+                    camera.backgroundColor = new Color(0.2f, 0.4f, 0.6f, 1f); // 蓝色背景(天空色)
+                    // cullingMask使用位运算指定渲染层:(1 << 层序号) 表示包含该层
                     // Default(0) | TransparentFX(1) | IgnoreRaycast(2) | Water(4) | UI(5)
                     camera.cullingMask = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 4) | (1 << 5);
-                    camera.depth = 0f; // 相机渲染顺序，数值越大越后渲染（-1为小地图相机）
+                    camera.depth = 0f; // 相机渲染顺序,数值越大越后渲染(-1为小地图相机)
                     camera.nearClipPlane = 0.3f; // 近裁剪面
                     camera.farClipPlane = 1000f; // 远裁剪面
                     camera.allowMSAA = true; // 开启多重采样抗锯齿
@@ -391,17 +391,17 @@ namespace SpriteSpace
             {
                 return GetOrCreatePrefab("SubCamera", go =>
                 {
-                    // 主摄像机位置在正后方（Z=-20）
+                    // 主摄像机位置在正后方(Z=-20)
                     go.transform.SetPositionAndRotation(new Vector3(0f, 0f, -20f), Quaternion.identity);
                     go.transform.parent = group.transform;
                     Camera camera = go.AddComponent<Camera>();
                     camera.tag = "SubCamera"; // 设置标签
-                    camera.clearFlags = CameraClearFlags.SolidColor; // 纯色背景，确保光源生效
-                    camera.backgroundColor = new Color(0.2f, 0.4f, 0.6f, 1f); // 蓝色背景（天空色）
-                    // cullingMask使用位运算指定渲染层：(1 << 层序号) 表示包含该层
+                    camera.clearFlags = CameraClearFlags.SolidColor; // 纯色背景,确保光源生效
+                    camera.backgroundColor = new Color(0.2f, 0.4f, 0.6f, 1f); // 蓝色背景(天空色)
+                    // cullingMask使用位运算指定渲染层:(1 << 层序号) 表示包含该层
                     // Default(0) | TransparentFX(1) | IgnoreRaycast(2) | Water(4) | UI(5)
                     camera.cullingMask = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 4) | (1 << 5);
-                    camera.depth = 0f; // 相机渲染顺序，数值越大越后渲染（-1为小地图相机）
+                    camera.depth = 0f; // 相机渲染顺序,数值越大越后渲染(-1为小地图相机)
                     camera.nearClipPlane = 0.3f; // 近裁剪面
                     camera.farClipPlane = 1000f; // 远裁剪面
                     camera.allowMSAA = true; // 开启多重采样抗锯齿
@@ -448,7 +448,7 @@ namespace SpriteSpace
                 _fontFZYaSong = TMP_Settings.defaultFontAsset;
                 if (_fontFZYaSong == null)
                 {
-                    Debug.LogWarning("未能找到FZ_YaSong SDF字体，将使用内置默认字体");
+                    Debug.LogWarning("未能找到FZ_YaSong SDF字体,将使用内置默认字体");
                 }
             }
 
@@ -500,7 +500,7 @@ namespace SpriteSpace
             dropdown.options.Add(new TMP_Dropdown.OptionData("纹理编辑"));
             dropdown.value = 0;
 
-            // 设置下拉框的字体（在添加选项后，itemText才会被初始化）
+            // 设置下拉框的字体(在添加选项后,itemText才会被初始化)
             if (dropdown.itemText != null && _fontFZYaSong != null)
             {
                 dropdown.itemText.font = _fontFZYaSong;
@@ -522,7 +522,7 @@ namespace SpriteSpace
             inputBg.color = new Color(0.2f, 0.2f, 0.2f);
             TMP_InputField inputField = textBoxID.AddComponent<TMP_InputField>();
 
-            //创建输入框的文本组件（必须先创建这个才能设置fontAsset）
+            //创建输入框的文本组件(必须先创建这个才能设置fontAsset)
             GameObject textComponentGO = new GameObject("Text Component");
             textComponentGO.transform.SetParent(textBoxID.transform);
             RectTransform textCompRect = textComponentGO.AddComponent<RectTransform>();
@@ -608,7 +608,7 @@ namespace SpriteSpace
             pathBg.color = new Color(0.2f, 0.2f, 0.2f);
             TMP_InputField pathInput = textBoxPath.AddComponent<TMP_InputField>();
 
-            //创建输入框的文本组件（必须先创建这个才能设置fontAsset）
+            //创建输入框的文本组件(必须先创建这个才能设置fontAsset)
             GameObject pathTextGO = new GameObject("Text Component");
             pathTextGO.transform.SetParent(textBoxPath.transform);
             RectTransform pathTextRect = pathTextGO.AddComponent<RectTransform>();
@@ -1116,7 +1116,7 @@ namespace SpriteSpace
             {
                 Debug.Log($"成功加载 {allSprites.Length} 个精灵");
 
-                // 按类别筛选（根据你的需求）
+                // 按类别筛选(根据你的需求)
                 List<Sprite> font_outline = new List<Sprite>();
                 List<Sprite> explosion = new List<Sprite>();
                 List<Sprite> player = new List<Sprite>();
@@ -1269,7 +1269,7 @@ namespace SpriteSpace
                 font = TMP_Settings.defaultFontAsset;
                 if (font == null)
                 {
-                    Debug.LogWarning("未能找到字体，将使用内置默认字体");
+                    Debug.LogWarning("未能找到字体,将使用内置默认字体");
                 }
             }
 
@@ -1555,7 +1555,7 @@ namespace SpriteSpace
                 {
                     functionMenu.SetActive(false);
                 }
-                // 显示开局菜单（由MMWorldInitializer确保存在）
+                // 显示开局菜单(由MMWorldInitializer确保存在)
                 MMWorld.GameStartMenu menu = FindObjectOfType<MMWorld.GameStartMenu>();
                 if (menu != null)
                 {
@@ -1675,7 +1675,7 @@ namespace SpriteSpace
                         }
                         else
                         {
-                            // 窗口模式（右上角）
+                            // 窗口模式(右上角)
                             rect.anchorMin = new Vector2(0.78f, 0.78f);
                             rect.anchorMax = new Vector2(0.98f, 0.98f);
                             rect.offsetMin = Vector2.zero;
@@ -1708,7 +1708,7 @@ namespace SpriteSpace
         }
 
         /// <summary>
-        /// 获取小地图渲染纹理。如果不存在则创建，存在则直接返回。
+        /// 获取小地图渲染纹理.如果不存在则创建,存在则直接返回.
         /// </summary>
         public static RenderTexture GetMiniMap()
         {
@@ -1724,15 +1724,15 @@ namespace SpriteSpace
                 minimap = null;
             }
 
-            // 3. 使用描述符配置（兼容写法）
+            // 3. 使用描述符配置(兼容写法)
             RenderTextureDescriptor descriptor = new RenderTextureDescriptor(480, 270);
 
-            // 【修改点】使用 RenderTextureFormat 枚举，而不是 GraphicsFormat
+            // 【修改点】使用 RenderTextureFormat 枚举,而不是 GraphicsFormat
             descriptor.colorFormat = RenderTextureFormat.ARGB32;
 
-            // 【修改点】深度格式也使用整数或默认值，避免使用 GraphicsFormat
-            // 如果必须指定 D32_SFloat_S8_UInt，旧版 API 可能不支持直接设置
-            // 这里使用 depth=32 让 Unity 自动选择最佳深度格式（通常包含模板缓冲）
+            // 【修改点】深度格式也使用整数或默认值,避免使用 GraphicsFormat
+            // 如果必须指定 D32_SFloat_S8_UInt,旧版 API 可能不支持直接设置
+            // 这里使用 depth=32 让 Unity 自动选择最佳深度格式(通常包含模板缓冲)
             descriptor.depthBufferBits = 32;
 
             descriptor.msaaSamples = 1;       // 无抗锯齿
@@ -1755,7 +1755,7 @@ namespace SpriteSpace
         }
 
         /// <summary>
-        /// 手动释放资源（用于场景切换或不再需要时）
+        /// 手动释放资源(用于场景切换或不再需要时)
         /// </summary>
         public static void Release()
         {
@@ -1774,7 +1774,7 @@ namespace SpriteSpace
             EventSystem existingEventSystem = Object.FindObjectOfType<EventSystem>();
             if (existingEventSystem != null)
             {
-                Debug.Log("EventSystem已存在，无需创建");
+                Debug.Log("EventSystem已存在,无需创建");
                 return existingEventSystem.gameObject;
             }
 
@@ -1782,7 +1782,7 @@ namespace SpriteSpace
             GameObject eventSystemGO = new GameObject("EventSystem");
             DontDestroyOnLoad(eventSystemGO);
 
-            // 添加到group下（如果group存在）
+            // 添加到group下(如果group存在)
             if (group != null)
             {
                 eventSystemGO.transform.parent = group.transform;
@@ -1791,7 +1791,7 @@ namespace SpriteSpace
             //添加EventSystem组件
             eventSystemGO.AddComponent<EventSystem>();
 
-            //添加StandaloneInputModule组件（处理鼠标/键盘输入）
+            //添加StandaloneInputModule组件(处理鼠标/键盘输入)
             eventSystemGO.AddComponent<InputSystemUIInputModule>();
 
             Debug.Log("EventSystem已创建");

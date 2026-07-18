@@ -122,7 +122,7 @@ namespace MetalMaxSystem
 
         public void ClearAll(bool isGlobal)
         {
-            // ConcurrentDictionary没有Clear方法，需要逐个移除
+            // ConcurrentDictionary没有Clear方法,需要逐个移除
             var dict = GetDictionary(isGlobal);
             string[] keys = new string[dict.Count];
             dict.Keys.CopyTo(keys, 0);
@@ -493,7 +493,7 @@ namespace MetalMaxSystem
 
             if (migrateData)
             {
-                // 迁移数据逻辑（可选功能）
+                // 迁移数据逻辑(可选功能)
                 MigrateData(CurrentDataSourceType, newType);
             }
 
@@ -505,8 +505,8 @@ namespace MetalMaxSystem
         /// </summary>
         private static void MigrateData(DataSourceType fromType, DataSourceType toType)
         {
-            // 实现数据迁移逻辑（如需）
-            // 注意：这是一个复杂操作，需要考虑线程安全
+            // 实现数据迁移逻辑(如需)
+            // 注意:这是一个复杂操作,需要考虑线程安全
         }
 
         #endregion

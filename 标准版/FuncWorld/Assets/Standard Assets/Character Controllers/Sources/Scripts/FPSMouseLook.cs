@@ -51,7 +51,7 @@ public class FPSMouseLook : MonoBehaviour
 /// FPSMouseLook rotates the transform based on the mouse delta.根据鼠标增量旋转变换
 /// Minimum and Maximum values can be used to constrain the possible rotation.可以使用最小值和最大值来限制可能的旋转
 
-/// To make an FPS style character（创建一个FPS风格的角色):
+/// To make an FPS style character(创建一个FPS风格的角色):
 /// - Create a capsule.创建一个胶囊
 /// - Add the FPSMouseLook script to the capsule.添加MouseLook脚本到胶囊
 ///   -> Set the mouse look to use LookX. (You want to only turn character but not tilt it).设置鼠标外观以使用LookX,注视用十字图标点击对象(你只需要转动角色而不是倾斜角色)

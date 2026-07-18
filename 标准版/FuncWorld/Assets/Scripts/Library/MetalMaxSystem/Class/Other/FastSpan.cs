@@ -16,7 +16,7 @@ namespace MetalMaxSystem
         /// </summary>
         public static string BuildString(string key, char separator, int id)
         {
-            // 预计算id字符长度（支持负数）
+            // 预计算id字符长度(支持负数)
             int idLen = id < 0 ? (int)Math.Floor(Math.Log10(-id)) + 2 : (id == 0 ? 1 : (int)Math.Floor(Math.Log10(id)) + 1);
             int length = key.Length + 1 + idLen; // key + '_' + id
 
@@ -32,7 +32,7 @@ namespace MetalMaxSystem
                 // 直接写入separator
                 span[pos++] = sep;
 
-                // 将int直接写入span尾部（从后向前填充）
+                // 将int直接写入span尾部(从后向前填充)
                 int endPos = pos + len;
                 int temp = num;
                 bool negative = false;

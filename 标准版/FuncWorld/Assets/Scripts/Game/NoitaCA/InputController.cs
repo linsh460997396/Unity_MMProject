@@ -1,4 +1,4 @@
-// 职责：读取鼠标、滚轮和数字键输入，用于绘制材料、擦除材料和缩放相机。
+﻿// 职责:读取鼠标、滚轮和数字键输入,用于绘制材料、擦除材料和缩放相机.
 // Responsibility: Reads mouse, scroll, and number-key input to paint materials, erase materials, and zoom the camera.
 using UnityEngine;
 
@@ -10,7 +10,7 @@ namespace NoitaCA
 {
     public sealed class InputController : MonoBehaviour
     {
-        // 画笔和相机参数由 Inspector 调节，运行时会被安全夹取。
+        // 画笔和相机参数由 Inspector 调节,运行时会被安全夹取.
         // Brush and camera values are tuned in the Inspector and clamped at runtime.
         [SerializeField] private int brushSize = 2;
         [SerializeField] private int minBrushSize = 1;
@@ -29,7 +29,7 @@ namespace NoitaCA
 
         public void Initialize(PixelGrid worldGrid, PixelWorldRenderer renderer, Camera cameraToControl)
         {
-            // 输入控制器只保存外部引用，不创建世界对象。
+            // 输入控制器只保存外部引用,不创建世界对象.
             // The input controller only stores external references; it does not create world objects.
             grid = worldGrid;
             worldRenderer = renderer;
@@ -44,7 +44,7 @@ namespace NoitaCA
                 return;
             }
 
-            // 滚轮默认调画笔，按住 Ctrl/Command 时改为缩放相机。
+            // 滚轮默认调画笔,按住 Ctrl/Command 时改为缩放相机.
             // Scroll changes brush size by default; Ctrl/Command turns it into camera zoom.
             float scroll = ReadScrollDelta();
             if (Mathf.Abs(scroll) > 0.01f)
@@ -63,14 +63,14 @@ namespace NoitaCA
 
             if (IsPrimaryButtonPressed())
             {
-                // 左键绘制当前选中材料。
+                // 左键绘制当前选中材料.
                 // Left mouse paints the selected material.
                 PaintAtPointer(selectedMaterial);
             }
 
             if (IsSecondaryButtonPressed())
             {
-                // 右键绘制空气，相当于橡皮擦。
+                // 右键绘制空气,相当于橡皮擦.
                 // Right mouse paints air, acting as an eraser.
                 PaintAtPointer(MaterialType.Air);
             }
@@ -78,7 +78,7 @@ namespace NoitaCA
 
         private void PaintAtPointer(MaterialType materialType)
         {
-            // 屏幕坐标通过相机转世界坐标，再由渲染器转成网格坐标。
+            // 屏幕坐标通过相机转世界坐标,再由渲染器转成网格坐标.
             // Screen coordinates go through camera-to-world conversion, then renderer-to-grid conversion.
             Vector3 screenPosition = ReadPointerScreenPosition();
             screenPosition.z = Mathf.Abs(targetCamera.transform.position.z - worldRenderer.transform.position.z);
@@ -90,7 +90,7 @@ namespace NoitaCA
 
         private void ReadMaterialHotkeys()
         {
-            // 数字键快速切换绘制材料。
+            // 数字键快速切换绘制材料.
             // Number keys quickly switch the painting material.
             if (WasKeyPressed(KeyCode.Alpha1))
             {
@@ -136,7 +136,7 @@ namespace NoitaCA
 
         private void ResizeBrush(float scroll)
         {
-            // 滚轮方向只改变一档，避免不同设备滚轮幅度造成跳变。
+            // 滚轮方向只改变一档,避免不同设备滚轮幅度造成跳变.
             // Scroll direction changes one step only, avoiding device-dependent jump sizes.
             int direction = scroll > 0f ? 1 : -1;
             brushSize = Mathf.Clamp(brushSize + direction, minBrushSize, maxBrushSize);
@@ -144,7 +144,7 @@ namespace NoitaCA
 
         private void ZoomCamera(float scroll)
         {
-            // 正滚轮缩小正交尺寸以实现放大，结果限制在配置范围内。
+            // 正滚轮缩小正交尺寸以实现放大,结果限制在配置范围内.
             // Positive scroll reduces orthographic size to zoom in, clamped to configured bounds.
             targetCamera.orthographicSize = Mathf.Clamp(
                 targetCamera.orthographicSize - scroll * zoomSpeed,
@@ -154,7 +154,7 @@ namespace NoitaCA
 
         private static Vector3 ReadPointerScreenPosition()
         {
-            // 同时兼容新 Input System 和旧 Input Manager。
+            // 同时兼容新 Input System 和旧 Input Manager.
             // Supports both the new Input System and the legacy Input Manager.
 #if ENABLE_INPUT_SYSTEM
             if (Mouse.current != null)
@@ -243,7 +243,7 @@ namespace NoitaCA
 
         private static bool WasKeyPressed(KeyCode keyCode)
         {
-            // 新输入系统没有直接接收 KeyCode，这里显式映射演示所需按键。
+            // 新输入系统没有直接接收 KeyCode,这里显式映射演示所需按键.
             // The new Input System does not consume KeyCode directly, so demo keys are mapped explicitly.
 #if ENABLE_INPUT_SYSTEM
             if (Keyboard.current != null)

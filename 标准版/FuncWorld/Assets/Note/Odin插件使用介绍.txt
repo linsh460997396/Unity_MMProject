@@ -1,14 +1,14 @@
-﻿Unity的Odin Inspector是一款强大的编辑器扩展插件,它通过声明式特性（Attribute）让你无需编写复杂的Editor脚本,就能大幅美化Inspector面板、构建自定义编辑器窗口,甚至实现自动化资源管理.下面从安装、基础特性到自定义窗口,一步步示范它的核心用法.
+﻿Unity的Odin Inspector是一款强大的编辑器扩展插件,它通过声明式特性(Attribute)让你无需编写复杂的Editor脚本,就能大幅美化Inspector面板、构建自定义编辑器窗口,甚至实现自动化资源管理.下面从安装、基础特性到自定义窗口,一步步示范它的核心用法.
 
 1. 安装与准备
 
-从Asset Store导入Odin Inspector后,在脚本顶部引入命名空间：
+从Asset Store导入Odin Inspector后,在脚本顶部引入命名空间:
 
 csharp
 using Sirenix.OdinInspector;
 
 
-如果创建编辑器窗口,还需要：
+如果创建编辑器窗口,还需要:
 
 csharp
 using Sirenix.OdinInspector.Editor;
@@ -16,7 +16,7 @@ using Sirenix.OdinInspector.Editor;
 
 所有编辑器脚本必须放在Assets/Editor文件夹下,或使用#if UNITY_EDITOR包裹,避免打包出错.
 
-2. 基础特性：美化Inspector面板
+2. 基础特性:美化Inspector面板
 
 在MonoBehaviour或ScriptableObject中直接添加特性,即可改变字段在Inspector中的显示方式.
 
@@ -51,7 +51,7 @@ public class PlayerConfig : MonoBehaviour
     [Button("初始化角色", ButtonSizes.Large), GUIColor(0.4f, 0.8f, 1f)]
     public void InitCharacter()
     {
-        Debug.Log($"创建角色：{characterName}");
+        Debug.Log($"创建角色:{characterName}");
     }
 
     private System.Collections.Generic.IEnumerable<string> GetSkillList()
@@ -61,7 +61,7 @@ public class PlayerConfig : MonoBehaviour
 }
 
 
-效果：Inspector面板自动出现分组框、水平排列的滑块、下拉菜单和彩色按钮,无需手写一行Editor GUI代码.
+效果:Inspector面板自动出现分组框、水平排列的滑块、下拉菜单和彩色按钮,无需手写一行Editor GUI代码.
 
 3. 条件显示与交互
 
@@ -80,7 +80,7 @@ public class ConditionalDemo : MonoBehaviour
     public int advancedValue;
 }
 
-4. 创建自定义编辑器窗口：OdinEditorWindow
+4. 创建自定义编辑器窗口:OdinEditorWindow
 
 继承OdinEditorWindow,即可像写普通脚本一样,用特性声明窗口界面.
 
@@ -110,14 +110,14 @@ public class QuickToolWindow : OdinEditorWindow
     [Button(ButtonSizes.Gigantic), GUIColor(0, 1, 0)]
     public void Execute()
     {
-        Debug.Log($"在 {outputPath} 执行操作,模式：{scaleMode}");
+        Debug.Log($"在 {outputPath} 执行操作,模式:{scaleMode}");
     }
 }
 
 
 点击菜单Tools/快速工具,一个带路径选择、按钮组和巨型按钮的窗口就出现了.
 
-5. 带导航栏的窗口：OdinMenuEditorWindow
+5. 带导航栏的窗口:OdinMenuEditorWindow
 
 继承OdinMenuEditorWindow并实现BuildMenuTree,可以创建左侧带导航树的工具窗口,适合管理大量配置.
 
@@ -168,13 +168,13 @@ public class DataManagerWindow : OdinMenuEditorWindow
 
 打开窗口后,左侧会显示“角色”和“武器”两个可折叠菜单,点击任意项,右侧Inspector区域会展示对应的数据对象,可直接编辑.
 
-6. 使用Visual Designer（可视化设计器）
+6. 使用Visual Designer(可视化设计器)
 
 如果你不想在代码中添加大量特性,Odin 4.0+提供了Visual Designer.在Inspector面板中点击脚本组件右上角的Odin -> Customize in Visual Designer,可以拖拽创建分组、添加特性,所有修改保存为.ovdf文件,打包时直接移除Odin插件即可,代码保持干净.
 
-7. 进阶：批量处理与资源管理
+7. 进阶:批量处理与资源管理
 
-结合Unity的AssetDatabase、Selection和System.IO,Odin能快速构建自动化工具.例如批量生成ScriptableObject：
+结合Unity的AssetDatabase、Selection和System.IO,Odin能快速构建自动化工具.例如批量生成ScriptableObject:
 
 csharp
 using Sirenix.OdinInspector;

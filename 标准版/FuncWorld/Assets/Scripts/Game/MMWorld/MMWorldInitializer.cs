@@ -33,7 +33,7 @@ namespace MMWorld
 
         private void Start()
         {
-            // 初始化完成，开局菜单会自动显示
+            // 初始化完成,开局菜单会自动显示
         }
     }
 }

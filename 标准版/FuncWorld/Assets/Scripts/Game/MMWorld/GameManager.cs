@@ -37,7 +37,7 @@ namespace MMWorld
         public enum GameState
         {
             StartMenu,      // 开局菜单
-            PlanetSelect,   // 星球选择（HexSphere）
+            PlanetSelect,   // 星球选择(HexSphere)
             Loading,        // 加载中
             Playing,        // 游戏中
             Paused,         // 暂停
@@ -162,7 +162,7 @@ namespace MMWorld
         /// </summary>
         public void StartGame(PlanetPreset preset)
         {
-            Debug.Log($"[GameManager] 开始游戏，星球类型: {preset.displayName}");
+            Debug.Log($"[GameManager] 开始游戏,星球类型: {preset.displayName}");
             currentPlanetPreset = preset;
             currentState = GameState.Loading;
 
@@ -205,7 +205,7 @@ namespace MMWorld
 
             // 等待玩家点击星球区域
             currentState = GameState.PlanetSelect;
-            Debug.Log("[GameManager] 进入星球选择模式，请在星球上点击一个区域...");
+            Debug.Log("[GameManager] 进入星球选择模式,请在星球上点击一个区域...");
         }
 
         /// <summary>
@@ -246,14 +246,14 @@ namespace MMWorld
         {
             if (currentState == GameState.PlanetSelect)
             {
-                Debug.Log($"[GameManager] 玩家已选择区域: {tileId}，开始初始化游戏...");
+                Debug.Log($"[GameManager] 玩家已选择区域: {tileId},开始初始化游戏...");
                 currentMapTileId = tileId;
                 StartCoroutine(ContinueGameInitialization(tileId));
             }
         }
 
         /// <summary>
-        /// 继续游戏初始化（在选择星球区域后）
+        /// 继续游戏初始化(在选择星球区域后)
         /// </summary>
         private IEnumerator ContinueGameInitialization(int tileId)
         {
@@ -280,7 +280,7 @@ namespace MMWorld
             }
             yield return new WaitForSeconds(0.3f);
 
-            // 2. 创建地形（使用MapIndex）
+            // 2. 创建地形(使用MapIndex)
             yield return StartCoroutine(CreateTerrainWithMapIndex(tileId));
 
             if (menu != null)
@@ -313,7 +313,7 @@ namespace MMWorld
                 menu.HideStartMenu();
             }
 
-            // 隐藏HexSphere星球（进入地面模式）
+            // 隐藏HexSphere星球(进入地面模式)
             if (planetRoot != null)
             {
                 planetRoot.SetActive(false);
@@ -389,7 +389,7 @@ namespace MMWorld
             Vector3 playerPos = new Vector3(TERRAIN_SIZE / 2f, 10f, TERRAIN_SIZE / 2f);
             player.transform.position = playerPos;
 
-            // 添加一个简单的可视化组件（胶囊体）
+            // 添加一个简单的可视化组件(胶囊体)
             GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             body.name = "PlayerBody";
             body.transform.SetParent(player.transform);
@@ -442,7 +442,7 @@ namespace MMWorld
             }
             else
             {
-                // 创建默认NPC（类似环世界的小人）
+                // 创建默认NPC(类似环世界的小人)
                 npc = CreateDefaultNPC($"NPC_{index}");
             }
 
@@ -451,7 +451,7 @@ namespace MMWorld
             float z = Random.Range(10f, TERRAIN_SIZE - 10f);
             npc.transform.position = new Vector3(x, 0.5f, z);
 
-            // 随机颜色（区分不同NPC）
+            // 随机颜色(区分不同NPC)
             Renderer renderer = npc.GetComponent<Renderer>();
             if (renderer != null)
             {
@@ -467,13 +467,13 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// 创建默认NPC（环世界风格小人）
+        /// 创建默认NPC(环世界风格小人)
         /// </summary>
         private GameObject CreateDefaultNPC(string name)
         {
             GameObject npc = new GameObject(name);
 
-            // 身体（胶囊形状）
+            // 身体(胶囊形状)
             GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             body.name = "Body";
             body.transform.SetParent(npc.transform);
@@ -487,7 +487,7 @@ namespace MMWorld
             head.transform.localPosition = new Vector3(0, 1.1f, 0);
             head.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
 
-            // 腿（两个立方体）
+            // 腿(两个立方体)
             GameObject leftLeg = GameObject.CreatePrimitive(PrimitiveType.Cube);
             leftLeg.name = "LeftLeg";
             leftLeg.transform.SetParent(npc.transform);
@@ -515,7 +515,7 @@ namespace MMWorld
         /// </summary>
         public void ShowStartMenu()
         {
-            // GameStartMenu由MMWorldInitializer确保存在，直接获取
+            // GameStartMenu由MMWorldInitializer确保存在,直接获取
             GameStartMenu menu = FindObjectOfType<GameStartMenu>();
             if (menu != null)
             {
@@ -667,7 +667,7 @@ namespace MMWorld
             // 移动
             transform.position += moveDirection * moveSpeed * Time.deltaTime;
 
-            // 边界检测（保持在地形范围内）
+            // 边界检测(保持在地形范围内)
             ClampToTerrain();
         }
 

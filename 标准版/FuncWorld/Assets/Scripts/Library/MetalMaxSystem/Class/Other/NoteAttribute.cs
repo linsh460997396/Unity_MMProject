@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace MetalMaxSystem
 {
-    // 注意：如果要用于字段并在Inspector显示,通常建议继承 PropertyAttribute
+    // 注意:如果要用于字段并在Inspector显示,通常建议继承 PropertyAttribute
     // 但如果仅作为元数据,继承 Attribute 也可以,只是需要更复杂的 Editor 脚本来读取
     [System.AttributeUsage(System.AttributeTargets.All, Inherited = false, AllowMultiple = true)]
     public class NoteAttribute : PropertyAttribute // 改为继承 PropertyAttribute 以便更容易绘制
@@ -28,7 +28,7 @@ namespace MetalMaxSystem
     }
 
     /// <summary>
-    /// 用于绘制不绑定具体字段值的装饰性 UI（如标题、间隔线、备注）,它不会干扰字段本身的序列化值
+    /// 用于绘制不绑定具体字段值的装饰性 UI(如标题、间隔线、备注),它不会干扰字段本身的序列化值
     /// </summary>
     [CustomPropertyDrawer(typeof(NoteAttribute))]
     public class NoteDrawer : DecoratorDrawer
@@ -97,9 +97,9 @@ namespace MetalMaxSystem
 //    [MetalMaxSystem.Note("这是一个普通的备注信息", NoteType.Info)]
 //    public int playerId;
 
-//    [MetalMaxSystem.Note("警告：修改此值会导致存档损坏！", NoteType.Warning)]
+//    [MetalMaxSystem.Note("警告:修改此值会导致存档损坏！", NoteType.Warning)]
 //    public string saveFilePath;
 
-//    [MetalMaxSystem.Note("错误：此字段已弃用,请使用 NewHealth", NoteType.Error)]
+//    [MetalMaxSystem.Note("错误:此字段已弃用,请使用 NewHealth", NoteType.Error)]
 //    public float oldHealth;
 //}

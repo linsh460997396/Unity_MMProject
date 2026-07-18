@@ -43,7 +43,7 @@ namespace MMWorld.RimWorld
         #region 设置
 
         /// <summary>
-        /// 基础温度（根据季节调整）
+        /// 基础温度(根据季节调整)
         /// </summary>
         public float baseTemperature = 20f;
 
@@ -53,12 +53,12 @@ namespace MMWorld.RimWorld
         public float temperatureVariation = 10f;
 
         /// <summary>
-        /// 天气持续时间（秒）
+        /// 天气持续时间(秒)
         /// </summary>
         public float weatherDuration = 180f;
 
         /// <summary>
-        /// 天气变化概率（每小时）
+        /// 天气变化概率(每小时)
         /// </summary>
         public float weatherChangeChance = 0.1f;
 
@@ -166,7 +166,7 @@ namespace MMWorld.RimWorld
             // 获取季节温度偏移
             float seasonOffset = GetSeasonTemperatureOffset();
 
-            // 计算昼夜温度变化（白天暖，夜晚冷）
+            // 计算昼夜温度变化(白天暖,夜晚冷)
             float dayNightOffset = TimeManager.Instance.IsDaytime ? 5f : -5f;
 
             // 添加随机波动
@@ -252,7 +252,7 @@ namespace MMWorld.RimWorld
                     break;
             }
 
-            // 如果当前正在下雨/雪，有概率继续
+            // 如果当前正在下雨/雪,有概率继续
             if (IsRaining || IsSnowing)
             {
                 possible.Add(currentWeather); // 保持当前天气

@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using MMWorld.HexSphere;
+using SpriteSpace;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using MMWorld.HexSphere;
 
 namespace MMWorld
 {
@@ -106,14 +107,11 @@ namespace MMWorld
         /// </summary>
         private void InitializeFont()
         {
-            font = Resources.Load<TMP_FontAsset>("Fonts/FZ_YaSong SDF");
+            font = SpriteSpacePrefab.FontFZYaSong;
             if (font == null)
             {
                 font = TMP_Settings.defaultFontAsset;
-                if (font == null)
-                {
-                    Debug.LogWarning("未能找到字体，将使用内置默认字体");
-                }
+                Debug.LogWarning("未能找到字体,将使用内置默认字体");
             }
         }
 
@@ -701,7 +699,7 @@ namespace MMWorld
             UpdateLoadingProgress(30f, "正在生成星球...");
             yield return new WaitForSeconds(0.3f);
 
-            // 隐藏加载面板，显示星球选择界面
+            // 隐藏加载面板,显示星球选择界面
             HideLoadingPanel();
             ShowPlanetSelectionWithActualPlanet(preset);
 
@@ -767,7 +765,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// 显示星球选择界面（实际星球）
+        /// 显示星球选择界面(实际星球)
         /// </summary>
         private void ShowPlanetSelectionWithActualPlanet(PlanetPreset preset)
         {
@@ -808,7 +806,7 @@ namespace MMWorld
         /// </summary>
         public void ShowStartMenu()
         {
-            // 如果UI还没创建，先初始化
+            // 如果UI还没创建,先初始化
             if (canvas == null)
             {
                 InitializeFont();

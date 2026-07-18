@@ -1,52 +1,34 @@
-[RuntimeInitializeOnLoadMethod (RuntimeInitializeLoadType.BeforeSceneLoad)] 这个特性，Unity编辑器中，场景完全为空就能靠代码这行启动...实测打包后依然有效。应是编译的时候，读取到特性，然后搞到场景出现前一刻先运行了...而且给游戏做MOD情况下这个特性仍有效！
+﻿[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+这个特性,Unity编辑器中,场景完全为空就能靠代码这行启动...实测打包后依然有效.应是编译的时候,读取到特性,然后搞到场景出现前一刻先运行了...而且给游戏做MOD情况下这个特性仍有效！
+核心机制是在 Unity 引擎完成底层初始化、但尚未加载第一个场景(即“黑屏”或初始加载阶段)时,自动调用标记的静态方法.
 
-[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)] 的核心机制确实是在 Unity 引擎完成底层初始化、但尚未加载第一个场景（即“黑屏”或初始加载阶段）时，自动调用标记的静态方法。
-
-以下是详细的技术分析和注意事项：
-
+以下是详细的技术分析和注意事项:
 1. 为什么它在 MOD 中通常有效？
-
-MOD 的本质是将额外的程序集（Assembly/DLL）注入到游戏的运行时环境中。RuntimeInitializeOnLoadMethod 的工作原理是 Unity 引擎在启动时扫描‌所有已加载程序集‌中标记了该特性的静态方法。
-
-程序集扫描机制‌：只要你的 MOD DLL 被成功加载到游戏的 AppDomain（应用程序域）中，Unity 的初始化系统就会像对待原生代码一样，扫描并注册你的初始化方法。
-无需 GameObject‌：该方法不依赖场景中的任何 GameObject 或 MonoBehaviour 组件，因此即使场景为空，或者 MOD 没有向场景中实例化任何对象，代码依然会执行。
+MOD 的本质是将额外的程序集(Assembly/DLL)注入到游戏的运行时环境中.RuntimeInitializeOnLoadMethod 的工作原理是 Unity 引擎在启动时扫描‌所有已加载程序集‌中标记了该特性的静态方法.
+程序集扫描机制‌:只要你的 MOD DLL 被成功加载到游戏的 AppDomain(应用程序域)中,Unity 的初始化系统就会像对待原生代码一样,扫描并注册你的初始化方法.
+无需 GameObject‌:该方法不依赖场景中的任何 GameObject 或 MonoBehaviour 组件,因此即使场景为空,或者 MOD 没有向场景中实例化任何对象,代码依然会执行.
 2. MOD 开发中的关键前提
-
-虽然特性本身有效，但要让它触发，必须满足以下条件：
-
+虽然特性本身有效,但要让它触发,必须满足以下条件:
 A. MOD DLL 必须在 BeforeSceneLoad 之前被加载
-
-这是最关键的一点。如果游戏的主程序在已经加载完场景、进入主循环后才加载你的 MOD DLL，那么 BeforeSceneLoad 时机已经错过，你的方法将‌不会‌被执行。
-
-有效情况‌：
-
-使用 ‌BepInEx‌、‌MelonLoader‌、‌UnityDoorstop‌ 等主流 MOD 加载器。这些加载器通常在 Unity 引擎启动的极早期（甚至在 main() 函数执行初期）就介入，并将 MOD DLL 注入到域中。在这种情况下，BeforeSceneLoad 是完全可以触发的。
-通过修改 Assembly-CSharp.dll 或使用 Harmony 补丁在早期入口点加载 DLL。
-
-无效情况‌：
-
-如果 MOD 是通过游戏内的某个菜单按钮“动态加载”的（例如玩家进入游戏后点击“启用 MOD”），此时场景早已加载完毕，BeforeSceneLoad 时机已过。这种情况下，你应该使用 AfterSceneLoad 或者直接在加载 DLL 时手动调用初始化逻辑。
-B. 程序集定义（Assembly Definition）的影响
-
-如果你的 MOD 项目使用了 .asmdef 文件，确保它被正确编译并包含在游戏能读取的路径下。Unity 的初始化扫描是基于程序集的，只要程序集被 CLR 加载，特性就会被发现。
-
+这是最关键的一点.如果游戏的主程序在已经加载完场景、进入主循环后才加载你的 MOD DLL,那么 BeforeSceneLoad 时机已经错过,你的方法将‌不会‌被执行.
+有效情况‌:
+使用 ‌BepInEx‌、‌MelonLoader‌、‌UnityDoorstop‌ 等主流 MOD 加载器.这些加载器通常在 Unity 引擎启动的极早期(甚至在 main() 函数执行初期)就介入,并将 MOD DLL 注入到域中.在这种情况下,BeforeSceneLoad 是完全可以触发的.
+通过修改 Assembly-CSharp.dll 或使用 Harmony 补丁在早期入口点加载 DLL.
+无效情况‌:
+如果 MOD 是通过游戏内的某个菜单按钮“动态加载”的(例如玩家进入游戏后点击“启用 MOD”),此时场景早已加载完毕,BeforeSceneLoad 时机已过.这种情况下,你应该使用 AfterSceneLoad 或者直接在加载 DLL 时手动调用初始化逻辑.
+B. 程序集定义(Assembly Definition)的影响
+如果你的 MOD 项目使用了 .asmdef 文件,确保它被正确编译并包含在游戏能读取的路径下.Unity 的初始化扫描是基于程序集的,只要程序集被 CLR 加载,特性就会被发现.
 3. 在 MOD 中使用该特性的最佳实践
-
-在 MOD 开发中，BeforeSceneLoad 是一个非常强大的钩子（Hook），常用于以下场景：
-
-全局服务注册‌：初始化 MOD 的配置管理器、日志系统或服务容器（如 VContainer/Zenject 的手动绑定）。
-Harmony 补丁安装‌：在场景加载前安装 Harmony 补丁，确保游戏原生代码在执行前已经被修改，避免竞争条件。
-资源预加载‌：异步加载 MOD 所需的 AssetBundle 或配置数据，避免进入游戏后卡顿。
-
-代码示例：‌
-
-csharp
+在 MOD 开发中,BeforeSceneLoad 是一个非常强大的钩子(Hook),常用于以下场景:
+全局服务注册‌:初始化 MOD 的配置管理器、日志系统或服务容器(如 VContainer/Zenject 的手动绑定).
+Harmony 补丁安装‌:在场景加载前安装 Harmony 补丁,确保游戏原生代码在执行前已经被修改,避免竞争条件.
+资源预加载‌:异步加载 MOD 所需的 AssetBundle 或配置数据,避免进入游戏后卡顿.
+代码示例:‌
 using UnityEngine;
 using HarmonyLib; // 假设使用 Harmony
-
 public static class ModInitializer
 {
-    // 在场景加载前执行，适合安装补丁和初始化核心逻辑
+    // 在场景加载前执行,适合安装补丁和初始化核心逻辑
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     public static void OnBeforeSceneLoad()
     {
@@ -59,14 +41,14 @@ public static class ModInitializer
         // 2. 初始化配置
         ModConfig.Load();
         
-        Debug.Log("[MyMod] 初始化完成。");
+        Debug.Log("[MyMod] 初始化完成.");
     }
 }
-
 4. 潜在陷阱与调试建议
-执行顺序不确定‌：如果有多个 MOD 都使用了 BeforeSceneLoad，它们之间的执行顺序是‌不保证‌的。不要依赖其他 MOD 的初始化状态。如果需要顺序控制，建议使用 SubsystemRegistration（更早期）或通过 Harmony 补丁在其他 MOD 的初始化方法前后插入逻辑。
-异常处理‌：如果该方法中抛出未捕获的异常，可能会导致游戏启动崩溃或卡在黑屏界面。务必添加 try-catch 块并记录日志。
-编辑器 vs 打包版‌：你在编辑器中测试有效，打包后也有效，这符合预期。但在 MOD 开发中，有时需要区分 #if UNITY_EDITOR，因为某些加载器在编辑器模式下行为不同。
+执行顺序不确定‌:如果有多个 MOD 都使用了 BeforeSceneLoad,它们之间的执行顺序是‌不保证‌的.不要依赖其他 MOD 的初始化状态.如果需要顺序控制,建议使用 SubsystemRegistration(更早期)或通过 Harmony 补丁在其他 MOD 的初始化方法前后插入逻辑.
+异常处理‌:如果该方法中抛出未捕获的异常,可能会导致游戏启动崩溃或卡在黑屏界面.务必添加 try-catch 块并记录日志.
+编辑器 vs 打包版‌:你在编辑器中测试有效,打包后也有效,这符合预期.但在 MOD 开发中,有时需要区分 #if UNITY_EDITOR,因为某些加载器在编辑器模式下行为不同.
 总结
 
-在给游戏做 MOD 时，‌[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)] 是有效的‌，前提是你要使用的 MOD 加载器（如 BepInEx）能在游戏场景加载前将你的 DLL 注入到运行时中。这是 MOD 开发中进行早期初始化的标准且推荐的做法之一。
+在给游戏做MOD时,‌[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]是有效的‌,前提是你要使用的MOD加载器(如 BepInEx)能在游戏场景加载前将你的DLL注入到运行时中.
+这是MOD开发中进行早期初始化的标准且推荐的做法之一.

@@ -1,33 +1,33 @@
-在 C中，委托（Delegate）和事件（Event）的核心区别在于访问权限的控制和封装性。简单来说，event 是对委托的一种特殊封装，它限制了外部代码对委托的操作权限，从而提高了代码的安全性和健壮性。
-以下是添加 event 关键字与不添加的主要区别：
+﻿在 C中,委托(Delegate)和事件(Event)的核心区别在于访问权限的控制和封装性.简单来说,event 是对委托的一种特殊封装,它限制了外部代码对委托的操作权限,从而提高了代码的安全性和健壮性.
+以下是添加 event 关键字与不添加的主要区别:
 1.	核心区别对比表
 特性	普通委托 (不加 event)	                                                                     事件 (加 event)
-本质 a public 字段（公开变量）	特殊的属性/字段组合（受保护成员）
-外部赋值 (=)	✅ 允许。可以直接覆盖整个委托链。	                    ❌ 禁止。只能使用 +=或 -=。防止误清空其他订阅者。
-外部调用/触发	✅ 允许。任何持有引用的地方都可以直接调用 Invoke()。 ❌ 禁止。只能在声明事件的类内部触发。外部只能订阅。
+本质 a public 字段(公开变量)	特殊的属性/字段组合(受保护成员)
+外部赋值 (=)	✅ 允许.可以直接覆盖整个委托链.	                    ❌ 禁止.只能使用 +=或 -=.防止误清空其他订阅者.
+外部调用/触发	✅ 允许.任何持有引用的地方都可以直接调用 Invoke(). ❌ 禁止.只能在声明事件的类内部触发.外部只能订阅.
 设计模式	简单的回调或函数指针传递	                                                     标准的发布-订阅 (Observer) 模式
-安全性	较低，容易因误操作破坏委托链 or 非法触发	                                     较高，封装了触发逻辑，保护订阅列表
+安全性	较低,容易因误操作破坏委托链 or 非法触发	                                     较高,封装了触发逻辑,保护订阅列表
 2.	详细场景解析
-A. 防止委托链被意外清空（赋值限制）
-不加 event：
-如果将委托定义为 public MyDelegate MyDel;，外部代码可以使用 = 运算符。
-// 危险操作：这会清空之前所有绑定的方法，只保留 NewMethod
+A. 防止委托链被意外清空(赋值限制)
+不加 event:
+如果将委托定义为 public MyDelegate MyDel;,外部代码可以使用 = 运算符.
+// 危险操作:这会清空之前所有绑定的方法,只保留 NewMethod
 obj.MyDel = NewMethod; 
-加 event：
-if 定义为 public event MyDelegate MyEvent;，外部代码只能使用 += 和 -=。
-// 安全操作：只是追加一个方法，不会影响其他订阅者
+加 event:
+if 定义为 public event MyDelegate MyEvent;,外部代码只能使用 += 和 -=.
+// 安全操作:只是追加一个方法,不会影响其他订阅者
 obj.MyEvent += NewMethod; 
-// 编译错误：obj.MyEvent = NewMethod; 是不允许的
-B. 防止外部非法触发（调用限制）
-这是事件最重要的特性，体现了发布者（Publisher）与订阅者（Subscriber）的分离。
-不加 event：
-任何拿到委托引用的对象都可以直接调用它，这意味着“订阅者”也可以触发“发布者的逻辑”，这通常不符合业务逻辑。
-// 外部任意代码都可以触发，导致逻辑混乱
+// 编译错误:obj.MyEvent = NewMethod; 是不允许的
+B. 防止外部非法触发(调用限制)
+这是事件最重要的特性,体现了发布者(Publisher)与订阅者(Subscriber)的分离.
+不加 event:
+任何拿到委托引用的对象都可以直接调用它,这意味着“订阅者”也可以触发“发布者的逻辑”,这通常不符合业务逻辑.
+// 外部任意代码都可以触发,导致逻辑混乱
 obj.MyDel?.Invoke(); 
-加 event：
-只有在定义事件的类内部才能触发事件。外部类即使订阅了事件，也无法主动引发它。
-// 编译错误：obj.MyEvent?.Invoke(); 在类外部是非法的
-// 正确做法：在类内部提供受保护的方法或直接调用
+加 event:
+只有在定义事件的类内部才能触发事件.外部类即使订阅了事件,也无法主动引发它.
+// 编译错误:obj.MyEvent?.Invoke(); 在类外部是非法的
+// 正确做法:在类内部提供受保护的方法或直接调用
 public class Publisher {
     public event Action OnChange;
     public void DoWork() {
@@ -36,9 +36,9 @@ public class Publisher {
     }
 }
 C. 空值检查与线程安全
-虽然两者都需要进行空值检查（?.Invoke()），但 event 的封装性使得在多线程环境下更容易维护状态的一致性，因为外部无法随意将其置为 null 或替换为另一个委托实例。
+虽然两者都需要进行空值检查(?.Invoke()),但 event 的封装性使得在多线程环境下更容易维护状态的一致性,因为外部无法随意将其置为 null 或替换为另一个委托实例.
 3.	代码示例对比
-场景：不加 event 的委托（类似 C++ 函数指针）
+场景:不加 event 的委托(类似 C++ 函数指针)
 public class BadExample {
     // 公开委托字段
     public Action<string> Notify; 
@@ -49,9 +49,9 @@ public class BadExample {
 // 调用方
 var obj = new BadExample();
 obj.Notify += msg => Console.WriteLine(msg);
-obj.Notify = null; // 【危险】直接清空了所有订阅，可能导致后续 Process() 调用时 NullReferenceException 或逻辑丢失
+obj.Notify = null; // 【危险】直接清空了所有订阅,可能导致后续 Process() 调用时 NullReferenceException 或逻辑丢失
 obj.Process(); 
-场景：加 event 的事件（标准做法）
+场景:加 event 的事件(标准做法)
 public class GoodExample {
     // 定义事件
     public event Action<string> Notify; 
@@ -67,12 +67,12 @@ obj.Notify += msg => Console.WriteLine(msg);
 // obj.Notify?.Invoke(); // 【编译错误】不允许在外部触发
 obj.Process(); // 正常触发
 4.	总结与建议
-	什么时候用委托（不加 event）？
-o	当你需要将方法作为参数传递给另一个方法时（如 LINQ 的 Where、Select，或 Task.Run）。
-o	当你在类内部使用私有委托进行回调，且不需要对外暴露订阅机制时。
-o	用于实现策略模式或算法参数化。
-	什么时候用事件（加 event）？
-o	当实现发布-订阅模式时（如 UI 按钮点击、数据状态变更通知）。
-o	当需要确保只有声明者才能触发通知，而外部只能响应时。
-o	当需要保护委托链不被外部代码意外覆盖或清空时。
-最佳实践：在面向对象设计中，如果目的是通知其他对象状态变化，请始终使用 event。如果目的是传递行为（回调），则使用委托（或 Action/Func）。
+	什么时候用委托(不加 event)？
+o	当你需要将方法作为参数传递给另一个方法时(如 LINQ 的 Where、Select,或 Task.Run).
+o	当你在类内部使用私有委托进行回调,且不需要对外暴露订阅机制时.
+o	用于实现策略模式或算法参数化.
+	什么时候用事件(加 event)？
+o	当实现发布-订阅模式时(如 UI 按钮点击、数据状态变更通知).
+o	当需要确保只有声明者才能触发通知,而外部只能响应时.
+o	当需要保护委托链不被外部代码意外覆盖或清空时.
+最佳实践:在面向对象设计中,如果目的是通知其他对象状态变化,请始终使用 event.如果目的是传递行为(回调),则使用委托(或 Action/Func).

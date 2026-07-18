@@ -178,7 +178,7 @@ namespace MMWorld
             player = Main_MMWorld.scene.player;
             LoadColliderFile();
 
-            //使用代码创建的MapEditorCanvas，不依赖场景中的预制对象
+            //使用代码创建的MapEditorCanvas,不依赖场景中的预制对象
             mainCanvaGO = SpriteSpace.SpriteSpacePrefab.MapEditorCanvas;
             if (mainCanvaGO != null)
             {
@@ -229,7 +229,7 @@ namespace MMWorld
 
         private void Update()
         {
-            //添加空引用检查，避免使用未初始化的对象
+            //添加空引用检查,避免使用未初始化的对象
             if (mainCanvaGO == null || colliderToggle == null)
                 return;
 

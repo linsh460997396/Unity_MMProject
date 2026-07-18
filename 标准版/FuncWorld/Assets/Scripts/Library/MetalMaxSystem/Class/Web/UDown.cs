@@ -131,7 +131,7 @@ namespace MetalMaxSystem.Unity
         /// </summary>
         /// <param name="url">文件URL</param>
         /// <param name="savePath">保存路径</param>
-        /// <param name="timeout">超时时间（秒）</param>
+        /// <param name="timeout">超时时间(秒)</param>
         /// <param name="maxRetries">最大重试次数</param>
         public void DownloadWithRetry(string url, string savePath, int timeout = 60, int maxRetries = 3)
         {
@@ -144,8 +144,8 @@ namespace MetalMaxSystem.Unity
         /// <param name="url">文件URL</param>
         /// <param name="saveFilePath">保存文件路径</param>
         /// <param name="objectRegex">正则表达式</param>
-        /// <param name="timeout">超时时间（秒）</param>
-        /// <param name="maxMatches">最大匹配数量（0表示无限制,默认1）</param>
+        /// <param name="timeout">超时时间(秒)</param>
+        /// <param name="maxMatches">最大匹配数量(0表示无限制,默认1)</param>
         public void DownloadFilesWithRegex(string url, string saveFilePath, string xpath = "//img", string attribute = "src", string filterRegex = @"\.jpg$", int timeout = 60, int maxMatches = 5)
         {
             StartCoroutine(DownloadFilesWithRegex_Func(url, saveFilePath, xpath, attribute, filterRegex, timeout, maxMatches));
@@ -233,7 +233,7 @@ namespace MetalMaxSystem.Unity
         /// </summary>
         /// <param name="url">文件URL</param>
         /// <param name="savePath">保存路径</param>
-        /// <param name="timeout">超时时间（秒）</param>
+        /// <param name="timeout">超时时间(秒)</param>
         /// <param name="maxRetries">最大重试次数</param>
         /// <returns>协程枚举器</returns>
         private IEnumerator DownloadWithRetry_Func(string url, string savePath, int timeout = 60, int maxRetries = 3)
@@ -294,8 +294,8 @@ namespace MetalMaxSystem.Unity
         /// <param name="xpath">用于定位目标HTML节点的XPath表达式,默认为"//img"</param>
         /// <param name="attribute">从定位到的节点中提取哪个属性的值,默认为"src"</param>
         /// <param name="filterRegex">对提取出的属性值进行过滤的正则表达式.如果为null或空,则下载所有匹配节点的资源.</param>
-        /// <param name="timeout">超时时间（秒,默认60）</param>
-        /// <param name="maxMatches">最大匹配数量（0表示无限制,默认1）</param>
+        /// <param name="timeout">超时时间(秒,默认60)</param>
+        /// <param name="maxMatches">最大匹配数量(0表示无限制,默认1)</param>
         /// <returns></returns>
         public IEnumerator DownloadFilesWithRegex_Func(string url, string saveFilePath, string xpath = "//img", string attribute = "src", string filterRegex = @"\.jpg$", int timeout = 60, int maxMatches = 5)
         {
@@ -355,7 +355,7 @@ namespace MetalMaxSystem.Unity
                 string rawUrl = node.GetAttributeValue(attribute, string.Empty);
                 if (string.IsNullOrEmpty(rawUrl)) continue;
 
-                // URL规范化处理（参考DownloadMutiAsync中的逻辑）
+                // URL规范化处理(参考DownloadMutiAsync中的逻辑)
                 string absoluteUrl = NormalizeUrl(url, rawUrl);
 
                 // 如果URL无效,跳过
@@ -395,7 +395,7 @@ namespace MetalMaxSystem.Unity
             {
                 string fileUrl = urlsToDownload[i];
 
-                // 生成目标路径（支持批量文件命名）
+                // 生成目标路径(支持批量文件命名)
                 string finalFilePath = GenerateTargetPath(saveFilePath, i, urlsToDownload.Count);
 
                 Debug.Log($"Downloading [{i + 1}/{urlsToDownload.Count}]: {fileUrl}");
@@ -409,9 +409,9 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// URL规范化辅助函数（将相对路径转换为绝对路径）
+        /// URL规范化辅助函数(将相对路径转换为绝对路径)
         /// </summary>
-        /// <param name="baseUrl">基础URL（网页地址）</param>
+        /// <param name="baseUrl">基础URL(网页地址)</param>
         /// <param name="relativeOrAbsoluteUrl">相对或绝对URL</param>
         /// <returns>规范化后的绝对URL</returns>
         public string NormalizeUrl(string baseUrl, string relativeOrAbsoluteUrl)
@@ -419,12 +419,12 @@ namespace MetalMaxSystem.Unity
             if (string.IsNullOrEmpty(relativeOrAbsoluteUrl))
                 return relativeOrAbsoluteUrl;
 
-            // 处理协议相对URL（以"//"开头）
+            // 处理协议相对URL(以"//"开头)
             if (relativeOrAbsoluteUrl.StartsWith("//"))
             {
                 return "https:" + relativeOrAbsoluteUrl;
             }
-            // 处理根相对路径（以"/"开头但不是"//"）
+            // 处理根相对路径(以"/"开头但不是"//")
             else if (relativeOrAbsoluteUrl.StartsWith("/") && !relativeOrAbsoluteUrl.StartsWith("//"))
             {
                 try
@@ -471,7 +471,7 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 缓存的Regex对象（避免重复编译）
+        /// 缓存的Regex对象(避免重复编译)
         /// </summary>
         private static Dictionary<string, Regex> _regexCache = new Dictionary<string, Regex>();
 
@@ -494,7 +494,7 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 生成目标文件路径（支持批量文件自动编号）
+        /// 生成目标文件路径(支持批量文件自动编号)
         /// </summary>
         /// <param name="basePath">基础文件路径</param>
         /// <param name="index">当前文件索引</param>
@@ -517,16 +517,16 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 获取完整路径（安全处理）
+        /// 获取完整路径(安全处理)
         /// </summary>
         /// <param name="path">文件的绝对路径或相对路径("folder/file.txt")</param>
         /// <returns>Path.Combine(Application.persistentDataPath, path)</returns>
         private static string GetFullPath(string path)
         {
-            // 如果路径已经是绝对路径则直接返回（可选安全检查）
+            // 如果路径已经是绝对路径则直接返回(可选安全检查)
             if (Path.IsPathRooted(path))
             {
-                // 安全检查：防止目录遍历攻击
+                // 安全检查:防止目录遍历攻击
                 string fullPath = Path.GetFullPath(path);
                 // 可添加白名单检查
                 return fullPath;
@@ -542,7 +542,7 @@ namespace MetalMaxSystem.Unity
         /// </summary>
         /// <param name="url">网站的URL地址</param>
         /// <param name="node">HTML节点的XPath</param>
-        /// <param name="timeout">超时时间（秒）</param>
+        /// <param name="timeout">超时时间(秒)</param>
         /// <returns>返回节点解析后的URL</returns>
         public static async Task<string> LoadSingleNodeUrlAsync(string url, string node, int timeout = 60)
         {
@@ -585,7 +585,7 @@ namespace MetalMaxSystem.Unity
         /// 异步加载HTML内容
         /// </summary>
         /// <param name="url">网页URL</param>
-        /// <param name="timeout">超时时间（秒）</param>
+        /// <param name="timeout">超时时间(秒)</param>
         /// <returns>返回HTML内容字符串</returns>
         private static async Task<string> LoadHtmlFromUrl(string url, int timeout = 60)
         {
@@ -609,20 +609,20 @@ namespace MetalMaxSystem.Unity
         /// 异步下载文件并保存到本地
         /// </summary>
         /// <param name="url">文件URL</param>
-        /// <param name="savePath">保存文件的完整路径（包含文件名）</param>
-        /// <param name="timeout">超时时间（秒）</param>
+        /// <param name="savePath">保存文件的完整路径(包含文件名)</param>
+        /// <param name="timeout">超时时间(秒)</param>
         /// <returns>是否下载成功</returns>
         public static async Task<bool> DownloadFileAsync(string url, string savePath, int timeout = 60)
         {
             // 创建请求对象
             UnityWebRequest request = UnityWebRequest.Get(url);
 
-            // 配置下载处理器：直接写入磁盘,节省内存
+            // 配置下载处理器:直接写入磁盘,节省内存
             request.downloadHandler = new DownloadHandlerFile(savePath);
 
             request.timeout = timeout;
 
-            // 关键设置：如果请求被中止或失败,自动删除已下载的部分文件,防止脏数据
+            // 关键设置:如果请求被中止或失败,自动删除已下载的部分文件,防止脏数据
             ((DownloadHandlerFile)request.downloadHandler).removeFileOnAbort = true;
 
             try
@@ -660,7 +660,7 @@ namespace MetalMaxSystem.Unity
         /// </summary>
         /// <param name="urls">文件URL列表</param>
         /// <param name="saveDirectory">保存文件的目录</param>
-        /// <param name="timeout">超时时间（秒）</param>
+        /// <param name="timeout">超时时间(秒)</param>
         /// <returns></returns>
         public static async Task DownloadFilesAsync(List<string> urls, string saveDirectory, int timeout = 60)
         {

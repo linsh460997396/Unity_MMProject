@@ -60,7 +60,7 @@ namespace MMWorld.RimWorld
 
         private void Start()
         {
-            // 延迟一帧初始化，确保其他组件已Awake
+            // 延迟一帧初始化,确保其他组件已Awake
             Invoke(nameof(InitializeSystems), 0.1f);
         }
 
@@ -265,7 +265,7 @@ namespace MMWorld.RimWorld
         /// </summary>
         private void CreatePawnVisual(GameObject pawnObj, Gender gender)
         {
-            // 身体（胶囊形状）
+            // 身体(胶囊形状)
             GameObject body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             body.name = "Body";
             body.transform.SetParent(pawnObj.transform);
@@ -279,7 +279,7 @@ namespace MMWorld.RimWorld
             head.transform.localPosition = new Vector3(0, 1.1f, 0);
             head.transform.localScale = new Vector3(0.25f, 0.25f, 0.25f);
 
-            // 腿（两个立方体）
+            // 腿(两个立方体)
             GameObject leftLeg = GameObject.CreatePrimitive(PrimitiveType.Cube);
             leftLeg.name = "LeftLeg";
             leftLeg.transform.SetParent(pawnObj.transform);
@@ -301,7 +301,7 @@ namespace MMWorld.RimWorld
                 renderer.material.color = bodyColor;
             }
 
-            // 头部颜色（肤色）
+            // 头部颜色(肤色)
             Renderer headRenderer = head.GetComponent<Renderer>();
             headRenderer.material.color = new Color(0.9f, 0.75f, 0.6f);
         }

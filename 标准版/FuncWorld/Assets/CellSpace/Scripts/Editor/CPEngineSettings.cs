@@ -112,7 +112,7 @@ namespace CellSpace
                     if (PrefabUtility.GetPrefabInstanceStatus(engine.gameObject) == PrefabInstanceStatus.Connected)
                     {
                         //Debug.Log(selectedObject.name + " is an instance of a prefab.");
-                        //修改后对预制体覆盖,若没有关联会报错（可无视)
+                        //修改后对预制体覆盖,若没有关联会报错(可无视)
                         PrefabUtility.ReplacePrefab(engine.gameObject, PrefabUtility.GetPrefabParent(engine.gameObject), ReplacePrefabOptions.ConnectToPrefab);
                     }
                 }

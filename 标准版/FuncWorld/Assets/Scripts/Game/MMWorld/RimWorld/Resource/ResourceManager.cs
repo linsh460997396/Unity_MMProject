@@ -33,7 +33,7 @@ namespace MMWorld.RimWorld
         #region 设置
 
         /// <summary>
-        /// 资源过期时间（秒）
+        /// 资源过期时间(秒)
         /// </summary>
         public float resourceDecayTime = 3600f;
 

@@ -351,7 +351,7 @@ namespace CellSpace
         private GameObject GetBlock(ushort data)
         { // returns the prefab of the block with a given index
 
-            Object blockObject = AssetDatabase.LoadAssetAtPath(GetBlockPath(data), typeof(Object)); //typeof(Object)表示加载的资源可以是任何类型（因为Object是Unity中所有对象的基类)
+            Object blockObject = AssetDatabase.LoadAssetAtPath(GetBlockPath(data), typeof(Object)); //typeof(Object)表示加载的资源可以是任何类型(因为Object是Unity中所有对象的基类)
             GameObject block = null;
 
             if (blockObject != null)

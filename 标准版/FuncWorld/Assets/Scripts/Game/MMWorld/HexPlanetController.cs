@@ -263,7 +263,7 @@ namespace MMWorld
 
             if (GameManager.Instance != null && GameManager.Instance.currentState == GameManager.GameState.PlanetSelect)
             {
-                Debug.Log($"[HexPlanetController] 星球区域已选择: Tile {tileId}，通知GameManager继续初始化...");
+                Debug.Log($"[HexPlanetController] 星球区域已选择: Tile {tileId},通知GameManager继续初始化...");
                 GameManager.Instance.OnPlanetAreaSelected(tileId);
                 return;
             }
@@ -277,12 +277,12 @@ namespace MMWorld
             {
                 if (mapIndex.HasMap(tileId))
                 {
-                    Debug.Log($"[HexPlanetController] 地图 {tileId} 已存在，切换至该地图");
+                    Debug.Log($"[HexPlanetController] 地图 {tileId} 已存在,切换至该地图");
                     mapIndex.SwitchToMap(tileId);
                 }
                 else
                 {
-                    Debug.Log($"[HexPlanetController] 地图 {tileId} 不存在，创建新地图");
+                    Debug.Log($"[HexPlanetController] 地图 {tileId} 不存在,创建新地图");
                     StartCoroutine(CreateNewMap(tileId));
                 }
             }
