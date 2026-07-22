@@ -9,6 +9,8 @@ namespace MetalMaxSystem.Unity
     /// 运行时预制体.
     /// 用于存储配置、共享数据或资源引用,是纯粹的数据容器(模拟加载AB包资源后的状态).
     /// 示范用法RuntimePrefab runtimePrefab = ScriptableObject.CreateInstance<RuntimePrefab>();
+    /// 当RuntimePrefab.Add(string key, Object obj,bool clone = false)中的clone参数为true时,资源为副本存储,
+    /// 当clone参数为false时,直接存储对象,摧毁原对象会影响该字典内容,场景切换时未被DontDestroyOnLoad保护的实例会被Unity自动销毁‌,请做好保护.
     /// </summary>
     public class RuntimePrefab : ScriptableObject
     {

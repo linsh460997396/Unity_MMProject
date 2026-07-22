@@ -1549,3 +1549,5 @@ CellChunkOP.data.TryGetValue(index, out CellChunkOP op)
 readonly修饰符标记的字段只能在字段或构造函数中赋值一次,之后无法修改
 
 使用new关键字隐藏父类字段,不用new会产生一个警告提醒,但不影响功能
+
+加Canvas组件时Unity会自动添加RectTransform组件

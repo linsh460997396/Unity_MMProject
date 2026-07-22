@@ -1,4 +1,5 @@
 ﻿using MetalMaxSystem.Unity;
+using MMWorld;
 using System.Collections.Generic;
 using System.Diagnostics;
 using TMPro;
@@ -1556,10 +1557,10 @@ namespace SpriteSpace
                     functionMenu.SetActive(false);
                 }
                 // 显示开局菜单(由MMWorldInitializer确保存在)
-                MMWorld.GameStartMenu menu = FindObjectOfType<MMWorld.GameStartMenu>();
+                MMWorld.GameUI menu = FindObjectOfType<MMWorld.GameUI>();
                 if (menu != null)
                 {
-                    menu.ShowStartMenu();
+                    menu.UI_GameObject_GameUI().SetActive(true);
                 }
             });
 
@@ -1766,6 +1767,13 @@ namespace SpriteSpace
             }
         }
 
+        private static string _eventSystemName = "EventSystem";
+        public static string EventSystemName
+        {
+            get { if (string.IsNullOrEmpty(_eventSystemName)) return "EventSystem"; return _eventSystemName; }
+            set { if (!string.IsNullOrEmpty(value)) _eventSystemName = value; }
+        }
+
         /// <summary>
         /// 获取或创建EventSystem用于处理UI交互事件
         /// </summary>
@@ -1774,27 +1782,22 @@ namespace SpriteSpace
             EventSystem existingEventSystem = Object.FindObjectOfType<EventSystem>();
             if (existingEventSystem != null)
             {
-                Debug.Log("EventSystem已存在,无需创建");
+                //Debug.Log("EventSystem已存在,无需创建");
                 return existingEventSystem.gameObject;
             }
-
             //创建EventSystem对象
-            GameObject eventSystemGO = new GameObject("EventSystem");
+            GameObject eventSystemGO = new GameObject(EventSystemName);
             DontDestroyOnLoad(eventSystemGO);
-
             // 添加到group下(如果group存在)
             if (group != null)
             {
                 eventSystemGO.transform.parent = group.transform;
             }
-
             //添加EventSystem组件
             eventSystemGO.AddComponent<EventSystem>();
-
             //添加StandaloneInputModule组件(处理鼠标/键盘输入)
             eventSystemGO.AddComponent<InputSystemUIInputModule>();
-
-            Debug.Log("EventSystem已创建");
+            //Debug.Log("EventSystem已创建");
             return eventSystemGO;
         }
 
