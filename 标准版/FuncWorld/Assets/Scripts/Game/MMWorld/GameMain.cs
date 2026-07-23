@@ -37,7 +37,11 @@ namespace MMWorld
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnBeforeSceneLoad()
         {
-            var temp = Instance;
+            // var temp = Instance;
+
+            var obj = new GameObject("GameMain");
+            obj.AddComponent<PlanetTestSceneBootstrapper>();
+
         }
 
         /// <summary>

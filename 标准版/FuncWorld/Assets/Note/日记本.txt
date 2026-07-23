@@ -1550,4 +1550,24 @@ readonly修饰符标记的字段只能在字段或构造函数中赋值一次,�
 
 使用new关键字隐藏父类字段,不用new会产生一个警告提醒,但不影响功能
 
-加Canvas组件时Unity会自动添加RectTransform组件
+加Canvas组件时Unity会自动强制添加RectTransform组件
+
+旧版输入系统（Legacy Input Manager）‌则‌不需要‌ InputSystemUIInputModule,而是需要StandaloneInputModule
+新版输入系统（Input System Package）‌则‌必须‌使用 InputSystemUIInputModule,否则UI将无法响应任何输入
+在 Unity 编辑器中，查看 Edit > Project Settings > Player > Other Settings > Active Input Handling(活动输入处理):
+‌Input Manager (Old)‌：只能使用 StandaloneInputModule
+‌Input System Package (New)‌：只能使用 InputSystemUIInputModule
+Both:两者皆可
+旧版(Input Manager):‌轮询式 (Polling).每帧主动查询“按键是否按下”.耦合度高，硬编码键位.
+新版(Input System):‌事件驱动 (Event-driven) + 动作映射 (Actions).将“物理按键”与“游戏逻辑”解耦.支持多设备自动切换、重绑定键位.
+void Update() {
+    if (Input.GetKeyDown(KeyCode.F)) {
+        Debug.Log("旧版‌直接检查特定键");
+    }
+    if (Keyboard.current.fKey.wasPressedThisFrame) {
+        Debug.Log("通过Keyboard类或InputAction");
+    }
+}
+注意:上述Input.GetKeyDown的生效与场景中的StandaloneInputModule或InputSystemUIInputModule‌完全无关‌
+Input.GetKeyDown(底层输入)‌：直接读取硬件设备状态（键盘、鼠标等）,由 Unity 引擎底层每帧更新，‌不依赖‌任何场景组件,只要游戏窗口处于激活状态，无论场景中是否有EventSystem,它都能检测到按键
+InputModule(UI事件系统)‌：StandaloneInputModule或InputSystemUIInputModule是‌UGUI(Canvas UI)‌系统的专用组件.它们的作用是将底层输入转换为UI事件（如OnClick, OnSelect）.只有当需要点击按钮、拖动滑块或使用键盘导航UI时才需要这些模块.

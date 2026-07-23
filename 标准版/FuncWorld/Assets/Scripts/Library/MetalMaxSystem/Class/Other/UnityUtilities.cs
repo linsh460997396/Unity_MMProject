@@ -27,7 +27,7 @@ namespace MetalMaxSystem.Unity
         public static RuntimePrefab runtimePrefab = ScriptableObject.CreateInstance<RuntimePrefab>();
 
         /// <summary>
-        /// 查找物体.
+        /// 查找父物体下的子物体,包括隐藏的子物体,返回第一个匹配的GameObject实例,未找到返回null.
         /// </summary>
         /// <param name="parent"></param>
         /// <param name="childName"></param>

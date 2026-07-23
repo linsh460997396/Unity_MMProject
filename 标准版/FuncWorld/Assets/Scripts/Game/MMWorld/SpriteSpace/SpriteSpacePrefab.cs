@@ -1797,6 +1797,8 @@ namespace SpriteSpace
             eventSystemGO.AddComponent<EventSystem>();
             //添加StandaloneInputModule组件(处理鼠标/键盘输入)
             eventSystemGO.AddComponent<InputSystemUIInputModule>();
+            //如果使用的是‌旧版输入系统（Legacy Input Manager）‌则‌不需要‌ InputSystemUIInputModule,而是需要StandaloneInputModule
+            //如果使用的是‌新版输入系统（Input System Package）‌则‌必须‌使用 InputSystemUIInputModule,否则UI将无法响应任何输入
             //Debug.Log("EventSystem已创建");
             return eventSystemGO;
         }

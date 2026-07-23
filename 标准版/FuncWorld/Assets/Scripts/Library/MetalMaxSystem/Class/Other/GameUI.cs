@@ -1,10 +1,9 @@
 ﻿//#define UNITY_STANDALONE //BepInEx制作UnityMOD时可手动启用
 #if UNITY_EDITOR || UNITY_STANDALONE
-using CellSpace;
 using TMPro;
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace MetalMaxSystem.Unity
@@ -117,23 +116,111 @@ namespace MetalMaxSystem.Unity
             return Instance;
         }
 
+        private void Start()
+        {
+            UI_GameObject_GameUI()?.SetActive(true);
+        }
+
+        /// <summary>
+        /// 检测结果枚举
+        /// </summary>
+        public enum InputSupportType
+        {
+            None,           // 都不支持（极罕见）
+            Legacy,         // 仅支持旧版 (StandaloneInputModule)
+            NewSystem,      // 仅支持新版 (InputSystemUIInputModule)
+            Both            // 两者类都存在（通常对应 Project Settings 中的 "Both" 模式）
+        }
+
+        /// <summary>
+        /// 检查当前环境中可用的 InputModule 类型
+        /// </summary>
+        public static InputSupportType CheckAvailableInputModule()
+        {
+            bool hasLegacy = false;
+            bool hasNew = false;
+
+            // 1. 检查旧版模块 (通常位于 UnityEngine.UI 程序集)
+            // StandaloneInputModule 是 UGUI 核心部分，大多数 Unity 版本都包含
+            Type legacyType = Type.GetType("UnityEngine.EventSystems.StandaloneInputModule, UnityEngine.UI");
+            if (legacyType != null)
+            {
+                hasLegacy = true;
+            }
+
+            // 2. 检查新版模块 (位于 Unity.InputSystem 程序集)
+            // 如果游戏没装 Input System Package，这个类型会是 null
+            Type newType = Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
+            if (newType != null)
+            {
+                hasNew = true;
+            }
+
+            if (hasLegacy && hasNew) return InputSupportType.Both;
+            if (hasLegacy) return InputSupportType.Legacy;
+            if (hasNew) return InputSupportType.NewSystem;
+
+            return InputSupportType.None;
+        }
+        /// <summary>
+        /// 内部辅助：根据反射检测结果添加模块
+        /// </summary>
+        private static void AddCompatibleModule(GameObject go)
+        {
+            InputSupportType support = CheckAvailableInputModule();
+
+            switch (support)
+            {
+                case InputSupportType.NewSystem:
+                    // 注意：新版模块若无 Actions Asset 绑定，可能无法响应点击
+                    // 但在没有引用的情况下，这是唯一能添加的途径
+                    Type newType = Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
+                    if (newType != null) go.AddComponent(newType);
+                    break;
+
+                case InputSupportType.Legacy:
+                case InputSupportType.Both:
+                    // 优先使用旧版，因为不需要额外配置 Actions Asset，兼容性最稳
+                    Type legacyType = Type.GetType("UnityEngine.EventSystems.StandaloneInputModule, UnityEngine.UI");
+                    if (legacyType != null) go.AddComponent(legacyType);
+                    break;
+
+                case InputSupportType.None:
+                    Debug.LogWarning("未拥有任何InputModule类型,UI将无法交互!");
+                    break;
+            }
+        }
+
         /// <summary>
         /// 获取或创建EventSystem用于处理UI交互事件.
         /// </summary>
         public static GameObject GetEventSystem()
         {
-            EventSystem existingEventSystem = Object.FindObjectOfType<EventSystem>();
-            if (existingEventSystem != null)
+            EventSystem existing = GameObject.FindObjectOfType<EventSystem>();
+            if (existing != null)
             {
-                return existingEventSystem.gameObject;
+                if (existing.currentInputModule == null)
+                {
+                    AddCompatibleModule(existing.gameObject);
+                }
+                else
+                {
+                    // 安全获取当前激活的输入模块
+                    BaseInputModule module = existing.currentInputModule;
+                    if (module != null)
+                    {
+                        Debug.Log($"当前输入模块: {module.GetType().Name}");
+                    }
+                }
+                return existing.gameObject;
             }
             //创建EventSystem对象
             GameObject eventSystemGO = new GameObject(EventSystemName);
             GameObject.DontDestroyOnLoad(eventSystemGO);
             //添加EventSystem组件
             eventSystemGO.AddComponent<EventSystem>();
-            //添加StandaloneInputModule组件(处理鼠标/键盘输入)
-            eventSystemGO.AddComponent<InputSystemUIInputModule>();
+            //添加InputModule组件(处理鼠标/键盘输入)
+            AddCompatibleModule(eventSystemGO);
             return eventSystemGO;
         }
 
