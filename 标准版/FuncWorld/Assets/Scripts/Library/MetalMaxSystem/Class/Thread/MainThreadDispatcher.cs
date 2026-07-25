@@ -100,6 +100,52 @@ namespace MetalMaxSystem.Unity
             if (coroutineFunc == null) return;
             Invoke(coroutineFunc());
         }
+
+        /// <summary>
+        /// 回调函数.
+        /// 对Unity引擎组件实例相关动作执行回调(回到主线程调用Action).
+        /// 示例MainThreadDispatcher.Call(() =>{涉及主线程对象的动作});
+        /// </summary>
+        /// <param name="action">这个匿名委托将被添加到队列,由一个专门处理回调的MonoBehaviour组件实例来跑</param>
+        public static void Call(Action action)
+        {
+            if (action == null) return;
+            var ensure = Instance;
+            lock (actions)
+            {
+                actions.Enqueue(action);
+            }
+        }
+
+        /// <summary>
+        /// 回调函数.
+        /// 对Unity引擎组件实例相关动作执行回调(回到主线程调用协程).
+        /// 示例MainThreadDispatcher.Call(MyCoroutine());
+        /// </summary>
+        public static void Call(IEnumerator coroutine)
+        {
+            if (coroutine == null) return;
+            var ensure = Instance;
+            lock (coroutines)
+            {
+                coroutines.Enqueue(coroutine);
+            }
+        }
+
+        /// <summary>
+        /// 回调函数.直接传入协程方法体.
+        /// 对Unity引擎组件实例相关动作执行回调(回到主线程调用协程).
+        /// 示例MainThreadDispatcher.Call(() => {
+        ///     yield return new WaitForSeconds(1);
+        ///     Debug.Log("Delayed log");
+        /// });
+        /// </summary>
+        public static void Call(Func<IEnumerator> coroutineFunc)
+        {
+            if (coroutineFunc == null) return;
+            var ensure = Instance;
+            Call(coroutineFunc());
+        }
     }
 }
 

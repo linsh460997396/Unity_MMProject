@@ -498,11 +498,7 @@ namespace MMWorld
         {
             Debug.Log($"[HexPlanetController] 开始创建地图 {tileId}...");
 
-            GameUI menu = FindObjectOfType<GameUI>();
-            if (menu != null)
-            {
-                menu.UpdateLoadingProgress(0, $"正在创建地图 {tileId}...");
-            }
+            GameUI.UpdateLoadingProgress(0, $"正在创建地图 {tileId}...");
 
             yield return null;
 

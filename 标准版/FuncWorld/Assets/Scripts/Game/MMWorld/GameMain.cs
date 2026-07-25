@@ -24,7 +24,8 @@ namespace MMWorld
                 {
                     var obj = GameObject.Find(Name);
                     if (obj == null) obj = new GameObject(Name);
-                    if (obj.GetComponent<GameMain>() == null) _instance = obj.AddComponent<GameMain>();
+                    _instance = obj.GetComponent<GameMain>();
+                    if (_instance == null) _instance = obj.AddComponent<GameMain>();
                     DontDestroyOnLoad(obj);
                 }
                 return _instance;
@@ -37,11 +38,8 @@ namespace MMWorld
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static void OnBeforeSceneLoad()
         {
-            // var temp = Instance;
-
-            var obj = new GameObject("GameMain");
-            obj.AddComponent<PlanetTestSceneBootstrapper>();
-
+            //自动运行,在场景建立GameMain实例
+            var temp = Instance;
         }
 
         /// <summary>
@@ -49,13 +47,14 @@ namespace MMWorld
         /// </summary>
         public void Start()
         {
-            // 精灵框架初始化
+            // 精灵框架初始化(素材和预制体)
             SpriteSpacePrefab.Init();
-            // 创建精灵框架的相机并激活
-            SpriteSpacePrefab.MainCamera.SetActive(true);
 
-            // 创建菜单
+            // 创建主菜单
             GameUI.Create();
+
+            // 初始化FirstPersonAvatar
+            MetalMaxSystem.Unity.FirstPersonAvatar.Init();
 
             // 直接测试游戏
             //Run();

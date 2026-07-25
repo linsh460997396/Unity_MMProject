@@ -150,7 +150,7 @@ namespace CellSpace
         /// <summary>
         /// 重复使用的"等待帧结束"对象.
         /// </summary>
-        public static readonly WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+        public static readonly WaitForEndOfFrame waitForEndOfFrame = UnityUtilities.waitForEndOfFrame;
 
         // 启动前考虑:运行模式、要预填充的地块种类数)
 

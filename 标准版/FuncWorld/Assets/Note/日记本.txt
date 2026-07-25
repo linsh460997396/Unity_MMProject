@@ -1570,4 +1570,20 @@ void Update() {
 }
 注意:上述Input.GetKeyDown的生效与场景中的StandaloneInputModule或InputSystemUIInputModule‌完全无关‌
 Input.GetKeyDown(底层输入)‌：直接读取硬件设备状态（键盘、鼠标等）,由 Unity 引擎底层每帧更新，‌不依赖‌任何场景组件,只要游戏窗口处于激活状态，无论场景中是否有EventSystem,它都能检测到按键
-InputModule(UI事件系统)‌：StandaloneInputModule或InputSystemUIInputModule是‌UGUI(Canvas UI)‌系统的专用组件.它们的作用是将底层输入转换为UI事件（如OnClick, OnSelect）.只有当需要点击按钮、拖动滑块或使用键盘导航UI时才需要这些模块.
+InputModule(UI事件系统)‌：StandaloneInputModule或InputSystemUIInputModule是‌UGUI(Canvas UI)‌系统的专用组件.
+它们的作用是将底层输入转换为UI事件（如OnClick, OnSelect）.只有当需要点击按钮、拖动滑块或使用键盘导航UI时才需要这些模块.
+
+//让StartCoroutine参与的方法添加static,给实例类弄个Instance属性即可
+private static void OnPlanetSelected(PlanetPreset preset)
+{
+    Debug.Log($"[开局菜单] 选择了星球: {preset.displayName}");
+    selectedPlanet = preset;
+    Instance.StartCoroutine(CreateNewWorld(preset));
+}
+
+| ‌刷新‌ | Refresh | 全局（Assets & Packages） | 扫描磁盘文件变更，更新数据库元信息，按需导入变更资源 | 耗时中等（取决于变更量） |
+| ‌重新导入‌ | Reimport | 单个/选中资源 | 强制对指定资源执行完整的导入流程，生成新的资产数据 | 耗时低（仅针对特定文件） |
+| ‌重新导入所有‌ | Reimport All | 全局所有资源 | 清除所有资源的导入缓存，强制重新导入项目中的每一个资源 | 耗时极高（全量重建） |
+‌Refresh（刷新）‌：它知道“文件A存在”，但不一定立即深入检查“文件A内部引用的 DLL 是否完整”或“文件A依赖的程序集是否已编译完成”
+‌Reimport（重新导入）‌：强制调用该资源的 Importer（导入器）重新解析文件内容生成 .meta 数据并重新建立与其他资源的依赖关系.Unity 会重新评估整个项目的依赖图（Dependency Graph）。
+如果之前的报错是因为某个中间状态（如脚本编译未完成、DLL 锁定、.meta GUID 冲突）导致的，‌Reimport顺带全面的依赖检查往往会“顺带”修正该报错.

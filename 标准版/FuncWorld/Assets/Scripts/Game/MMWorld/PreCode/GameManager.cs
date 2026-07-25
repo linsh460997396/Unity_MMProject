@@ -180,11 +180,7 @@ namespace MMWorld
             HideStartMenu();
 
             // 更新加载进度
-            GameUI menu = FindObjectOfType<GameUI>();
-            if (menu != null)
-            {
-                menu.UpdateLoadingProgress(10f, "正在创建星球...");
-            }
+            GameUI.UpdateLoadingProgress(10f, "正在创建星球...");
             yield return new WaitForSeconds(0.5f);
 
             // 创建星球根对象
@@ -197,10 +193,7 @@ namespace MMWorld
             // 根据星球预设配置材质
             ConfigurePlanetMaterial(preset);
 
-            if (menu != null)
-            {
-                menu.UpdateLoadingProgress(30f, "星球创建完成! 请点击地图区域...");
-            }
+            GameUI.UpdateLoadingProgress(30f, "星球创建完成! 请点击地图区域...");
             yield return new WaitForSeconds(0.5f);
 
             // 等待玩家点击星球区域
@@ -260,11 +253,7 @@ namespace MMWorld
             currentState = GameState.Loading;
 
             // 更新加载进度
-            GameUI menu = FindObjectOfType<GameUI>();
-            if (menu != null)
-            {
-                menu.UpdateLoadingProgress(40f, "正在初始化CellSpace...");
-            }
+            GameUI.UpdateLoadingProgress(40f, "正在初始化CellSpace...");
             yield return new WaitForSeconds(0.3f);
 
             // 确保CellSpacePrefab已初始化
@@ -274,44 +263,29 @@ namespace MMWorld
             }
             CPEngine.Active();
 
-            if (menu != null)
-            {
-                menu.UpdateLoadingProgress(60f, "正在创建256x256地形...");
-            }
+            GameUI.UpdateLoadingProgress(60f, "正在创建256x256地形...");
             yield return new WaitForSeconds(0.3f);
 
             // 2. 创建地形(使用MapIndex)
             yield return StartCoroutine(CreateTerrainWithMapIndex(tileId));
 
-            if (menu != null)
-            {
-                menu.UpdateLoadingProgress(75f, "正在创建玩家...");
-            }
+            GameUI.UpdateLoadingProgress(75f, "正在创建玩家...");
             yield return new WaitForSeconds(0.3f);
 
             // 3. 创建玩家
             yield return StartCoroutine(CreatePlayer(tileId));
 
-            if (menu != null)
-            {
-                menu.UpdateLoadingProgress(90f, "正在生成NPC...");
-            }
+            GameUI.UpdateLoadingProgress(90f, "正在生成NPC...");
             yield return new WaitForSeconds(0.3f);
 
             // 4. 生成NPC
             yield return StartCoroutine(CreateNPCs(tileId));
 
-            if (menu != null)
-            {
-                menu.UpdateLoadingProgress(100f, "游戏初始化完成!");
-            }
+            GameUI.UpdateLoadingProgress(100f, "游戏初始化完成!");
             yield return new WaitForSeconds(0.5f);
 
             // 隐藏加载面板
-            if (menu != null)
-            {
-                menu.UI_GameObject_GameUI().SetActive(false);
-            }
+            GameUI.Dialog_GameUI.SetActive(false);
 
             // 隐藏HexSphere星球(进入地面模式)
             if (planetRoot != null)
@@ -515,13 +489,8 @@ namespace MMWorld
         /// </summary>
         public void ShowStartMenu()
         {
-            // GameStartMenu由MMWorldInitializer确保存在,直接获取
-            GameUI menu = FindObjectOfType<GameUI>();
-            if (menu != null)
-            {
-                menu.UI_GameObject_GameUI().SetActive(true);
-                currentState = GameState.StartMenu;
-            }
+            GameUI.Dialog_GameUI.SetActive(true);
+            currentState = GameState.StartMenu;
         }
 
         /// <summary>
@@ -529,11 +498,7 @@ namespace MMWorld
         /// </summary>
         public void HideStartMenu()
         {
-            GameUI menu = FindObjectOfType<GameUI>();
-            if (menu != null)
-            {
-                menu.UI_GameObject_GameUI().SetActive(false);
-            }
+            GameUI.Dialog_GameUI.SetActive(false);
         }
 
         /// <summary>

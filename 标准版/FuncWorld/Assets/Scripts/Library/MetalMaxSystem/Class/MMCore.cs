@@ -5,7 +5,7 @@
 //#define MONOGAME //MonoGame插件下启用(包括XNA框架)
 
 #if !(UNITY_EDITOR || UNITY_STANDALONE || NET5_0_OR_GREATER)
-↓仅针对MMCore.cs:非Unity、NET5+则启用NETFRAMEWORK(否则即便Unity的Framework也不启用)
+//↓仅针对MMCore.cs:非Unity、NET5+则启用NETFRAMEWORK(否则即便Unity的Framework也不启用)
 #define NETFRAMEWORK
 #endif
 

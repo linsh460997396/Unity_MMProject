@@ -1,4 +1,4 @@
-﻿using MetalMaxSystem.Unity; //用到RuntimePrefab类型
+﻿using MetalMaxSystem.Unity; //用到RuntimePrefab
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -17,7 +17,7 @@ namespace CellSpace
         /// 当RuntimePrefab.Add(string key, Object obj,bool clone = false)中的clone参数为true时,资源为副本存储,
         /// 当clone参数为false时,直接存储对象,摧毁原对象会影响该字典内容,场景切换时未被DontDestroyOnLoad保护的实例会被Unity自动销毁‌,请做好保护.
         /// </summary>
-        public static RuntimePrefab runtimePrefab = ScriptableObject.CreateInstance<RuntimePrefab>();
+        public static RuntimePrefab runtimePrefab = UnityUtilities.runtimePrefab;
         /// <summary>
         /// 用来阻止挂组件时自动Awake一次.而Start、Update那些就不用阻止了,因为runtimePrefab不在场景,即便预制体上组件Enable也不起作用.
         /// </summary>

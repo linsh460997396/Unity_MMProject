@@ -1,7 +1,7 @@
 ﻿//#define UNITY_STANDALONE //BepInEx制作UnityMOD时可手动启用
 #if UNITY_EDITOR || UNITY_STANDALONE
-using TMPro;
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -11,8 +11,9 @@ namespace MetalMaxSystem.Unity
     /// <summary>
     /// 用于快速创建/获取的常用UGUI对象.
     /// </summary>
-    public class GameUI : MonoBehaviour
+    public class UGUITemplate : MonoBehaviour
     {
+        //内置字体(编辑器环境放在Resources目录)
         private static TMP_FontAsset _fontFZYaSong;
         /// <summary>
         /// 方正雅宋中文字体.请将对应的字体文件放在Resources/Fonts目录下,并命名为"FZ_YaSong SDF"以供加载.
@@ -81,54 +82,28 @@ namespace MetalMaxSystem.Unity
             }
         }
 
-        private static string _name = "GameUI";
+        private static string _name;
         public static string Name
         {
             get { if (string.IsNullOrEmpty(_name)) return "GameUI"; return _name; }
             set { if (!string.IsNullOrEmpty(value)) _name = value; }
         }
 
-        private static string _eventSystemName = "EventSystem";
+        private static string _eventSystemName;
         public static string EventSystemName
         {
             get { if (string.IsNullOrEmpty(_eventSystemName)) return "EventSystem"; return _eventSystemName; }
             set { if (!string.IsNullOrEmpty(value)) _eventSystemName = value; }
         }
 
-        private static GameUI _instance;
-        public static GameUI Instance
-        {
-            get
-            {
-                if (_instance == null)
-                {
-                    var obj = GameObject.Find(Name);
-                    if (obj == null) obj = new GameObject(Name);
-                    if (obj.GetComponent<GameUI>() == null) _instance = obj.AddComponent<GameUI>();
-                    DontDestroyOnLoad(obj);
-                }
-                return _instance;
-            }
-        }
-
-        public static GameUI Create()
-        {
-            return Instance;
-        }
-
-        private void Start()
-        {
-            UI_GameObject_GameUI()?.SetActive(true);
-        }
-
         /// <summary>
-        /// 检测结果枚举
+        /// 输入模式检测结果的枚举
         /// </summary>
         public enum InputSupportType
         {
             None,           // 都不支持（极罕见）
-            Legacy,         // 仅支持旧版 (StandaloneInputModule)
-            NewSystem,      // 仅支持新版 (InputSystemUIInputModule)
+            Legacy_Standalone,         // 仅支持旧版 (StandaloneInputModule)
+            New_InputSystemUI,      // 仅支持新版 (InputSystemUIInputModule)
             Both            // 两者类都存在（通常对应 Project Settings 中的 "Both" 模式）
         }
 
@@ -157,28 +132,38 @@ namespace MetalMaxSystem.Unity
             }
 
             if (hasLegacy && hasNew) return InputSupportType.Both;
-            if (hasLegacy) return InputSupportType.Legacy;
-            if (hasNew) return InputSupportType.NewSystem;
+            if (hasLegacy) return InputSupportType.Legacy_Standalone;
+            if (hasNew) return InputSupportType.New_InputSystemUI;
 
             return InputSupportType.None;
         }
         /// <summary>
-        /// 内部辅助：根据反射检测结果添加模块
+        /// 内部辅助：根据反射检测结果添加模块.
         /// </summary>
-        private static void AddCompatibleModule(GameObject go)
+        /// <param name="go"></param>
+        /// <param name="inputSupportType">Input模块类型,默认优先添加旧版模块,因为不需要额外配置 Actions Asset,兼容性最稳.可选指定类型</param>
+        public static void AddCompatibleModule(GameObject go, InputSupportType? inputSupportType = null)
         {
-            InputSupportType support = CheckAvailableInputModule();
+            InputSupportType support;
+            if (inputSupportType == null)
+            {
+                support = CheckAvailableInputModule();
+            }
+            else
+            {
+                support = inputSupportType.Value;
+            }
 
             switch (support)
             {
-                case InputSupportType.NewSystem:
+                case InputSupportType.New_InputSystemUI:
                     // 注意：新版模块若无 Actions Asset 绑定，可能无法响应点击
                     // 但在没有引用的情况下，这是唯一能添加的途径
                     Type newType = Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
                     if (newType != null) go.AddComponent(newType);
                     break;
 
-                case InputSupportType.Legacy:
+                case InputSupportType.Legacy_Standalone:
                 case InputSupportType.Both:
                     // 优先使用旧版，因为不需要额外配置 Actions Asset，兼容性最稳
                     Type legacyType = Type.GetType("UnityEngine.EventSystems.StandaloneInputModule, UnityEngine.UI");
@@ -192,140 +177,6 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 获取或创建EventSystem用于处理UI交互事件.
-        /// </summary>
-        public static GameObject GetEventSystem()
-        {
-            EventSystem existing = GameObject.FindObjectOfType<EventSystem>();
-            if (existing != null)
-            {
-                if (existing.currentInputModule == null)
-                {
-                    AddCompatibleModule(existing.gameObject);
-                }
-                else
-                {
-                    // 安全获取当前激活的输入模块
-                    BaseInputModule module = existing.currentInputModule;
-                    if (module != null)
-                    {
-                        Debug.Log($"当前输入模块: {module.GetType().Name}");
-                    }
-                }
-                return existing.gameObject;
-            }
-            //创建EventSystem对象
-            GameObject eventSystemGO = new GameObject(EventSystemName);
-            GameObject.DontDestroyOnLoad(eventSystemGO);
-            //添加EventSystem组件
-            eventSystemGO.AddComponent<EventSystem>();
-            //添加InputModule组件(处理鼠标/键盘输入)
-            AddCompatibleModule(eventSystemGO);
-            return eventSystemGO;
-        }
-
-        /// <summary>
-        /// 创建GameUI(最上层UI).
-        /// </summary>
-        /// <param name="eventSystem">是否顺带创建事件系统(只需插件一个即可激活UGUI事件处理)</param>
-        public static void UICreate_GameUI(bool eventSystem = true)
-        {
-            GameObject obj_GameUI = GameUI.Instance.gameObject;
-            MetalMaxSystem.DataTable<GameObject>.Save0(true, "UI_GameObject_" + Name, obj_GameUI);
-
-            Canvas canvas_GameUI = obj_GameUI.GetComponent<Canvas>();
-            if (canvas_GameUI == null)
-            {
-                //画布
-                canvas_GameUI = obj_GameUI.AddComponent<Canvas>();
-                canvas_GameUI.renderMode = RenderMode.ScreenSpaceOverlay; //设置为屏幕空间覆盖模式,该模式下UI会覆盖在所有游戏对象之上
-                canvas_GameUI.sortingOrder = 9999; //确保UI在最上层显示
-
-                //画布缩放器
-                CanvasScaler scaler = obj_GameUI.AddComponent<CanvasScaler>();
-                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; //根据屏幕分辨率缩放UI
-                scaler.referenceResolution = new Vector2(1920, 1080); //参考分辨率进行缩放,这里设置为1920x1080适配大部分屏幕,缩放时保持宽高比,比如在1920x1080的屏幕上显示正常,在1280x720的屏幕上会缩小但保持比例
-                obj_GameUI.AddComponent<GraphicRaycaster>();
-
-                //背景区域面板
-                RectTransform bgRect = obj_GameUI.GetComponent<RectTransform>(); //加Canvas组件时Unity会自动添加RectTransform组件
-                //设置背景区域面板覆盖整个画布
-                bgRect.anchorMin = Vector2.zero;
-                bgRect.anchorMax = Vector2.one;
-                bgRect.offsetMin = Vector2.zero;
-                bgRect.offsetMax = Vector2.zero;
-                //背景图
-                Image bgImage = obj_GameUI.AddComponent<Image>();
-                bgImage.color = new Color(0.05f, 0.05f, 0.08f, 1f); //深空黑色背景
-            }
-            MetalMaxSystem.DataTable<Canvas>.Save0(true, "UI_Canvas_" + Name, canvas_GameUI); //创建后存储到数据表(字典)中,方便后续加载和管理
-
-            if (eventSystem)
-            {
-                GetEventSystem();
-            }
-        }
-        /// <summary>
-        /// 获取GameUI画布控件,如果不存在则创建
-        /// </summary>
-        /// <returns></returns>
-        public static Canvas UI_Canvas_GameUI()
-        {
-            var result = MetalMaxSystem.DataTable<Canvas>.Load0(true, "UI_Canvas_" + Name);
-            if (result == null)
-            {
-                UICreate_GameUI();
-                result = MetalMaxSystem.DataTable<Canvas>.Load0(true, "UI_Canvas_" + Name);
-            }
-            return result;
-        }
-        /// <summary>
-        /// 获取GameUI对话框,如果不存在则创建
-        /// </summary>
-        /// <returns></returns>
-        public static GameObject UI_GameObject_GameUI()
-        {
-            var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_" + Name);
-            if (result == null)
-            {
-                UICreate_GameUI();
-                result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_" + Name);
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// 创建并插入一个可自定义锚点和偏移的面板.偏移量决定大小和位置
-        /// </summary>
-        /// <param name="parent">父物体</param>
-        /// <param name="name">面板GameObject的名称,默认"Panel"</param>
-        /// <param name="anchorMin">最小锚点 (默认左下角 0,0)</param>
-        /// <param name="anchorMax">最大锚点 (默认右上角 1,1)</param>
-        /// <param name="offsetMin">左下偏移量 (默认 0,0)</param>
-        /// <param name="offsetMax">右上偏移量 (默认 0,0)</param>
-        /// <param name="pivot">轴心点 (默认中心 0.5,0.5)</param>
-        /// <returns>面板控件(RectTransform)</returns>
-        public static RectTransform UICreate_Panel(GameObject parent, string name = "Panel", Vector2? anchorMin = null, Vector2? anchorMax = null, Vector2? offsetMin = null, Vector2? offsetMax = null, Vector2? pivot = null)
-        {
-            // 1. 创建对象
-            GameObject panelObj = new GameObject(name);
-            // 2. 设置父节点(false保持本地变换,防止缩放错乱,true则继承父物体的变换)
-            panelObj.transform.SetParent(parent.transform, false);
-            // 3. 获取组件
-            RectTransform rectTransform = panelObj.AddComponent<RectTransform>();
-            // 4. 应用参数 (使用 ?? 运算符提供默认值)
-            // 默认行为：拉伸填充父物体 (Stretch-Stretch)
-            rectTransform.anchorMin = anchorMin ?? Vector2.zero;
-            rectTransform.anchorMax = anchorMax ?? Vector2.one;
-            // 默认行为：无额外偏移
-            rectTransform.offsetMin = offsetMin ?? Vector2.zero;
-            rectTransform.offsetMax = offsetMax ?? Vector2.zero;
-            // 默认行为：轴心在中心
-            rectTransform.pivot = pivot ?? new Vector2(0.5f, 0.5f);
-            return rectTransform;
-        }
-
-        /// <summary>
         /// 文本自适应模式
         /// </summary>
         public enum AutoSizeMode
@@ -334,66 +185,6 @@ namespace MetalMaxSystem.Unity
             WidthOnly,      // 宽度固定(由maxWidth决定或当前宽)，高度自适应内容
             HeightOnly,     // 高度固定(由maxHeight决定或当前高)，宽度自适应内容
             Both            // 宽高均自适应内容 (忽略 maxWidth/maxHeight 限制，除非设为0)
-        }
-
-        /// <summary>
-        /// 创建并插入文本标签(支持自适应尺寸)
-        /// </summary>
-        /// <param name="parent">父节点 Transform</param>
-        /// <param name="title">内容字符串</param>
-        /// <param name="name">GameObject名称，默认"Title"</param>
-        /// <param name="anchorMin">最小锚点</param>
-        /// <param name="anchorMax">最大锚点</param>
-        /// <param name="font">字体资产</param>
-        /// <param name="color">文本颜色</param>
-        /// <param name="fontSize">字体大小</param>
-        /// <param name="alignment">文本对齐方式</param>
-        /// <param name="autoSize">自适应模式，默认为 None（保持原有锚点行为）</param>
-        /// <param name="maxWidth">最大宽度限制。若 autoSize 为 WidthOnly 或 Both，且此值 > 0，则在此宽度内换行</param>
-        /// <param name="maxHeight">最大高度限制。暂未用于截断，主要用于预留接口</param>
-        /// <returns>文本标签控件(TextMeshProUGUI)</returns>
-        public static TextMeshProUGUI UICreate_Title(
-            Transform parent,
-            string title,
-            string name = "Title",
-            Vector2? anchorMin = null,
-            Vector2? anchorMax = null,
-            TMP_FontAsset font = null,
-            Color? color = null,
-            float fontSize = 42f,
-            TextAlignmentOptions alignment = TextAlignmentOptions.Center,
-            AutoSizeMode autoSize = AutoSizeMode.None,
-            float maxWidth = 0f,
-            float maxHeight = 0f)
-        {
-            // 1. 创建 GameObject 并设置父节点和名称
-            GameObject titleObj = new GameObject(name);
-            titleObj.transform.SetParent(parent);
-
-            // 2. 添加 RectTransform 并设置锚点
-            RectTransform titleRect = titleObj.AddComponent<RectTransform>();
-
-            Vector2 min = anchorMin ?? new Vector2(0.3f, 0.78f);
-            Vector2 max = anchorMax ?? new Vector2(0.7f, 0.9f);
-
-            titleRect.anchorMin = min;
-            titleRect.anchorMax = max;
-            titleRect.offsetMin = Vector2.zero;
-            titleRect.offsetMax = Vector2.zero;
-
-            // 3. 添加 TextMeshProUGUI 组件并配置属性
-            TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
-
-            titleText.font = font ?? DefaultFont;
-            titleText.text = title;
-            titleText.color = color ?? Color.white;
-            titleText.fontSize = fontSize;
-            titleText.alignment = alignment;
-
-            // 4. 处理自适应逻辑
-            ApplyAutoSize(titleText, titleRect, autoSize, maxWidth, maxHeight);
-
-            return titleText;
         }
 
         /// <summary>
@@ -445,6 +236,168 @@ namespace MetalMaxSystem.Unity
                     // 这里保持用户传入的锚点不变，但 sizeDelta 会生效
                     break;
             }
+        }
+
+        /// <summary>
+        /// 获取或创建EventSystem用于处理UI交互事件.
+        /// </summary>
+        /// <param name="inputSupportType">Input模块类型,默认优先添加旧版模块,因为不需要额外配置 Actions Asset,兼容性最稳.可选指定类型</param>
+        /// <returns></returns>
+        public static GameObject GetEventSystem(InputSupportType? inputSupportType = null)
+        {
+            EventSystem existing = GameObject.FindObjectOfType<EventSystem>();
+            if (existing != null)
+            {
+                //检查模块完整性
+                if (existing.currentInputModule == null)
+                {
+                    //无输入模块时,尝试添加一个兼容的输入模块
+                    AddCompatibleModule(existing.gameObject, inputSupportType);
+                }
+                else
+                {
+                    //安全获取当前激活的输入模块
+                    BaseInputModule module = existing.currentInputModule;
+                    if (module != null)
+                    {
+                        Debug.Log($"当前输入模块: {module.GetType().Name}");
+                    }
+                }
+                //记录到runtimePrefab字典中
+                if (!UnityUtilities.runtimePrefab.ContainsKey(Name)) UnityUtilities.runtimePrefab.Add(Name, existing.gameObject);
+                return existing.gameObject;
+            }
+
+            //如果没有就全新创建
+            return UnityUtilities.GetOrCreatePrefab(EventSystemName, go =>
+            {
+                //添加EventSystem组件
+                go.AddComponent<EventSystem>();
+                //添加InputModule组件(处理鼠标/键盘输入)
+                AddCompatibleModule(go, inputSupportType);
+                GameObject.DontDestroyOnLoad(go);
+                Debug.Log($"预制体已创建: " + EventSystemName);
+            });
+        }
+
+        /// <summary>
+        /// 对话框_游戏UI界面(最上层UI)
+        /// </summary>
+        public static GameObject Dialog_GameUI
+        {
+            get
+            {
+                return UnityUtilities.GetOrCreatePrefab(Name, go =>
+                {
+                    Canvas canvas_GameUI = go.GetComponent<Canvas>();
+                    if (canvas_GameUI == null)
+                    {
+                        //画布
+                        canvas_GameUI = go.AddComponent<Canvas>();
+                        canvas_GameUI.renderMode = RenderMode.ScreenSpaceOverlay; //设置为屏幕空间覆盖模式,该模式下UI会覆盖在所有游戏对象之上
+                        canvas_GameUI.sortingOrder = 9999; //确保UI在最上层显示
+
+                        //画布缩放器
+                        CanvasScaler scaler = go.AddComponent<CanvasScaler>();
+                        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; //根据屏幕分辨率缩放UI
+                        scaler.referenceResolution = new Vector2(1920, 1080); //参考分辨率进行缩放,这里设置为1920x1080适配大部分屏幕,缩放时保持宽高比,比如在1920x1080的屏幕上显示正常,在1280x720的屏幕上会缩小但保持比例
+                        go.AddComponent<GraphicRaycaster>();
+
+                        //背景区域面板
+                        RectTransform bgRect = go.GetComponent<RectTransform>(); //加Canvas组件时Unity会自动添加RectTransform组件
+                                                                                 //设置背景区域面板覆盖整个画布
+                        bgRect.anchorMin = Vector2.zero;
+                        bgRect.anchorMax = Vector2.one;
+                        bgRect.offsetMin = Vector2.zero;
+                        bgRect.offsetMax = Vector2.zero;
+                        //背景图
+                        Image bgImage = go.AddComponent<Image>();
+                        bgImage.color = new Color(0.05f, 0.05f, 0.08f, 1f); //深空黑色背景
+                    }
+                    GameObject.DontDestroyOnLoad(go);
+                    Debug.Log($"预制体已创建: {Name}");
+                });
+            }
+        }
+
+        /// <summary>
+        /// 创建并插入一个可自定义锚点和偏移的面板到对话框或控件中.
+        /// 注:偏移量决定了大小和位置.
+        /// </summary>
+        /// <param name="parent">父节点,即对话框(GameObject)或控件(组件)的Transform</param>
+        /// <param name="name">面板GameObject的名称,默认"Panel"</param>
+        /// <param name="anchorMin">最小锚点 (默认左下角 0,0)</param>
+        /// <param name="anchorMax">最大锚点 (默认右上角 1,1)</param>
+        /// <param name="offsetMin">左下偏移量 (默认 0,0)</param>
+        /// <param name="offsetMax">右上偏移量 (默认 0,0)</param>
+        /// <param name="pivot">轴心点 (默认中心 0.5,0.5)</param>
+        /// <returns>面板控件(RectTransform)</returns>
+        public static RectTransform Control_PanelCreate(Transform parent, string name = "Panel", Vector2? anchorMin = null, Vector2? anchorMax = null, Vector2? offsetMin = null, Vector2? offsetMax = null, Vector2? pivot = null)
+        {
+            // 1. 创建对象
+            GameObject panelObj = new GameObject(name);
+            // 2. 设置父节点(false保持本地变换,防止缩放错乱,true则继承父物体的变换)
+            panelObj.transform.SetParent(parent, false);
+            // 3. 获取组件
+            RectTransform rectTransform = panelObj.AddComponent<RectTransform>();
+            // 4. 应用参数 (使用 ?? 运算符提供默认值)
+            // 默认行为：拉伸填充父物体 (Stretch-Stretch)
+            rectTransform.anchorMin = anchorMin ?? Vector2.zero;
+            rectTransform.anchorMax = anchorMax ?? Vector2.one;
+            // 默认行为：无额外偏移
+            rectTransform.offsetMin = offsetMin ?? Vector2.zero;
+            rectTransform.offsetMax = offsetMax ?? Vector2.zero;
+            // 默认行为：轴心在中心
+            rectTransform.pivot = pivot ?? new Vector2(0.5f, 0.5f);
+            return rectTransform;
+        }
+
+        /// <summary>
+        /// 创建并插入文本标签(支持自适应尺寸)到对话框或控件中.
+        /// </summary>
+        /// <param name="parent">父节点,即对话框(GameObject)或控件(组件)的Transform</param>
+        /// <param name="title">内容字符串</param>
+        /// <param name="name">GameObject名称，默认"Title"</param>
+        /// <param name="anchorMin">最小锚点</param>
+        /// <param name="anchorMax">最大锚点</param>
+        /// <param name="font">字体资产</param>
+        /// <param name="color">文本颜色</param>
+        /// <param name="fontSize">字体大小</param>
+        /// <param name="alignment">文本对齐方式</param>
+        /// <param name="autoSize">自适应模式，默认为 None（保持原有锚点行为）</param>
+        /// <param name="maxWidth">最大宽度限制。若 autoSize 为 WidthOnly 或 Both，且此值 > 0，则在此宽度内换行</param>
+        /// <param name="maxHeight">最大高度限制。暂未用于截断，主要用于预留接口</param>
+        /// <returns>文本标签控件(TextMeshProUGUI)</returns>
+        public static TextMeshProUGUI Control_TitleCreate(Transform parent, string title, string name = "Title", Vector2? anchorMin = null, Vector2? anchorMax = null, TMP_FontAsset font = null, Color? color = null, float fontSize = 42f, TextAlignmentOptions alignment = TextAlignmentOptions.Center, AutoSizeMode autoSize = AutoSizeMode.None, float maxWidth = 0f, float maxHeight = 0f)
+        {
+            // 1. 创建 GameObject 并设置父节点和名称
+            GameObject titleObj = new GameObject(name);
+            titleObj.transform.SetParent(parent);
+
+            // 2. 添加 RectTransform 并设置锚点
+            RectTransform titleRect = titleObj.AddComponent<RectTransform>();
+
+            Vector2 min = anchorMin ?? new Vector2(0.3f, 0.78f);
+            Vector2 max = anchorMax ?? new Vector2(0.7f, 0.9f);
+
+            titleRect.anchorMin = min;
+            titleRect.anchorMax = max;
+            titleRect.offsetMin = Vector2.zero;
+            titleRect.offsetMax = Vector2.zero;
+
+            // 3. 添加 TextMeshProUGUI 组件并配置属性
+            TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
+
+            titleText.font = font ?? DefaultFont;
+            titleText.text = title;
+            titleText.color = color ?? Color.white;
+            titleText.fontSize = fontSize;
+            titleText.alignment = alignment;
+
+            // 4. 处理自适应逻辑
+            ApplyAutoSize(titleText, titleRect, autoSize, maxWidth, maxHeight);
+
+            return titleText;
         }
 
     }

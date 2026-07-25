@@ -38,7 +38,8 @@ namespace MetalMaxSystem.Unity
                 {
                     var obj = GameObject.Find("BatchRenderer");
                     if (obj == null) obj = new GameObject("BatchRenderer");
-                    if (obj.GetComponent<BatchRenderer>() == null) _instance = obj.AddComponent<BatchRenderer>();
+                    _instance = obj.GetComponent<BatchRenderer>();
+                    if (_instance == null) _instance = obj.AddComponent<BatchRenderer>();
                     DontDestroyOnLoad(obj);
                 }
                 return _instance;

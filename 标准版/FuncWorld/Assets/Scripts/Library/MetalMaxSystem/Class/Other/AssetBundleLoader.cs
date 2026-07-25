@@ -77,7 +77,8 @@ namespace MetalMaxSystem.Unity
                 {
                     var obj = GameObject.Find("AssetBundleLoader");
                     if (obj == null) obj = new GameObject("AssetBundleLoader");
-                    if (obj.GetComponent<AssetBundleLoader>() == null) _instance = obj.AddComponent<AssetBundleLoader>();
+                    _instance = obj.GetComponent<AssetBundleLoader>();
+                    if (_instance == null) _instance = obj.AddComponent<AssetBundleLoader>();
                     DontDestroyOnLoad(obj);
                 }
                 return _instance;
@@ -113,10 +114,25 @@ namespace MetalMaxSystem.Unity
         /// 示例AssetBundleLoader.Instance.Invoke(() =>{涉及主线程对象的动作});
         /// </summary>
         /// <param name="action">这个匿名委托将被添加到队列,由一个专门处理回调的MonoBehaviour组件实例来跑</param>
-        public static void Invoke(Action action)
+        public void Invoke(Action action)
         {
             if (action == null) return;
 
+            lock (actions)
+            {
+                actions.Enqueue(action);
+            }
+        }
+        /// <summary>
+        /// 回调函数.
+        /// 对Unity引擎组件实例相关动作执行回调(回到主线程调用Action).
+        /// 示例AssetBundleLoader.Call(() =>{涉及主线程对象的动作});
+        /// </summary>
+        /// <param name="action">这个匿名委托将被添加到队列,由一个专门处理回调的MonoBehaviour组件实例来跑</param>
+        public static void Call(Action action)
+        {
+            if (action == null) return;
+            var ensure = Instance;
             lock (actions)
             {
                 actions.Enqueue(action);
@@ -128,10 +144,24 @@ namespace MetalMaxSystem.Unity
         /// 对Unity引擎组件实例相关动作执行回调(回到主线程调用协程).
         /// 示例AssetBundleLoader.Instance.Invoke(MyCoroutine());
         /// </summary>
-        public static void Invoke(IEnumerator coroutine)
+        public void Invoke(IEnumerator coroutine)
         {
             if (coroutine == null) return;
 
+            lock (coroutines)
+            {
+                coroutines.Enqueue(coroutine);
+            }
+        }
+        /// <summary>
+        /// 回调函数.
+        /// 对Unity引擎组件实例相关动作执行回调(回到主线程调用协程).
+        /// 示例AssetBundleLoader.Call(MyCoroutine());
+        /// </summary>
+        public static void Call(IEnumerator coroutine)
+        {
+            if (coroutine == null) return;
+            var ensure = Instance;
             lock (coroutines)
             {
                 coroutines.Enqueue(coroutine);
@@ -146,10 +176,24 @@ namespace MetalMaxSystem.Unity
         ///     Debug.Log("Delayed log");
         /// });
         /// </summary>
-        public static void Invoke(Func<IEnumerator> coroutineFunc)
+        public void Invoke(Func<IEnumerator> coroutineFunc)
         {
             if (coroutineFunc == null) return;
             Invoke(coroutineFunc());
+        }
+        /// <summary>
+        /// 回调函数.直接传入协程方法体.
+        /// 对Unity引擎组件实例相关动作执行回调(回到主线程调用协程).
+        /// 示例AssetBundleLoader.Call(() => {
+        ///     yield return new WaitForSeconds(1);
+        ///     Debug.Log("Delayed log");
+        /// });
+        /// </summary>
+        public static void Call(Func<IEnumerator> coroutineFunc)
+        {
+            if (coroutineFunc == null) return;
+            var ensure = Instance;
+            Call(coroutineFunc());
         }
 
         //↓获取协程读取资源时存储在字典的素材对象

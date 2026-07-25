@@ -1,6 +1,5 @@
 ﻿using MetalMaxSystem.Unity;
 using MMWorld.HexSphere;
-using SpriteSpace;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -12,16 +11,53 @@ namespace MMWorld
     /// 游戏开局菜单控制器 - 类似环世界的开局界面
     /// 管理星球选择、世界创建等开局流程
     /// </summary>
-    public class GameUI : MonoBehaviour
+    public class GameUI : UGUITemplate
     {
         #region 字段
 
-        private static string _name = "GameUI";
-        public static string Name
-        {
-            get { if (string.IsNullOrEmpty(_name)) return "GameUI"; return _name; }
-            set { if (!string.IsNullOrEmpty(value)) _name = value; }
-        }
+        /// <summary>
+        /// 星球选择对话框
+        /// </summary>
+        private static GameObject ui_GameObject_PlanetSelect;
+
+        /// <summary>
+        /// 加载进度对话框
+        /// </summary>
+        private static GameObject ui_GameObject_ProgressLoading;
+
+        /// <summary>
+        /// 进度条控件
+        /// </summary>
+        private static Slider ui_Slider_ProgressLoading;
+
+        /// <summary>
+        /// 进度文本标签控件
+        /// </summary>
+        private static TextMeshProUGUI ui_TextMeshProUGUI_ProgressLoading;
+
+        /// <summary>
+        /// 星球预设列表
+        /// </summary>
+        private static List<PlanetPreset> planetPresets = new List<PlanetPreset>();
+
+        /// <summary>
+        /// 当前选中的星球预设
+        /// </summary>
+        private static PlanetPreset selectedPlanet;
+
+        /// <summary>
+        /// 是否正在加载
+        /// </summary>
+        private static bool isLoading = false;
+
+        /// <summary>
+        /// 游戏UI状态.true表示已初始化必要的上层UI.
+        /// </summary>
+        public static bool initialized = false;
+
+        #endregion
+
+        #region UI创建
 
         private static GameUI _instance;
         public static GameUI Instance
@@ -30,152 +66,45 @@ namespace MMWorld
             {
                 if (_instance == null)
                 {
-                    var obj = GameObject.Find(Name);
-                    if (obj == null) obj = new GameObject(Name);
-                    if (obj.GetComponent<GameUI>() == null) _instance = obj.AddComponent<GameUI>();
-                    DontDestroyOnLoad(obj);
+                    _instance = UGUITemplate.Dialog_GameUI.AddComponent<GameUI>();
                 }
                 return _instance;
             }
         }
-
         /// <summary>
-        /// 星球选择对话框
+        /// 创建游戏UI.在场景加载完成后调用,初始化必要的上层UI
+        /// 初始化星球预设列表,并根据选中的星球预设创建游戏世界.
+        /// 调用时会自动触发单例初始化,无需手动先访问Instance.
         /// </summary>
-        private GameObject ui_GameObject_PlanetSelect;
-
-        /// <summary>
-        /// 加载进度对话框
-        /// </summary>
-        private GameObject ui_GameObject_ProgressLoading;
-
-        /// <summary>
-        /// 进度条控件
-        /// </summary>
-        private Slider ui_Slider_ProgressLoading;
-
-        /// <summary>
-        /// 进度文本标签控件
-        /// </summary>
-        private TextMeshProUGUI ui_TextMeshProUGUI_ProgressLoading;
-
-        /// <summary>
-        /// 星球预设列表
-        /// </summary>
-        private List<PlanetPreset> planetPresets = new List<PlanetPreset>();
-
-        /// <summary>
-        /// 当前选中的星球预设
-        /// </summary>
-        private PlanetPreset selectedPlanet;
-
-        /// <summary>
-        /// 是否正在加载
-        /// </summary>
-        private bool isLoading = false;
-
-        /// <summary>
-        /// GameUI状态.true表示已初始化
-        /// </summary>
-        private bool state = false;
-
-        #endregion
-
-        #region UI创建
-
-        public static GameUI Create()
+        /// <param name="showMainMenu"> 是否显示主菜单.默认显示. </param>
+        public static GameUI Create(bool showMainMenu = true)
         {
+            if (!initialized)
+            {
+                initialized = true; //预防高频创建Bug,提前将结果标记为已初始化
+
+                #region 初始化全部上层必要UI
+
+                //创建并激活主菜单
+                UI_GameObject_MainMenu()?.SetActive(showMainMenu);
+                //初始化星球预设
+                InitializePlanetPresets();
+
+                #endregion
+
+            }
+
             return Instance;
         }
 
         /// <summary>
-        /// 初始化主要UI(主菜单、星球选择等)
-        /// </summary>
-        private void Start()
-        {
-            if (state) return;
-            UI_GameObject_MainMenu()?.SetActive(true);
-            InitializePlanetPresets();
-            state = true;
-        }
-
-        /// <summary>
-        /// 创建GameUI界面(最上层UI)
-        /// </summary>
-        /// <param name="eventSystem">是否顺带创建事件系统(只需插件一个即可激活UGUI事件处理)</param>
-        private void UICreate_GameUI(bool eventSystem = true)
-        {
-            GameObject obj_GameUI = GameUI.Instance.gameObject;
-            MetalMaxSystem.DataTable<GameObject>.Save0(true, "UI_GameObject_" + Name, obj_GameUI);
-
-            Canvas canvas_GameUI = obj_GameUI.GetComponent<Canvas>();
-            if (canvas_GameUI == null)
-            {
-                //画布
-                canvas_GameUI = obj_GameUI.AddComponent<Canvas>();
-                canvas_GameUI.renderMode = RenderMode.ScreenSpaceOverlay; //设置为屏幕空间覆盖模式,该模式下UI会覆盖在所有游戏对象之上
-                canvas_GameUI.sortingOrder = 9999; //确保UI在最上层显示
-
-                //画布缩放器
-                CanvasScaler scaler = obj_GameUI.AddComponent<CanvasScaler>();
-                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize; //根据屏幕分辨率缩放UI
-                scaler.referenceResolution = new Vector2(1920, 1080); //参考分辨率进行缩放,这里设置为1920x1080适配大部分屏幕,缩放时保持宽高比,比如在1920x1080的屏幕上显示正常,在1280x720的屏幕上会缩小但保持比例
-                obj_GameUI.AddComponent<GraphicRaycaster>();
-
-                //背景区域面板
-                RectTransform bgRect = obj_GameUI.GetComponent<RectTransform>(); //加Canvas组件时Unity会自动添加RectTransform组件
-                //设置背景区域面板覆盖整个画布
-                bgRect.anchorMin = Vector2.zero;
-                bgRect.anchorMax = Vector2.one;
-                bgRect.offsetMin = Vector2.zero;
-                bgRect.offsetMax = Vector2.zero;
-                //背景图
-                Image bgImage = obj_GameUI.AddComponent<Image>();
-                bgImage.color = new Color(0.05f, 0.05f, 0.08f, 1f); //深空黑色背景
-            }
-            MetalMaxSystem.DataTable<Canvas>.Save0(true, "UI_Canvas_" + Name, canvas_GameUI);
-
-            if (eventSystem)
-            {
-                SpriteSpacePrefab.GetEventSystem();
-            }
-        }
-        /// <summary>
-        /// GameUI画布控件
-        /// </summary>
-        /// <returns></returns>
-        public Canvas UI_Canvas_GameUI()
-        {
-            var result = MetalMaxSystem.DataTable<Canvas>.Load0(true, "UI_Canvas_" + Name);
-            if (result == null)
-            {
-                UICreate_GameUI();
-                result = MetalMaxSystem.DataTable<Canvas>.Load0(true, "UI_Canvas_" + Name);
-            }
-            return result;
-        }
-        /// <summary>
-        /// GameUI对话框
-        /// </summary>
-        /// <returns></returns>
-        public GameObject UI_GameObject_GameUI()
-        {
-            var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_" + Name);
-            if (result == null)
-            {
-                UICreate_GameUI();
-                result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_" + Name);
-            }
-            return result;
-        }
-        /// <summary>
         /// 创建主菜单界面
         /// </summary>
-        private void UICreate_MainMenu()
+        private static void UICreate_MainMenu()
         {
             GameObject obj = new GameObject("MainMenu");
             MetalMaxSystem.DataTable<GameObject>.Save0(true, "UI_GameObject_MainMenu", obj);
-            obj.transform.SetParent(UI_GameObject_GameUI().transform);
+            obj.transform.SetParent(Dialog_GameUI.transform);
             RectTransform menuRect = obj.AddComponent<RectTransform>();
             menuRect.anchorMin = Vector2.zero;
             menuRect.anchorMax = Vector2.one;
@@ -190,7 +119,7 @@ namespace MMWorld
         /// 主菜单对话框
         /// </summary>
         /// <returns></returns>
-        public GameObject UI_GameObject_MainMenu()
+        public static GameObject UI_GameObject_MainMenu()
         {
             var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_MainMenu");
             if (result == null)
@@ -205,7 +134,7 @@ namespace MMWorld
         /// 创建主文本标签界面
         /// </summary>
         /// <param name="parent"></param>
-        private void UICreate_MainTitle(RectTransform parent)
+        private static void UICreate_MainTitle(RectTransform parent)
         {
             // 主文本标签
             GameObject obj = new GameObject("MainTitle");
@@ -217,7 +146,7 @@ namespace MMWorld
             titleRect.offsetMin = Vector2.zero;
             titleRect.offsetMax = Vector2.zero; //设置文本标签位置和大小,这里设置为屏幕上方居中
             TextMeshProUGUI titleText = obj.AddComponent<TextMeshProUGUI>();
-            titleText.font = SpriteSpacePrefab.FontFZYaSong;
+            titleText.font = UGUITemplate.FontFZYaSong;
             titleText.text = "FuncWorld";
             titleText.color = new Color(0.9f, 0.7f, 0.3f); //金色
             titleText.fontSize = 72;
@@ -227,7 +156,7 @@ namespace MMWorld
         /// 主文本标签对话框
         /// </summary>
         /// <returns></returns>
-        public GameObject UI_GameObject_MainTitle()
+        public static GameObject UI_GameObject_MainTitle()
         {
             var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_MainTitle");
             if (result == null)
@@ -241,7 +170,7 @@ namespace MMWorld
         /// 创建副文本标签界面
         /// </summary>
         /// <param name="parent"></param>
-        private void UICreate_SubTitle(RectTransform parent)
+        private static void UICreate_SubTitle(RectTransform parent)
         {
             // 副文本标签
             GameObject obj = new GameObject("SubTitle");
@@ -253,7 +182,7 @@ namespace MMWorld
             subRect.offsetMin = Vector2.zero;
             subRect.offsetMax = Vector2.zero;
             TextMeshProUGUI subText = obj.AddComponent<TextMeshProUGUI>();
-            subText.font = SpriteSpacePrefab.FontFZYaSong;
+            subText.font = UGUITemplate.FontFZYaSong;
             subText.text = "一个类似环世界的沙盒游戏";
             subText.color = new Color(0.7f, 0.7f, 0.7f);
             subText.fontSize = 24;
@@ -263,7 +192,7 @@ namespace MMWorld
         /// 副文本标签对话框
         /// </summary>
         /// <returns></returns>
-        public GameObject UI_GameObject_SubTitle()
+        public static GameObject UI_GameObject_SubTitle()
         {
             var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_SubTitle");
             if (result == null)
@@ -277,7 +206,7 @@ namespace MMWorld
         /// <summary>
         /// 创建菜单按钮界面
         /// </summary>
-        private void UICreate_MenuButtons(RectTransform parent)
+        private static void UICreate_MenuButtons(RectTransform parent)
         {
             float buttonWidth = 300;
             float buttonHeight = 60;
@@ -321,10 +250,10 @@ namespace MMWorld
         /// <param name="height">按钮高度</param>
         /// <param name="normalColor">按钮正常颜色</param>
         /// <param name="onClick">点击事件</param>
-        private void UICreate_MenuButton(RectTransform parent, string name, string text, Vector2 anchorY, float width, float height, Color normalColor, UnityEngine.Events.UnityAction onClick)
+        private static void UICreate_MenuButton(RectTransform parent, string name, string text, Vector2 anchorY, float width, float height, Color normalColor, UnityEngine.Events.UnityAction onClick)
         {
             GameObject btnObj = new GameObject(name);
-            MetalMaxSystem.DataTable<GameObject>.Save0(true, "UI_GameObject_" + name, btnObj);
+            MetalMaxSystem.DataTable<GameObject>.Save0(true, "UI_GameObject_" + UGUITemplate.Name, btnObj);
             btnObj.transform.SetParent(parent);
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
             btnRect.anchorMin = new Vector2(anchorY.x - width / 1920f, anchorY.y - height / 1080f / 2);
@@ -348,7 +277,7 @@ namespace MMWorld
             textRect.offsetMin = Vector2.zero;
             textRect.offsetMax = Vector2.zero;
             TextMeshProUGUI tmpText = textObj.AddComponent<TextMeshProUGUI>();
-            tmpText.font = SpriteSpacePrefab.FontFZYaSong;
+            tmpText.font = UGUITemplate.FontFZYaSong;
             tmpText.text = text;
             tmpText.color = Color.white;
             tmpText.fontSize = 24;
@@ -361,7 +290,7 @@ namespace MMWorld
         /// 新建世界_按钮对话框
         /// </summary>
         /// <returns></returns>
-        public GameObject UI_GameObject_NewWorldButton()
+        public static GameObject UI_GameObject_NewWorldButton()
         {
             var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_NewWorldButton");
             if (result == null)
@@ -375,7 +304,7 @@ namespace MMWorld
         /// 加载世界_按钮对话框
         /// </summary>
         /// <returns></returns>
-        public GameObject UI_GameObject_LoadWorldButton()
+        public static GameObject UI_GameObject_LoadWorldButton()
         {
             var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_LoadWorldButton");
             if (result == null)
@@ -389,7 +318,7 @@ namespace MMWorld
         /// 选项_按钮对话框
         /// </summary>
         /// <returns></returns>
-        public GameObject UI_GameObject_OptionsButton()
+        public static GameObject UI_GameObject_OptionsButton()
         {
             var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_OptionsButton");
             if (result == null)
@@ -403,7 +332,7 @@ namespace MMWorld
         /// 关于_按钮对话框
         /// </summary>
         /// <returns></returns>
-        public GameObject UI_GameObject_AboutButton()
+        public static GameObject UI_GameObject_AboutButton()
         {
             var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_AboutButton");
             if (result == null)
@@ -417,7 +346,7 @@ namespace MMWorld
         /// 退出游戏_按钮对话框
         /// </summary>
         /// <returns></returns>
-        public GameObject UI_GameObject_QuitButton()
+        public static GameObject UI_GameObject_QuitButton()
         {
             var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_QuitButton");
             if (result == null)
@@ -434,7 +363,7 @@ namespace MMWorld
         /// <param name="btn">按钮</param>
         /// <param name="btnImage">按钮图像</param>
         /// <param name="normalColor">按钮正常颜色</param>
-        private void AddButtonHoverEffect(Button btn, Image btnImage, Color normalColor)
+        private static void AddButtonHoverEffect(Button btn, Image btnImage, Color normalColor)
         {
             ColorBlock colors = btn.colors;
             colors.highlightedColor = normalColor * 1.3f;
@@ -450,7 +379,7 @@ namespace MMWorld
         /// <summary>
         /// 初始化星球预设
         /// </summary>
-        private void InitializePlanetPresets()
+        private static void InitializePlanetPresets()
         {
             planetPresets.Add(new PlanetPreset("EarthLike", "类地星球", "一个适宜居住的绿色世界"));
             planetPresets.Add(new PlanetPreset("Desert", "沙漠星球", "炎热的沙尘世界"));
@@ -461,11 +390,11 @@ namespace MMWorld
         /// <summary>
         /// 创建星球选择界面
         /// </summary>
-        private void UICreate_PlanetSelect()
+        private static void UICreate_PlanetSelect()
         {
             ui_GameObject_PlanetSelect = new GameObject("PlanetSelect");
             MetalMaxSystem.DataTable<GameObject>.Save0(true, "UI_GameObject_PlanetSelect", ui_GameObject_PlanetSelect);
-            ui_GameObject_PlanetSelect.transform.SetParent(UI_Canvas_GameUI().transform);
+            ui_GameObject_PlanetSelect.transform.SetParent(Dialog_GameUI.transform);
             RectTransform panelRect = ui_GameObject_PlanetSelect.AddComponent<RectTransform>();
             panelRect.anchorMin = Vector2.zero;
             panelRect.anchorMax = Vector2.one;
@@ -510,7 +439,7 @@ namespace MMWorld
         /// 星球选择界面对话框
         /// </summary>
         /// <returns></returns>
-        public GameObject UI_GameObject_PlanetSelect()
+        public static GameObject UI_GameObject_PlanetSelect()
         {
             var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_PlanetSelect");
             if (result == null)
@@ -524,7 +453,7 @@ namespace MMWorld
         /// 星球选择界面背景对话框
         /// </summary>
         /// <returns></returns>
-        public GameObject UI_GameObject_PlanetSelect_Background()
+        public static GameObject UI_GameObject_PlanetSelect_Background()
         {
             var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_PlanetSelect_Background");
             if (result == null)
@@ -538,7 +467,7 @@ namespace MMWorld
         /// <summary>
         /// 创建文本标签界面
         /// </summary>
-        private void UICreate_Title(Transform parent, string title)
+        private static void UICreate_Title(Transform parent, string title)
         {
             GameObject titleObj = new GameObject("Title");
             titleObj.transform.SetParent(parent);
@@ -548,7 +477,7 @@ namespace MMWorld
             titleRect.offsetMin = Vector2.zero;
             titleRect.offsetMax = Vector2.zero;
             TextMeshProUGUI titleText = titleObj.AddComponent<TextMeshProUGUI>();
-            titleText.font = SpriteSpacePrefab.FontFZYaSong;
+            titleText.font = UGUITemplate.FontFZYaSong;
             titleText.text = title;
             titleText.color = Color.white;
             titleText.fontSize = 42;
@@ -558,7 +487,7 @@ namespace MMWorld
         /// <summary>
         /// 创建星球卡片界面
         /// </summary>
-        private void UICreate_PlanetCard(PlanetPreset preset, Transform parent, float x, float y, float width, float height)
+        private static void UICreate_PlanetCard(PlanetPreset preset, Transform parent, float x, float y, float width, float height)
         {
             GameObject card = new GameObject($"PlanetCard_{preset.id}");
             card.transform.SetParent(parent);
@@ -586,7 +515,7 @@ namespace MMWorld
             nameRect.offsetMin = Vector2.zero;
             nameRect.offsetMax = Vector2.zero;
             TextMeshProUGUI nameText = nameObj.AddComponent<TextMeshProUGUI>();
-            nameText.font = SpriteSpacePrefab.FontFZYaSong;
+            nameText.font = UGUITemplate.FontFZYaSong;
             nameText.text = preset.displayName;
             nameText.color = new Color(0.9f, 0.7f, 0.3f);
             nameText.fontSize = 28;
@@ -601,7 +530,7 @@ namespace MMWorld
             descRect.offsetMin = Vector2.zero;
             descRect.offsetMax = Vector2.zero;
             TextMeshProUGUI descText = descObj.AddComponent<TextMeshProUGUI>();
-            descText.font = SpriteSpacePrefab.FontFZYaSong;
+            descText.font = UGUITemplate.FontFZYaSong;
             descText.text = preset.description;
             descText.color = Color.gray;
             descText.fontSize = 18;
@@ -614,7 +543,7 @@ namespace MMWorld
         /// <summary>
         /// 创建返回按钮界面
         /// </summary>
-        private void UICreate_BackButton(Transform parent, UnityEngine.Events.UnityAction onClick)
+        private static void UICreate_BackButton(Transform parent, UnityEngine.Events.UnityAction onClick)
         {
             GameObject btnObj = new GameObject("BackButton");
             btnObj.transform.SetParent(parent);
@@ -640,7 +569,7 @@ namespace MMWorld
             textRect.offsetMin = Vector2.zero;
             textRect.offsetMax = Vector2.zero;
             TextMeshProUGUI tmpText = textObj.AddComponent<TextMeshProUGUI>();
-            tmpText.font = SpriteSpacePrefab.FontFZYaSong;
+            tmpText.font = UGUITemplate.FontFZYaSong;
             tmpText.text = "返回";
             tmpText.color = Color.white;
             tmpText.fontSize = 24;
@@ -650,7 +579,7 @@ namespace MMWorld
         /// 返回按钮控件
         /// </summary>
         /// <returns></returns>
-        public Button UI_Button_MainMenu_PlanetSelect_Back()
+        public static Button UI_Button_MainMenu_PlanetSelect_Back()
         {
             var result = MetalMaxSystem.DataTable<Button>.Load0(true, "UI_Button_MainMenu_PlanetSelect_Back");
             if (result == null)
@@ -668,11 +597,11 @@ namespace MMWorld
         /// <summary>
         /// 创建进度加载界面
         /// </summary>
-        private void UICreate_ProgressLoading(string message = "正在加载...")
+        private static void UICreate_ProgressLoading(string message = "正在加载...")
         {
             ui_GameObject_ProgressLoading = new GameObject("ProgressLoading");
             MetalMaxSystem.DataTable<GameObject>.Save0(true, "UI_GameObject_ProgressLoading", ui_GameObject_ProgressLoading);
-            ui_GameObject_ProgressLoading.transform.SetParent(UI_GameObject_GameUI().transform);
+            ui_GameObject_ProgressLoading.transform.SetParent(Dialog_GameUI.transform);
             RectTransform panelRect = ui_GameObject_ProgressLoading.AddComponent<RectTransform>();
             panelRect.anchorMin = Vector2.zero;
             panelRect.anchorMax = Vector2.one;
@@ -700,7 +629,7 @@ namespace MMWorld
             textRect.offsetMax = Vector2.zero;
             ui_TextMeshProUGUI_ProgressLoading = textObj.AddComponent<TextMeshProUGUI>();
             MetalMaxSystem.DataTable<TextMeshProUGUI>.Save0(true, "UI_TextMeshProUGUI_ProgressLoading", ui_TextMeshProUGUI_ProgressLoading);
-            ui_TextMeshProUGUI_ProgressLoading.font = SpriteSpacePrefab.FontFZYaSong;
+            ui_TextMeshProUGUI_ProgressLoading.font = UGUITemplate.FontFZYaSong;
             ui_TextMeshProUGUI_ProgressLoading.text = message;
             ui_TextMeshProUGUI_ProgressLoading.color = Color.white;
             ui_TextMeshProUGUI_ProgressLoading.fontSize = 32;
@@ -735,7 +664,7 @@ namespace MMWorld
         /// 进度加载界面对话框
         /// </summary>
         /// <returns></returns>
-        public GameObject UI_GameObject_ProgressLoading()
+        public static GameObject UI_GameObject_ProgressLoading()
         {
             var result = MetalMaxSystem.DataTable<GameObject>.Load0(true, "UI_GameObject_ProgressLoading");
             if (result == null)
@@ -746,7 +675,7 @@ namespace MMWorld
             return result;
         }
 
-        public TextMeshProUGUI UI_TextMeshProUGUI_ProgressLoading()
+        public static TextMeshProUGUI UI_TextMeshProUGUI_ProgressLoading()
         {
             var result = MetalMaxSystem.DataTable<TextMeshProUGUI>.Load0(true, "UI_TextMeshProUGUI_ProgressLoading");
             if (result == null)
@@ -757,7 +686,7 @@ namespace MMWorld
             return result;
         }
 
-        public Slider UI_Slider_ProgressLoading()
+        public static Slider UI_Slider_ProgressLoading()
         {
             var result = MetalMaxSystem.DataTable<Slider>.Load0(true, "UI_Slider_ProgressLoading");
             if (result == null)
@@ -773,7 +702,7 @@ namespace MMWorld
         /// </summary>
         /// <param name="progress"></param>
         /// <param name="message"></param>
-        public void UpdateLoadingProgress(float progress, string message)
+        public static void UpdateLoadingProgress(float progress, string message)
         {
             UI_Slider_ProgressLoading().value = progress;
             if (message != null)
@@ -789,7 +718,7 @@ namespace MMWorld
         /// <summary>
         /// 新建世界按钮点击
         /// </summary>
-        private void OnNewWorldClicked()
+        private static void OnNewWorldClicked()
         {
             Debug.Log("[开局菜单] 点击了【新建世界】");
             UI_GameObject_PlanetSelect()?.SetActive(true);
@@ -798,7 +727,7 @@ namespace MMWorld
         /// <summary>
         /// 加载世界按钮点击
         /// </summary>
-        private void OnLoadWorldClicked()
+        private static void OnLoadWorldClicked()
         {
             Debug.Log("[开局菜单] 点击了【加载世界】");
             // TODO: 实现加载世界功能
@@ -807,7 +736,7 @@ namespace MMWorld
         /// <summary>
         /// 选项按钮点击
         /// </summary>
-        private void OnOptionsClicked()
+        private static void OnOptionsClicked()
         {
             Debug.Log("[开局菜单] 点击了【选项】");
             // TODO: 显示选项菜单
@@ -816,7 +745,7 @@ namespace MMWorld
         /// <summary>
         /// 关于按钮点击
         /// </summary>
-        private void OnAboutClicked()
+        private static void OnAboutClicked()
         {
             Debug.Log("[开局菜单] 点击了【关于】");
             // TODO: 显示关于面板
@@ -825,7 +754,7 @@ namespace MMWorld
         /// <summary>
         /// 退出游戏按钮点击
         /// </summary>
-        private void OnQuitClicked()
+        private static void OnQuitClicked()
         {
             Debug.Log("[开局菜单] 点击了【退出游戏】");
 #if UNITY_EDITOR
@@ -838,17 +767,17 @@ namespace MMWorld
         /// <summary>
         /// 星球选中
         /// </summary>
-        private void OnPlanetSelected(PlanetPreset preset)
+        private static void OnPlanetSelected(PlanetPreset preset)
         {
             Debug.Log($"[开局菜单] 选择了星球: {preset.displayName}");
             selectedPlanet = preset;
-            StartCoroutine(CreateNewWorld(preset));
+            Instance.StartCoroutine(CreateNewWorld(preset));
         }
 
         /// <summary>
         /// 返回主菜单
         /// </summary>
-        private void OnBackToMainMenu()
+        private static void OnBackToMainMenu()
         {
             UI_GameObject_PlanetSelect()?.SetActive(false);
             UI_GameObject_ProgressLoading()?.SetActive(false);
@@ -862,7 +791,7 @@ namespace MMWorld
         /// <summary>
         /// 创建新世界协程
         /// </summary>
-        private System.Collections.IEnumerator CreateNewWorld(PlanetPreset preset)
+        private static System.Collections.IEnumerator CreateNewWorld(PlanetPreset preset)
         {
             isLoading = true;
             UpdateLoadingProgress(0f, "正在创建世界...");
@@ -934,7 +863,7 @@ namespace MMWorld
         /// <summary>
         /// 创建星球控制器
         /// </summary>
-        private HexPlanetController CreatePlanetController()
+        private static HexPlanetController CreatePlanetController()
         {
             GameObject planetObj = new GameObject("HexPlanetController");
             HexPlanetController controller = planetObj.AddComponent<HexPlanetController>();
@@ -944,7 +873,7 @@ namespace MMWorld
         /// <summary>
         /// 世界创建完成后的处理
         /// </summary>
-        private void OnWorldCreated(PlanetPreset preset, int selectedTileId)
+        private static void OnWorldCreated(PlanetPreset preset, int selectedTileId)
         {
             Debug.Log($"[开局菜单] 世界创建完成! 星球类型: {preset.displayName}, 选中Tile: {selectedTileId}");
             // 通知游戏管理器开始游戏

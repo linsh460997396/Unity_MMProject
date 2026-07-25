@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace MetalMaxSystem.Unity
 {
@@ -14,6 +13,27 @@ namespace MetalMaxSystem.Unity
     /// </summary>
     public class UnityUtilities : MonoBehaviour
     {
+        private static string _externalPath;
+        /// <summary>
+        /// 外部资源路径.默认留空使用路径:Application.dataPath + @"/Res".其他路径示范:
+        /// ExternalPath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework";
+        /// </summary>
+        public static string ExternalPath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_externalPath))
+                {
+                    _externalPath = Application.dataPath + @"/Res";
+                }
+                return _externalPath;
+            }
+            set
+            {
+                _externalPath = value;
+            }
+        }
+
         /// <summary>
         /// 等待当前帧结束,在下一帧的Update前运行一次(仅自动运行1次,在当前帧反复使用同一个实例无效).
         /// </summary>
@@ -81,7 +101,7 @@ namespace MetalMaxSystem.Unity
         /// <param name="pixelsPerUnit"></param>
         /// <returns></returns>
         /// <exception cref="FileNotFoundException"></exception>
-        public Sprite[] SplitImageToSprites(string path, int gridX, int gridY, bool isTopLeftOrigin = false, float pixelsPerUnit = 100f)
+        public static Sprite[] SplitImageToSprites(string path, int gridX, int gridY, bool isTopLeftOrigin = false, float pixelsPerUnit = 100f)
         {
             if (!File.Exists(path)) throw new FileNotFoundException(path);
 
@@ -197,10 +217,9 @@ namespace MetalMaxSystem.Unity
         /// <param name="name">预制体名称</param>
         /// <param name="onCreate">对象不存在时,创建后的配置回调(仅在新创建时调用)</param>
         /// <returns>预制体GameObject</returns>
-        private static GameObject GetOrCreatePrefab(string name, System.Action<GameObject> onCreate = null)
+        public static GameObject GetOrCreatePrefab(string name, System.Action<GameObject> onCreate = null)
         {
-            if (runtimePrefab.ContainsKey(name))
-                return runtimePrefab.Get(name) as GameObject;
+            if (runtimePrefab.ContainsKey(name)) return runtimePrefab.Get(name) as GameObject;
 
             GameObject go = GameObject.Find(name);
             if (go == null)
@@ -251,7 +270,9 @@ namespace MetalMaxSystem.Unity
                     // 主摄像机位置在正后方(Z=-20)
                     go.transform.SetPositionAndRotation(new Vector3(0f, 0f, -20f), Quaternion.identity);
                     Camera camera = go.AddComponent<Camera>();
-                    camera.tag = "MainCamera"; // 设置标签以便Camera.main能识别
+#if UNITY_EDITOR
+                    camera.tag = "MainCamera"; // 设置标签以便Camera.main能识别(需编辑器环境提前创建全部标签种类)
+#endif
                     camera.clearFlags = CameraClearFlags.SolidColor; // 纯色背景,确保光源生效
                     camera.backgroundColor = new Color(0.2f, 0.4f, 0.6f, 1f); // 蓝色背景(天空色)
                     // cullingMask使用位运算指定渲染层:(1 << 层序号) 表示包含该层
@@ -262,38 +283,10 @@ namespace MetalMaxSystem.Unity
                     camera.farClipPlane = 1000f; // 远裁剪面
                     camera.allowMSAA = true; // 开启多重采样抗锯齿
                     go.SetActive(true); // 主摄像机需要立即激活
-                    Debug.Log($"预制体已创建: MainCamera");
                 });
             }
         }
-        /// <summary>
-        /// 获取SubCamera预制体.作为单例直接使用.
-        /// 如不存在,会创建名为"SubCamera"的游戏物体并添加Camera组件.
-        /// 首次创建不激活.
-        /// </summary>
-        public static GameObject SubCamera
-        {
-            get
-            {
-                return GetOrCreatePrefab("SubCamera", go =>
-                {
-                    // 主摄像机位置在正后方(Z=-20)
-                    go.transform.SetPositionAndRotation(new Vector3(0f, 0f, -20f), Quaternion.identity);
-                    Camera camera = go.AddComponent<Camera>();
-                    camera.tag = "SubCamera"; // 设置标签
-                    camera.clearFlags = CameraClearFlags.SolidColor; // 纯色背景,确保光源生效
-                    camera.backgroundColor = new Color(0.2f, 0.4f, 0.6f, 1f); // 蓝色背景(天空色)
-                    // cullingMask使用位运算指定渲染层:(1 << 层序号) 表示包含该层
-                    // Default(0) | TransparentFX(1) | IgnoreRaycast(2) | Water(4) | UI(5)
-                    camera.cullingMask = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 4) | (1 << 5);
-                    camera.depth = 0f; // 相机渲染顺序,数值越大越后渲染(-1为小地图相机)
-                    camera.nearClipPlane = 0.3f; // 近裁剪面
-                    camera.farClipPlane = 1000f; // 远裁剪面
-                    camera.allowMSAA = true; // 开启多重采样抗锯齿
-                    go.SetActive(false);
-                });
-            }
-        }
+
     }
 }
 #endif
