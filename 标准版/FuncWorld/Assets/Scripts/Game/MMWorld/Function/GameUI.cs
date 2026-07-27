@@ -1,5 +1,5 @@
 ﻿using MetalMaxSystem.Unity;
-using MMWorld.HexSphere;
+using UnityHexPlanet;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -253,7 +253,7 @@ namespace MMWorld
         private static void UICreate_MenuButton(RectTransform parent, string name, string text, Vector2 anchorY, float width, float height, Color normalColor, UnityEngine.Events.UnityAction onClick)
         {
             GameObject btnObj = new GameObject(name);
-            MetalMaxSystem.DataTable<GameObject>.Save0(true, "UI_GameObject_" + UGUITemplate.Name, btnObj);
+            MetalMaxSystem.DataTable<GameObject>.Save0(true, "UI_GameObject_" + UGUITemplate.GameUIName, btnObj);
             btnObj.transform.SetParent(parent);
             RectTransform btnRect = btnObj.AddComponent<RectTransform>();
             btnRect.anchorMin = new Vector2(anchorY.x - width / 1920f, anchorY.y - height / 1080f / 2);
@@ -815,7 +815,7 @@ namespace MMWorld
             bool tileSelected = false;
 
             // 创建星球控制器并监听选择事件
-            HexPlanetController planetController = CreatePlanetController();
+            PlanetController planetController = CreatePlanetController();
             planetController.onTileSelected += (tile) =>
             {
                 selectedTile = tile;
@@ -863,10 +863,10 @@ namespace MMWorld
         /// <summary>
         /// 创建星球控制器
         /// </summary>
-        private static HexPlanetController CreatePlanetController()
+        private static PlanetController CreatePlanetController()
         {
-            GameObject planetObj = new GameObject("HexPlanetController");
-            HexPlanetController controller = planetObj.AddComponent<HexPlanetController>();
+            GameObject planetObj = new GameObject("PlanetController");
+            PlanetController controller = planetObj.AddComponent<PlanetController>();
             return controller;
         }
 

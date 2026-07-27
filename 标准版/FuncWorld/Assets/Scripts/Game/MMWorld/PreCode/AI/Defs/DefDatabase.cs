@@ -1,7 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 
-namespace MMWorld.SimAI
+namespace MMWorld.AI
 {
     /// <summary>
     /// 定义数据库

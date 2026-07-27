@@ -1,7 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 
-namespace MMWorld.SimAI
+namespace MMWorld.AI
 {
     /// <summary>
     /// 任务类

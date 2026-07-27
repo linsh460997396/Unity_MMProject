@@ -1,13 +1,13 @@
 ﻿using UnityEngine;
 using System;
 
-namespace MMWorld.SimAI
+namespace MMWorld.AI
 {
     /// <summary>
     /// 物品定义
     /// 类似环世界的ThingDef
     /// </summary>
-    [CreateAssetMenu(fileName = "NewThingDef", menuName = "SimAI/ThingDef")]
+    [CreateAssetMenu(fileName = "NewThingDef", menuName = "AI/ThingDef")]
     public class ThingDef : ScriptableObject
     {
         #region 基本信息

@@ -1,8 +1,8 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections.Generic;
 using System;
 
-namespace MMWorld.SimAI
+namespace MMWorld.AI
 {
     /// <summary>
     /// 建造管理器
@@ -64,6 +64,7 @@ namespace MMWorld.SimAI
 
         private void Update()
         {
+            // 处理建造队列
             ProcessConstructionQueue();
         }
 

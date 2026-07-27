@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using CellSpace;
-using MMWorld.SimAI;
+using MMWorld.AI;
 
 namespace MMWorld
 {
@@ -20,12 +20,12 @@ namespace MMWorld
 
         #endregion
 
-        #region SimAI系统
+        #region AI系统
 
         /// <summary>
-        /// SimAI游戏集成器
+        /// AI游戏集成器
         /// </summary>
-        private SimAIGameIntegrator SimAIIntegrator;
+        private AIGameIntegrator AIIntegrator;
 
         #endregion
 
@@ -95,7 +95,7 @@ namespace MMWorld
         /// <summary>
         /// HexPlanet控制器
         /// </summary>
-        private HexPlanetController hexPlanetController;
+        private PlanetController planetController;
 
         #endregion
 
@@ -187,8 +187,8 @@ namespace MMWorld
             planetRoot = new GameObject("HexPlanetRoot");
             planetRoot.transform.position = Vector3.zero;
 
-            // 添加HexPlanetController
-            hexPlanetController = planetRoot.AddComponent<HexPlanetController>();
+            // 添加PlanetController
+            planetController = planetRoot.AddComponent<PlanetController>();
 
             // 根据星球预设配置材质
             ConfigurePlanetMaterial(preset);
@@ -206,7 +206,7 @@ namespace MMWorld
         /// </summary>
         private void ConfigurePlanetMaterial(PlanetPreset preset)
         {
-            if (hexPlanetController == null) return;
+            if (planetController == null) return;
 
             Material mat = new Material(Shader.Find("Standard"));
 
@@ -229,7 +229,7 @@ namespace MMWorld
                     break;
             }
 
-            hexPlanetController.SetPlanetMaterial(mat);
+            planetController.SetPlanetMaterial(mat);
         }
 
         /// <summary>
@@ -293,14 +293,14 @@ namespace MMWorld
                 planetRoot.SetActive(false);
             }
 
-            // 禁用HexPlanetController的旋转
-            if (hexPlanetController != null)
+            // 禁用PlanetController的旋转
+            if (planetController != null)
             {
-                hexPlanetController.SetCanRotate(false);
+                planetController.SetCanRotate(false);
             }
 
-            // 5. 初始化SimAI系统
-            InitializeSimAISystems();
+            // 5. 初始化AI系统
+            InitializeAISystems();
 
             // 6. 初始化完成
             currentState = GameState.Playing;
@@ -308,20 +308,20 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// 初始化SimAI系统
+        /// 初始化AI系统
         /// </summary>
-        private void InitializeSimAISystems()
+        private void InitializeAISystems()
         {
-            Debug.Log("[GameManager] 初始化SimAI系统...");
+            Debug.Log("[GameManager] 初始化AI系统...");
 
-            // 创建SimAI游戏集成器
-            GameObject integratorObj = new GameObject("SimAIGameIntegrator");
-            SimAIIntegrator = integratorObj.AddComponent<SimAIGameIntegrator>();
+            // 创建AI游戏集成器
+            GameObject integratorObj = new GameObject("AIGameIntegrator");
+            AIIntegrator = integratorObj.AddComponent<AIGameIntegrator>();
 
-            // 初始化并开始SimAI游戏
-            SimAIIntegrator.StartGame();
+            // 初始化并开始AI游戏
+            AIIntegrator.StartGame();
 
-            Debug.Log("[GameManager] SimAI系统初始化完成!");
+            Debug.Log("[GameManager] AI系统初始化完成!");
         }
 
         /// <summary>

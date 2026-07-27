@@ -82,11 +82,11 @@ namespace MetalMaxSystem.Unity
             }
         }
 
-        private static string _name;
-        public static string Name
+        private static string _gameUIName;
+        public static string GameUIName
         {
-            get { if (string.IsNullOrEmpty(_name)) return "GameUI"; return _name; }
-            set { if (!string.IsNullOrEmpty(value)) _name = value; }
+            get { if (string.IsNullOrEmpty(_gameUIName)) return "GameUI"; return _gameUIName; }
+            set { if (!string.IsNullOrEmpty(value)) _gameUIName = value; }
         }
 
         private static string _eventSystemName;
@@ -108,7 +108,8 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 检查当前环境中可用的 InputModule 类型
+        /// 检查当前环境中可用的InputModule类型.
+        /// 编辑器打包UnityEngine.InputModule.dll(新版)、UnityEngine.InputLegacyModule.dll(旧版)或两者都存在时,返回对应的枚举值.
         /// </summary>
         public static InputSupportType CheckAvailableInputModule()
         {
@@ -141,7 +142,7 @@ namespace MetalMaxSystem.Unity
         /// 内部辅助：根据反射检测结果添加模块.
         /// </summary>
         /// <param name="go"></param>
-        /// <param name="inputSupportType">Input模块类型,默认优先添加旧版模块,因为不需要额外配置 Actions Asset,兼容性最稳.可选指定类型</param>
+        /// <param name="inputSupportType">Input模块类型,默认自动检测并优先添加旧版模块,因为不需要额外配置 Actions Asset,兼容性最稳.可选指定类型</param>
         public static void AddCompatibleModule(GameObject go, InputSupportType? inputSupportType = null)
         {
             InputSupportType support;
@@ -241,18 +242,20 @@ namespace MetalMaxSystem.Unity
         /// <summary>
         /// 获取或创建EventSystem用于处理UI交互事件.
         /// </summary>
-        /// <param name="inputSupportType">Input模块类型,默认优先添加旧版模块,因为不需要额外配置 Actions Asset,兼容性最稳.可选指定类型</param>
+        /// <param name="inputSupportType">Input模块类型,默认自动检测并优先添加旧版模块,因为不需要额外配置 Actions Asset,兼容性最稳.可选指定类型</param>
         /// <returns></returns>
         public static GameObject GetEventSystem(InputSupportType? inputSupportType = null)
         {
+            if (UnityUtilities.runtimePrefab.ContainsKey(EventSystemName)) return UnityUtilities.runtimePrefab.Get(EventSystemName) as GameObject;
+            //若预制体字典中不存在,则尝试在场景中查找已有的EventSystem
             EventSystem existing = GameObject.FindObjectOfType<EventSystem>();
             if (existing != null)
             {
-                //检查模块完整性
+                
+                //检查模块完整性(新版必须注册InputActions按键预设文件到InputSystemUIInputModule组件的ActionsAsset属性字段,完成初始化才能获取到)
                 if (existing.currentInputModule == null)
                 {
-                    //无输入模块时,尝试添加一个兼容的输入模块
-                    AddCompatibleModule(existing.gameObject, inputSupportType);
+                    Debug.Log($"当前输入模块: 未检测到！将使用默认的InputActions");
                 }
                 else
                 {
@@ -263,12 +266,12 @@ namespace MetalMaxSystem.Unity
                         Debug.Log($"当前输入模块: {module.GetType().Name}");
                     }
                 }
-                //记录到runtimePrefab字典中
-                if (!UnityUtilities.runtimePrefab.ContainsKey(Name)) UnityUtilities.runtimePrefab.Add(Name, existing.gameObject);
+                //将已有对象记录到runtimePrefab字典中
+                UnityUtilities.runtimePrefab.Add(EventSystemName, existing.gameObject);
                 return existing.gameObject;
             }
 
-            //如果没有就全新创建
+            //如果场景中没有EventSystem就全新创建,并手动添加EventSystem组件和InputModule组件
             return UnityUtilities.GetOrCreatePrefab(EventSystemName, go =>
             {
                 //添加EventSystem组件
@@ -287,7 +290,7 @@ namespace MetalMaxSystem.Unity
         {
             get
             {
-                return UnityUtilities.GetOrCreatePrefab(Name, go =>
+                return UnityUtilities.GetOrCreatePrefab(GameUIName, go =>
                 {
                     Canvas canvas_GameUI = go.GetComponent<Canvas>();
                     if (canvas_GameUI == null)
@@ -315,12 +318,25 @@ namespace MetalMaxSystem.Unity
                         bgImage.color = new Color(0.05f, 0.05f, 0.08f, 1f); //深空黑色背景
                     }
                     GameObject.DontDestroyOnLoad(go);
-                    Debug.Log($"预制体已创建: {Name}");
+                    Debug.Log($"预制体已创建: {GameUIName}");
                 });
             }
         }
 
         /// <summary>
+        /// 控件_游戏UI画布(Canvas组件)
+        /// </summary>
+        public static Canvas Control_GameUICanvas
+        {
+            get
+            {
+                return Dialog_GameUI.GetComponent<Canvas>();
+            }
+        }
+
+        /// <summary>
+        /// 创建并插入一个可自定义锚点和偏移的面板到对话框或控件中.注:偏移量决定了大小和位置.
+        /// </summary>
         /// 创建并插入一个可自定义锚点和偏移的面板到对话框或控件中.
         /// 注:偏移量决定了大小和位置.
         /// </summary>

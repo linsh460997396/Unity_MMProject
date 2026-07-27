@@ -1,7 +1,7 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 
-namespace MMWorld.SimAI
+namespace MMWorld.AI
 {
     /// <summary>
     /// 殖民者(Pawn)- 游戏中的核心角色

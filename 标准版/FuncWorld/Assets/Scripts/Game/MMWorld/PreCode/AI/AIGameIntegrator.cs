@@ -1,23 +1,23 @@
 ﻿using UnityEngine;
 using System;
 
-namespace MMWorld.SimAI
+namespace MMWorld.AI
 {
     /// <summary>
-    /// SimAI游戏集成器
-    /// 负责初始化和整合所有SimAI风格的游戏系统
+    /// AI游戏集成器
+    /// 负责初始化和整合所有AI风格的游戏系统
     /// </summary>
-    public class SimAIGameIntegrator : MonoBehaviour
+    public class AIGameIntegrator : MonoBehaviour
     {
         #region 单例
 
-        public static SimAIGameIntegrator Instance { get; private set; }
+        public static AIGameIntegrator Instance { get; private set; }
 
         #endregion
 
         #region 系统引用
 
-        [Header("SimAI Systems")]
+        [Header("AI Systems")]
         public TimeManager timeManager;
         public WeatherManager weatherManager;
         public ResourceManager resourceManager;
@@ -73,7 +73,7 @@ namespace MMWorld.SimAI
         /// </summary>
         private void InitializeSystems()
         {
-            Debug.Log("[SimAIGameIntegrator] 开始初始化SimAI系统...");
+            Debug.Log("[AIGameIntegrator] 开始初始化AI系统...");
 
             // 1. 初始化定义数据库
             InitializeDefDatabases();
@@ -95,7 +95,7 @@ namespace MMWorld.SimAI
             isInitialized = true;
             OnSystemsInitialized?.Invoke();
 
-            Debug.Log("[SimAIGameIntegrator] SimAI系统初始化完成!");
+            Debug.Log("[AIGameIntegrator] AI系统初始化完成!");
         }
 
         /// <summary>
@@ -103,7 +103,7 @@ namespace MMWorld.SimAI
         /// </summary>
         private void InitializeDefDatabases()
         {
-            Debug.Log("[SimAIGameIntegrator] 初始化定义数据库...");
+            Debug.Log("[AIGameIntegrator] 初始化定义数据库...");
             ThingDefDatabase.Initialize();
             BuildingDefDatabase.Initialize();
         }
@@ -215,7 +215,7 @@ namespace MMWorld.SimAI
         /// </summary>
         private void CreateInitialPawns()
         {
-            Debug.Log("[SimAIGameIntegrator] 创建初始殖民者...");
+            Debug.Log("[AIGameIntegrator] 创建初始殖民者...");
 
             // 创建3个初始殖民者
             CreatePawn("张三", Gender.Male, 35);
@@ -324,7 +324,7 @@ namespace MMWorld.SimAI
             timeManager.Resume();
 
             OnGameStarted?.Invoke();
-            Debug.Log("[SimAIGameIntegrator] 游戏开始!");
+            Debug.Log("[AIGameIntegrator] 游戏开始!");
         }
 
         /// <summary>

@@ -1,20 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using MMWorld.HexSphere;
+using UnityHexPlanet;
 
 namespace MMWorld
 {
     /// <summary>
-    /// HexPlanet星球控制器 - 管理星球的交互、旋转、区域选择、高亮与缩放。
+    /// 星球控制器 - 管理星球的交互、旋转、区域选择、高亮与缩放。
     /// 纯代码复刻 HexSphere 的 CameraOrbit + TileRaycast 功能，不依赖编辑器/prefab。
     /// </summary>
-    public class HexPlanetController : MonoBehaviour
+    public class PlanetController : MonoBehaviour
     {
         #region 字段
 
         /// <summary>单例实例</summary>
-        public static HexPlanetController Instance { get; private set; }
+        public static PlanetController Instance { get; private set; }
 
         /// <summary>HexPlanet管理器组件</summary>
         private HexPlanetManager planetManager;
@@ -163,13 +163,13 @@ namespace MMWorld
             targetRotation = transform.rotation;
             targetRotationInitialized = true;
 
-            Debug.Log("[HexPlanetController] 星球初始化完成!");
+            Debug.Log("[PlanetController] 星球初始化完成!");
         }
 
         /// <summary>创建HexPlanet数据</summary>
         private void CreateHexPlanet()
         {
-            hexPlanet = new HexPlanet();
+            hexPlanet = ScriptableObject.CreateInstance<HexPlanet>();
 
             hexPlanet.radius = planetRadius;
             hexPlanet.subdivisions = subdivisions;
@@ -192,13 +192,13 @@ namespace MMWorld
 
             planetManager.hexPlanet = hexPlanet;
 
-            Debug.Log($"[HexPlanetController] 创建星球: radius={hexPlanet.radius}, subdivisions={hexPlanet.subdivisions}, terrain={terrainType}");
+            Debug.Log($"[PlanetController] 创建星球: radius={hexPlanet.radius}, subdivisions={hexPlanet.subdivisions}, terrain={terrainType}");
         }
 
         /// <summary>创建随机地形生成器</summary>
         private BaseTerrainGenerator CreateRandomTerrainGenerator()
         {
-            RandomTerrainGenerator gen = new RandomTerrainGenerator();
+            RandomTerrainGenerator gen = ScriptableObject.CreateInstance<RandomTerrainGenerator>();
             gen.minHeight = 0f;
             gen.maxHeight = 5f;
             gen.colors = new List<Color32>
@@ -213,7 +213,7 @@ namespace MMWorld
         /// <summary>创建Perlin噪声地形生成器（海洋→沙滩→草地→山地→雪峰分层配色）</summary>
         private BaseTerrainGenerator CreatePerlinTerrainGenerator()
         {
-            PerlinTerrainGenerator gen = new PerlinTerrainGenerator();
+            PerlinTerrainGenerator gen = ScriptableObject.CreateInstance<PerlinTerrainGenerator>();
             gen.octaves = 4;
             gen.persistence = 0.5f;
             gen.lacunarity = 2f;
@@ -255,7 +255,7 @@ namespace MMWorld
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[HexPlanetController] InitHighlight 失败: {e}");
+                Debug.LogError($"[PlanetController] InitHighlight 失败: {e}");
             }
         }
 
@@ -293,7 +293,7 @@ namespace MMWorld
             }
             else
             {
-                Debug.LogWarning("[HexPlanetController] Camera.main 为空，缩放功能不可用");
+                Debug.LogWarning("[PlanetController] Camera.main 为空，缩放功能不可用");
             }
         }
 
@@ -407,7 +407,7 @@ namespace MMWorld
             }
 
             UpdateSelectionHighlight();
-            Debug.Log($"[HexPlanetController] 选中Tile: ID={tile.id}, Height={tile.height:F2}, 共{selectedTiles.Count}个");
+            Debug.Log($"[PlanetController] 选中Tile: ID={tile.id}, Height={tile.height:F2}, 共{selectedTiles.Count}个");
 
             onTileSelected?.Invoke(tile);
             HandleTileSelection(tile);
@@ -468,7 +468,7 @@ namespace MMWorld
 
             if (GameManager.Instance != null && GameManager.Instance.currentState == GameManager.GameState.PlanetSelect)
             {
-                Debug.Log($"[HexPlanetController] 星球区域已选择: Tile {tileId},通知GameManager继续初始化...");
+                Debug.Log($"[PlanetController] 星球区域已选择: Tile {tileId},通知GameManager继续初始化...");
                 GameManager.Instance.OnPlanetAreaSelected(tileId);
                 return;
             }
@@ -482,12 +482,12 @@ namespace MMWorld
             {
                 if (mapIndex.HasMap(tileId))
                 {
-                    Debug.Log($"[HexPlanetController] 地图 {tileId} 已存在,切换至该地图");
+                    Debug.Log($"[PlanetController] 地图 {tileId} 已存在,切换至该地图");
                     mapIndex.SwitchToMap(tileId);
                 }
                 else
                 {
-                    Debug.Log($"[HexPlanetController] 地图 {tileId} 不存在,创建新地图");
+                    Debug.Log($"[PlanetController] 地图 {tileId} 不存在,创建新地图");
                     StartCoroutine(CreateNewMap(tileId));
                 }
             }
@@ -496,7 +496,7 @@ namespace MMWorld
         /// <summary>创建新地图</summary>
         private IEnumerator CreateNewMap(int tileId)
         {
-            Debug.Log($"[HexPlanetController] 开始创建地图 {tileId}...");
+            Debug.Log($"[PlanetController] 开始创建地图 {tileId}...");
 
             GameUI.UpdateLoadingProgress(0, $"正在创建地图 {tileId}...");
 
@@ -504,7 +504,7 @@ namespace MMWorld
 
             yield return StartCoroutine(mapIndex.CreateMap(tileId, 256, 256));
 
-            Debug.Log($"[HexPlanetController] 地图 {tileId} 创建完成!");
+            Debug.Log($"[PlanetController] 地图 {tileId} 创建完成!");
 
             mapIndex.SwitchToMap(tileId);
         }
@@ -653,7 +653,7 @@ namespace MMWorld
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[HexPlanetController] SetSelectedTileHeight 失败: {e}");
+                Debug.LogError($"[PlanetController] SetSelectedTileHeight 失败: {e}");
             }
         }
 
@@ -671,7 +671,7 @@ namespace MMWorld
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"[HexPlanetController] SetSelectedTilesHeight 失败: {e}");
+                Debug.LogError($"[PlanetController] SetSelectedTilesHeight 失败: {e}");
             }
         }
 

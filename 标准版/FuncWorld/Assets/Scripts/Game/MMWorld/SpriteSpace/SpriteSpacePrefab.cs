@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using static MetalMaxSystem.Unity.UGUITemplate;
 using Debug = UnityEngine.Debug;
@@ -88,9 +89,8 @@ namespace SpriteSpace
             var minimapCamera = MinimapCamera;
             var minimapCanvas = MinimapCanvas;
 
-            //创建EventSystem用于UI交互
+            //创建EventSystem用于UI交互(如果不存在,优先以新版输入系统创建)
             UGUITemplate.GetEventSystem(InputSupportType.New_InputSystemUI);
-
             initialized = true;
         }
 

@@ -1,7 +1,6 @@
 ﻿#region 预处理指令(须靠最前)
-//↓制作UnityMOD环境下手动启用(如BepInEx)
-//#define UNITY_STANDALONE
 
+//#define UNITY_STANDALONE //BepInEx制作UnityMOD时可手动启用
 //#define MONOGAME //MonoGame插件下启用(包括XNA框架)
 
 #if !(UNITY_EDITOR || UNITY_STANDALONE || NET5_0_OR_GREATER)

@@ -1,33 +1,82 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-using MMWorld.HexSphere;
+using UnityHexPlanet;
 
 namespace MMWorld
 {
     /// <summary>
-    /// Planet 框架测试 UI 面板（OnGUI 实现，零依赖）。
+    /// 星球UI面板 - 管理星球参数菜单和交互面板。
     /// 功能：
+    /// - Init方法在指定位置创建星球
     /// - 地形类型切换（Random / Perlin）
     /// - 选中 Tile 高度调节
     /// - 多选 Tile 批量高度调节
     /// - 当前选中信息显示
     /// - 一键清空选中 / 重建星球
     /// </summary>
-    public class PlanetTestUI : MonoBehaviour
+    public class PlanetUI : MonoBehaviour
     {
         private Vector2 scrollPos;
         private float heightSlider = 2.5f;
         private bool showPanel = true;
         private bool uiNeedsRepaint;
 
-        private HexPlanetController controller;
+        private PlanetController controller;
 
-        private void Start()
+        public System.Action<HexTile> onTileSelected;
+
+        public void Init(Vector3 position, PlanetController.TerrainGeneratorType terrainType = PlanetController.TerrainGeneratorType.Perlin,
+            float planetRadius = 50f, int subdivisions = 3, int chunkSubdivisions = 2,
+            Color basePlanetColor = default, float minOrbitRadius = 70f, float maxOrbitRadius = 300f)
         {
-            controller = HexPlanetController.Instance;
+            if (basePlanetColor == default)
+            {
+                basePlanetColor = new Color(0.4f, 0.6f, 0.3f);
+            }
+
+            GameObject planetRoot = new GameObject("PlanetRoot");
+            planetRoot.transform.position = position;
+
+            planetRoot.AddComponent<HexPlanetManager>();
+            controller = planetRoot.AddComponent<PlanetController>();
+
+            SetPrivateField(controller, "terrainType", terrainType);
+            SetPrivateField(controller, "planetRadius", planetRadius);
+            SetPrivateField(controller, "subdivisions", subdivisions);
+            SetPrivateField(controller, "chunkSubdivisions", chunkSubdivisions);
+            SetPrivateField(controller, "basePlanetColor", basePlanetColor);
+            SetPrivateField(controller, "minOrbitRadius", minOrbitRadius);
+            SetPrivateField(controller, "maxOrbitRadius", maxOrbitRadius);
+
             if (controller != null)
             {
                 controller.onTileSelected += OnTileSelected;
+            }
+
+            Debug.Log("[PlanetUI] 星球初始化完成");
+        }
+
+        private static void SetPrivateField(object target, string fieldName, object value)
+        {
+            var f = target.GetType().GetField(fieldName,
+                System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.Public
+                | System.Reflection.BindingFlags.Instance);
+            if (f != null)
+            {
+                f.SetValue(target, value);
+            }
+            else
+            {
+                Debug.LogWarning($"[PlanetUI] 字段不存在: {fieldName}");
+            }
+        }
+
+        private void Awake()
+        {
+            if (controller == null)
+            {
+                controller = PlanetController.Instance;
             }
         }
 
@@ -42,6 +91,7 @@ namespace MMWorld
         private void OnTileSelected(HexTile tile)
         {
             uiNeedsRepaint = true;
+            onTileSelected?.Invoke(tile);
         }
 
         private void Update()
@@ -56,7 +106,7 @@ namespace MMWorld
         {
             if (!showPanel) return;
 
-            GUILayout.BeginArea(new Rect(10, 10, 300, Screen.height - 20), "Planet 测试面板", GUI.skin.window);
+            GUILayout.BeginArea(new Rect(10, 10, 300, Screen.height - 20), "Planet 控制面板", GUI.skin.window);
             scrollPos = GUILayout.BeginScrollView(scrollPos);
 
             DrawStatusSection();
@@ -80,7 +130,7 @@ namespace MMWorld
             GUILayout.Label("=== 状态 ===", GUILayout.Height(20));
             if (controller == null)
             {
-                GUILayout.Label("HexPlanetController 未就绪");
+                GUILayout.Label("PlanetController 未就绪");
                 return;
             }
             HexPlanet hp = controller.GetHexPlanet();
@@ -109,11 +159,11 @@ namespace MMWorld
 
             if (GUILayout.Button("切换到 Random 地形"))
             {
-                controller.SetTerrainType(HexPlanetController.TerrainGeneratorType.Random);
+                controller.SetTerrainType(PlanetController.TerrainGeneratorType.Random);
             }
             if (GUILayout.Button("切换到 Perlin 地形"))
             {
-                controller.SetTerrainType(HexPlanetController.TerrainGeneratorType.Perlin);
+                controller.SetTerrainType(PlanetController.TerrainGeneratorType.Perlin);
             }
             if (GUILayout.Button("重建星球（重新生成）"))
             {
@@ -164,13 +214,6 @@ namespace MMWorld
                 }
                 return;
             }
-            foreach (HexTile t in sel)
-            {
-                // 遍历调用 SetHeight，但批量的话直接 SetSelectedTilesHeight 更高效
-                break;
-            }
-            // 用一个笨办法：每个 tile 单独设高度
-            // 实际上 controller 只有 SetSelectedTilesHeight(newHeight)，所以我们先读一个基准再加减
             using (var e = sel.GetEnumerator())
             {
                 if (e.MoveNext())
@@ -228,6 +271,16 @@ namespace MMWorld
             GUILayout.Label("左键单击: 选中瓦片");
             GUILayout.Label("Shift+单击: 追加多选");
             GUILayout.Label("Ctrl+单击: 切换选中");
+        }
+
+        public PlanetController GetController()
+        {
+            return controller;
+        }
+
+        public void SetShowPanel(bool show)
+        {
+            showPanel = show;
         }
     }
 }
