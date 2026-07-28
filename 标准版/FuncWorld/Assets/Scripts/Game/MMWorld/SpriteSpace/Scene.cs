@@ -1,4 +1,5 @@
 ﻿using CellSpace;
+using MetalMaxSystem.Unity;
 using System;
 using UnityEngine;
 
@@ -381,7 +382,7 @@ namespace SpriteSpace
         public void InitMainCamera()
         {
             //使用SpriteSpacePrefab创建的主摄像机
-            if (mainCamera == null) mainCamera = SpriteSpacePrefab.MainCamera.GetComponent<Camera>();
+            if (mainCamera == null) mainCamera = UnityUtilities.MainCamera.GetComponent<Camera>();
 
             if (mainCamera != null)
             {

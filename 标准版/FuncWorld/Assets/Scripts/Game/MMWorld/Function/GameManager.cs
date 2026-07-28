@@ -1,8 +1,9 @@
-﻿using System.Collections;
+﻿using CellSpace;
+using MetalMaxSystem.Unity;
+using MMWorld.AI;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using CellSpace;
-using MMWorld.AI;
 
 namespace MMWorld
 {
@@ -87,16 +88,6 @@ namespace MMWorld
 
         #region HexSphere星球系统
 
-        /// <summary>
-        /// 星球根对象
-        /// </summary>
-        private GameObject planetRoot;
-
-        /// <summary>
-        /// HexPlanet控制器
-        /// </summary>
-        private PlanetController planetController;
-
         #endregion
 
         #region 地形系统
@@ -160,101 +151,25 @@ namespace MMWorld
         /// <summary>
         /// 开始游戏
         /// </summary>
-        public void StartGame(PlanetPreset preset)
+        public void StartGame(PlanetPreset preset, int tileId)
         {
-            Debug.Log($"[GameManager] 开始游戏,星球类型: {preset.displayName}");
+            Debug.Log($"[GameManager] 开始游戏,星球类型: {preset.displayName}, Tile: {tileId}");
             currentPlanetPreset = preset;
+            currentMapTileId = tileId;
             currentState = GameState.Loading;
 
-            StartCoroutine(InitializeHexSphere(preset));
+            StartCoroutine(InitializeGame(tileId));
         }
 
         /// <summary>
-        /// 初始化HexSphere星球
+        /// 初始化游戏（在星球选择完成后调用）
         /// </summary>
-        private IEnumerator InitializeHexSphere(PlanetPreset preset)
+        private IEnumerator InitializeGame(int tileId)
         {
-            Debug.Log("[GameManager] 初始化HexSphere星球...");
+            Debug.Log("[GameManager] 初始化游戏...");
 
             // 隐藏开局菜单
             HideStartMenu();
-
-            // 更新加载进度
-            GameUI.UpdateLoadingProgress(10f, "正在创建星球...");
-            yield return new WaitForSeconds(0.5f);
-
-            // 创建星球根对象
-            planetRoot = new GameObject("HexPlanetRoot");
-            planetRoot.transform.position = Vector3.zero;
-
-            // 添加PlanetController
-            planetController = planetRoot.AddComponent<PlanetController>();
-
-            // 根据星球预设配置材质
-            ConfigurePlanetMaterial(preset);
-
-            GameUI.UpdateLoadingProgress(30f, "星球创建完成! 请点击地图区域...");
-            yield return new WaitForSeconds(0.5f);
-
-            // 等待玩家点击星球区域
-            currentState = GameState.PlanetSelect;
-            Debug.Log("[GameManager] 进入星球选择模式,请在星球上点击一个区域...");
-        }
-
-        /// <summary>
-        /// 根据星球预设配置材质
-        /// </summary>
-        private void ConfigurePlanetMaterial(PlanetPreset preset)
-        {
-            if (planetController == null) return;
-
-            Material mat = new Material(Shader.Find("Standard"));
-
-            switch (preset.id)
-            {
-                case "EarthLike":
-                    mat.color = new Color(0.3f, 0.6f, 0.3f); // 绿色
-                    break;
-                case "Desert":
-                    mat.color = new Color(0.8f, 0.6f, 0.3f); // 沙色
-                    break;
-                case "Ice":
-                    mat.color = new Color(0.7f, 0.8f, 0.9f); // 冰蓝
-                    break;
-                case "Volcanic":
-                    mat.color = new Color(0.5f, 0.2f, 0.1f); // 火红
-                    break;
-                default:
-                    mat.color = new Color(0.4f, 0.6f, 0.3f);
-                    break;
-            }
-
-            planetController.SetPlanetMaterial(mat);
-        }
-
-        /// <summary>
-        /// HexPlanet区域被选中后继续游戏初始化
-        /// </summary>
-        public void OnPlanetAreaSelected(int tileId)
-        {
-            if (currentState == GameState.PlanetSelect)
-            {
-                Debug.Log($"[GameManager] 玩家已选择区域: {tileId},开始初始化游戏...");
-                currentMapTileId = tileId;
-                StartCoroutine(ContinueGameInitialization(tileId));
-            }
-        }
-
-        /// <summary>
-        /// 继续游戏初始化(在选择星球区域后)
-        /// </summary>
-        private IEnumerator ContinueGameInitialization(int tileId)
-        {
-            currentState = GameState.Loading;
-
-            // 更新加载进度
-            GameUI.UpdateLoadingProgress(40f, "正在初始化CellSpace...");
-            yield return new WaitForSeconds(0.3f);
 
             // 确保CellSpacePrefab已初始化
             if (!CellSpace.CellSpacePrefab.initialized)
@@ -263,22 +178,26 @@ namespace MMWorld
             }
             CPEngine.Active();
 
+            // 更新加载进度
+            GameUI.UpdateLoadingProgress(40f, "正在初始化CellSpace...");
+            yield return new WaitForSeconds(0.3f);
+
             GameUI.UpdateLoadingProgress(60f, "正在创建256x256地形...");
             yield return new WaitForSeconds(0.3f);
 
-            // 2. 创建地形(使用MapIndex)
+            // 创建地形(使用MapIndex)
             yield return StartCoroutine(CreateTerrainWithMapIndex(tileId));
 
             GameUI.UpdateLoadingProgress(75f, "正在创建玩家...");
             yield return new WaitForSeconds(0.3f);
 
-            // 3. 创建玩家
+            // 创建玩家
             yield return StartCoroutine(CreatePlayer(tileId));
 
             GameUI.UpdateLoadingProgress(90f, "正在生成NPC...");
             yield return new WaitForSeconds(0.3f);
 
-            // 4. 生成NPC
+            // 生成NPC
             yield return StartCoroutine(CreateNPCs(tileId));
 
             GameUI.UpdateLoadingProgress(100f, "游戏初始化完成!");
@@ -287,22 +206,10 @@ namespace MMWorld
             // 隐藏加载面板
             GameUI.Dialog_GameUI.SetActive(false);
 
-            // 隐藏HexSphere星球(进入地面模式)
-            if (planetRoot != null)
-            {
-                planetRoot.SetActive(false);
-            }
-
-            // 禁用PlanetController的旋转
-            if (planetController != null)
-            {
-                planetController.SetCanRotate(false);
-            }
-
-            // 5. 初始化AI系统
+            // 初始化AI系统
             InitializeAISystems();
 
-            // 6. 初始化完成
+            // 初始化完成
             currentState = GameState.Playing;
             Debug.Log("[GameManager] 游戏初始化完成!");
         }
@@ -371,9 +278,9 @@ namespace MMWorld
             body.transform.localScale = new Vector3(0.5f, 1f, 0.5f);
 
             // 设置摄像机跟随
-            if (SpriteSpace.SpriteSpacePrefab.MainCamera != null)
+            if (UnityUtilities.MainCamera != null)
             {
-                Camera cam = SpriteSpace.SpriteSpacePrefab.MainCamera.GetComponent<Camera>();
+                Camera cam = UnityUtilities.MainCamera.GetComponent<Camera>();
                 if (cam != null)
                 {
                     // 简单的摄像机跟随

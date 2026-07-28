@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿﻿﻿﻿﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,15 +6,22 @@ namespace UnityHexPlanet {
 
     public class TileRaycast : MonoBehaviour
     {
+        /// <summary>
+        /// 是否显示Demo编辑器GUI（选中计数器、高度滑块、+/-按钮）和多选光标逻辑。
+        /// 默认true用于HexDemo场景；MMWorld中设为false只保留悬浮高亮功能。
+        /// </summary>
+        public bool showEditorGUI = true;
+
         private int _raycastMask;
         private HashSet<HexTile> _selectedHexTiles;
         private List<GameObject> _cursors;
-
         private float _targetGUIHeight = 0.0f;
+        private static Camera _planetCamera;
 
         // Start is called before the first frame update
         void Start()
         {
+            _planetCamera = MetalMaxSystem.Unity.UnityUtilities.PlanetCamera.GetComponent<Camera>();
             _raycastMask = LayerMask.GetMask("HexPlanet");
             _selectedHexTiles = new HashSet<HexTile>();
             _cursors = new List<GameObject>();
@@ -24,7 +31,7 @@ namespace UnityHexPlanet {
         void Update()
         {
             RaycastHit hit;
-            Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+            Ray ray = _planetCamera.ScreenPointToRay (Input.mousePosition);
             if (Physics.Raycast (ray, out hit, 10000, _raycastMask)) {
                 HexChunkRenderer hcr = hit.transform.gameObject.GetComponent<HexChunkRenderer>();
                 Vector3 planetPosition = hcr.transform.position;
@@ -41,6 +48,9 @@ namespace UnityHexPlanet {
                         }
                         lr.positionCount = points.Count;
                         lr.SetPositions(points.ToArray());
+
+                        // showEditorGUI=false时仅更新LineRenderer悬浮高亮，不响应选中/光标/高度编辑
+                        if (!showEditorGUI) return;
 
                         if (Input.GetMouseButtonDown(0) && !(Input.GetKey(KeyCode.RightShift) || Input.GetKey(KeyCode.LeftShift))) {
                             _selectedHexTiles.Clear();
@@ -73,6 +83,8 @@ namespace UnityHexPlanet {
         }
 
         void OnGUI () {
+            if (!showEditorGUI) return;
+
             // Make a background box
         
             // // Make the first button. If it is pressed, Application.Loadlevel (1) will be executed

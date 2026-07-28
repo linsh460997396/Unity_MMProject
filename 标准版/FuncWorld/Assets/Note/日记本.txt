@@ -1587,3 +1587,16 @@ private static void OnPlanetSelected(PlanetPreset preset)
 ‌Refresh（刷新）‌：它知道“文件A存在”，但不一定立即深入检查“文件A内部引用的 DLL 是否完整”或“文件A依赖的程序集是否已编译完成”
 ‌Reimport（重新导入）‌：强制调用该资源的 Importer（导入器）重新解析文件内容生成 .meta 数据并重新建立与其他资源的依赖关系.Unity 会重新评估整个项目的依赖图（Dependency Graph）。
 如果之前的报错是因为某个中间状态（如脚本编译未完成、DLL 锁定、.meta GUID 冲突）导致的，‌Reimport顺带全面的依赖检查往往会“顺带”修正该报错.
+
+
+ScriptableObjectA‌放入Resources目录中
+‌ScriptableObjectB和C‌放项目Assets下‌任意文件夹‌（如Assets/Data/或Assets/Configs/）
+只要它们在Inspector中被正确赋值给了A,Unity的构建系统就会自动处理依赖关系,打包后都可以识别
+Unity在打包时会从Resources文件夹开始扫描,当它发现资源A时会检查A的所有序列化字段
+如果发现A引用了B和C,Unity会自动将B和C标记为“被引用资源”并将它们包含在最终的游戏包中
+B和C不需要在Resources文件夹内,它们在运行时是作为A的一部分被反序列化和加载的,Resources.Load<A>("Path/To/A") 时B和C数据随A一起进入内存
+这种做法正好规避了Resources文件夹的主要缺点↓
+‌管理清晰‌：你可以将大量的配置数据（B、C等）分类存放在不同的普通文件夹中，保持项目结构整洁。
+‌按需打包‌：只有那些被 Resources 下的资源（如 A）直接或间接引用的 B 和 C 才会被打包。未被引用的闲置资源不会被包含在内（除非它们也在 Resources 或其他被引用的路径下）。
+
+MonoBehaviour.enabled = false 不会禁用 OnGUI ！OnGUI 每帧执行，直到组件被 Destroy。

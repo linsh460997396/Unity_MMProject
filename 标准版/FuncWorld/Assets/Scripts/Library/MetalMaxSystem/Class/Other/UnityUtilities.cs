@@ -13,6 +13,22 @@ namespace MetalMaxSystem.Unity
     /// </summary>
     public class UnityUtilities : MonoBehaviour
     {
+        private static SpecialAssets _specialAssets;
+        /// <summary>
+        /// 内置材质、Shader、贴图等资源,做成ScriptableObject,编辑器环境放在Resources目录
+        /// </summary>
+        public static SpecialAssets SpecialAssets
+        {
+            get
+            {
+                if (_specialAssets == null)
+                {
+                    _specialAssets = Resources.Load<SpecialAssets>("ScriptableObject/SpecialAssets");
+                }
+                return _specialAssets;
+            }
+        }
+
         private static string _externalPath;
         /// <summary>
         /// 外部资源路径.默认留空使用路径:Application.dataPath + @"/Res".其他路径示范:
@@ -287,6 +303,38 @@ namespace MetalMaxSystem.Unity
             }
         }
 
+        /// <summary>
+        /// 获取PlanetCamera预制体.作为单例直接使用.
+        /// 如不存在,会创建名为"PlanetCamera"的游戏物体并添加Camera组件.
+        /// </summary>
+        public static GameObject PlanetCamera
+        {
+            get
+            {
+                return GetOrCreatePrefab("PlanetCamera", go =>
+                {
+                    // 主摄像机位置在正后方(Z=-20)
+                    go.transform.SetPositionAndRotation(new Vector3(0f, 0f, -20f), Quaternion.identity);
+                    Camera camera = go.AddComponent<Camera>();
+#if UNITY_EDITOR
+                    //camera.tag = "PlanetCamera"; // 设置标签以便能识别(需编辑器环境提前创建全部标签种类)
+#endif
+                    camera.clearFlags = CameraClearFlags.SolidColor; // 纯色背景,确保光源生效
+                    camera.backgroundColor = new Color(0.1f, 0.1f, 0.1f); // 蓝色背景(天空色)
+                    camera.orthographic = false;
+                    camera.fieldOfView = 60f;
+                    // cullingMask使用位运算指定渲染层:(1 << 层序号) 表示包含该层
+                    // Default(0) | TransparentFX(1) | IgnoreRaycast(2) | Water(4) | UI(5)
+                    //camera.cullingMask = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 4) | (1 << 5);
+                    camera.cullingMask = ~0; // 渲染所有层
+                    camera.depth = -1f; // 相机渲染顺序,数值越大越后渲染
+                    camera.nearClipPlane = 0.3f; // 近裁剪面
+                    camera.farClipPlane = 1000f; // 远裁剪面
+                    camera.allowMSAA = true; // 开启多重采样抗锯齿
+                    go.SetActive(true); // 主摄像机需要立即激活
+                });
+            }
+        }
     }
 }
 #endif

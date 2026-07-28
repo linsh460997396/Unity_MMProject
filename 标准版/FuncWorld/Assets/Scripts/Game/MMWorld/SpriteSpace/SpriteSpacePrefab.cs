@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using static MetalMaxSystem.Unity.UGUITemplate;
 using Debug = UnityEngine.Debug;
@@ -42,8 +41,6 @@ namespace SpriteSpace
         public static List<Sprite>[] characters;
         public static List<Sprite>[] monsters;
         public static List<Sprite>[] others;
-        //内置材质、Shader、贴图等资源,做成ScriptableObject,编辑器环境放在Resources目录
-        public static SpecialAssets specialAssets;
 
         /// <summary>
         /// 预制体初始化方法.在使用SpriteSpacePrefab前必须调用此方法来确保预制体已被创建.
@@ -53,8 +50,7 @@ namespace SpriteSpace
             if (initialized) return;
             if (useDftMat)
             {
-                specialAssets = Resources.Load<SpecialAssets>("ScriptableObject/SpecialAssets");
-                material = specialAssets.materials[0]; //将启用GPU实例化的材质做成了ScriptableObject素材,并放在了元素首位,这里读取
+                material = UnityUtilities.SpecialAssets.materials[0]; //将启用GPU实例化的材质做成了ScriptableObject素材,并放在了元素首位,这里读取
             }
             else
             {

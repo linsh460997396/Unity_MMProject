@@ -8,11 +8,11 @@ namespace UnityHexPlanet {
     [System.Serializable]
     public class HexPlanet : ScriptableObject, ISerializationCallbackReceiver
     {
-        public float radius;
+        public float radius = 100f;
         [Range(0, 7)]
-        public int subdivisions;
+        public int subdivisions = 5;
         [Range(0, 6)]
-        public int chunkSubdivisions;
+        public int chunkSubdivisions = 2;
 
         public Material chunkMaterial;
 

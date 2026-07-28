@@ -1,16 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using CellSpace;
+using MetalMaxSystem;
+using MetalMaxSystem.Unity;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-
-using MetalMaxSystem;
-using CellSpace;
-
+using Player = SpriteSpace.Player;
 using TextAsset = UnityEngine.TextAsset;
 using Vector3 = UnityEngine.Vector3;
-using Player = SpriteSpace.Player;
 
 namespace MMWorld
 {
@@ -182,7 +181,7 @@ namespace MMWorld
             mainCanvaGO = SpriteSpace.SpriteSpacePrefab.MapEditorCanvas;
             if (mainCanvaGO != null)
             {
-                mainCamera = SpriteSpace.SpriteSpacePrefab.MainCamera;
+                mainCamera = UnityUtilities.MainCamera;
                 mainCanva = mainCanvaGO.GetComponent<Canvas>();
 
                 //从代码创建的Canvas中查找UI元素

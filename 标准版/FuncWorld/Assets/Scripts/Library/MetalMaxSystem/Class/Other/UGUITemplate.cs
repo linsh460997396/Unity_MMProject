@@ -323,6 +323,8 @@ namespace MetalMaxSystem.Unity
             }
         }
 
+        private static Canvas _control_GameUICanvas;
+
         /// <summary>
         /// 控件_游戏UI画布(Canvas组件)
         /// </summary>
@@ -330,9 +332,30 @@ namespace MetalMaxSystem.Unity
         {
             get
             {
-                return Dialog_GameUI.GetComponent<Canvas>();
+                if (_control_GameUICanvas == null)
+                {
+                    _control_GameUICanvas = Dialog_GameUI.GetComponent<Canvas>();
+                }
+                return _control_GameUICanvas;
             }
         }
+
+        private static Image _control_GameUIBackground;
+        /// <summary>
+        /// 控件_游戏UI背景图(Image组件)
+        /// </summary>
+        public static Image Control_GameUIBackground
+        {
+            get
+            {
+                if (_control_GameUIBackground == null)
+                {
+                    _control_GameUIBackground = Dialog_GameUI.GetComponent<Image>();
+                }
+                return _control_GameUIBackground;
+            }
+        }
+
 
         /// <summary>
         /// 创建并插入一个可自定义锚点和偏移的面板到对话框或控件中.注:偏移量决定了大小和位置.

@@ -11,4 +11,6 @@ public class SpecialAssets : ScriptableObject
 
     //材质数组
     public Material[] materials;
+
+    public ScriptableObject[] scriptableObjects;
 }
