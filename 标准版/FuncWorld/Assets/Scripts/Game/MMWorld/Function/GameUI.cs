@@ -796,11 +796,11 @@ namespace MMWorld
         {
             isLoading = true;
             UpdateLoadingProgress(0f, "正在创建世界...");
-            yield return new WaitForSeconds(0.3f);
+            yield return UnityUtilities.waitForSecondsQuarter;
             UpdateLoadingProgress(10f, "正在初始化...");
-            yield return new WaitForSeconds(0.3f);
+            yield return UnityUtilities.waitForSecondsQuarter;
             UpdateLoadingProgress(30f, "正在生成星球...");
-            yield return new WaitForSeconds(0.3f);
+            yield return UnityUtilities.waitForSecondsQuarter;
 
             //隐藏菜单
             UI_GameObject_PlanetSelect()?.SetActive(false);
@@ -840,20 +840,18 @@ namespace MMWorld
 
             UI_GameObject_ProgressLoading()?.SetActive(true);
             UpdateLoadingProgress(70f, "初始化游戏框架...");
-            yield return new WaitForSeconds(0.3f);
+            yield return UnityUtilities.waitForSecondsQuarter;
             GameMain.Run();
             UpdateLoadingProgress(85f, "创建256x256地面...");
-            yield return new WaitForSeconds(0.3f);
+            yield return UnityUtilities.waitForSecondsQuarter;
 
             int tileId = selectedTile.id;
             if (MapIndex.Instance != null)
             {
                 yield return MapIndex.Instance.StartCoroutine(MapIndex.Instance.CreateMap(tileId, 256, 256));
             }
-            yield return new WaitForSeconds(0.3f);
-
             UpdateLoadingProgress(100f, "创建完成!");
-            yield return new WaitForSeconds(0.3f);
+            yield return UnityUtilities.waitForSecondsQuarter;
             UI_GameObject_ProgressLoading()?.SetActive(false);
 
             if (planetManager != null)

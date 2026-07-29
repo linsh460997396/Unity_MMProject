@@ -1,4 +1,5 @@
 ﻿using CellSpace;
+using MetalMaxSystem.Unity;
 using SpriteSpace;
 using UnityEngine;
 
@@ -70,6 +71,8 @@ namespace MMWorld
 
             //MC框架激活
             CPEngine.Active();
+
+            Instance.gameObject.AddComponent<FPS>();
         }
 
         /// <summary>

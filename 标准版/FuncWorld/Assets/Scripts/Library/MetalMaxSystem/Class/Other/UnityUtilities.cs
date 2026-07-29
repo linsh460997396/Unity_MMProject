@@ -13,9 +13,10 @@ namespace MetalMaxSystem.Unity
     /// </summary>
     public class UnityUtilities : MonoBehaviour
     {
+        public static AssetBundle ab_SpecialAssets;
         private static SpecialAssets _specialAssets;
         /// <summary>
-        /// 内置材质、Shader、贴图等资源,做成ScriptableObject,编辑器环境放在Resources目录
+        /// 内置材质、Shader、贴图等资源,做成ScriptableObject文件,编辑器环境放Resources目录.
         /// </summary>
         public static SpecialAssets SpecialAssets
         {
@@ -23,7 +24,14 @@ namespace MetalMaxSystem.Unity
             {
                 if (_specialAssets == null)
                 {
+#if UNITY_EDITOR
+                    //编辑器的Resources目录下只需放1个ScriptableObject/SpecialAssets.asset
                     _specialAssets = Resources.Load<SpecialAssets>("ScriptableObject/SpecialAssets");
+#else
+                    //以下是用AssetBundleLoader同步加载外部地址的指定名称AB包内的SpecialAssets
+                    _specialAssets = AssetBundleLoader.LoadFromMemory<SpecialAssets>(Application.dataPath + "/Res/SpecialAssets.ab", "SpecialAssets", out ab_SpecialAssets);
+                    
+#endif
                 }
                 return _specialAssets;
             }
@@ -33,6 +41,7 @@ namespace MetalMaxSystem.Unity
         /// <summary>
         /// 外部资源路径.默认留空使用路径:Application.dataPath + @"/Res".其他路径示范:
         /// ExternalPath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework";
+        /// 打包后需要手动转移素材至Application.dataPath目录(一般为:程序名_Data),在该目录下创建Res文件夹放置外部资源.
         /// </summary>
         public static string ExternalPath
         {
@@ -54,6 +63,13 @@ namespace MetalMaxSystem.Unity
         /// 等待当前帧结束,在下一帧的Update前运行一次(仅自动运行1次,在当前帧反复使用同一个实例无效).
         /// </summary>
         public static readonly WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
+        public static readonly WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
+        public static readonly WaitForSeconds waitForSeconds = new WaitForSeconds(0.0625f);
+        public static readonly WaitForSeconds waitForSecondsEighth = new WaitForSeconds(0.125f);
+        public static readonly WaitForSeconds waitForSecondsQuarter = new WaitForSeconds(0.25f);
+        public static readonly WaitForSeconds waitForSecondsHalf = new WaitForSeconds(0.5f);
+        public static readonly WaitForSeconds waitForSeconds1 = new WaitForSeconds(1f);
+        public static readonly WaitForSeconds waitForSeconds0Dot1 = new WaitForSeconds(0.1f);
 
         /// <summary>
         /// 预制体字典.

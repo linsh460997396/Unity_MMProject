@@ -1,25 +1,38 @@
-﻿using UnityEngine;
-
-namespace SpriteSpace
+﻿namespace SpriteSpace
 {
-
     /// <summary>
-    /// 测试关卡1
+    /// 测试关卡2
     /// </summary>
     public class TestStage1 : Stage
     {
+        /// <summary>
+        /// 超时指标(用于切换游玩模块)
+        /// </summary>
         public int timeout;
-        public System.Random random = new();
 
         /// <summary>
-        /// [构造函数]测试关卡1
+        /// [构造函数]测试关卡2
         /// </summary>
         /// <param name="scene"></param>
         public TestStage1(Scene scene) : base(scene)
-        {//这里可判断是不是切关然后对player或啥的做相应处理
+        {//这里可判断是不是切关,然后对 player 或啥的做相应处理
 
-            //关闭小地图
-            scene.EnableMinimap(false);
+            //开启小地图
+            scene.EnableMinimap(true);
+
+            //先给自己创建一些初始技能
+            //todo:通过配置来创建,纯技能并没有什么意义,只有进了关卡之后才能实例化、开始工作,也就是说技能依附于关卡存在
+            //玩家在游戏过程中,技能可能会 增加,成长,都应该写进 配置. 这样切换关卡后,可以根据配置 再次创建技能
+            {
+                var ps = new PlayerSkill(this);
+                ps.Init();
+                player.skills.Add(ps);
+            }
+            {
+                var ps = new PlayerSkill1(this);
+                ps.Init();
+                player.skills.Add(ps);
+            }
         }
 
         /// <summary>
@@ -36,8 +49,14 @@ namespace SpriteSpace
                 case 1:
                     P1();
                     return;
+                case 2:
+                    P2();
+                    return;
+                case 3:
+                    P3();
+                    return;
                 default:
-                    throw new System.Exception("can'transform be here");
+                    throw new System.Exception("Error");
             }
         }
 
@@ -45,42 +64,63 @@ namespace SpriteSpace
         /// 测试P0
         /// </summary>
         public void P0()
-        {
-            var cx = scene.gridMaxSize_2;
-            var cy = scene.gridMaxSize_2;
+        {//关卡开局
 
-            // 重置 Player 坐标
-            player.Init(this, cx, cy);
+            //配置怪生成器
+            var time = scene.time; //等同运行游戏逻辑的次数
+            monsterGenerators.Add(new TestMonsterGenerator1("MS0_1", this, time + scene.TPS * 0, time + scene.TPS * 10, 1));
+            monsterGenerators.Add(new TestMonsterGenerator2("MS0_2", this, time + scene.TPS * 10, time + scene.TPS * 20, 0));
 
-            //验证一下这个表的数据是否正确
-            //var d = scene.spaceRDD;
-            //foreach (var i in d.idxys)
-            //{
-            //    // 根据 格子 offset 计算 pixelX, pixelY 并设置怪的坐标
-            //    new TestMonster1(this).Init(cx + i.row * 16, cy + i.column * 16).radius = 5;
-            //}
+            //重置玩家位置
+            player.Init(this, 2000, 1500);
 
-            state = 1;
+            state = 1;//设置关卡索引
         }
 
         /// <summary>
-        /// 测试P1(玩家屏幕范围产生大量随机数字特性)
+        /// 测试P1
         /// </summary>
         public void P1()
         {
+            Update_Effect_Explosions();
             Update_Effect_Numbers();
-            Update_Player();
-
-            // 测试一下伤害数字的效果
-            for (int i = 0; i < 50; i++)
+            Update_Monsters();
+            //怪生成器已经没了
+            if (Update_MonstersGenerators() == 0)
             {
-                var x = Random.Range(-scene.designWidth_2, scene.designWidth_2);
-                var y = Random.Range(-scene.designHeight_2, scene.designHeight_2);
-                //var v = Random.Range(0, 1000000000) * System.Math.Pow(10, Random.Range(1, 20 - 10));   // 307 - 10
-                var v = random.NextDouble() * System.Math.Pow(10, Random.Range(2, 30 - 10));
-                new EffectNumber(this, player.column + x, player.row + y, 0.5f, v, Random.value > 0.5f);
+                //设置60秒超时
+                timeout = scene.time + scene.TPS * 60;
+                state = 2;
+            }
+            Update_PlayerBullets();
+            player.Update();
+        }
+
+        /// <summary>
+        /// 测试P2
+        /// </summary>
+        public void P2()
+        {
+            Update_Effect_Explosions();
+            Update_Effect_Numbers();
+            if (Update_Monsters() == 0)
+            {   // 怪杀完
+                state = 3;
+            }
+            Update_PlayerBullets();
+            player.Update();
+            if (timeout < scene.time)
+            {     // 已超时
+                state = 3;
             }
         }
 
+        /// <summary>
+        /// 测试P3
+        /// </summary>
+        public void P3()
+        {
+            scene.SetStage(new TestStage2(scene));          // 已超时:切到新关卡
+        }
     }
 }

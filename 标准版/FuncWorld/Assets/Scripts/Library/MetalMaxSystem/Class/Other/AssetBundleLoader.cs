@@ -21,6 +21,7 @@ namespace MetalMaxSystem.Unity
 
         //资源字典,用于存储加载的资源实例.string用于区分多个不同存储键区.
         //以下字段在协程实例才有结果存储,加不加静态修饰都无所谓,但加静态后可通过类名直接访问,少写一个Instance.
+        //路径填写绝对相对都行,如果填写相对路径,则相对路径是相对于游戏运行目录(即exe所在目录)的路径.
 
         /// <summary>
         /// 全局存储协程实例成功加载到的素材数组.
@@ -278,7 +279,7 @@ namespace MetalMaxSystem.Unity
         /// <param name="resName">AB包根目录下素材的原始路径,只填名称则搜索到第一个同名元素即返回</param>
         /// <param name="assetBundle"></param>
         /// <returns></returns>
-        public static T ABLoadFromFile<T>(string path, string resName, out AssetBundle assetBundle) where T : Object
+        public static T LoadFromFile<T>(string path, string resName, out AssetBundle assetBundle) where T : Object
         {
             assetBundle = AssetBundle.LoadFromFile(path);
             return assetBundle.LoadAsset<T>(resName);
@@ -289,7 +290,7 @@ namespace MetalMaxSystem.Unity
         /// <param name="path"></param>
         /// <param name="resName">AB包根目录下素材的原始路径,只填名称则搜索到第一个同名元素即返回</param>
         /// <param name="assetBundle"></param>
-        public static T ABLoadFromMemory<T>(string path, string resName, out AssetBundle assetBundle) where T : Object
+        public static T LoadFromMemory<T>(string path, string resName, out AssetBundle assetBundle) where T : Object
         {
             assetBundle = AssetBundle.LoadFromMemory(File.ReadAllBytes(path));
             return assetBundle.LoadAsset<T>(resName);
@@ -302,7 +303,7 @@ namespace MetalMaxSystem.Unity
         /// <param name="assetBundle"></param>
         /// <param name="bufferSize">文件流缓冲区大小</param>
         /// <returns></returns>
-        public static T ABLoadFromStream<T>(string path, string resName, out AssetBundle assetBundle, int bufferSize = 4096) where T : Object
+        public static T LoadFromStream<T>(string path, string resName, out AssetBundle assetBundle, int bufferSize = 4096) where T : Object
         {
             //可自行指定FileStream缓冲区大小
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize))
@@ -317,7 +318,7 @@ namespace MetalMaxSystem.Unity
         /// <param name="path"></param>
         /// <param name="assetBundle"></param>
         /// <returns></returns>
-        public static T[] ABLoadFromFile<T>(string path, out AssetBundle assetBundle) where T : Object
+        public static T[] LoadFromFile<T>(string path, out AssetBundle assetBundle) where T : Object
         {
             assetBundle = AssetBundle.LoadFromFile(path);
             return assetBundle.LoadAllAssets<T>();
@@ -327,7 +328,7 @@ namespace MetalMaxSystem.Unity
         /// </summary>
         /// <param name="path"></param>
         /// <param name="assetBundle"></param>
-        public static T[] ABLoadFromMemory<T>(string path, out AssetBundle assetBundle) where T : Object
+        public static T[] LoadFromMemory<T>(string path, out AssetBundle assetBundle) where T : Object
         {
             assetBundle = AssetBundle.LoadFromMemory(File.ReadAllBytes(path));
             return assetBundle.LoadAllAssets<T>();
@@ -338,7 +339,7 @@ namespace MetalMaxSystem.Unity
         /// <param name="path"></param>
         /// <param name="assetBundle"></param>
         /// <param name="bufferSize">文件流缓冲区大小</param>
-        public static T[] ABLoadFromStream<T>(string path, out AssetBundle assetBundle, int bufferSize = 4096) where T : Object
+        public static T[] LoadFromStream<T>(string path, out AssetBundle assetBundle, int bufferSize = 4096) where T : Object
         {
             //可自行指定FileStream缓冲区大小
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize))
