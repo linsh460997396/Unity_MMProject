@@ -808,13 +808,13 @@ namespace MMWorld
             UGUITemplate.Control_GameUIBackground.enabled = false;
             UI_GameObject_ProgressLoading()?.SetActive(false);
 
-            // 禁用原始主相机（正交2.5D模式，不适合3D星球视角）
+            // 禁用原始主相机（正交2.5D模式,不适合3D星球视角）
             UnityUtilities.MainCamera.SetActive(false);
 
             TileRaycast tileRaycast;
             HexPlanetManager planetManager = CreatePlanetRoot(out tileRaycast);
 
-            // 等待玩家点击星球Tile（独立射线检测，不依赖TileRaycast的事件）
+            // 等待玩家点击星球Tile（独立射线检测,不依赖TileRaycast的事件）
             HexTile selectedTile = null;
             while (selectedTile == null)
             {
@@ -940,7 +940,7 @@ namespace MMWorld
 
             // 添加TileRaycast组件用于悬浮高亮（使用PlanetCamera作为Camera.main）
             tileRaycast = planetRoot.AddComponent<TileRaycast>();
-            tileRaycast.showEditorGUI = false; // 关闭Demo编辑器GUI，仅保留LineRenderer悬浮高亮
+            tileRaycast.showEditorGUI = false; // 关闭Demo编辑器GUI,仅保留LineRenderer悬浮高亮
 
             Debug.Log("[GameUI] 星球创建完成: radius=100, subdivisions=5, terrain=Random");
             return manager;

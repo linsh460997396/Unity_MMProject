@@ -102,7 +102,7 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 回调函数.
+        /// [静态]回调函数.
         /// 对Unity引擎组件实例相关动作执行回调(回到主线程调用Action).
         /// 示例MainThreadDispatcher.Call(() =>{涉及主线程对象的动作});
         /// </summary>
@@ -118,7 +118,7 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 回调函数.
+        /// [静态]回调函数.
         /// 对Unity引擎组件实例相关动作执行回调(回到主线程调用协程).
         /// 示例MainThreadDispatcher.Call(MyCoroutine());
         /// </summary>
@@ -133,7 +133,7 @@ namespace MetalMaxSystem.Unity
         }
 
         /// <summary>
-        /// 回调函数.直接传入协程方法体.
+        /// [静态]回调函数.直接传入协程方法体.
         /// 对Unity引擎组件实例相关动作执行回调(回到主线程调用协程).
         /// 示例MainThreadDispatcher.Call(() => {
         ///     yield return new WaitForSeconds(1);
@@ -163,7 +163,7 @@ namespace MetalMaxSystem.Unity
 //    });
 //}
 
-// UnityMainThreadDispatcher允许在Unity的任何线程或异步操作中安全地向主线程发送操作.这是非常重要的,因为Unity的很多API(特别是与UI和游戏对象相关的API)都必须在主线程上调用.
+// UnityMainThreadDispatcher允许在Unity任何线程或异步操作中安全地向主线程发送操作.这是非常重要的,因为Unity很多API(特别是与UI和游戏对象相关的API)都必须在主线程上调用.
 
 // 成员变量
 // _instance: 这是一个静态的UnityMainThreadDispatcher实例,用于实现单例模式.单例模式确保整个应用程序中只有一个UnityMainThreadDispatcher实例.

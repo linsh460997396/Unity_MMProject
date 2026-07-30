@@ -415,7 +415,7 @@ namespace MetalMaxSystem.Unity
 
         UGUITemplate.InputSupportType currentInputMode;
 
-        //当前 CheckInputMode() 只做了检测但未使用。由于完整的新Input System适配需要引入额外命名空间且较为复杂，当前实现保留了诊断功能。如果需要，可以作为后续优化项。
+        //当前 CheckInputMode() 只做了检测但未使用.由于完整的新Input System适配需要引入额外命名空间且较为复杂,当前实现保留了诊断功能.如果需要,可以作为后续优化项.
         void CheckInputMode()
         {
             currentInputMode = UGUITemplate.CheckAvailableInputModule();

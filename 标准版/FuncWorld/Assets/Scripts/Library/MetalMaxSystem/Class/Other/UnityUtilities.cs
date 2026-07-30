@@ -24,14 +24,13 @@ namespace MetalMaxSystem.Unity
             {
                 if (_specialAssets == null)
                 {
-#if UNITY_EDITOR
                     //编辑器的Resources目录下只需放1个ScriptableObject/SpecialAssets.asset
                     _specialAssets = Resources.Load<SpecialAssets>("ScriptableObject/SpecialAssets");
-#else
-                    //以下是用AssetBundleLoader同步加载外部地址的指定名称AB包内的SpecialAssets
-                    _specialAssets = AssetBundleLoader.LoadFromMemory<SpecialAssets>(Application.dataPath + "/Res/SpecialAssets.ab", "SpecialAssets", out ab_SpecialAssets);
-                    
-#endif
+                    if (_specialAssets == null)
+                    {
+                        //以下是用AssetBundleLoader同步加载外部地址的指定名称AB包内的SpecialAssets
+                        _specialAssets = AssetBundleLoader.LoadFromMemory<SpecialAssets>(Application.dataPath + "/Res/SpecialAssets.ab", "SpecialAssets", out ab_SpecialAssets);
+                    }
                 }
                 return _specialAssets;
             }

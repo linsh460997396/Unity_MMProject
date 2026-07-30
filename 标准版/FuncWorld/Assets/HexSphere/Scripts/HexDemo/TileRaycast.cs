@@ -7,8 +7,8 @@ namespace UnityHexPlanet {
     public class TileRaycast : MonoBehaviour
     {
         /// <summary>
-        /// 是否显示Demo编辑器GUI（选中计数器、高度滑块、+/-按钮）和多选光标逻辑。
-        /// 默认true用于HexDemo场景；MMWorld中设为false只保留悬浮高亮功能。
+        /// 是否显示Demo编辑器GUI（选中计数器、高度滑块、+/-按钮）和多选光标逻辑.
+        /// 默认true用于HexDemo场景；MMWorld中设为false只保留悬浮高亮功能.
         /// </summary>
         public bool showEditorGUI = true;
 
@@ -49,7 +49,7 @@ namespace UnityHexPlanet {
                         lr.positionCount = points.Count;
                         lr.SetPositions(points.ToArray());
 
-                        // showEditorGUI=false时仅更新LineRenderer悬浮高亮，不响应选中/光标/高度编辑
+                        // showEditorGUI=false时仅更新LineRenderer悬浮高亮,不响应选中/光标/高度编辑
                         if (!showEditorGUI) return;
 
                         if (Input.GetMouseButtonDown(0) && !(Input.GetKey(KeyCode.RightShift) || Input.GetKey(KeyCode.LeftShift))) {

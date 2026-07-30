@@ -117,7 +117,7 @@ namespace MetalMaxSystem.Unity
             bool hasNew = false;
 
             // 1. 检查旧版模块 (通常位于 UnityEngine.UI 程序集)
-            // StandaloneInputModule 是 UGUI 核心部分，大多数 Unity 版本都包含
+            // StandaloneInputModule 是 UGUI 核心部分,大多数 Unity 版本都包含
             Type legacyType = Type.GetType("UnityEngine.EventSystems.StandaloneInputModule, UnityEngine.UI");
             if (legacyType != null)
             {
@@ -125,7 +125,7 @@ namespace MetalMaxSystem.Unity
             }
 
             // 2. 检查新版模块 (位于 Unity.InputSystem 程序集)
-            // 如果游戏没装 Input System Package，这个类型会是 null
+            // 如果游戏没装 Input System Package,这个类型会是 null
             Type newType = Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
             if (newType != null)
             {
@@ -158,15 +158,15 @@ namespace MetalMaxSystem.Unity
             switch (support)
             {
                 case InputSupportType.New_InputSystemUI:
-                    // 注意：新版模块若无 Actions Asset 绑定，可能无法响应点击
-                    // 但在没有引用的情况下，这是唯一能添加的途径
+                    // 注意：新版模块若无 Actions Asset 绑定,可能无法响应点击
+                    // 但在没有引用的情况下,这是唯一能添加的途径
                     Type newType = Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
                     if (newType != null) go.AddComponent(newType);
                     break;
 
                 case InputSupportType.Legacy_Standalone:
                 case InputSupportType.Both:
-                    // 优先使用旧版，因为不需要额外配置 Actions Asset，兼容性最稳
+                    // 优先使用旧版,因为不需要额外配置 Actions Asset,兼容性最稳
                     Type legacyType = Type.GetType("UnityEngine.EventSystems.StandaloneInputModule, UnityEngine.UI");
                     if (legacyType != null) go.AddComponent(legacyType);
                     break;
@@ -182,10 +182,10 @@ namespace MetalMaxSystem.Unity
         /// </summary>
         public enum AutoSizeMode
         {
-            None,           // 不自动调整，使用 RectTransform 当前设置的尺寸或锚点拉伸
-            WidthOnly,      // 宽度固定(由maxWidth决定或当前宽)，高度自适应内容
-            HeightOnly,     // 高度固定(由maxHeight决定或当前高)，宽度自适应内容
-            Both            // 宽高均自适应内容 (忽略 maxWidth/maxHeight 限制，除非设为0)
+            None,           // 不自动调整,使用 RectTransform 当前设置的尺寸或锚点拉伸
+            WidthOnly,      // 宽度固定(由maxWidth决定或当前宽),高度自适应内容
+            HeightOnly,     // 高度固定(由maxHeight决定或当前高),宽度自适应内容
+            Both            // 宽高均自适应内容 (忽略 maxWidth/maxHeight 限制,除非设为0)
         }
 
         /// <summary>
@@ -196,45 +196,45 @@ namespace MetalMaxSystem.Unity
             if (mode == AutoSizeMode.None)
                 return;
 
-            // 如果锚点是拉伸状态（Min != Max），通常意味着我们希望它跟随父物体缩放，
-            // 此时手动设置 sizeDelta 可能会与锚点冲突。
-            // 这里我们假设：如果开启了 AutoSize，我们倾向于使用精确的 sizeDelta，
-            // 或者将锚点重置为中心点/左上角以便 sizeDelta 生效。
-            // 为了简化，如果检测到锚点拉伸，我们暂时不强制覆盖 sizeDelta，除非模式是 Both 且用户明确想要包裹内容。
+            // 如果锚点是拉伸状态（Min != Max）,通常意味着我们希望它跟随父物体缩放,
+            // 此时手动设置 sizeDelta 可能会与锚点冲突.
+            // 这里我们假设：如果开启了 AutoSize,我们倾向于使用精确的 sizeDelta,
+            // 或者将锚点重置为中心点/左上角以便 sizeDelta 生效.
+            // 为了简化,如果检测到锚点拉伸,我们暂时不强制覆盖 sizeDelta,除非模式是 Both 且用户明确想要包裹内容.
 
             // 获取首选尺寸
             // GetPreferredValues(string text, float width, float height)
-            // width: 如果 > 0，表示在此宽度内换行；如果 <= 0，表示不限制宽度（单行）
-            // height: 通常传 0，让高度无限延伸以容纳所有行
+            // width: 如果 > 0,表示在此宽度内换行；如果 <= 0,表示不限制宽度（单行）
+            // height: 通常传 0,让高度无限延伸以容纳所有行
 
             float calcWidth = (mode == AutoSizeMode.WidthOnly || mode == AutoSizeMode.Both) ? maxWidth : 0f;
 
-            // 注意：如果 maxWidth <= 0 且模式需要宽度限制，TMP 将不会换行，可能导致文本溢出
+            // 注意：如果 maxWidth <= 0 且模式需要宽度限制,TMP 将不会换行,可能导致文本溢出
             Vector2 preferredSize = tmpText.GetPreferredValues(tmpText.text, calcWidth, 0f);
 
             // 根据模式应用尺寸
             switch (mode)
             {
                 case AutoSizeMode.WidthOnly:
-                    // 宽度保持当前 RectTransform 的宽度（或 maxWidth），高度自适应
-                    // 如果 maxWidth > 0，则使用 maxWidth，否则使用当前 rect 的宽度
+                    // 宽度保持当前 RectTransform 的宽度（或 maxWidth）,高度自适应
+                    // 如果 maxWidth > 0,则使用 maxWidth,否则使用当前 rect 的宽度
                     float finalWidth = maxWidth > 0 ? maxWidth : rectTransform.rect.width;
                     rectTransform.sizeDelta = new Vector2(finalWidth, preferredSize.y);
                     break;
 
                 case AutoSizeMode.HeightOnly:
-                    // 宽度自适应，高度保持当前或 maxHeight
+                    // 宽度自适应,高度保持当前或 maxHeight
                     float finalHeight = maxHeight > 0 ? maxHeight : rectTransform.rect.height;
                     rectTransform.sizeDelta = new Vector2(preferredSize.x, finalHeight);
                     break;
 
                 case AutoSizeMode.Both:
                     // 宽高完全自适应
-                    // 如果 maxWidth > 0，preferredSize.x 不会超过 maxWidth（因为上面传参限制了换行）
+                    // 如果 maxWidth > 0,preferredSize.x 不会超过 maxWidth（因为上面传参限制了换行）
                     rectTransform.sizeDelta = new Vector2(preferredSize.x, preferredSize.y);
 
-                    // 可选：如果希望锚点也配合自适应，可以将锚点重置为 Center 或 TopLeft
-                    // 这里保持用户传入的锚点不变，但 sizeDelta 会生效
+                    // 可选：如果希望锚点也配合自适应,可以将锚点重置为 Center 或 TopLeft
+                    // 这里保持用户传入的锚点不变,但 sizeDelta 会生效
                     break;
             }
         }
@@ -396,16 +396,16 @@ namespace MetalMaxSystem.Unity
         /// </summary>
         /// <param name="parent">父节点,即对话框(GameObject)或控件(组件)的Transform</param>
         /// <param name="title">内容字符串</param>
-        /// <param name="name">GameObject名称，默认"Title"</param>
+        /// <param name="name">GameObject名称,默认"Title"</param>
         /// <param name="anchorMin">最小锚点</param>
         /// <param name="anchorMax">最大锚点</param>
         /// <param name="font">字体资产</param>
         /// <param name="color">文本颜色</param>
         /// <param name="fontSize">字体大小</param>
         /// <param name="alignment">文本对齐方式</param>
-        /// <param name="autoSize">自适应模式，默认为 None（保持原有锚点行为）</param>
-        /// <param name="maxWidth">最大宽度限制。若 autoSize 为 WidthOnly 或 Both，且此值 > 0，则在此宽度内换行</param>
-        /// <param name="maxHeight">最大高度限制。暂未用于截断，主要用于预留接口</param>
+        /// <param name="autoSize">自适应模式,默认为 None（保持原有锚点行为）</param>
+        /// <param name="maxWidth">最大宽度限制.若 autoSize 为 WidthOnly 或 Both,且此值 > 0,则在此宽度内换行</param>
+        /// <param name="maxHeight">最大高度限制.暂未用于截断,主要用于预留接口</param>
         /// <returns>文本标签控件(TextMeshProUGUI)</returns>
         public static TextMeshProUGUI Control_TitleCreate(Transform parent, string title, string name = "Title", Vector2? anchorMin = null, Vector2? anchorMax = null, TMP_FontAsset font = null, Color? color = null, float fontSize = 42f, TextAlignmentOptions alignment = TextAlignmentOptions.Center, AutoSizeMode autoSize = AutoSizeMode.None, float maxWidth = 0f, float maxHeight = 0f)
         {

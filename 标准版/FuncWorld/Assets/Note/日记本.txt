@@ -1554,11 +1554,11 @@ readonly修饰符标记的字段只能在字段或构造函数中赋值一次,�
 
 旧版输入系统（Legacy Input Manager）‌则‌不需要‌ InputSystemUIInputModule,而是需要StandaloneInputModule
 新版输入系统（Input System Package）‌则‌必须‌使用 InputSystemUIInputModule,否则UI将无法响应任何输入
-在 Unity 编辑器中，查看 Edit > Project Settings > Player > Other Settings > Active Input Handling(活动输入处理):
+在 Unity 编辑器中,查看 Edit > Project Settings > Player > Other Settings > Active Input Handling(活动输入处理):
 ‌Input Manager (Old)‌：只能使用 StandaloneInputModule
 ‌Input System Package (New)‌：只能使用 InputSystemUIInputModule
 Both:两者皆可
-旧版(Input Manager):‌轮询式 (Polling).每帧主动查询“按键是否按下”.耦合度高，硬编码键位.
+旧版(Input Manager):‌轮询式 (Polling).每帧主动查询“按键是否按下”.耦合度高,硬编码键位.
 新版(Input System):‌事件驱动 (Event-driven) + 动作映射 (Actions).将“物理按键”与“游戏逻辑”解耦.支持多设备自动切换、重绑定键位.
 void Update() {
     if (Input.GetKeyDown(KeyCode.F)) {
@@ -1569,7 +1569,7 @@ void Update() {
     }
 }
 注意:上述Input.GetKeyDown的生效与场景中的StandaloneInputModule或InputSystemUIInputModule‌完全无关‌
-Input.GetKeyDown(底层输入)‌：直接读取硬件设备状态（键盘、鼠标等）,由 Unity 引擎底层每帧更新，‌不依赖‌任何场景组件,只要游戏窗口处于激活状态，无论场景中是否有EventSystem,它都能检测到按键
+Input.GetKeyDown(底层输入)‌：直接读取硬件设备状态（键盘、鼠标等）,由 Unity 引擎底层每帧更新,‌不依赖‌任何场景组件,只要游戏窗口处于激活状态,无论场景中是否有EventSystem,它都能检测到按键
 InputModule(UI事件系统)‌：StandaloneInputModule或InputSystemUIInputModule是‌UGUI(Canvas UI)‌系统的专用组件.
 它们的作用是将底层输入转换为UI事件（如OnClick, OnSelect）.只有当需要点击按钮、拖动滑块或使用键盘导航UI时才需要这些模块.
 
@@ -1581,12 +1581,12 @@ private static void OnPlanetSelected(PlanetPreset preset)
     Instance.StartCoroutine(CreateNewWorld(preset));
 }
 
-| ‌刷新‌ | Refresh | 全局（Assets & Packages） | 扫描磁盘文件变更，更新数据库元信息，按需导入变更资源 | 耗时中等（取决于变更量） |
-| ‌重新导入‌ | Reimport | 单个/选中资源 | 强制对指定资源执行完整的导入流程，生成新的资产数据 | 耗时低（仅针对特定文件） |
-| ‌重新导入所有‌ | Reimport All | 全局所有资源 | 清除所有资源的导入缓存，强制重新导入项目中的每一个资源 | 耗时极高（全量重建） |
-‌Refresh（刷新）‌：它知道“文件A存在”，但不一定立即深入检查“文件A内部引用的 DLL 是否完整”或“文件A依赖的程序集是否已编译完成”
-‌Reimport（重新导入）‌：强制调用该资源的 Importer（导入器）重新解析文件内容生成 .meta 数据并重新建立与其他资源的依赖关系.Unity 会重新评估整个项目的依赖图（Dependency Graph）。
-如果之前的报错是因为某个中间状态（如脚本编译未完成、DLL 锁定、.meta GUID 冲突）导致的，‌Reimport顺带全面的依赖检查往往会“顺带”修正该报错.
+| ‌刷新‌ | Refresh | 全局（Assets & Packages） | 扫描磁盘文件变更,更新数据库元信息,按需导入变更资源 | 耗时中等（取决于变更量） |
+| ‌重新导入‌ | Reimport | 单个/选中资源 | 强制对指定资源执行完整的导入流程,生成新的资产数据 | 耗时低（仅针对特定文件） |
+| ‌重新导入所有‌ | Reimport All | 全局所有资源 | 清除所有资源的导入缓存,强制重新导入项目中的每一个资源 | 耗时极高（全量重建） |
+‌Refresh（刷新）‌：它知道“文件A存在”,但不一定立即深入检查“文件A内部引用的 DLL 是否完整”或“文件A依赖的程序集是否已编译完成”
+‌Reimport（重新导入）‌：强制调用该资源的 Importer（导入器）重新解析文件内容生成 .meta 数据并重新建立与其他资源的依赖关系.Unity 会重新评估整个项目的依赖图（Dependency Graph）.
+如果之前的报错是因为某个中间状态（如脚本编译未完成、DLL 锁定、.meta GUID 冲突）导致的,‌Reimport顺带全面的依赖检查往往会“顺带”修正该报错.
 
 
 ScriptableObjectA‌放入Resources目录中
@@ -1596,7 +1596,23 @@ Unity在打包时会从Resources文件夹开始扫描,当它发现资源A时会�
 如果发现A引用了B和C,Unity会自动将B和C标记为“被引用资源”并将它们包含在最终的游戏包中
 B和C不需要在Resources文件夹内,它们在运行时是作为A的一部分被反序列化和加载的,Resources.Load<A>("Path/To/A") 时B和C数据随A一起进入内存
 这种做法正好规避了Resources文件夹的主要缺点↓
-‌管理清晰‌：你可以将大量的配置数据（B、C等）分类存放在不同的普通文件夹中，保持项目结构整洁。
-‌按需打包‌：只有那些被 Resources 下的资源（如 A）直接或间接引用的 B 和 C 才会被打包。未被引用的闲置资源不会被包含在内（除非它们也在 Resources 或其他被引用的路径下）。
+‌管理清晰‌：你可以将大量的配置数据（B、C等）分类存放在不同的普通文件夹中,保持项目结构整洁.
+‌按需打包‌：只有那些被 Resources 下的资源（如 A）直接或间接引用的 B 和 C 才会被打包.未被引用的闲置资源不会被包含在内（除非它们也在 Resources 或其他被引用的路径下）.
 
-MonoBehaviour.enabled = false 不会禁用 OnGUI ！OnGUI 每帧执行，直到组件被 Destroy。
+MonoBehaviour.enabled = false 不会禁用 OnGUI ！OnGUI 每帧执行,直到组件被 Destroy
+
+这些是Unity PC平台打包时的调试相关选项,勾选后可以大幅增强打包产物的调试能力,各个选项的具体作用如下：
+复制 PDB 文件‌
+勾选后Unity会将微软程序数据库（.pdb）符号文件复制到构建输出目录,这类文件存储了调试所需的符号映射信息,能让你在Visual Studio等调试工具中直接定位到游戏运行时对应的源代码位置,是后续深度调试的基础前提.
+创建 Visual Studio 解决方案‌
+启用后Unity会直接生成完整的Visual Studio解决方案文件,你可以直接在VS中打开该方案,直接在VS环境内完成最终可执行文件的编译、自定义构建流程,无需依赖Unity编辑器二次导出项目.
+开发构建‌
+这是所有调试功能的基础总开关,勾选后打包产物会内置脚本调试符号、性能分析器支持,同时保留开发阶段的日志输出、错误提示等调试相关功能,打包出的版本体积更大、运行性能更低,仅用于开发调试阶段,不建议用于正式发布.
+自动连接探查器‌
+勾选后启动打包好的游戏程序时,会自动尝试连接Unity编辑器中的性能分析器（Profiler）,无需手动建立连接,就能实时采集游戏运行时的CPU、内存、渲染等性能数据,快速定位性能瓶颈.
+深度分析支持‌
+开启后性能分析器会对所有函数调用进行全链路的深度采样统计,能获取更精细的性能耗时数据,不过该选项会大幅降低游戏运行帧率,仅适合针对性排查复杂性能问题时使用.
+脚本调试‌
+启用后打包产物会开放C#脚本的调试端口,你可以通过Visual Studio或Rider等调试工具远程附加到运行中的游戏进程,直接对游戏代码设置断点、单步执行、查看变量实时值,排查代码逻辑问题.
+等待托管调试器‌
+勾选后游戏程序启动后不会立刻执行主逻辑,会暂停等待外部托管调试器（比如VS的C#调试器）完成附加连接,避免游戏启动瞬间的代码逻辑因为调试器还未连接而无法被断点捕获,适合调试游戏初始化阶段的代码问题.
