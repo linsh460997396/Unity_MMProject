@@ -162,7 +162,7 @@ namespace MMWorld
         }
 
         /// <summary>
-        /// 初始化游戏（在星球选择完成后调用）
+        /// 初始化游戏(在星球选择完成后调用)
         /// </summary>
         private IEnumerator InitializeGame(int tileId)
         {
@@ -278,9 +278,9 @@ namespace MMWorld
             body.transform.localScale = new Vector3(0.5f, 1f, 0.5f);
 
             // 设置摄像机跟随
-            if (UnityUtilities.MainCamera != null)
+            if (UKit.MainCamera != null)
             {
-                Camera cam = UnityUtilities.MainCamera.GetComponent<Camera>();
+                Camera cam = UKit.MainCamera.GetComponent<Camera>();
                 if (cam != null)
                 {
                     // 简单的摄像机跟随

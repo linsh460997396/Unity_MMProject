@@ -20,7 +20,7 @@ namespace SpriteSpace
         /// 当RuntimePrefab.Add(string key, Object obj,bool clone = false)中的clone参数为true时,资源为副本存储,
         /// 当clone参数为false时,直接存储对象,摧毁原对象会影响该字典内容,场景切换时未被DontDestroyOnLoad保护的实例会被Unity自动销毁‌,请做好保护.
         /// </summary>
-        public static RuntimePrefab runtimePrefab = UnityUtilities.runtimePrefab;
+        public static RuntimePrefab runtimePrefab = UKit.runtimePrefab;
         /// <summary>
         /// 用来阻止挂组件时自动Awake一次.而Start、Update那些就不用阻止了,因为runtimePrefab不在场景,即便预制体上组件Enable也不起作用.
         /// </summary>
@@ -33,7 +33,24 @@ namespace SpriteSpace
         /// 预制体初始化是否完成.
         /// </summary>
         public static bool initialized;
-        public static Material material;
+
+        private static Material _materialRes;
+        public static Material MaterialRes
+        {
+            get
+            {
+                if (_materialRes == null)
+                {
+                    _materialRes = UKit.Material; //将启用GPU实例化的材质做成了ScriptableObject素材,并放在了元素首位,这里读取
+                }
+                return _materialRes;
+            }
+            set
+            {
+                _materialRes = value;
+            }
+        }
+
         public static RenderTexture minimap;
 
         //内置精灵素材(编辑器环境放在Resources目录)
@@ -45,24 +62,16 @@ namespace SpriteSpace
         /// <summary>
         /// 预制体初始化方法.在使用SpriteSpacePrefab前必须调用此方法来确保预制体已被创建.
         /// </summary>
-        public static void Init(bool useDftMat = true, string spriteShader = "Custom/ReciprocalColorFixed", int countGO = 20000)
+        public static void Init(int countGO = 20000, Material material = null)
         {
             if (initialized) return;
-            if (useDftMat)
+            if (material != null) { MaterialRes = material; }
+            if (MaterialRes != null)
             {
-                material = UnityUtilities.SpecialAssets.materials[0]; //将启用GPU实例化的材质做成了ScriptableObject素材,并放在了元素首位,这里读取
+                Debug.Log($"精灵框架的材质名称: {MaterialRes.name}");
+                Debug.Log($"精灵框架Shader名称: {MaterialRes.shader.name}");
             }
-            else
-            {
-                //代码组装方式无法开启GPU实例化
-                Shader targetShader = Shader.Find(spriteShader);
-                if (targetShader == null)
-                {
-                    Debug.LogWarning($"Shader '{spriteShader}' not found. Falling back to 'Sprites/Default'.");
-                    targetShader = Shader.Find("Sprites/Default");
-                }
-                material = new Material(targetShader);
-            }
+
             group = GameObject.Find("SpriteSpacePrefab") ?? new GameObject("SpriteSpacePrefab"); //创建存放SpriteSpace预制体实例的父级容器
             DontDestroyOnLoad(group);
             runtimePrefab.hideFlags = HideFlags.DontUnloadUnusedAsset; //资源持久化标记
@@ -76,7 +85,7 @@ namespace SpriteSpace
             //初始化底层绘制对象池(用于大量NPC、怪物等活动精灵个体对象复用GameObject,防止频繁创建摧毁导致掉帧问题)
             GameObject tempGroup = new GameObject("GOGroup");
             DontDestroyOnLoad(tempGroup);
-            GO.Init(material, countGO, tempGroup);
+            GO.Init(countGO, tempGroup);
 
             //通过访问属性创建场景必要上层UI(Sun、MainCamera、MinimapCamera、MinimapCanvas)
             //注意: MapEditorCanvas 不在此初始化,在快捷键等情况下按需初始化
@@ -98,7 +107,7 @@ namespace SpriteSpace
         {
             get
             {
-                return UnityUtilities.MainCamera;
+                return UKit.MainCamera;
             }
         }
 
@@ -112,7 +121,7 @@ namespace SpriteSpace
             get
             {
                 string name = "MinimapCamera";
-                //return UnityUtilities.GetOrCreatePrefab(name, go =>
+                //return UKit.GetOrCreatePrefab(name, go =>
                 //{
                 //    // 将小地图相机作为MainCamera的子对象,这样会自动跟随主摄像机移动
                 //    go.transform.SetParent(MainCamera.transform);
@@ -280,7 +289,7 @@ namespace SpriteSpace
         {
             get
             {
-                return UnityUtilities.Sun;
+                return UKit.Sun;
             }
         }
 
@@ -657,7 +666,7 @@ namespace SpriteSpace
         {
             get
             {
-                return UnityUtilities.GetOrCreatePrefab("MapEditorCanvas", go =>
+                return UKit.GetOrCreatePrefab("MapEditorCanvas", go =>
                 {
                     go.transform.parent = group.transform;
                     Canvas canvas = go.AddComponent<Canvas>();

@@ -181,7 +181,7 @@ namespace MMWorld
             mainCanvaGO = SpriteSpace.SpriteSpacePrefab.MapEditorCanvas;
             if (mainCanvaGO != null)
             {
-                mainCamera = UnityUtilities.MainCamera;
+                mainCamera = UKit.MainCamera;
                 mainCanva = mainCanvaGO.GetComponent<Canvas>();
 
                 //从代码创建的Canvas中查找UI元素

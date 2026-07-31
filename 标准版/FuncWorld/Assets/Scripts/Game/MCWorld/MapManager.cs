@@ -100,7 +100,7 @@ namespace MCWorld
         {
             while (Engine.UniblocksNetwork == null)
             {
-                yield return UnityUtilities.waitForEndOfFrame;
+                yield return UTime.waitForEndOfFrame;
             }
             UniblocksClient.UpdatePlayerPosition(currentPos);
             UniblocksClient.UpdatePlayerRange(Engine.ChunkSpawnDistance);

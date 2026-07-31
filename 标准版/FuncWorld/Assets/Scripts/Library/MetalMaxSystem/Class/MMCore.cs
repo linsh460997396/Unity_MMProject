@@ -818,6 +818,34 @@ namespace MetalMaxSystem
         #region Functions 通用功能
 
         /// <summary>
+        /// 获取指定路径的目录名(路径全名),若路径为空或null则返回空字符串
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static string GetDirectoryName(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                return string.Empty;
+            }
+            return Path.GetDirectoryName(path);
+        }
+
+        /// <summary>
+        /// 获取指定路径的目录名称(仅目录名),若路径为空或null则返回空字符串
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static string GetDirectoryNameOnly(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                return string.Empty;
+            }
+            return Path.GetFileName(Path.GetDirectoryName(path));
+        }
+
+        /// <summary>
         /// 用ThreadStringBuilder构建键值字符串.
         /// 以baseKey为基础,在其后依次添加下划线和indices中的每个元素,形成一个新的字符串返回.如BuildKey("key", 1, 2)返回"key12"
         /// </summary>

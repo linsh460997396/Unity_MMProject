@@ -17,7 +17,7 @@ namespace CellSpace
         /// 当RuntimePrefab.Add(string key, Object obj,bool clone = false)中的clone参数为true时,资源为副本存储,
         /// 当clone参数为false时,直接存储对象,摧毁原对象会影响该字典内容,场景切换时未被DontDestroyOnLoad保护的实例会被Unity自动销毁‌,请做好保护.
         /// </summary>
-        public static RuntimePrefab runtimePrefab = UnityUtilities.runtimePrefab;
+        public static RuntimePrefab runtimePrefab = UKit.runtimePrefab;
         /// <summary>
         /// 用来阻止挂组件时自动Awake一次.而Start、Update那些就不用阻止了,因为runtimePrefab不在场景,即便预制体上组件Enable也不起作用.
         /// </summary>
@@ -31,8 +31,8 @@ namespace CellSpace
         /// </summary>
         public static bool initialized;
         /// <summary>
-        /// 外部纹理图片路径.默认留空使用路径:Application.dataPath + @"/CellSpace/Res/Textures".其他路径示范:
-        /// externalTexturePath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework/Textures";
+        /// [外部]纹理路径.默认留空并使用路径:Application.dataPath + @"/CellSpace/Res/Textures".其他路径示范:
+        /// externalTexturePath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework/Res/Textures";
         /// </summary>
         public static string externalTexturePath;
 

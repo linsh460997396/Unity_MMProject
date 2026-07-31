@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using MetalMaxSystem.Unity;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -51,28 +52,65 @@ public struct GO
         }
     }
 
+    //配套的Shader"Custom/ReciprocalColorFixed"复制自原始shader,改了顶点color的值为1/color,取倒数从而可大幅度放大颜色值实现全白
+    //可能因精度问题,编辑器中颜色码小于8会整个变黑,故先暂定最小值为8/255即0.0314
+
+    //Shader"Custom/ReciprocalColorFixed"在「Universal 2D主光照Pass」和「UniversalForward 无光照Pass」的顶点着色器中实现了o.color = (1.0f / v.color) * _Color* _RendererColor的运算
+    //其中v.color是SpriteRenderer自带的模型顶点颜色,通过spriteRenderer.color赋值颜色分量,Shader会自动对这个原生顶点颜色做取倒数运算
+    //再和调用SetColor方法通过MaterialPropertyBlock传入的_Color属性相乘,最终得到顶点的输出颜色值
+
     /// <summary>
     /// 将spriteRenderer颜色设为原色不透明(默认颜色状态).
     /// </summary>
     public void SetColorDefault()
     {
-        spriteRenderer.color = new Color(1f, 1f, 1f, 1f);
+        spriteRenderer.color = dft; 
+        //SetColor(spriteRenderer, dft);
     }
 
-    // 复制原始 shader 改了一下顶点 color 的值为 1/color 取倒数,从而可大幅度放大颜色值. 这样可实现全白
-    // 可能是因为精度问题,编辑器中颜色码小于 8 会整个变黑. 故先暂定最小值为 8/255 即 0.0314
-
     /// <summary>
-    /// 将spriteRenderer颜色设为接近白色
+    /// 将spriteRenderer颜色设为接近白色.若打包前有效打包后丢失GPU实例化效果,那么去编辑器菜单-项目设置-图形-找到"实例化变体"选择"保持全部"即可解决.
+    /// 凡运行时动态新建材质‌并赋值Shader的,在打包构建时这些动态生成的材质并不存在,Unity的静态分析器无法预知会用到哪些关键字组合,从而默认剥离未使用的变体.
     /// </summary>
     public void SetColorWhite()
     {
-        // const float minVal = 0.0314f; //URP使用
-        const float minVal = 31.875f;
-        spriteRenderer.color = new Color(minVal, minVal, minVal, 1f); //Unity内部使用0~1范围浮点数表示红蓝绿分量,以线性颜色空间进行处理
+        spriteRenderer.color = flash; //Unity内部使用0~1范围浮点数表示红蓝绿分量,以线性颜色空间进行处理
+        //SetColor(spriteRenderer, flash);
     }
 
     /******************************************************************************************/
+
+    //const float minVal = 0.0314f;//URP使用
+    const float minVal = 31.875f;  //无管线使用名为"Custom/ReciprocalColorFixed"的Shader,取倒数为白闪效果
+                                   //把顶点颜色设为趋近纯黑,触发Shader的1/颜色逻辑,瞬间输出纯白硬闪
+                                   //Shader需用"Custom/ReciprocalColorFixed",利用顶点颜色倒数的特性,实现纯黑→纯白的瞬间切换
+                                   //但无法做渐变过渡,也不能自定义闪烁色,适合只需要硬闪全白、追求极致轻量的受击反馈场景
+
+    private static Color dft = new Color(1f, 1f, 1f, 1f);
+    private static Color flash = new Color(minVal, minVal, minVal, 1f);
+
+    private static MaterialPropertyBlock _flashPropertyBlock;
+    public static MaterialPropertyBlock FlashPropertyBlock
+    {
+        get
+        {
+            if (_flashPropertyBlock == null) _flashPropertyBlock = new MaterialPropertyBlock();
+            return _flashPropertyBlock;
+        }
+    }
+
+    /// <summary>
+    /// 给单个角色触发受击硬闪效果,不会破坏全局实例化合批.
+    /// </summary>
+    /// <param name="spriteRenderer"></param>
+    /// <param name="color"></param>
+    public void SetColor(SpriteRenderer lv_spriteRenderer, Color lv_color)
+    {
+        FlashPropertyBlock.Clear(); //直接复用全局单例对象,清空上次残留属性再写入新的颜色值
+        FlashPropertyBlock.SetColor("_Color", lv_color);
+        lv_spriteRenderer.SetPropertyBlock(FlashPropertyBlock);
+    }
+
     /******************************************************************************************/
 
     /// <summary>
@@ -81,10 +119,23 @@ public struct GO
     /// Pop返回栈内副本可恢复外部访问路径.如OP实例字段gameObject不为空并在Push后清空该字段再Pop,会重新恢复不为空的gameObject.
     /// </summary>
     public static Stack<GO> pool;
+
+    public static Material _mat;
     /// <summary>
-    /// 统一材质(静态字段,内存唯一).应先Instantiate初始化后再赋值给字段,不然使用时Unity会反复隐式实例化再赋值给组件实例的材质字段.
+    /// 统一材质(静态字段,内存唯一).
     /// </summary>
-    public static Material material;
+    public static Material Mat
+    {
+        get
+        {
+            if (_mat == null)
+            {
+                _mat = UKit.Material;
+            }
+            return _mat;
+        }
+        set { _mat = value; }
+    }
     /// <summary>
     /// 游戏物体实例化后的父级GameObject.
     /// </summary>
@@ -124,9 +175,9 @@ public struct GO
         //退回对象池之前的准备工作
         o.Disable();
         o.SetColorDefault();
-        o.spriteRenderer.material = material;
-        //赋值预制体时因其未被Instantiate,Unity会隐式创建材质实例相当于调用material.Instantiate()后再赋值给组件实例的材质字段.
-        //Debug.Assert(o.spriteRenderer.material == material); //实测不一致,说明其实是spriteRenderer.material = material.Instantiate(),建议material作为参数填入前确保已被Instantiate初始化.
+        o.spriteRenderer.material = Mat;
+        //注意避免:Unity 中产生材质副本(即生成 <MaterialName> (Instance))的典型操作是访问 renderer.material 属性(getter/setter)
+        //Debug.Assert(o.spriteRenderer.material == material); //实测不一致,说明其实是spriteRenderer.material = material.Instantiate()
         o.gameObject.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
         o.gameObject.transform.localScale = Vector3.one;
 
@@ -155,7 +206,7 @@ public struct GO
             o.gameObject.transform.SetParent(group.transform);
         }
         o.spriteRenderer = o.gameObject.AddComponent<SpriteRenderer>();
-        o.spriteRenderer.material = material;
+        o.spriteRenderer.material = Mat;
         o.spriteRenderer.spriteSortPoint = SpriteSortPoint.Pivot;
         o.transform = o.gameObject.GetComponent<Transform>();
         return o;
@@ -167,15 +218,33 @@ public struct GO
     /// <summary>
     /// 预填充.初始化材质和GO对象池.空GameObject会统一创建并绑定GO结构体对象.池内GO对象默认是禁用状态.
     /// </summary>
-    /// <param name="material">建议材质填入前确保已被Instantiate初始化,否则未初始化的预制体会致Unity反复调用material.Instantiate()再赋值给组件实例的材质字段.</param>
     /// <param name="count"></param>
-    /// <param name="gp">GameObject实例化后的父级收纳容器.</param>
-    public static void Init(Material material, int count, GameObject gp = null)
+    /// <param name="material"></param>
+    /// <param name="gp">GameObject实例化后的父级收纳容器</param>
+    public static void Init(int count, Material material = null, GameObject gp = null)
     {
-        GO.material = material;
+        if (material != null) GO.Mat = material;
 #if UNITY_EDITOR
-        Debug.Assert(GO.material != null);
+        Debug.Assert(GO.Mat != null);
 #endif
+        if (gp != null)
+        {
+            GO.group = gp;
+        }
+        GO.pool = new(count);
+        for (int i = 0; i < count; i++)
+        {
+            pool.Push(New());
+        }
+    }
+
+    /// <summary>
+    /// 预填充.初始化材质和GO对象池.空GameObject会统一创建并绑定GO结构体对象.池内GO对象默认是禁用状态.
+    /// </summary>
+    /// <param name="count"></param>
+    /// <param name="gp">GameObject实例化后的父级收纳容器</param>
+    public static void Init(int count, GameObject gp = null)
+    {
         if (gp != null)
         {
             GO.group = gp;

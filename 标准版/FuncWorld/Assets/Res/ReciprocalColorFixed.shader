@@ -1,5 +1,6 @@
 ﻿Shader "Custom/ReciprocalColorFixed" // copy from urp/2d/lit default. change vert color to (1/color)
 {
+    //ReciprocalColorFixed 利用顶点颜色倒数的特性,实现纯黑→纯白的瞬间切换,但无法做渐变过渡,也不能自定义闪烁色,更适合只需要硬闪全白、追求极致轻量的受击反馈场景
     Properties
     {
         _MainTex("Diffuse", 2D) = "white" {}
@@ -24,6 +25,7 @@
 
         Pass
         {
+            //「Universal 2D主光照Pass」
             Tags { "LightMode" = "Universal2D" }
 
             HLSLPROGRAM
@@ -37,12 +39,15 @@
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_2 __
             #pragma multi_compile USE_SHAPE_LIGHT_TYPE_3 __
             #pragma multi_compile _ DEBUG_DISPLAY
+            // GPU实例化核心编译指令,生成INSTANCING_ON运行变体
+            #pragma multi_compile_instancing
 
             struct Attributes
             {
                 float3 positionOS   : POSITION;
                 float4 color        : COLOR;
                 float2  uv          : TEXCOORD0;
+                // 实例化必需的输入ID声明
                 UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
@@ -55,6 +60,7 @@
                 #if defined(DEBUG_DISPLAY)
                 float3  positionWS  : TEXCOORD2;
                 #endif
+                // 实例化必需的输出立体渲染声明
                 UNITY_VERTEX_OUTPUT_STEREO
             };
 
@@ -87,7 +93,9 @@
             Varyings CombinedShapeLightVertex(Attributes v)
             {
                 Varyings o = (Varyings)0;
+                // 初始化当前实例ID,获取GPU分配的实例索引
                 UNITY_SETUP_INSTANCE_ID(v);
+                // 初始化立体渲染相关的实例数据,兼容VR/多显示器平台
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
                 o.positionCS = TransformObjectToHClip(v.positionOS);
@@ -97,7 +105,7 @@
                 o.uv = TRANSFORM_TEX(v.uv, _MainTex);
                 o.lightingUV = half2(ComputeScreenPos(o.positionCS / o.positionCS.w).xy);
 
-                o.color = (1.0f / v.color) * _Color * _RendererColor;              // changed here
+                o.color = (1.0f / v.color) * _Color * _RendererColor; //取倒数位置
                 return o;
             }
 
@@ -120,6 +128,7 @@
 
         Pass
         {
+            //‌「NormalsRendering 法线渲染Pass」
             Tags { "LightMode" = "NormalsRendering"}
 
             HLSLPROGRAM
@@ -127,6 +136,8 @@
 
             #pragma vertex NormalsRenderingVertex
             #pragma fragment NormalsRenderingFragment
+            // 法线渲染Pass补充实例化指令,保证带法线的2D精灵也能实例化合批
+            #pragma multi_compile_instancing
 
             struct Attributes
             {
@@ -183,6 +194,7 @@
 
         Pass
         {
+            //「UniversalForward 无光照Pass」
             Tags { "LightMode" = "UniversalForward" "Queue"="Transparent" "RenderType"="Transparent"}
 
             HLSLPROGRAM
@@ -190,6 +202,8 @@
 
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
+            // 无光照Forward Pass补充实例化指令,保证纯Unlit 2D精灵也能参与合批
+            #pragma multi_compile_instancing
 
             struct Attributes
             {
@@ -227,7 +241,7 @@
                 o.positionWS = TransformObjectToWorld(v.positionOS);
                 #endif
                 o.uv = TRANSFORM_TEX(attributes.uv, _MainTex);
-                o.color = (1.0f / attributes.color) * _Color * _RendererColor;              // changed here
+                o.color = (1.0f / attributes.color) * _Color * _RendererColor; //取倒数位置
                 return o;
             }
 
@@ -255,6 +269,6 @@
             ENDHLSL
         }
     }
-
+    //↓失败时使用Unity官方内置的默认精灵Shader
     Fallback "Sprites/Default"
 }

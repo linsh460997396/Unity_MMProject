@@ -188,8 +188,8 @@ namespace SpriteSpace
             designHeight_2 = designHeight / 2;
             cellRingDiffuseData = new CellRingDiffuseData(_gridContainer.SideLength, gridSize);
 
-            if (material == null) material = SpriteSpacePrefab.material;
-            if (minimapMaterial == null) minimapMaterial = SpriteSpacePrefab.material;
+            if (material == null) material = SpriteSpacePrefab.MaterialRes;
+            if (minimapMaterial == null) minimapMaterial = SpriteSpacePrefab.MaterialRes;
             if (minimapCameraGO == null) minimapCameraGO = SpriteSpacePrefab.MinimapCamera;
             if (minimapCanvasGO == null) minimapCanvasGO = SpriteSpacePrefab.MinimapCanvas;
             if (minimapCamera == null) minimapCamera = minimapCameraGO.GetComponent<Camera>();
@@ -382,7 +382,7 @@ namespace SpriteSpace
         public void InitMainCamera()
         {
             //使用SpriteSpacePrefab创建的主摄像机
-            if (mainCamera == null) mainCamera = UnityUtilities.MainCamera.GetComponent<Camera>();
+            if (mainCamera == null) mainCamera = UKit.MainCamera.GetComponent<Camera>();
 
             if (mainCamera != null)
             {

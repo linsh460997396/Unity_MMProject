@@ -150,7 +150,7 @@ namespace CellSpace
         /// <summary>
         /// 重复使用的"等待帧结束"对象.
         /// </summary>
-        public static readonly WaitForEndOfFrame waitForEndOfFrame = UnityUtilities.waitForEndOfFrame;
+        public static readonly WaitForEndOfFrame waitForEndOfFrame = UTime.waitForEndOfFrame;
 
         // 启动前考虑:运行模式、要预填充的地块种类数)
 
@@ -169,8 +169,9 @@ namespace CellSpace
         /// </summary>
         private static IEnumerator currentCoroutine;
         /// <summary>
-        /// 预制地图文本路径.默认留空则使用Unity内部Resources路径.其他路径示范:
-        /// mapIndexPath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework";
+        /// [内部]预制地图文本目录(MapIndex)的父目录.默认留空并使用Unity内部Resources目录.
+        /// 如果不为空,则组合mapIndexPath + "/MapIndex/预制地图文本名" + ".txt".
+        /// 其他路径示范:mapIndexPath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework/Res";
         /// </summary>
         public static string mapIndexPath;
 

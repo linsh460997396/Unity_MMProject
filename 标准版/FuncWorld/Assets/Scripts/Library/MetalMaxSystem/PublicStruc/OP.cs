@@ -1,6 +1,6 @@
 ﻿//#define BEPINEX //BepInEx制作UnityMOD时可手动启用
-
 #if UNITY_EDITOR || UNITY_STANDALONE || BEPINEX
+
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -42,6 +42,7 @@ namespace MetalMaxSystem.Unity
         /// 自动初始化栈容量后pool.Capacity = autoStackCount但注意此时pool.Count依然是0(尚未存入具体对象)
         /// </summary>
         public static int autoStackCount = 256;
+
         /******************************************************************************************/
         /******************************************************************************************/
 

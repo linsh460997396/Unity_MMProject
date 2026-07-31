@@ -7,7 +7,7 @@ namespace UnityHexPlanet {
     public class TileRaycast : MonoBehaviour
     {
         /// <summary>
-        /// 是否显示Demo编辑器GUI（选中计数器、高度滑块、+/-按钮）和多选光标逻辑.
+        /// 是否显示Demo编辑器GUI(选中计数器、高度滑块、+/-按钮)和多选光标逻辑.
         /// 默认true用于HexDemo场景；MMWorld中设为false只保留悬浮高亮功能.
         /// </summary>
         public bool showEditorGUI = true;
@@ -21,7 +21,7 @@ namespace UnityHexPlanet {
         // Start is called before the first frame update
         void Start()
         {
-            _planetCamera = MetalMaxSystem.Unity.UnityUtilities.PlanetCamera.GetComponent<Camera>();
+            _planetCamera = MetalMaxSystem.Unity.UKit.PlanetCamera.GetComponent<Camera>();
             _raycastMask = LayerMask.GetMask("HexPlanet");
             _selectedHexTiles = new HashSet<HexTile>();
             _cursors = new List<GameObject>();

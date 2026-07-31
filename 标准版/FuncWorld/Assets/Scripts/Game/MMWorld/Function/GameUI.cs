@@ -796,11 +796,11 @@ namespace MMWorld
         {
             isLoading = true;
             UpdateLoadingProgress(0f, "正在创建世界...");
-            yield return UnityUtilities.waitForSecondsQuarter;
+            yield return UTime.waitForSeconds0_25;
             UpdateLoadingProgress(10f, "正在初始化...");
-            yield return UnityUtilities.waitForSecondsQuarter;
+            yield return UTime.waitForSeconds0_25;
             UpdateLoadingProgress(30f, "正在生成星球...");
-            yield return UnityUtilities.waitForSecondsQuarter;
+            yield return UTime.waitForSeconds0_25;
 
             //隐藏菜单
             UI_GameObject_PlanetSelect()?.SetActive(false);
@@ -808,19 +808,19 @@ namespace MMWorld
             UGUITemplate.Control_GameUIBackground.enabled = false;
             UI_GameObject_ProgressLoading()?.SetActive(false);
 
-            // 禁用原始主相机（正交2.5D模式,不适合3D星球视角）
-            UnityUtilities.MainCamera.SetActive(false);
+            // 禁用原始主相机(正交2.5D模式,不适合3D星球视角)
+            UKit.MainCamera.SetActive(false);
 
             TileRaycast tileRaycast;
             HexPlanetManager planetManager = CreatePlanetRoot(out tileRaycast);
 
-            // 等待玩家点击星球Tile（独立射线检测,不依赖TileRaycast的事件）
+            // 等待玩家点击星球Tile(独立射线检测,不依赖TileRaycast的事件)
             HexTile selectedTile = null;
             while (selectedTile == null)
             {
                 if (Input.GetMouseButtonDown(0))
                 {
-                    selectedTile = RaycastToTile(UnityUtilities.PlanetCamera.GetComponent<Camera>());
+                    selectedTile = RaycastToTile(UKit.PlanetCamera.GetComponent<Camera>());
                     if (selectedTile != null)
                     {
                         Debug.Log($"[GameUI] 选中Tile: ID={selectedTile.id}");
@@ -829,21 +829,21 @@ namespace MMWorld
                 yield return null;
             }
 
-            // 禁用TileRaycast组件（停止Demo的多选/光标逻辑）
+            // 禁用TileRaycast组件(停止Demo的多选/光标逻辑)
             tileRaycast.enabled = false;
 
             //关闭星球相机
-            UnityUtilities.PlanetCamera.SetActive(false);
+            UKit.PlanetCamera.SetActive(false);
 
             // 恢复原始主相机
-            UnityUtilities.MainCamera.SetActive(true);
+            UKit.MainCamera.SetActive(true);
 
             UI_GameObject_ProgressLoading()?.SetActive(true);
             UpdateLoadingProgress(70f, "初始化游戏框架...");
-            yield return UnityUtilities.waitForSecondsQuarter;
+            yield return UTime.waitForSeconds0_25;//这里若不yield return就会在玩家点击球面区域后卡在球画面,加了之后会让其正确卡在进度条
             GameMain.Run();
             UpdateLoadingProgress(85f, "创建256x256地面...");
-            yield return UnityUtilities.waitForSecondsQuarter;
+            yield return UTime.waitForSeconds0_25;
 
             int tileId = selectedTile.id;
             if (MapIndex.Instance != null)
@@ -851,7 +851,7 @@ namespace MMWorld
                 yield return MapIndex.Instance.StartCoroutine(MapIndex.Instance.CreateMap(tileId, 256, 256));
             }
             UpdateLoadingProgress(100f, "创建完成!");
-            yield return UnityUtilities.waitForSecondsQuarter;
+            yield return UTime.waitForSeconds0_25;
             UI_GameObject_ProgressLoading()?.SetActive(false);
 
             if (planetManager != null)
@@ -878,12 +878,12 @@ namespace MMWorld
             HexPlanetManager manager = planetRoot.AddComponent<HexPlanetManager>();
 
             HexPlanet hexPlanet = ScriptableObject.CreateInstance<HexPlanet>();
-            //HexPlanet hexPlanet = UnityUtilities.SpecialAssets.scriptableObjects[2] as HexPlanet; //使用ScriptableObject星球数据
+            //HexPlanet hexPlanet = UKit.SpecialAssets.scriptableObjects[2] as HexPlanet; //使用ScriptableObject星球数据
             hexPlanet.radius = 100f;
             hexPlanet.subdivisions = 5;
             hexPlanet.chunkSubdivisions = 2;
 
-            hexPlanet.chunkMaterial = UnityUtilities.SpecialAssets.materials[1];
+            hexPlanet.chunkMaterial = UKit.SpecialAssetData.materials[0];
             hexPlanet.chunkMaterial.color = new Color(0.4f, 0.6f, 0.3f);
 
             // PerlinTerrainGenerator terrainGen = ScriptableObject.CreateInstance<PerlinTerrainGenerator>();
@@ -919,7 +919,7 @@ namespace MMWorld
             manager.hexPlanet = hexPlanet;
             manager.UpdateRenderObjects();
 
-            // 星球轨道相机控制（挂载在星球专用相机上）
+            // 星球轨道相机控制(挂载在星球专用相机上)
             CameraOrbit orbit = PlanetCameraOrbit;
             orbit.origin = planetRoot;
             orbit.orbitRadius = 190f;
@@ -938,7 +938,7 @@ namespace MMWorld
             lr.startColor = new Color(1f, 1f, 0f, 0.9f);
             lr.endColor = new Color(1f, 1f, 0f, 0.9f);
 
-            // 添加TileRaycast组件用于悬浮高亮（使用PlanetCamera作为Camera.main）
+            // 添加TileRaycast组件用于悬浮高亮(使用PlanetCamera作为Camera.main)
             tileRaycast = planetRoot.AddComponent<TileRaycast>();
             tileRaycast.showEditorGUI = false; // 关闭Demo编辑器GUI,仅保留LineRenderer悬浮高亮
 
@@ -953,15 +953,15 @@ namespace MMWorld
             {
                 if (_planetCameraOrbit == null)
                 {
-                    _planetCameraOrbit = UnityUtilities.PlanetCamera.GetComponent<CameraOrbit>();
-                    if (_planetCameraOrbit == null) _planetCameraOrbit = UnityUtilities.PlanetCamera.AddComponent<CameraOrbit>();
+                    _planetCameraOrbit = UKit.PlanetCamera.GetComponent<CameraOrbit>();
+                    if (_planetCameraOrbit == null) _planetCameraOrbit = UKit.PlanetCamera.AddComponent<CameraOrbit>();
                 }
                 return _planetCameraOrbit;
             }
         }
 
         /// <summary>
-        /// 射线检测点击的Tile（参考TileRaycast.cs的检测逻辑）
+        /// 射线检测点击的Tile(参考TileRaycast.cs的检测逻辑)
         /// </summary>
         private static HexTile RaycastToTile(Camera cam)
         {

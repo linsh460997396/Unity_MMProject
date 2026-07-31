@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using MetalMaxSystem.Unity;
+using UnityEngine;
 
 namespace SimWorld
 {
@@ -109,7 +110,7 @@ namespace SimWorld
             //}
 
             // 初始化 底层绘制对象池
-            GO.Init(material, 20000);
+            GO.Init(20000, material);
             Debug.Log("精灵对象池容量: " + GO.pool.Count);
 
             // 初始化 玩家
@@ -175,7 +176,7 @@ namespace SimWorld
             minimap_camera.enabled = b;
         }
 
-    }    
+    }
 }
 
 //显示设置改为dx12可在editor里观察hdr效果

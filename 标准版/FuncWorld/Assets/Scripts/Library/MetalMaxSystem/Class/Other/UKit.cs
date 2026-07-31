@@ -1,6 +1,7 @@
 ﻿//#define UNITY_STANDALONE //BepInEx制作UnityMOD时可手动启用
 #if UNITY_EDITOR || UNITY_STANDALONE
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,35 +12,96 @@ namespace MetalMaxSystem.Unity
     /// <summary>
     /// Unity通用方法类.
     /// </summary>
-    public class UnityUtilities : MonoBehaviour
+    public class UKit : MonoBehaviour
     {
-        public static AssetBundle ab_SpecialAssets;
-        private static SpecialAssets _specialAssets;
+        private static AssetBundle _specialAssetBundle;
         /// <summary>
-        /// 内置材质、Shader、贴图等资源,做成ScriptableObject文件,编辑器环境放Resources目录.
+        /// [外部]材质、Shader、贴图等资源,做成AssetBundle包.
+        /// 编辑器环境放Assets/AssetBundle/SpecialAssets.ab,或打包后运行时环境从应用名_Data目录/AssetBundle/SpecialAssets.ab获取
         /// </summary>
-        public static SpecialAssets SpecialAssets
+        public static AssetBundle SpecialAssetBundle
         {
             get
             {
-                if (_specialAssets == null)
+                if (_specialAssetBundle == null)
+                {
+                    _specialAssetBundle = AssetBundle.LoadFromMemory(File.ReadAllBytes(Application.dataPath + "/AssetBundle/SpecialAssets.ab"));
+                }
+                return _specialAssetBundle;
+            }
+        }
+
+        private static SpecialAssets _specialAssetData;
+        /// <summary>
+        /// [编辑器环境][内部]材质、Shader、贴图等资源做成ScriptableObject文件,编辑器环境放Resources/ScriptableObject/SpecialAssets.asset,打包时自动关联所有文件,使用时智能管理.
+        /// Resources只需放这么一个SO文件,其余素材放别目录,用到时拖给SO即可(SO也可拖给SO),避免不一定用到的素材全放Resources致冗余,也方便素材管理.
+        /// </summary>
+        public static SpecialAssets SpecialAssetData
+        {
+            get
+            {
+                if (_specialAssetData == null)
                 {
                     //编辑器的Resources目录下只需放1个ScriptableObject/SpecialAssets.asset
-                    _specialAssets = Resources.Load<SpecialAssets>("ScriptableObject/SpecialAssets");
-                    if (_specialAssets == null)
+                    _specialAssetData = Resources.Load<SpecialAssets>("ScriptableObject/SpecialAssets");
+                    if (_specialAssetData == null)
                     {
-                        //以下是用AssetBundleLoader同步加载外部地址的指定名称AB包内的SpecialAssets
-                        _specialAssets = AssetBundleLoader.LoadFromMemory<SpecialAssets>(Application.dataPath + "/Res/SpecialAssets.ab", "SpecialAssets", out ab_SpecialAssets);
+                        //若没有放,则用AssetBundleLoader同步加载指定地址名称的AB包内的SpecialAssets.asset
+                        _specialAssetData = AssetBundleLoader.LoadFromMemory<SpecialAssets>(Application.dataPath + "/AssetBundle/SpecialAssets.ab", "SpecialAssets", out _specialAssetBundle);
                     }
                 }
-                return _specialAssets;
+                return _specialAssetData;
+            }
+        }
+        private static Shader _shader;
+        /// <summary>
+        /// [内部]Shader,在SpecialAssets.asset中配置.
+        /// 默认使用"Custom/ReciprocalColorFixed"的Shader,利用顶点颜色倒数的特性,实现纯黑→纯白的瞬间切换,但无法做渐变过渡,也不能自定义闪烁色,更适合只需要硬闪全白、追求极致轻量的受击反馈场景.
+        /// 如果该文件不存在,则换成精灵默认Shader = Shader.Find("Sprites/Default").
+        /// </summary>
+        public static Shader Shader
+        {
+            get
+            {
+                if (_shader == null)
+                {
+                    //"Custom/ReciprocalColorFixed"利用顶点颜色倒数的特性,实现纯黑→纯白的瞬间切换,但无法做渐变过渡,也不能自定义闪烁色,更适合只需要硬闪全白、追求极致轻量的受击反馈场景
+                    _shader = UKit.SpecialAssetData.shaders[0];
+                    if (_shader == null)
+                    {
+                        //如果该文件不存在,则换成普通精灵默认Shader
+                        _shader = Shader.Find("Sprites/Default");
+                    }
+                }
+                return _shader;
+            }
+        }
+
+        private static Material _material;
+        /// <summary>
+        /// [内部]材质,用UKit.Shader进行创建.
+        /// UKit.Shader默认用"Custom/ReciprocalColorFixed",利用顶点颜色倒数的特性,实现纯黑→纯白的瞬间切换,但无法做渐变过渡,也不能自定义闪烁色,更适合只需要硬闪全白、追求极致轻量的受击反馈场景.
+        /// 如果该文件不存在,则换成精灵默认Shader = Shader.Find("Sprites/Default").
+        /// 最后通过new Material(UKit.Shader)方式新建材质,Unity会自动将材质默认名设为Shader名称.
+        /// </summary>
+        public static Material Material
+        {
+            get
+            {
+                if (_material == null)
+                {
+                    _material = new Material(UKit.Shader);
+                    _material.enableInstancing = true; //开启GPU实例化(需要Shader支持),支持合批渲染,提高性能
+                    //Debug.Log("开启了GPU实例化！");
+                }
+                return _material;
             }
         }
 
         private static string _externalPath;
         /// <summary>
-        /// 外部资源路径.默认留空使用路径:Application.dataPath + @"/Res".其他路径示范:
-        /// ExternalPath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework";
+        /// [外部]资源目录.默认留空并使用路径:Application.dataPath + @"/Res".其他路径示范:
+        /// ExternalPath = System.IO.Path.GetDirectoryName(Application.dataPath) + "/BepInEx/plugins/MCFramework/Res";
         /// 打包后需要手动转移素材至Application.dataPath目录(一般为:程序名_Data),在该目录下创建Res文件夹放置外部资源.
         /// </summary>
         public static string ExternalPath
@@ -57,18 +119,6 @@ namespace MetalMaxSystem.Unity
                 _externalPath = value;
             }
         }
-
-        /// <summary>
-        /// 等待当前帧结束,在下一帧的Update前运行一次(仅自动运行1次,在当前帧反复使用同一个实例无效).
-        /// </summary>
-        public static readonly WaitForEndOfFrame waitForEndOfFrame = new WaitForEndOfFrame();
-        public static readonly WaitForFixedUpdate waitForFixedUpdate = new WaitForFixedUpdate();
-        public static readonly WaitForSeconds waitForSeconds = new WaitForSeconds(0.0625f);
-        public static readonly WaitForSeconds waitForSecondsEighth = new WaitForSeconds(0.125f);
-        public static readonly WaitForSeconds waitForSecondsQuarter = new WaitForSeconds(0.25f);
-        public static readonly WaitForSeconds waitForSecondsHalf = new WaitForSeconds(0.5f);
-        public static readonly WaitForSeconds waitForSeconds1 = new WaitForSeconds(1f);
-        public static readonly WaitForSeconds waitForSeconds0Dot1 = new WaitForSeconds(0.1f);
 
         /// <summary>
         /// 预制体字典.

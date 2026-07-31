@@ -332,24 +332,24 @@ namespace MetalMaxSystem.Unity
 
 /*
 ## BatchRenderer 使用示范
-#### 方式一：Inspector 配置
+#### 方式一:Inspector 配置
 1. 创建空GameObject挂载BatchRenderer组件
-2. 在 Inspector 中设置参数：
-   - **BlendMode**: 混合模式（Additive/AlphaBlend/Opaque）
-   - **CoordinateSystem**: 坐标系（ScreenPixels/World/Normalized）
+2. 在 Inspector 中设置参数:
+   - **BlendMode**: 混合模式(Additive/AlphaBlend/Opaque)
+   - **CoordinateSystem**: 坐标系(ScreenPixels/World/Normalized)
    - **AutoRender**: 是否自动帧末渲染
-3. 在代码中获取并使用：
+3. 在代码中获取并使用:
 public BatchRenderer batchRenderer;
 void LateUpdate()
 {
     batchRenderer.Draw(texture, position, rotation, scale, color);
 }
-// 新方式：无需手动建立GameObject和组件,直接通过静态方法Instance访问
+// 新方式:无需手动建立GameObject和组件,直接通过静态方法Instance访问
 void LateUpdate()
 {
     BatchRenderer.Instance.Draw(texture, position, rotation, scale, color);
 }
-#### 方式二：纯代码创建
+#### 方式二:纯代码创建
 var go = new GameObject("BatchRenderer");
 var renderer = go.AddComponent<BatchRenderer>();
 renderer.blendMode = BlendMode.AlphaBlend;
@@ -363,30 +363,30 @@ renderer.autoRender = true;
 | `Draw(tex, pos, origin, rotation, scale, color)` | 自定义原点 | 非中心旋转/锚点对齐 |
 | `DrawLine(pixel, start, end, color, thickness)` | 起点 + 终点 + 粗细 | 画线、网格、边框 |
 ### 示例代码解读
-// 1. 最简单的绘制：位置 + 颜色
+// 1. 最简单的绘制:位置 + 颜色
 batchRenderer.Draw(testSprite, center, Color.white);
 // 2. 添加缩放
 batchRenderer.Draw(testSprite, center + offset, 0.5f, Color.blue);
 // 3. 添加旋转
 batchRenderer.Draw(testSprite, pos, time * 2, Vector2.one, Color.white);
-// 4. 非均匀缩放（压扁/拉伸）
+// 4. 非均匀缩放(压扁/拉伸)
 batchRenderer.Draw(testSprite, pos, time * 3, new Vector2(1.2f, 0.5f), Color.cyan);
-// 5. 自定义原点（右下角旋转）
+// 5. 自定义原点(右下角旋转)
 Vector2 customOrigin = new Vector2(tex.width * 0.8f, tex.height * 0.2f);
 batchRenderer.Draw(testSprite, pos, customOrigin, rotation, Vector2.one, Color.yellow);
-// 6. 画线（粗细3像素）
+// 6. 画线(粗细3像素)
 batchRenderer.DrawLine(pixelTexture, start, end, Color.green, 3f);
 ### 常用场景示例
-#### 场景一：2D 游戏实体渲染
+#### 场景一:2D 游戏实体渲染
 void DrawEntity(Texture2D sprite, Vector2 position, float angle, float scale, Color tint)
 {
     batchRenderer.Draw(sprite, position, angle, scale, tint);
 }
 // 渲染玩家
 DrawEntity(playerSprite, playerPos, playerAngle, 1f, Color.white);
-// 渲染受伤的敌人（红色闪烁）
+// 渲染受伤的敌人(红色闪烁)
 DrawEntity(enemySprite, enemyPos, enemyAngle, 1f, Color.Lerp(Color.white, Color.red, flashPhase));
-#### 场景二：粒子效果
+#### 场景二:粒子效果
 void DrawExplosion(Vector2 center, int count)
 {
     for (int i = 0; i < count; i++)
@@ -399,7 +399,7 @@ void DrawExplosion(Vector2 center, int count)
         batchRenderer.Draw(particleSprite, pos, angle, alpha * 0.8f, Color.yellow * alpha);
     }
 }
-#### 场景三：UI 元素
+#### 场景三:UI 元素
 void DrawHealthBar(Vector2 position, float percent)
 {
     // 背景
@@ -408,7 +408,7 @@ void DrawHealthBar(Vector2 position, float percent)
     // 血量条
     batchRenderer.DrawLine(pixelTexture, position, position + new Vector2(100 * percent, 0), Color.green, 16);
 }
-#### 场景四：网格/线条绘制
+#### 场景四:网格/线条绘制
 void DrawGrid(int cellSize)
 {
     for (int x = 0; x < Screen.width; x += cellSize)
@@ -423,9 +423,9 @@ void DrawGrid(int cellSize)
 | **ScreenPixels** | (0,0)~(Screen.width, Screen.height) | 向下 | UI、HUD、像素级精确绘制 |
 | **World** | 世界坐标 | 向上 | 游戏世界实体 |
 | **Normalized** | 0~1 | 向下 | 百分比布局 |
-// ScreenPixels 模式（默认）
+// ScreenPixels 模式(默认)
 batchRenderer.Draw(sprite, new Vector2(100, 200), Color.white);
-// Normalized 模式（0~1 范围）
+// Normalized 模式(0~1 范围)
 batchRenderer.coordinateSystem = CoordinateSystem.Normalized;
 batchRenderer.Draw(sprite, new Vector2(0.5f, 0.5f), Color.white); // 屏幕中心
 ### 混合模式对比
@@ -435,13 +435,13 @@ batchRenderer.Draw(sprite, new Vector2(0.5f, 0.5f), Color.white); // 屏幕中�
 | **AlphaBlend** | 透明度混合 | 普通精灵、UI |
 | **Opaque** | 不透明覆盖 | 固体物体、背景 |
 ### 性能注意事项
-1. **同纹理批处理**：相同纹理的绘制会自动合并为一次 GPU 调用,不同纹理会触发新的 DrawCall
-2. **避免动态创建纹理**：每帧创建新 Texture2D 会产生 GC 分配,应预缓存
-3. **推荐在 LateUpdate 中绘制**：确保所有变换更新完成后再入队
-4. **减少批次数量**：尽量复用相同纹理,减少纹理切换
-// 推荐：缓存纹理引用
+1. **同纹理批处理**:相同纹理的绘制会自动合并为一次 GPU 调用,不同纹理会触发新的 DrawCall
+2. **避免动态创建纹理**:每帧创建新 Texture2D 会产生 GC 分配,应预缓存
+3. **推荐在 LateUpdate 中绘制**:确保所有变换更新完成后再入队
+4. **减少批次数量**:尽量复用相同纹理,减少纹理切换
+// 推荐:缓存纹理引用
 Texture2D cachedSprite = Resources.Load<Texture2D>("Sprites/Player");
-// 不推荐：每帧加载
+// 不推荐:每帧加载
 // batchRenderer.Draw(Resources.Load<Texture2D>("Sprites/Player"), pos, color);
 // 完整示范↓
 public class BatchRendererExample : MonoBehaviour
