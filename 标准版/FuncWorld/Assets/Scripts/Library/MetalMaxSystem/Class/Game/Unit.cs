@@ -125,7 +125,7 @@ namespace MetalMaxSystem
         /// </summary>
         public double Matk { get; set; }
         /// <summary>
-        /// Mdef :魔法防御力
+        /// Mdef:魔法防御力
         /// </summary>
         public double Mdef { get; set; }
         /// <summary>
@@ -173,7 +173,7 @@ namespace MetalMaxSystem
         /// </summary>
         public double Sps { get; set; }
         /// <summary>
-        /// 工作、施法时间阶段的状态值恢复或倒计速度
+        /// 技能效率,影响工作、施法进度条恢复或倒计速度
         /// </summary>
         public double[] Tps { get; set; }
         /// <summary>

@@ -48,14 +48,14 @@ namespace MMWorld
         /// </summary>
         public void Start()
         {
-            // 精灵框架初始化(素材和预制体)
+            // 精灵框架初始化
             SpriteSpacePrefab.Init();
 
             // 创建主菜单
             GameUI.Create();
 
             // 初始化FirstPersonAvatar
-            MetalMaxSystem.Unity.FirstPersonAvatar.Init();
+            FirstPersonAvatar.Init();
 
             // 直接测试游戏
             //Run();

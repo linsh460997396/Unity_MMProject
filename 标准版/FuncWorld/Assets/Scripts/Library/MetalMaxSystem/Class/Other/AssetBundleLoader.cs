@@ -353,7 +353,7 @@ namespace MetalMaxSystem.Unity
 
         /// <summary>
         /// 异步以文件的形式加载AssetBundle中指定名称的单个素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObject(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObject<T>(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="resName">AB包根目录下素材的原始路径,只填名称则搜索到第一个同名元素即返回</param>
@@ -374,7 +374,7 @@ namespace MetalMaxSystem.Unity
             if (key != null && key != "")
             {
                 _assetBundle["ABLoader_AssetBundle" + key] = request.assetBundle;
-                _object["ABLoader_GameObject" + key] = request.assetBundle.LoadAsset<T>(resName);
+                _object["ABLoader_Object" + key] = request.assetBundle.LoadAsset<T>(resName);
             }
             else
             {
@@ -385,7 +385,7 @@ namespace MetalMaxSystem.Unity
         }
         /// <summary>
         /// 异步以byte[]形式加载AssetBundle中指定名称的单个素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObject(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObject<T>(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="resName">AB包根目录下素材的原始路径,只填名称则搜索到第一个同名元素即返回</param>
@@ -403,7 +403,7 @@ namespace MetalMaxSystem.Unity
             if (key != null && key != "")
             {
                 _assetBundle["ABLoader_AssetBundle" + key] = request.assetBundle;
-                _object["ABLoader_GameObject" + key] = request.assetBundle.LoadAsset<T>(resName);
+                _object["ABLoader_Object" + key] = request.assetBundle.LoadAsset<T>(resName);
             }
             else
             {
@@ -413,7 +413,7 @@ namespace MetalMaxSystem.Unity
         }
         /// <summary>
         /// 异步以流的形式加载AssetBundle中指定名称的单个素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObject(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObject<T>(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="resName"></param>
@@ -447,7 +447,7 @@ namespace MetalMaxSystem.Unity
         }
         /// <summary>
         /// 异步以文件的形式加载AssetBundle中指定名称的单个素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObject(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObject<T>(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="resName"></param>
@@ -469,7 +469,7 @@ namespace MetalMaxSystem.Unity
         }
         /// <summary>
         /// 异步以byte[]形式加载AssetBundle中指定名称的单个素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObject(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObject<T>(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="resName"></param>
@@ -491,7 +491,7 @@ namespace MetalMaxSystem.Unity
         }
         /// <summary>
         /// 异步以流的形式加载AssetBundle中指定名称的单个素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObject(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObject<T>(key)获取加载的素材实例,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="resName"></param>
@@ -515,7 +515,7 @@ namespace MetalMaxSystem.Unity
 
         /// <summary>
         /// 异步以文件的形式加载AssetBundle中指定类型的全部素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObjectGroup(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObjectGroup<T>(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="key">存储键区</param>
@@ -544,7 +544,7 @@ namespace MetalMaxSystem.Unity
         }
         /// <summary>
         /// 异步以文件的形式加载AssetBundle中指定类型的全部素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObjectGroup(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObjectGroup<T>(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="key">存储键区</param>
@@ -565,7 +565,7 @@ namespace MetalMaxSystem.Unity
         }
         /// <summary>
         /// 异步以byte[]形式加载AssetBundle中指定类型的全部素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObjectGroup(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObjectGroup<T>(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="key">存储键区</param>
@@ -595,7 +595,7 @@ namespace MetalMaxSystem.Unity
         }
         /// <summary>
         /// 异步以byte[]形式加载AssetBundle中指定类型的全部素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObjectGroup(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObjectGroup<T>(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="key">存储键区</param>
@@ -616,7 +616,7 @@ namespace MetalMaxSystem.Unity
         }
         /// <summary>
         /// 异步以流的形式加载AssetBundle中指定类型的全部素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObjectGroup(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObjectGroup<T>(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="key">存储键区</param>
@@ -651,7 +651,7 @@ namespace MetalMaxSystem.Unity
         }
         /// <summary>
         /// 异步以流的形式加载AssetBundle中指定类型的全部素材并存储在字典.要注意所有的异步加载都会开启协程(依赖MonoBehaviour实例来运行).
-        /// 加载完成可通过GetGameObjectGroup(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
+        /// 加载完成可通过GetObjectGroup<T>(key)获取加载的素材实例数组,或通过GetAssetBundle(key)获取加载的AssetBundle实例.
         /// </summary>
         /// <param name="path"></param>
         /// <param name="key">存储键区</param>
@@ -686,6 +686,7 @@ namespace MetalMaxSystem.Unity
         #endregion
     }
 }
+#endif
 
 // 在Unity中,Coroutine 和 IEnumerator 是两个不同的概念,但它们紧密相关,通常一起使用来实现协程的功能.
 // 理解它们的区别和用途对于正确使用协程是非常重要.
@@ -820,5 +821,3 @@ namespace MetalMaxSystem.Unity
 //若你使用 IEnumerator协程方法体的实例作为参数来尝试停止协程,并且多个协程实例Coroutine实际上使用了相同的 IEnumerator 实例,那么所有使用相同 IEnumerator 实例的协程都将被停止.
 //这是因为 StopCoroutine 方法会根据提供的 IEnumerator 实例来查找和停止所有相关的协程.
 //(这在实践中是不常见的,每个协程实例都应设计成同一时刻有其自己的 IEnumerator 实现)
-
-#endif
